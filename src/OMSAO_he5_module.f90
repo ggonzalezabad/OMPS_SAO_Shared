@@ -951,8 +951,6 @@ CONTAINS
     !
     !------------------------------------------------------------------------------
 
-    USE OMSAO_indices_module,    ONLY: pge_hcho_idx, pge_bro_idx, max_calfit_idx
-    USE OMSAO_parameters_module, ONLY: i4_missval, r4_missval, r8_missval
     USE OMSAO_errstat_module
 
     IMPLICIT NONE
@@ -1056,7 +1054,7 @@ CONTAINS
 
   SUBROUTINE write_solar_calibration(ip, nw, fit_res_out, flag)
 
-    USE OMSAO_variables_module,  ONLY: hw1e, e_asym, fitvar_cal
+    USE OMSAO_variables_module,  ONLY: fitvar_cal
     USE OMSAO_omidata_module
     USE OMSAO_indices_module,    ONLY: shi_idx
 

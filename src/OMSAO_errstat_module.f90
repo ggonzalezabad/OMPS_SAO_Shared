@@ -18,6 +18,7 @@ MODULE OMSAO_errstat_module
   INCLUDE 'PGS_PC.f'
   INCLUDE 'PGS_PC_9.f'
   INCLUDE 'PGS_IO.f'
+  INCLUDE 'PGS_TD_3.f'
 
   ! Toolkit include files (PGE specific)
   INCLUDE 'PGS_OMSAO_52500.f'

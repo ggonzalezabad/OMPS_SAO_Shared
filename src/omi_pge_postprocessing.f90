@@ -1,5 +1,5 @@
 SUBROUTINE omi_pge_postprocessing ( &
-     l1bfile, pge_idx, ntimes, nxtrack, yn_process, xtrange, yn_szoom, n_max_rspec, errstat )
+     pge_idx, ntimes, nxtrack, xtrange, errstat )
 
   ! ---------------------------------------------------------
   ! In this subroutine we collect all those computations that
@@ -12,15 +12,12 @@ SUBROUTINE omi_pge_postprocessing ( &
   ! (5) Reference Sector Background Correction for HCHO
   ! ---------------------------------------------------------
 
-  USE OMSAO_precision_module
-  USE OMSAO_he5_module
-  USE OMSAO_pixelcorner_module
-  USE OMSAO_destriping_module
-  USE OMSAO_errstat_module
-  USE OMSAO_indices_module, ONLY: pge_hcho_idx
-  USE OMSAO_Reference_sector_module
-  USE OMSAO_radiance_ref_module, ONLY: yn_radiance_reference
-  USE OMSAO_wfamf_module, ONLY: amf_calculation_bis, climatology_allocate, Cmlat, Cmlon, CmETA, CmEp1
+  USE OMSAO_precision_module, ONLY: i2, i4, r4, r8
+  USE OMSAO_he5_module, ONLY: lat_field, lon_field, sza_field, &
+       thgt_field, vza_field, extr_field
+  USE OMSAO_errstat_module, ONLY: pge_errstat_ok
+  USE OMSAO_wfamf_module, ONLY: amf_calculation_bis, climatology_allocate, &
+       Cmlat, Cmlon, CmETA, CmEp1
 
   IMPLICIT NONE
 
@@ -28,10 +25,8 @@ SUBROUTINE omi_pge_postprocessing ( &
   ! ---------------
   ! Input variables
   ! ---------------
-  CHARACTER (LEN=*),                              INTENT (IN) :: l1bfile  
-  INTEGER (KIND=i4),                              INTENT (IN) :: ntimes, nxtrack, n_max_rspec, pge_idx
+  INTEGER (KIND=i4),                              INTENT (IN) :: ntimes, nxtrack, pge_idx
   INTEGER (KIND=i4), DIMENSION (0:ntimes-1,1:2),  INTENT (IN) :: xtrange
-  LOGICAL,           DIMENSION (0:ntimes-1),      INTENT (IN) :: yn_process, yn_szoom
 
   ! -----------------
   ! Modified variable
@@ -46,8 +41,6 @@ SUBROUTINE omi_pge_postprocessing ( &
   REAL    (KIND=r4), DIMENSION (1:nxtrack,0:ntimes-1) :: lat, lon, sza, vza, thg, extr
   REAL    (KIND=r8), DIMENSION (1:nxtrack,0:ntimes-1) :: saocol, saodco, saorms, saoamf
   INTEGER (KIND=i2), DIMENSION (1:nxtrack,0:ntimes-1) :: saofcf, saomqf
-  INTEGER (KIND=i2), DIMENSION (1:nxtrack,0:ntimes-1) :: glint_flg, snow_ice_flg
-  LOGICAL                                             :: yn_write
 
   ! --------------
   ! Error handling

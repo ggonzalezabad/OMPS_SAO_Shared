@@ -1,8 +1,8 @@
 SUBROUTINE angle_sat2toa ( earth_curv, ers2_alt, atm_hght, n_arr_pix, sza, vza, relazm )
 
   USE OMSAO_precision_module,  ONLY: i4, r4, r8
-  USE OMSAO_parameters_module, ONLY: &
-       r4_missval, deg2rad, rad2deg, pi, min_zenith, max_zenith, max_azimuth
+  USE OMSAO_parameters_module, ONLY: r4_missval, deg2rad, rad2deg, &
+       pi, min_zenith, max_zenith
   IMPLICIT NONE
 
   ! Input variables

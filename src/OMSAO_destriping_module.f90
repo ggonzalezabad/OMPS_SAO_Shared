@@ -1,18 +1,16 @@
 MODULE OMSAO_destriping_module
 
-  USE OMSAO_precision_module
-  USE OMSAO_indices_module,    ONLY: pge_bro_idx, pge_o3_idx, xtrcor_didx
+  USE OMSAO_indices_module,  ONLY: pge_bro_idx, pge_o3_idx, xtrcor_didx
   USE OMSAO_parameters_module, ONLY: &
        r8_missval, normweight, downweight, elsunc_less_is_noise, elsunc_infloop_eval
-  USE OMSAO_omidata_module,    ONLY: nxtrack_max, nlines_max
-  USE OMSAO_variables_module,  ONLY: &
+  USE OMSAO_omidata_module, ONLY: nxtrack_max, nlines_max
+  USE OMSAO_variables_module, ONLY: &
        radfit_latrange, num_fitfunc_calls, num_fitfunc_jacobi, yn_diagnostic_run
-  USE OMSAO_median_module,     ONLY: median
+  USE OMSAO_median_module, ONLY: median
   USE OMSAO_he5_module
-  USE OMSAO_errstat_module
+  USE OMSAO_errstat_module, ONLY: pge_errstat_ok
 
   IMPLICIT NONE
-
 
   ! ----------------------------------------------------------------------
   ! Variables local to this module but common to many of the routines here
@@ -51,28 +49,24 @@ MODULE OMSAO_destriping_module
 
 CONTAINS
 
-  SUBROUTINE xtrack_destriping (                           &
-       pge_idx, ntimes, nxtrack, yn_process, xtrange,      &
-       lat, saocol, saodco, saoamf, saofcf, saomqf, errstat )
+  SUBROUTINE xtrack_destriping ( ntimes, nxtrack, yn_process, &
+       xtrange, lat, saocol, saomqf)
 
     IMPLICIT NONE
 
     ! ---------------
     ! Input variables
     ! ---------------
-    INTEGER (KIND=i4),                                 INTENT (IN) :: pge_idx, ntimes, nxtrack
+    INTEGER (KIND=i4), INTENT (IN) :: ntimes, nxtrack
     LOGICAL,           DIMENSION (0:ntimes-1),         INTENT (IN) :: yn_process
     INTEGER (KIND=i4), DIMENSION (0:ntimes-1,1:2),     INTENT (IN) :: xtrange
     REAL    (KIND=r4), DIMENSION (nxtrack,0:ntimes-1), INTENT (IN) :: lat
-    REAL    (KIND=r8), DIMENSION (nxtrack,0:ntimes-1), INTENT (IN) :: saodco, saoamf
-    INTEGER (KIND=i2), DIMENSION (nxtrack,0:ntimes-1), INTENT (IN) :: saofcf, saomqf
+    INTEGER (KIND=i2), DIMENSION (nxtrack,0:ntimes-1), INTENT (IN) :: saomqf
 
     ! ------------------
     ! Modified variables
     ! ------------------
     REAL    (KIND=r8), DIMENSION (nxtrack,0:ntimes-1), INTENT (INOUT) :: saocol
-    INTEGER (KIND=i4),                                 INTENT (INOUT) :: errstat
-
 
     ! ---------------
     ! Local variables
@@ -85,18 +79,11 @@ CONTAINS
     REAL    (KIND=r8), DIMENSION (0:ntimes-1)         :: xtrack_fit
     REAL    (KIND=r8), DIMENSION (nxtrack,0:ntimes-1) :: saodst, tmpcol, xtrack_cor
     INTEGER (KIND=i2), DIMENSION (nxtrack,0:ntimes-1) :: tmpmqf
-    INTEGER (KIND=i4), DIMENSION (2)                  :: latitude_lines, avg_limits
-    REAL    (KIND=r8)                                 :: tmp_norm
-    REAL    (KIND=r4)                                 :: midlat
-    REAL    (KIND=r8)                                 :: xtr_median_med
-    REAL    (KIND=r8), DIMENSION (nxtrack)            :: xtr_median, xtr_weight
-    LOGICAL,           DIMENSION (0:ntimes-1)         :: yn_dst_range
-
-
-    ! ------------------------------
-    ! Name of this module/subroutine
-    ! ------------------------------
-    CHARACTER (LEN=17), PARAMETER :: modulename = 'xtrack_destriping'
+    REAL    (KIND=r8) :: tmp_norm
+    REAL    (KIND=r4) :: midlat
+    REAL    (KIND=r8) :: xtr_median_med
+    REAL    (KIND=r8), DIMENSION (nxtrack) :: xtr_median, xtr_weight
+    LOGICAL, DIMENSION (0:ntimes-1) :: yn_dst_range
 
     locerrstat = pge_errstat_ok
 
@@ -203,8 +190,7 @@ CONTAINS
                xtr_weight(1:nxtrack)) /SUM(xtr_weight(1:nxtrack) )
           xtrack_striping_pat = xtrack_avg_norm / tmp_norm
                     
-          CALL xtrack_pattern_polyfit (                                    &
-               it, nxtrack, ctr_pol_patt,                                  &
+          CALL xtrack_pattern_polyfit ( nxtrack, ctr_pol_patt, &
                xtrack_avg_norm(1:nxtrack), xtrack_striping_pos(1:nxtrack), &
                xtr_weight(1:nxtrack), xtrack_striping_pat(1:nxtrack),      &
                xtrack_pfit(1:nxtrack)    )
@@ -212,47 +198,6 @@ CONTAINS
        END IF
 
        DO it = nl0, nl1
-
-          !DeadBranch: ! ------------------------------------------------------
-          !DeadBranch: ! If CTR_NBLOCKS is 0 or greater, we are doing a dynamic 
-          !DeadBranch: ! block-based destriping. Else we are using the fixed
-          !DeadBranch: ! latitude limits set in the Fitting Control File. For
-          !DeadBranch: ! the block-based destriping we need to compute the
-          !DeadBranch: ! along-track average for each and every scan line.
-          !DeadBranch: ! ------------------------------------------------------
-          !DeadBranch: IF ( ctr_nblocks >= 0 ) THEN
-          !DeadBranch:    IF      ( it <= nl0+(nbd2-1)                       ) THEN
-          !DeadBranch:       k1 = nl0
-          !DeadBranch:    ELSE IF ( it >  nl0+(nbd2-1) .AND. it <= nl1-nbd2  ) THEN
-          !DeadBranch:       k1 = it-nbd2
-          !DeadBranch:    ELSE IF ( it >  nl1-nbd2                           ) THEN
-          !DeadBranch:       k1 = nl1-ctr_nblocks
-          !DeadBranch:    END IF
-          !DeadBranch:    k2 = k1 + ctr_nblocks
-          !DeadBranch: 
-          !DeadBranch: 
-          !DeadBranch:    CALL xtrack_median_comp ( &
-          !DeadBranch:         k2-k1+1, nxtrack, saocol(1:nxtrack,k1:k2), saomqf(1:nxtrack,k1:k2), &
-          !DeadBranch:         xtr_median(1:nxtrack), xtr_median_med, xtr_weight(1:nxtrack) )
-          !DeadBranch: 
-          !DeadBranch:    ! ----------------------------------------
-          !DeadBranch:    ! Normalize the cross-track stripe pattern
-          !DeadBranch:    ! ----------------------------------------
-          !DeadBranch:    xtrack_avg_norm = xtr_median / xtr_median_med
-          !DeadBranch:    tmp_norm = SUM(xtrack_avg_norm(1:nxtrack) * &
-          !DeadBranch:         xtr_weight(1:nxtrack)) /SUM(xtr_weight(1:nxtrack) )
-          !DeadBranch:    xtrack_striping_pat = xtrack_avg_norm / tmp_norm
-          !DeadBranch: 
-          !DeadBranch:    CALL xtrack_pattern_polyfit (                                    &
-          !DeadBranch:         it, nxtrack, ctr_pol_patt,                                  &
-          !DeadBranch:         xtrack_avg_norm(1:nxtrack), xtrack_striping_pos(1:nxtrack), &
-          !DeadBranch:         xtr_weight(1:nxtrack), xtrack_striping_pat(1:nxtrack),      &
-          !DeadBranch:         xtrack_pfit(1:nxtrack)  )
-          !DeadBranch: 
-          !DeadBranch: ELSE
-          !DeadBranch:    k1 = avg_limits(1) ; k2 = avg_limits(2)
-          !DeadBranch: END IF
-
           ! -----------------------
           ! Copy the actual columns
           ! -----------------------
@@ -355,8 +300,7 @@ CONTAINS
 
           xtrack_striping_pat = xtr_median / tmp_norm
 
-          CALL xtrack_pattern_polyfit (                               &
-               it, nxtrack, ctr_bias_pol,                             &
+          CALL xtrack_pattern_polyfit ( nxtrack, ctr_bias_pol, &
                xtr_median(1:nxtrack), xtrack_striping_pos(1:nxtrack), &
                xtr_weight(1:nxtrack), xtrack_striping_pat(1:nxtrack), &
                xtrack_pfit(1:nxtrack)    )          
@@ -400,7 +344,7 @@ CONTAINS
     ! -----------------------------------------------------------------
     CALL xtrack_destriping_writecol (                            &
          ntimes, nxtrack, saodst(1:nxtrack,0:ntimes-1),          &
-         xtrack_cor(1:nxtrack,0:nTimes-1), xtrack_fit(0:nTimes-1)  )
+         xtrack_cor(1:nxtrack,0:nTimes-1) )
 
     RETURN
   END SUBROUTINE xtrack_destriping
@@ -582,17 +526,16 @@ CONTAINS
   END SUBROUTINE xtrack_destriping_lat_limits
     
 
-  SUBROUTINE xtrack_pattern_polyfit ( &
-       is_line, nxtrack, npol, xtrack_avg, xtrack_pos, xtrack_wgt, &
-       xtrack_cor, xtrack_pfit )
+  SUBROUTINE xtrack_pattern_polyfit ( nxtrack, npol, xtrack_avg, &
+       xtrack_pos, xtrack_wgt, xtrack_cor, xtrack_pfit )
 
     IMPLICIT NONE
 
     ! ---------------
     ! Input variables
     ! ---------------
-    INTEGER (KIND=i4),                      INTENT (IN)    :: is_line, nxtrack, npol
-    REAL    (KIND=r8), DIMENSION (nxtrack), INTENT (IN)    :: xtrack_avg, xtrack_pos, xtrack_wgt
+    INTEGER (KIND=i4), INTENT (IN) :: nxtrack, npol
+    REAL    (KIND=r8), DIMENSION (nxtrack), INTENT (IN) :: xtrack_avg, xtrack_pos, xtrack_wgt
 
     ! ---------------
     ! Output variable
@@ -767,19 +710,19 @@ CONTAINS
     fitpar(2:2+npolb) = 0.0_r8
     CALL xtrack_striping_func ( &
          fitpar(1:nfit), nfit, xtrack_cor(1:nxtrack), nxtrack, ctrl, &
-         dfda(1:nxtrack,1:nfit), 0 )
+         dfda(1:nxtrack,1:nfit) )
     RETURN
   END SUBROUTINE xtrack_striping_fit
 
 
-  SUBROUTINE xtrack_striping_func ( a, na, y, m, ctrl, dyda, mdy )
+  SUBROUTINE xtrack_striping_func ( a, na, y, m, ctrl, dyda )
 
     IMPLICIT NONE
     
     ! ----------------
     ! Input parameters
     ! ----------------
-    INTEGER (KIND=i4),                  INTENT (IN)  :: na, m, mdy
+    INTEGER (KIND=i4), INTENT (IN)  :: na, m
     REAL    (KIND=r8), DIMENSION (na),  INTENT (IN)  :: a
 
     ! -------------------
@@ -929,21 +872,20 @@ CONTAINS
     RETURN
   END SUBROUTINE xtrack_striping_func
 
-  SUBROUTINE xtrack_destriping_writecol (ntimes, nxtrack, saocol, xtrack_cor, xtrack_fit )
+  SUBROUTINE xtrack_destriping_writecol (ntimes, nxtrack, saocol, xtrack_cor )
 
     IMPLICIT NONE
 
     ! ---------------
     ! Input variables
     ! ---------------
-    INTEGER (KIND=i4),                                 INTENT (IN) :: ntimes, nxtrack
-    REAL    (KIND=r8), DIMENSION (0:ntimes-1),         INTENT (IN) :: xtrack_fit
+    INTEGER (KIND=i4), INTENT (IN) :: ntimes, nxtrack
     REAL    (KIND=r8), DIMENSION (nxtrack,0:ntimes-1), INTENT (IN) :: saocol, xtrack_cor
 
     ! ---------------
     ! Local variables
     ! ---------------
-    INTEGER (KIND=i4)            :: locerrstat, iline, ntimes_loop
+    INTEGER (KIND=i4) :: locerrstat, iline, ntimes_loop
 
     ! -------------------------------------------------------
     ! First write the corrected columns; loop over all lines

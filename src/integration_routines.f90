@@ -687,8 +687,6 @@ subroutine cadre ( func, a, b, abserr, relerr, error, result, ind )
      aitken = .true.
   end if
 
-170 continue
-
   fextrp = t(l-2,lm1)
 
   if ( 4.5_r8 < fextrp ) then
@@ -719,16 +717,12 @@ subroutine cadre ( func, a, b, abserr, relerr, error, result, ind )
 
   vint = step * ait(l)
 
-200 continue
-
   errer = errer / fextm1
 
   if ( errer <= ergoal ) then
      ind = max ( ind, 2 )
      go to 340
   end if
-
-210 continue
 
   it = it + 1
 
@@ -855,8 +849,6 @@ subroutine cadre ( func, a, b, abserr, relerr, error, result, ind )
   result = result + vint
   error = error + errer
 
-350 continue
-
   if ( right ) then
      go to 360
   end if
@@ -899,8 +891,6 @@ subroutine cadre ( func, a, b, abserr, relerr, error, result, ind )
      result = curest + vint
      return
   end if
-
-390 continue
 
   if ( right ) then
      go to 410
@@ -957,8 +947,6 @@ subroutine cadre ( func, a, b, abserr, relerr, error, result, ind )
 440 continue
 
   ind = 4
-
-460 continue
 
   result = curest + vint
 
@@ -2617,11 +2605,9 @@ subroutine gaus8 ( func, a, b, err, result, ierr )
   real ( KIND = r8 ) err
   real ( KIND = r8 ) est
   real ( KIND = r8 ), external :: func
-  real ( KIND = r8 ) g8
   real ( KIND = r8 ) gl
   real ( KIND = r8 ) glr
   real ( KIND = r8 ) gr(30)
-  real ( KIND = r8 ) h
   real ( KIND = r8 ) hh(30)
   integer, save :: icall = 0
   integer ierr
@@ -2641,23 +2627,6 @@ subroutine gaus8 ( func, a, b, err, result, ierr )
   real ( KIND = r8 ) tol
   real ( KIND = r8 ) vl(30)
   real ( KIND = r8 ) vr
-  real ( KIND = r8 ), save :: w1 = 3.62683783378361983E-01_r8
-  real ( KIND = r8 ), save :: w2 = 3.13706645877887287E-01_r8
-  real ( KIND = r8 ), save :: w3 = 2.22381034453374471E-01_r8
-  real ( KIND = r8 ), save :: w4 = 1.01228536290376259E-01_r8
-  real ( KIND = r8 ) x
-  real ( KIND = r8 ), save :: x1 = 1.83434642495649805E-01_r8
-  real ( KIND = r8 ), save :: x2 = 5.25532409916328986E-01_r8
-  real ( KIND = r8 ), save :: x3 = 7.96666477413626740E-01_r8
-  real ( KIND = r8 ), save :: x4 = 9.60289856497536232E-01_r8
-  !
-  !  Warning!  Statement function!
-  !
-  g8(x,h) = h * ( ( & 
-       w1 * ( func ( x - x1 * h ) + func ( x + x1 * h ) )   &
-       + w2 * ( func ( x - x2 * h ) + func ( x + x2 * h ) ) ) &
-       + ( w3 * ( func ( x - x3 * h ) + func ( x + x3 * h ) )   &
-       + w4 * ( func ( x - x4 * h ) + func ( x + x4 * h ) ) ) )
 
   if ( a == b ) then
      err = 0.0_r8
@@ -2862,6 +2831,34 @@ subroutine gaus8 ( func, a, b, err, result, ierr )
   end if
 
   return
+
+  !
+  !  Warning!  Statement function!
+  !
+  CONTAINS
+  !
+  ! Function g8
+  !
+  FUNCTION g8(x,h)
+    IMPLICIT NONE
+    REAL (KIND=r8), INTENT(IN) :: x,h
+    REAL (KIND=r8) :: g8
+    REAL (KIND = r8 ), SAVE :: w1 = 3.62683783378361983E-01_r8
+    REAL (KIND = r8 ), SAVE :: w2 = 3.13706645877887287E-01_r8
+    REAL (KIND = r8 ), SAVE :: w3 = 2.22381034453374471E-01_r8
+    REAL (KIND = r8 ), SAVE :: w4 = 1.01228536290376259E-01_r8
+    REAL (KIND = r8 ), SAVE :: x1 = 1.83434642495649805E-01_r8
+    REAL (KIND = r8 ), SAVE :: x2 = 5.25532409916328986E-01_r8
+    REAL (KIND = r8 ), SAVE :: x3 = 7.96666477413626740E-01_r8
+    REAL (KIND = r8 ), SAVE :: x4 = 9.60289856497536232E-01_r8
+
+    g8 = h * ( ( & 
+         w1 * ( func ( x - x1 * h ) + func ( x + x1 * h ) )   &
+         + w2 * ( func ( x - x2 * h ) + func ( x + x2 * h ) ) ) &
+         + ( w3 * ( func ( x - x3 * h ) + func ( x + x3 * h ) )   &
+         + w4 * ( func ( x - x4 * h ) + func ( x + x4 * h ) ) ) )
+  END FUNCTION g8
+
 end subroutine gaus8
 
 subroutine gausq2 ( n, d, e, z, ierr )
@@ -5017,8 +5014,6 @@ subroutine simp ( func, a, b, eps, result )
      go to 40
   end if
 
-90 continue
-
   result = sum1
 
   return
@@ -5336,7 +5331,6 @@ subroutine timestamp ( )
   !
   !    None
   !
-  USE OMSAO_precision_module, ONLY: r8
   implicit none
 
   character ( len = 8 ) ampm

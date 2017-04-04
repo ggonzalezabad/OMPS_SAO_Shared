@@ -51,8 +51,7 @@ MODULE OMSAO_Reference_sector_module
       ! ---------------
       ! Input variables
       ! ---------------
-      INTEGER (KIND=i4),                                       INTENT (IN) :: ntimes, nxtrack, &
-           ntimesrr, nxtrackrr
+      INTEGER (KIND=i4), INTENT (IN) :: ntimes, nxtrack, ntimesrr, nxtrackrr
       INTEGER (KIND=i2), DIMENSION (1:nxtrackrr,0:ntimesrr-1), INTENT (IN) :: refmqf
       REAL    (KIND=r8), DIMENSION (1:nxtrackrr,0:ntimesrr-1), INTENT (IN) :: refamf
       INTEGER (KIND=i2), DIMENSION (1:nxtrackrr,0:ntimesrr-1), INTENT (IN) :: amfflg
@@ -60,27 +59,22 @@ MODULE OMSAO_Reference_sector_module
       ! ------------------
       ! Modified variables
       ! ------------------
-      INTEGER (KIND=i4),                                   INTENT (INOUT) :: errstat
+      INTEGER (KIND=i4), INTENT (INOUT) :: errstat
 
       ! ---------------
       ! Local variables
       ! ---------------
-      INTEGER (KIND=i4)                                       :: nTimesRadRR, nXtrackRadRR, igrid, itrack, iline
-      REAL    (KIND=r8), DIMENSION (1)                        :: one_background_correction, one_lat
-      REAL    (KIND=r8), DIMENSION (nxtrack,0:ntimes-1)       :: saocol, saodco, saorms
-      REAL    (KIND=r4), DIMENSION (nxtrack,0:ntimes-1)       :: saolat, saoamf
-      INTEGER (KIND=i2), DIMENSION (nxtrack,0:ntimes-1)       :: saoqf, amfdiag, rscdiag
+      INTEGER (KIND=i4) :: itrack, iline
+      REAL    (KIND=r8), DIMENSION (1) :: one_background_correction, one_lat
+      REAL    (KIND=r8), DIMENSION (nxtrack,0:ntimes-1) :: saocol, saodco, saorms
+      REAL    (KIND=r4), DIMENSION (nxtrack,0:ntimes-1) :: saolat, saoamf
+      INTEGER (KIND=i2), DIMENSION (nxtrack,0:ntimes-1) :: saoqf, amfdiag, rscdiag
 
 
       ! ------------------------
       ! Error handling variables
       ! ------------------------
-      INTEGER (KIND=i4) :: version, locerrstat
-
-      ! ------------------------------
-      ! Name of this module/subroutine
-      ! ------------------------------
-      CHARACTER (LEN=27), PARAMETER :: modulename = 'Reference_sector_correction'
+      INTEGER (KIND=i4) :: locerrstat
       
       locerrstat = pge_errstat_ok
 
@@ -98,7 +92,6 @@ MODULE OMSAO_Reference_sector_module
       ! ------------------------------------------------
       CALL compute_background_median_and_correction(ntimesrr, nxtrackrr,               &
            omi_column_amount(1:nxtrackrr,0:ntimesrr-1),                                &
-           omi_column_uncert(1:nxtrackrr,0:ntimesrr-1),                                &
            refamf(1:nxtrackrr,0:ntimesrr-1), omi_latitude(1:nxtrackrr,0:ntimesrr-1),   &
            omi_longitude(1:nxtrackrr,0:ntimesrr-1), refmqf(1:nxtrackrr,0:ntimesrr-1),  &
            amfflg(1:nxtrackrr,0:ntimesrr-1), locerrstat)
@@ -259,8 +252,8 @@ MODULE OMSAO_Reference_sector_module
     END SUBROUTINE Read_reference_sector_concentration
 
     SUBROUTINE compute_background_median_and_correction(nTimesRadRR, nXtrackRadRR, &
-           mem_column_amount, mem_column_uncertainty, mem_amf,      &
-           mem_latitude, mem_longitude, mem_mqf, amfflg, locerrstat)
+           mem_column_amount, mem_amf, mem_latitude, mem_longitude, mem_mqf, amfflg, &
+           locerrstat)
 
       USE OMSAO_median_module, ONLY: median
 
@@ -269,12 +262,10 @@ MODULE OMSAO_Reference_sector_module
       ! ---------------
       ! Input variables
       ! ---------------
-      INTEGER (KIND=i4),                                           &
-           INTENT(IN) :: nTimesRadRR, nXtrackRadRR
-      REAL    (KIND=r8), DIMENSION (nXtrackRadRR,0:nTimesRadRR-1), &
-           INTENT(IN) :: mem_column_amount, mem_column_uncertainty,&
-           mem_amf
-      REAL    (KIND=r4), DIMENSION (nXtrackRadRR,0:nTimesRadRR-1), &
+      INTEGER (KIND=i4), INTENT(IN) :: nTimesRadRR, nXtrackRadRR
+      REAL (KIND=r8), DIMENSION (nXtrackRadRR,0:nTimesRadRR-1), &
+           INTENT(IN) :: mem_column_amount, mem_amf
+      REAL (KIND=r4), DIMENSION (nXtrackRadRR,0:nTimesRadRR-1), &
            INTENT(IN) :: mem_latitude, mem_longitude
       INTEGER (KIND=i2), DIMENSION (nXtrackRadRR,0:nTimesRadRR-1), &
            INTENT(IN) :: mem_mqf, amfflg
@@ -289,7 +280,7 @@ MODULE OMSAO_Reference_sector_module
       ! ---------------
       INTEGER (KIND=i2)                           :: igrid, itrack, iline
       REAL    (KIND=r8), DIMENSION(ngridpoints+1) :: grid
-      REAL    (KIND=r8), DIMENSION(1000)          :: into_median, into_median_amf
+      REAL    (KIND=r8), DIMENSION(1000)          :: into_median
       REAL    (KIND=r8), DIMENSION (nXtrackRadRR,0:nTimesRadRR-1) &
                          :: column_amounts, amfs
       INTEGER (KIND=i2), DIMENSION (nXtrackRadRR,0:nTimesRadRR-1) &
@@ -359,8 +350,7 @@ MODULE OMSAO_Reference_sector_module
          nt, nx, column, rscdiag, errstat)
 
       USE OMSAO_he5_module
-      USE OMSAO_omidata_module,   ONLY: n_roff_dig
-      USE OMSAO_indices_module,   ONLY: pge_hcho_idx, pge_gly_idx, pge_bro_idx
+      USE OMSAO_omidata_module, ONLY: n_roff_dig
 
       IMPLICIT NONE
 

@@ -39,7 +39,7 @@ CONTAINS
     ! Local variables
     ! ---------------
     INTEGER   (KIND=i2)                     :: solcal_itnum
-    INTEGER   (KIND=i4)                     :: locerrstat, ipix, solcal_exval, n_sol_wvl, i
+    INTEGER   (KIND=i4)                     :: locerrstat, ipix, solcal_exval, n_sol_wvl
     CHARACTER (LEN=maxchlen)                :: addmsg
     REAL      (KIND=r8)                     :: chisquav
     LOGICAL                                 :: yn_skip_pix, yn_bad_pixel
@@ -79,7 +79,6 @@ CONTAINS
             n_omi_irradwvl,                               &
             omi_irradiance_wavl  (1:n_omi_irradwvl,ipix), &
             omi_irradiance_spec  (1:n_omi_irradwvl,ipix), &
-            omi_irradiance_qflg  (1:n_omi_irradwvl,ipix), &
             omi_irradiance_ccdpix(1:n_omi_irradwvl,ipix), &
             n_sol_wvl, curr_sol_spec(wvl_idx:ccd_idx,1:n_omi_irradwvl), &
             yn_skip_pix, locerrstat )
@@ -162,9 +161,8 @@ CONTAINS
     !   Perform solar wavelength calibration and slit width fitting
     !
     ! ***************************************************************
-
     USE OMSAO_parameters_module, ONLY: elsunc_less_is_noise, r8_missval
-    USE OMSAO_variables_module,  ONLY: pge_idx, yn_newshift
+    USE OMSAO_variables_module,  ONLY: yn_newshift
     IMPLICIT NONE
 
     ! ---------------
@@ -402,12 +400,6 @@ CONTAINS
     REAL    (KIND=r8) :: sol_wav_avg
     REAL    (KIND=r8), DIMENSION(nwavel_max) :: tmpwav, tmpspe, modspe, &
                                                 del, delx
-
-    ! ------------------------------
-    ! Name of this module/subroutine
-    ! ------------------------------
-    CHARACTER (LEN=37), PARAMETER :: modulename = 'xtrack_inverse_solar_calibration_loop'
-
 
     locerrstat = 0_i4
 

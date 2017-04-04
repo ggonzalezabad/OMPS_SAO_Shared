@@ -5,9 +5,13 @@ MODULE OMSAO_wfamf_module
   ! nt AMF calculations and contains necessary subroutines to read files
   ! and calculate them
   ! ====================================================================
-  USE OMSAO_precision_module, ONLY: i4, r8, C_LONG, r4
-  USE OMSAO_parameters_module
-  USE OMSAO_errstat_module
+  USE OMSAO_omidata_module, ONLY: n_roff_dig
+  USE OMSAO_errstat_module, ONLY: pge_errstat_ok, pge_errstat_warning, &
+       pge_errstat_error, pge_errstat_fatal, &
+       vb_lev_default, vb_lev_screen, he5_stat_fail, omi_s_success, &
+       omsao_e_he5swopen, omsao_e_prefitcol, omsao_e_he5swlocate, &
+       omsao_e_he5swattach, omsao_e_he5gdattach, omsao_e_he5gdopen, &
+       omsao_w_he5gdclose, f_sep, error_check
   USE OMSAO_he5_module
   USE OMSAO_indices_module, ONLY: n_voc_amf_luns
 
@@ -16,16 +20,16 @@ MODULE OMSAO_wfamf_module
   ! ====================================================================
   ! Wavelength dependent AMF factor specific variables
   ! ====================================================================
-  LOGICAL                                      :: yn_amf_wfmod
-  INTEGER                                      :: amf_wfmod_idx
-  REAL(KIND=r8)                                :: amf_alb_lnd, amf_alb_sno, amf_wvl, &
+  LOGICAL :: yn_amf_wfmod
+  INTEGER :: amf_wfmod_idx
+  REAL(KIND=r8) :: amf_alb_lnd, amf_alb_sno, amf_wvl, &
        amf_wvl2, amf_alb_cld, amf_max_sza
 
   ! ---------------------------------------
   ! Data obtained from the climatology file
   ! ---------------------------------------
-  REAL(KIND=r4), DIMENSION(:),     ALLOCATABLE :: latvals, lonvals, Ap, Bp
-  REAL(KIND=r4), DIMENSION(:,:),   ALLOCATABLE :: Psurface
+  REAL(KIND=r4), DIMENSION(:), ALLOCATABLE :: latvals, lonvals, Ap, Bp
+  REAL(KIND=r4), DIMENSION(:,:), ALLOCATABLE :: Psurface
   REAL(KIND=r4), DIMENSION(:,:,:), ALLOCATABLE :: Temperature, Gas_profiles
 
   ! ---------------------------------------
@@ -42,10 +46,10 @@ MODULE OMSAO_wfamf_module
   ! --------------
   ! Grid variables
   ! --------------
-  REAL(KIND=r4),    DIMENSION(:), ALLOCATABLE :: vl_pre
-  REAL(KIND=r4),    DIMENSION(:), ALLOCATABLE :: vl_sza
-  REAL(KIND=r4),    DIMENSION(:), ALLOCATABLE :: vl_vza
-  REAL(KIND=r4),    DIMENSION(:), ALLOCATABLE :: vl_wav
+  REAL(KIND=r4), DIMENSION(:), ALLOCATABLE :: vl_pre
+  REAL(KIND=r4), DIMENSION(:), ALLOCATABLE :: vl_sza
+  REAL(KIND=r4), DIMENSION(:), ALLOCATABLE :: vl_vza
+  REAL(KIND=r4), DIMENSION(:), ALLOCATABLE :: vl_wav
   CHARACTER(LEN=4), DIMENSION(:), ALLOCATABLE :: vl_toms
 
   ! ------------------
@@ -56,10 +60,10 @@ MODULE OMSAO_wfamf_module
   ! --------------------------
   ! Parameterization variables
   ! --------------------------
-  REAL(KIND=r4), DIMENSION(:,:,:,:,:),   ALLOCATABLE :: vl_I0, vl_I1, vl_I2, vl_Ir
-  REAL(KIND=r4), DIMENSION(:,:,:),       ALLOCATABLE :: vl_Sb  
+  REAL(KIND=r4), DIMENSION(:,:,:,:,:), ALLOCATABLE :: vl_I0, vl_I1, vl_I2, vl_Ir
+  REAL(KIND=r4), DIMENSION(:,:,:), ALLOCATABLE :: vl_Sb  
   REAL(KIND=r4), DIMENSION(:,:,:,:,:,:), ALLOCATABLE :: vl_dI0, vl_dI1, vl_dI2, vl_dIr
-  REAL(KIND=r4)                                      :: vl_Factor
+  REAL(KIND=r4)  :: vl_Factor
 
   ! -------------------
   ! Dimension variables
@@ -71,8 +75,8 @@ MODULE OMSAO_wfamf_module
   ! ---------
   INTEGER(KIND=i4), PARAMETER :: wfamf_table_lun = 700250
   INTEGER(KIND=i4), PARAMETER :: climatology_lun = 700270
-  CHARACTER(LEN=maxchlen)     :: OMSAO_wfamf_table_filename
-  CHARACTER(LEN=maxchlen)     :: OMSAO_climatology_filename
+  CHARACTER(LEN=maxchlen) :: OMSAO_wfamf_table_filename
+  CHARACTER(LEN=maxchlen) :: OMSAO_climatology_filename
 
   ! -----------------------------
   ! Dimensions of the climatology
@@ -82,9 +86,8 @@ MODULE OMSAO_wfamf_module
   ! -----------------------
   ! To find the right swath
   ! -----------------------
-  INTEGER   (KIND=i4),                    PARAMETER, PRIVATE :: nmonths = 12
-  CHARACTER (LEN=9), DIMENSION (nmonths), PARAMETER, PRIVATE :: &
-  months = (/ &
+  INTEGER   (KIND=i4), PARAMETER, PRIVATE :: nmonths = 12
+  CHARACTER (LEN=9), DIMENSION (nmonths), PARAMETER, PRIVATE :: months = (/ &
        'January  ', 'February ', 'March    ', 'April    ', &
        'May      ', 'June     ', 'July     ', 'August   ', &
        'September', 'October  ', 'November ', 'December '    /)
@@ -102,21 +105,19 @@ MODULE OMSAO_wfamf_module
   ! --------------------------------------------
   INTEGER (KIND=i4), PARAMETER, PRIVATE :: nlat_isccp=72, nlon_isccp=6596
   TYPE, PUBLIC :: CloudClimatology
-     REAL    (KIND=r8)                         :: &
-          scale_ctp, scale_cfr, delta_lat, missval_cfr, missval_ctp
-     REAL    (KIND=r4), DIMENSION (nlat_isccp) :: latvals, delta_lon
+     REAL (KIND=r8) :: scale_ctp, scale_cfr, delta_lat, &
+          missval_cfr, missval_ctp
+     REAL (KIND=r4), DIMENSION (nlat_isccp) :: latvals, delta_lon
      INTEGER (KIND=i4), DIMENSION (nlat_isccp) :: n_lonvals
-     REAL    (KIND=r4), DIMENSION (nlon_isccp) :: lonvals
-     REAL    (KIND=r8), DIMENSION (nlon_isccp) :: cfr, ctp
+     REAL (KIND=r4), DIMENSION (nlon_isccp) :: lonvals
+     REAL (KIND=r8), DIMENSION (nlon_isccp) :: cfr, ctp
   END TYPE CloudClimatology
   ! ----------------------------------------------
   ! Composite variable for ISCCP Cloud Climatology
   ! ----------------------------------------------
-  TYPE (CloudClimatology), PRIVATE :: ISCCP_CloudClim
-
-  CHARACTER (LEN=maxchlen), DIMENSION (n_voc_amf_luns) :: amf_swath_names    = 'undefined'
-  INTEGER   (KIND=i4),      DIMENSION (n_voc_amf_luns) :: amf_swath_ids      = -1
-  INTEGER   (KIND=i4),      DIMENSION (n_voc_amf_luns) :: amf_swath_file_ids = -1
+  CHARACTER (LEN=maxchlen), DIMENSION (n_voc_amf_luns) :: amf_swath_names = 'undefined'
+  INTEGER (KIND=i4), DIMENSION (n_voc_amf_luns) :: amf_swath_ids = -1
+  INTEGER (KIND=i4), DIMENSION (n_voc_amf_luns) :: amf_swath_file_ids = -1
 
   ! --------------------------
   !(3) ISCCP Cloud Climatology
@@ -150,28 +151,30 @@ CONTAINS
     ! ---------------
     ! Input variables
     ! ---------------
-    INTEGER   (KIND=i4),                          INTENT (IN) :: nt, nx, pge_idx
-    REAL      (KIND=r4), DIMENSION (1:nx,0:nt-1), INTENT (IN) :: lat, lon, sza, vza, terrain_height
-    LOGICAL                                                   :: yn_write
-    INTEGER   (KIND=i4), DIMENSION (0:nt-1,1:2),  INTENT (IN) :: xtrange
-    CHARACTER (LEN=*),                            INTENT (IN) :: cloud_filename
+    INTEGER (KIND=i4), INTENT (IN) :: nt, nx, pge_idx
+    REAL (KIND=r4), DIMENSION (1:nx,0:nt-1), INTENT (IN) :: lat, lon, sza, vza, &
+         terrain_height
+    LOGICAL :: yn_write
+    INTEGER (KIND=i4), DIMENSION (0:nt-1,1:2),  INTENT (IN) :: xtrange
+    CHARACTER (LEN=*), INTENT (IN) :: cloud_filename
 
     ! -----------------------------
     ! Output and modified variables
     ! -----------------------------
-    REAL    (KIND=r8), DIMENSION (1:nx,0:nt-1), INTENT (INOUT) :: saocol, saodco, saoamf
+    REAL (KIND=r8), DIMENSION (1:nx,0:nt-1), INTENT (INOUT) :: saocol, saodco, saoamf
     INTEGER (KIND=i2), DIMENSION (1:nx,0:nt-1), INTENT (INOUT) :: amfdiag
-    INTEGER (KIND=i4),                          INTENT (INOUT) :: errstat
+    INTEGER (KIND=i4), INTENT (INOUT) :: errstat
 
     ! ---------------
     ! Local variables
     ! ---------------
-    INTEGER (KIND=i4)                                :: locerrstat, itt, spixx, epixx
-    REAL    (KIND=r8), DIMENSION (1:nx,0:nt-1)       :: amfgeo
-    REAL    (KIND=r8), DIMENSION (1:nx,0:nt-1)       :: l2cfr, l2ctp
-    REAL    (KIND=r8), DIMENSION (1:nx,0:nt-1)       :: albedo, cli_psurface
-    REAL    (KIND=r8), DIMENSION (1:nx,0:nt-1,CmETA) :: climatology, cli_temperature, cli_heights
-    REAL    (KIND=r8), DIMENSION (1:nx,0:nt-1,CmETA) :: scattw
+    INTEGER (KIND=i4) :: locerrstat, itt, spixx, epixx
+    REAL (KIND=r8), DIMENSION (1:nx,0:nt-1) :: amfgeo
+    REAL (KIND=r8), DIMENSION (1:nx,0:nt-1) :: l2cfr, l2ctp
+    REAL (KIND=r8), DIMENSION (1:nx,0:nt-1) :: albedo, cli_psurface
+    REAL (KIND=r8), DIMENSION (1:nx,0:nt-1,CmETA) :: climatology, cli_temperature, &
+         cli_heights
+    REAL (KIND=r8), DIMENSION (1:nx,0:nt-1,CmETA) :: scattw
 
     locerrstat  = pge_errstat_ok
 
@@ -252,9 +255,7 @@ CONTAINS
        ! amfdiag is used to keep track of the pixels were enough information is
        ! available to carry on the AMFs calculation.
        ! ----------------------------------------------------------------------
-       CALL amf_diagnostic (                                      &
-            nt, nx, lat, lon, sza, vza, xtrange,                  &
-            MINVAL(vl_pre(1:vl_ncld)), MAXVAL(vl_pre(1:vl_ncld)), &
+       CALL amf_diagnostic ( nt, nx, sza, vza, xtrange, &
             l2cfr, l2ctp, amfdiag  )
 
        ! --------------------------------------------------------
@@ -274,8 +275,7 @@ CONTAINS
        ! Work out the AMF using the scattering weights and the climatology
        ! Work out Averaging Kernels
        ! -----------------------------------------------------------------
-       CALL compute_amf ( nt, nx, CmETA, climatology, cli_heights, cli_temperature, cli_psurface, &
-            scattw, saoamf, amfdiag, locerrstat)
+       CALL compute_amf ( nt, nx, CmETA, climatology, scattw, saoamf, amfdiag)
        
        ! -----------------------------------------------------------------
        ! Write out scattering weights, altitude grid and averaging kernels
@@ -316,23 +316,24 @@ CONTAINS
     ! ---------------
     ! Input variables
     ! ---------------
-    INTEGER (KIND=i4),                          INTENT (IN) :: nt, nx
+    INTEGER (KIND=i4), INTENT (IN) :: nt, nx
     REAL    (KIND=r4), DIMENSION (1:nx,0:nt-1), INTENT (IN) :: lat, lon
     INTEGER (KIND=i4), DIMENSION (0:nt-1,1:2),  INTENT (IN) :: xtrange
 
     ! ------------------
     ! Modified variables
     ! ------------------
-    INTEGER (KIND=i4),                                INTENT (INOUT) :: locerrstat
-    REAL    (KIND=r8), DIMENSION(1:nx,0:nt-1, CmETA), INTENT (INOUT) :: climatology, local_temperature, local_heights
-    REAL    (KIND=r8), DIMENSION(1:nx,0:nt-1),        INTENT (INOUT) :: local_psurf  
+    INTEGER (KIND=i4), INTENT (INOUT) :: locerrstat
+    REAL (KIND=r8), DIMENSION(1:nx,0:nt-1, CmETA), INTENT (INOUT) :: &
+         climatology, local_temperature, local_heights
+    REAL (KIND=r8), DIMENSION(1:nx,0:nt-1), INTENT (INOUT) :: local_psurf  
 
     ! ---------------
     ! Local variables
     ! ---------------
     INTEGER (KIND=i4) :: itimes, ixtrack, spix, epix, idx_lat, idx_lon, ilevel, n, n1
-    REAL    (KIND=r8)                      :: rho1, rho2, grad, aircolumn
-    REAL    (KIND=r8), DIMENSION (0:CmETA) :: lhgt, lpre, ltmp
+    REAL (KIND=r8) :: rho1, rho2, grad, aircolumn
+    REAL (KIND=r8), DIMENSION (0:CmETA) :: lhgt, lpre, ltmp
 
     ! -----------------------
     ! Some physical constants
@@ -341,18 +342,12 @@ CONTAINS
          rho_stand = 2.6867773e+19_r8,          & ! Loschmidt, in [cm^-3]
          pzero     = 1013.25_r8,                & ! P0 in [mb]
          tzero     = 273.15_r8,                 &
-         rho_zero  = rho_stand * tzero / pzero, &
-         du_to_cm2 = 2.6867773e+16_r8
+         rho_zero  = rho_stand * tzero / pzero
 
     ! -------------------------------
     ! Air density conversion constant
     ! -------------------------------
     REAL (KIND=r8), PARAMETER :: km2cm  = 1.0E+05_r8
-    
-    ! ------------------------------
-    ! Name of this module/subroutine
-    ! ------------------------------
-    CHARACTER (LEN=30), PARAMETER :: modulename = 'omi_climatology' 
 
     ! ----------------------
     ! Subroutine starts here
@@ -462,7 +457,7 @@ CONTAINS
     ! ==========================================================
     
     USE OMSAO_indices_module,   ONLY: sao_molecule_names
-    USE OMSAO_variables_module, ONLY: pge_idx, pge_name
+    USE OMSAO_variables_module, ONLY: pge_idx
     IMPLICIT NONE    
 
     ! ------------------
@@ -473,27 +468,23 @@ CONTAINS
     ! ---------------
     ! Local variables
     ! ---------------
-    INTEGER   (KIND=i4)         :: nswath, locerrstat, swath_id, swath_file_id, swlen, he5stat, &
-                                   ismonth, ndatafields
-    INTEGER   (KIND=i4), DIMENSION(10) :: datafield_rank, datafield_type
-    INTEGER   (KIND=C_LONG)     :: nswathcl, swlencl, Cmlatcl, Cmloncl, CmETAcl, CmEp1cl
-    CHARACTER (LEN=   maxchlen) :: swath_file, locswathname, voc_str, gasdatafieldname, datafield_name
+    INTEGER (KIND=i4) :: nswath, locerrstat, swath_id, swath_file_id, swlen, he5stat, &
+         ismonth, ndatafields
+    INTEGER (KIND=i4), DIMENSION(10) :: datafield_rank, datafield_type
+    INTEGER (KIND=C_LONG) :: nswathcl, Cmlatcl, Cmloncl, CmETAcl, CmEp1cl
+    CHARACTER (LEN=maxchlen) :: swath_file, locswathname, gasdatafieldname, &
+         datafield_name
     CHARACTER (LEN=10*maxchlen) :: swath_name
 
-    CHARACTER (LEN= 9), PARAMETER :: cli_lat_field         = 'Latitudes'
-    CHARACTER (LEN=10), PARAMETER :: cli_lon_field         = 'Longitudes'
-    CHARACTER (LEN= 3), PARAMETER :: cli_Ap_field          = 'A_p'
-    CHARACTER (LEN= 3), PARAMETER :: cli_Bp_field          = 'B_p'
-    CHARACTER (LEN=15), PARAMETER :: cli_Psurf_field       = 'SurfacePressure'
+    CHARACTER (LEN= 9), PARAMETER :: cli_lat_field = 'Latitudes'
+    CHARACTER (LEN=10), PARAMETER :: cli_lon_field = 'Longitudes'
+    CHARACTER (LEN= 3), PARAMETER :: cli_Ap_field = 'A_p'
+    CHARACTER (LEN= 3), PARAMETER :: cli_Bp_field = 'B_p'
+    CHARACTER (LEN=15), PARAMETER :: cli_Psurf_field  = 'SurfacePressure'
     CHARACTER (LEN=18), PARAMETER :: cli_Temperature_field = 'TemperatureProfile'
 
-    REAL      (KIND=r4) :: scale_lat, scale_lon, scale_Ap, scale_Bp, scale_gas, scale_Psurf, &
-                           scale_temperature !, scale_Height
-
-    ! ------------------------
-    ! Error handling variables
-    ! ------------------------
-    INTEGER (KIND=i4) :: version
+    REAL (KIND=r4) :: scale_lat, scale_lon, scale_Ap, scale_Bp, scale_gas, scale_Psurf, &
+         scale_temperature
 
     ! ------------------------------
     ! Name of this module/subroutine
@@ -705,7 +696,6 @@ CONTAINS
     ! the orbit to processed. Then it interpolates the values for each
     ! one of the pixels of the orbit to be analyzed
     ! ==================================================================
-
     USE OMSAO_variables_module, ONLY: OMSAO_OMLER_filename, &
                                       winwav_min, winwav_max
 
@@ -714,54 +704,51 @@ CONTAINS
     ! ---------------
     ! Input variables
     ! ---------------
-    INTEGER (KIND=i4),                          INTENT (IN) :: nt, nx
-    REAL    (KIND=r4), DIMENSION (1:nx,0:nt-1), INTENT (IN) :: lat, lon
+    INTEGER (KIND=i4), INTENT (IN) :: nt, nx
+    REAL (KIND=r4), DIMENSION (1:nx,0:nt-1), INTENT (IN) :: lat, lon
 
     ! ------------------
     ! Modified variables
     ! ------------------
-    INTEGER (KIND=i4),                         INTENT (INOUT) :: errstat
-    REAL    (KIND=r8), DIMENSION(1:nx,0:nt-1), INTENT (INOUT) :: albedo
+    INTEGER (KIND=i4), INTENT (INOUT) :: errstat
+    REAL (KIND=r8), DIMENSION(1:nx,0:nt-1), INTENT (INOUT) :: albedo
 
     ! ------------------------------------------------------------------
     ! Local variables, the variables to hold the OMLER data are going to
     ! be allocated and deallocated within this subroutine.
     ! ------------------------------------------------------------------
-    REAL    (KIND=r4), ALLOCATABLE, DIMENSION(:) :: OMLER_longitude,   &
-                                                    OMLER_latitude,    &
-                                                    OMLER_wvl
+    REAL (KIND=r4), ALLOCATABLE, DIMENSION(:) :: OMLER_longitude, &
+         OMLER_latitude, OMLER_wvl
     INTEGER (KIND=i2), ALLOCATABLE, DIMENSION(:,:,:,:) :: &
-                                    OMLER_monthly_albedo
-    REAL    (KIND=r8), ALLOCATABLE, DIMENSION(:,:,:,:) :: &
-                                    OMLER_albedo, OMLER_wvl_albedo
+         OMLER_monthly_albedo
+    REAL (KIND=r8), ALLOCATABLE, DIMENSION(:,:,:,:) :: &
+         OMLER_albedo, OMLER_wvl_albedo
 
     ! --------------------
     ! More Local variables
     ! --------------------
-    CHARACTER (LEN=34),  PARAMETER :: grid_name = &
-                                   'EarthSurfaceReflectanceClimatology'
-    CHARACTER (LEN=maxchlen)       :: grid_file
+    CHARACTER (LEN=34), PARAMETER :: grid_name = &
+         'EarthSurfaceReflectanceClimatology'
+    CHARACTER (LEN=maxchlen) :: grid_file
 
-    INTEGER   (KIND=i4), DIMENSION(1)   :: minwvl, maxwvl, minlon,    &
-                                           maxlon, minlat, maxlat
-    INTEGER   (KIND=i4), PARAMETER      :: OMLER_n_latitudes   = 360, &
-                                           OMLER_n_longitudes  = 720, &
-                                           OMLER_n_wavelenghts =  23, &
-                                           one                 =   1
-    INTEGER   (KIND=i4)                 :: itimes, ixtrack, spix,     &
-                                           epix, ilon, ilat, nlon,    &
-                                           nlat, OMnwvl
-    INTEGER   (KIND=i4)                 :: grid_id, grid_file_id, month
+    INTEGER (KIND=i4), DIMENSION(1) :: minwvl, maxwvl, minlon,    &
+         maxlon, minlat, maxlat
+    INTEGER (KIND=i4), PARAMETER :: OMLER_n_latitudes   = 360, &
+         OMLER_n_longitudes  = 720, &
+         OMLER_n_wavelenghts =  23, &
+         one                 =   1
+    INTEGER (KIND=i4) :: ixtrack, itimes, ilon, ilat, nlon, nlat, OMnwvl
+    INTEGER (KIND=i4) :: grid_id, grid_file_id, month
 
 
-    REAL      (KIND=r8), DIMENSION(1)   :: plon, plat, midwvl
-    REAL      (KIND=r4)                 :: scale_factor, offset
-    REAL      (KIND=r8)                 :: lonp, latp
+    REAL (KIND=r8), DIMENSION(1) :: plon, plat, midwvl
+    REAL (KIND=r4) :: scale_factor, offset
+    REAL (KIND=r8) :: lonp, latp
 
     ! ------------------------
     ! Error handling variables
     ! ------------------------
-    INTEGER (KIND=i4) :: version, locerrstat
+    INTEGER (KIND=i4) :: locerrstat
 
     ! ------------------------------
     ! Name of this module/subroutine
@@ -969,8 +956,8 @@ CONTAINS
     ! ---------------
     ! Input variables
     ! ---------------
-    INTEGER   (KIND=i4), INTENT (IN) :: nswath
-    CHARACTER (LEN=*),   INTENT (IN) :: multi_swath, swathstr
+    INTEGER (KIND=i4), INTENT (IN) :: nswath
+    CHARACTER (LEN=*), INTENT (IN) :: multi_swath, swathstr
 
     ! ----------------
     ! Output variables
@@ -980,9 +967,9 @@ CONTAINS
     ! ---------------
     ! Local variables
     ! ---------------
-    INTEGER   (KIND=i4), DIMENSION(0:nswath) :: swsep
-    INTEGER   (KIND=i4)                      :: mslen, k, j1, j2, nsep
-    CHARACTER (LEN=LEN(multi_swath))         :: tmpstr
+    INTEGER (KIND=i4), DIMENSION(0:nswath) :: swsep
+    INTEGER (KIND=i4) :: mslen, k, j1, j2, nsep
+    CHARACTER (LEN=LEN(multi_swath)) :: tmpstr
 
 
     ! --------------------------
@@ -1044,18 +1031,18 @@ CONTAINS
     ! Output variables
     ! ----------------
     INTEGER (KIND=i4), INTENT (INOUT) :: errstat
-    INTEGER (KIND=i4), INTENT (OUT)   :: Cmlat, Cmlon, CmETA, CmEp1
+    INTEGER (KIND=i4), INTENT (OUT) :: Cmlat, Cmlon, CmETA, CmEp1
 
     ! ---------------
     ! Local variables
     ! ---------------
-    INTEGER   (KIND=i4), PARAMETER               :: maxdim = 100
-    INTEGER   (KIND=i4)                          :: ndim, nsep
-    INTEGER   (KIND=C_LONG)                      :: ndimcl
-    INTEGER   (KIND=i4)                          :: i, j, swlen, iend, istart
-    INTEGER   (KIND=i4),  DIMENSION(0:maxdim)    :: dim_array, dim_seps
-    INTEGER   (KIND=C_LONG), DIMENSION(0:maxdim) :: dim_arraycl
-    CHARACTER (LEN=10*maxdim)                    :: dim_chars
+    INTEGER (KIND=i4), PARAMETER :: maxdim = 100
+    INTEGER (KIND=i4) :: ndim, nsep
+    INTEGER (KIND=C_LONG) :: ndimcl
+    INTEGER (KIND=i4) :: i, j, swlen, iend, istart
+    INTEGER (KIND=i4), DIMENSION(0:maxdim) :: dim_array, dim_seps
+    INTEGER (KIND=C_LONG), DIMENSION(0:maxdim) :: dim_arraycl
+    CHARACTER (LEN=10*maxdim) :: dim_chars
 
 
     ! ---------------------------
@@ -1135,8 +1122,8 @@ CONTAINS
     ! ---------------
     ! Local variables
     ! ---------------
-    INTEGER   (KIND=i4) :: estat
-    CHARACTER (LEN=1)   :: adlow
+    INTEGER (KIND=i4) :: estat
+    CHARACTER (LEN=1) :: adlow
 
 
     estat = pge_errstat_ok
@@ -1189,8 +1176,8 @@ CONTAINS
     ! ---------------
     ! Local variables
     ! ---------------
-    INTEGER   (KIND=i4) :: estat
-    CHARACTER (LEN=1)   :: adlow
+    INTEGER (KIND=i4) :: estat
+    CHARACTER (LEN=1) :: adlow
 
 
     estat = pge_errstat_ok
@@ -1264,23 +1251,22 @@ CONTAINS
 
   SUBROUTINE compute_geometric_amf ( nt, nx, sza, vza, xtrange, amfgeo, amfdiag )
 
-    USE OMSAO_parameters_module, ONLY: deg2rad, rad2deg
-    USE OMSAO_variables_module,  ONLY: szamax
-    USE OMSAO_omidata_module,    ONLY: omi_geo_amf, omi_oobview_amf
+    USE OMSAO_parameters_module, ONLY: deg2rad
+    USE OMSAO_omidata_module, ONLY: omi_geo_amf, omi_oobview_amf
 
     IMPLICIT NONE
 
     ! ---------------
     ! Input variables
     ! ---------------
-    INTEGER (KIND=i4),                         INTENT (IN) :: nx, nt
-    REAL    (KIND=r4), DIMENSION (nx,0:nt-1),  INTENT (IN) :: sza, vza
+    INTEGER (KIND=i4), INTENT (IN) :: nx, nt
+    REAL (KIND=r4), DIMENSION (nx,0:nt-1), INTENT (IN) :: sza, vza
     INTEGER (KIND=i4), DIMENSION (0:nt-1,1:2), INTENT (IN) :: xtrange
 
     ! ----------------
     ! Output variables
     ! ----------------
-    REAL    (KIND=r8), DIMENSION (1:nx,0:nt-1), INTENT (OUT) :: amfgeo
+    REAL (KIND=r8), DIMENSION (1:nx,0:nt-1), INTENT (OUT) :: amfgeo
     INTEGER (KIND=i2), DIMENSION (1:nx,0:nt-1), INTENT (OUT) :: amfdiag
 
     ! ---------------
@@ -1329,9 +1315,6 @@ CONTAINS
     ! the file, if not a warning should be printed and all
     ! the AMF diagnostic set to non computed.
     ! ====================================================
-
-    USE HDF5
-
     IMPLICIT NONE    
 
     ! ------------------
@@ -1365,11 +1348,6 @@ CONTAINS
 
     INTEGER(SIZE_T)                :: size
     LOGICAL, SAVE :: h5inited = .FALSE.
-
-    ! ------------------------------
-    ! Name of this module/subroutine
-    ! ------------------------------
-    CHARACTER (LEN=26), PARAMETER :: modulename = 'read_vlidort' 
 
     ! ----------------------
     ! Subroutine starts here
@@ -1566,16 +1544,15 @@ CONTAINS
 
   SUBROUTINE amf_read_ompsclouds ( cloud_filename, nt, nx, l2cfr, l2ctp, errstat )
 
-    USE OMSAO_omidata_module,    ONLY: gzoom_spix, gzoom_epix, gzoom_npix
-    USE ReadH5dataset ! Contains generic HDF5 reading routines
+    USE ReadH5dataset, ONLY: H5ReadDataset
 
     IMPLICIT NONE
 
     ! ---------------
     ! Input variables
     ! ---------------
-    INTEGER   (KIND=i4),           INTENT (IN) :: nt, nx
-    CHARACTER (LEN=*),             INTENT (IN) :: cloud_filename
+    INTEGER (KIND=i4), INTENT (IN) :: nt, nx
+    CHARACTER (LEN=*), INTENT (IN) :: cloud_filename
 
     ! ----------------
     ! Output variables
@@ -1590,15 +1567,10 @@ CONTAINS
     ! ---------------
     ! Local variables
     ! ---------------
-    INTEGER (KIND=i4)            :: it, nt_loc, nx_loc, locerrstat, swath_id
-    REAL    (KIND=r4), PARAMETER :: missval_cfr=-9999.0, missval_ctp=-9999.0
-    REAL    (KIND=r4), DIMENSION(:,:), POINTER :: cfr => NULL()
-    REAL    (KIND=r4), DIMENSION(:,:), POINTER :: ctp => NULL()
-
-    ! ----------------------
-    ! Name of the subroutine
-    ! ----------------------
-    CHARACTER (LEN=19), PARAMETER :: modulename = 'amf_read_ompsclouds'
+    INTEGER (KIND=i4) :: locerrstat
+    REAL (KIND=r4), PARAMETER :: missval_cfr=-9999.0, missval_ctp=-9999.0
+    REAL (KIND=r4), DIMENSION(:,:), POINTER :: cfr => NULL()
+    REAL (KIND=r4), DIMENSION(:,:), POINTER :: ctp => NULL()
 
     locerrstat = pge_errstat_ok
 
@@ -1665,34 +1637,30 @@ CONTAINS
   END SUBROUTINE amf_read_ompsclouds
 
   
-  SUBROUTINE amf_diagnostic ( &
-       nt, nx, lat, lon, sza, vza, xtrange, ctpmin, ctpmax, l2cfr, l2ctp, amfdiag )
+  SUBROUTINE amf_diagnostic ( nt, nx, sza, vza, xtrange, &
+       l2cfr, l2ctp, amfdiag )
 
-    USE OMSAO_omidata_module,   ONLY: omi_oobview_amf, omi_glint_add, omi_height, omi_geo_amf, omi_bigsza_amf
-    USE OMSAO_variables_module, ONLY: winwav_min, winwav_max
+    USE OMSAO_omidata_module, ONLY: omi_oobview_amf, omi_bigsza_amf
     
     IMPLICIT NONE
 
     ! ---------------
     ! Input variables
     ! ---------------
-    INTEGER (KIND=i4),                          INTENT (IN) :: nt, nx
-    REAL    (KIND=r4),                          INTENT (IN) :: ctpmin, ctpmax
-    REAL    (KIND=r4), DIMENSION (1:nx,0:nt-1), INTENT (IN) :: lat, lon, sza, vza
-    INTEGER (KIND=i4), DIMENSION (0:nt-1,1:2),  INTENT (IN) :: xtrange
+    INTEGER (KIND=i4), INTENT (IN) :: nt, nx
+    REAL (KIND=r4), DIMENSION (1:nx,0:nt-1), INTENT (IN) :: sza, vza
+    INTEGER (KIND=i4), DIMENSION (0:nt-1,1:2), INTENT (IN) :: xtrange
 
     ! ----------------
     ! Modified variabe
     ! ----------------
     INTEGER (KIND=i2), DIMENSION (1:nx,0:nt-1), INTENT (INOUT) :: amfdiag
-    REAL    (KIND=r8), DIMENSION (1:nx,0:nt-1), INTENT (INOUT) :: l2cfr, l2ctp
+    REAL (KIND=r8), DIMENSION (1:nx,0:nt-1), INTENT (INOUT) :: l2cfr, l2ctp
 
     ! ---------------
     ! Local variables
     ! ---------------
-    INTEGER (KIND=i4) :: j1, j2, ix, it, ilat, ilon, spix, epix
-    REAL    (KIND=r8) :: latdp, londp
-
+    INTEGER (KIND=i4) :: it, spix, epix
 
     ! -------------------------------------------------------------------
     ! AMFDIAG has already been set to "geometric" AMF where SZA and VZA
@@ -1807,7 +1775,7 @@ CONTAINS
   SUBROUTINE compute_scatt ( nt, nx, albedo, sza, vza, l2ctp, l2cfr, terrain_height, cli_heights, amfdiag, &
                              scattw)
 
-    USE OMSAO_lininterpolation_module
+    USE OMSAO_lininterpolation_module, ONLY: lininterpol
     USE OMSAO_variables_module, ONLY: verb_thresh_lev
 
     IMPLICIT NONE
@@ -1815,36 +1783,36 @@ CONTAINS
     ! ---------------
     ! Input variables
     ! ---------------
-    INTEGER (KIND=i4),                                INTENT (IN) :: nt, nx
-    INTEGER (KIND=i2), DIMENSION (1:nx,0:nt-1),       INTENT (IN) :: amfdiag
-    REAL    (KIND=r4), DIMENSION (1:nx,0:nt-1),       INTENT (IN) :: sza, vza, terrain_height
-    REAL    (KIND=r8), DIMENSION (1:nx,0:nt-1),       INTENT (IN) :: albedo, l2ctp, l2cfr
-    REAL    (KIND=r8), DIMENSION (1:nx,0:nt-1,CmETA), INTENT (IN) :: cli_heights
+    INTEGER (KIND=i4), INTENT (IN) :: nt, nx
+    INTEGER (KIND=i2), DIMENSION (1:nx,0:nt-1), INTENT (IN) :: amfdiag
+    REAL (KIND=r4), DIMENSION (1:nx,0:nt-1), INTENT (IN) :: sza, vza, terrain_height
+    REAL (KIND=r8), DIMENSION (1:nx,0:nt-1), INTENT (IN) :: albedo, l2ctp, l2cfr
+    REAL (KIND=r8), DIMENSION (1:nx,0:nt-1,CmETA), INTENT (IN) :: cli_heights
     ! ------------------
     ! Modified variables
     ! ------------------
-    REAL    (KIND=r8), DIMENSION (1:nx,0:nt-1,CmETA), INTENT (INOUT) :: scattw
+    REAL (KIND=r8), DIMENSION (1:nx,0:nt-1,CmETA), INTENT (INOUT) :: scattw
 
     ! ---------------
     ! Local variables
     ! ---------------
     INTEGER (KIND=i4) :: itime, ixtrack, ispre, isozo, isalt, iswav, issza, isvza, status, one
     INTEGER (KIND=i4), DIMENSION(1) :: iwavs, iwavf, index_thg, index_cld
-    REAL    (KIND=r8) :: temp, tempsquare, grad
-    REAL    (KIND=r8) :: ozo_abs, Intensity, Jacobian, Oz_xs, Intensity_cld, Jacobian_cld
-    REAL    (KIND=r8) :: crf, nwavs!, Icr, Icl ,cloud_scattw, clear_scattw
-    REAL    (KIND=r8), DIMENSION(vl_ncld, vl_nsza, vl_nvza, vl_nalt) :: scattwe, scattwe_cld
-    REAL    (KIND=r8), DIMENSION(vl_ncld, vl_nsza, vl_nvza)          :: Inte_clear, Inte_cloud
-    REAL    (KIND=r8), DIMENSION(vl_nalt) :: re_alt
-    REAL    (KIND=r8), DIMENSION(vl_ncld) :: re_pre
-    REAL    (KIND=r8), DIMENSION(vl_nsza) :: re_sza
-    REAL    (KIND=r8), DIMENSION(vl_nvza) :: re_vza
-    REAL    (KIND=r8)                     :: local_alb, local_sza, local_vza, local_thg, local_cld, local_cfr
-    REAL    (KIND=r8), DIMENSION(1)       :: ezlocal_sza, ezlocal_vza
-    REAL    (KIND=r8), DIMENSION(1,1,1)   :: cloud_scattw, clear_scattw
-    REAL    (KIND=r8), DIMENSION(1,1)     :: Icr, Icl
-    REAL    (KIND=r8), DIMENSION(CmETA)   :: local_chg
-    REAL    (kind=8),  PARAMETER :: d2r = 3.141592653589793d0/180.0  !! JED fix
+    REAL (KIND=r8) :: temp, tempsquare, grad
+    REAL (KIND=r8) :: ozo_abs, Intensity, Jacobian, Oz_xs, Intensity_cld, Jacobian_cld
+    REAL (KIND=r8) :: crf, nwavs
+    REAL (KIND=r8), DIMENSION(vl_ncld, vl_nsza, vl_nvza, vl_nalt) :: scattwe, scattwe_cld
+    REAL (KIND=r8), DIMENSION(vl_ncld, vl_nsza, vl_nvza) :: Inte_clear, Inte_cloud
+    REAL (KIND=r8), DIMENSION(vl_nalt) :: re_alt
+    REAL (KIND=r8), DIMENSION(vl_ncld) :: re_pre
+    REAL (KIND=r8), DIMENSION(vl_nsza) :: re_sza
+    REAL (KIND=r8), DIMENSION(vl_nvza) :: re_vza
+    REAL (KIND=r8) :: local_alb, local_sza, local_vza, local_thg, local_cld, local_cfr
+    REAL (KIND=r8), DIMENSION(1) :: ezlocal_sza, ezlocal_vza
+    REAL (KIND=r8), DIMENSION(1,1,1) :: cloud_scattw, clear_scattw
+    REAL (KIND=r8), DIMENSION(1,1) :: Icr, Icl
+    REAL (KIND=r8), DIMENSION(CmETA) :: local_chg
+    REAL (kind=8),  PARAMETER :: d2r = 3.141592653589793d0/180.0  !! JED fix
     ! -----------------------------------
     ! Find look up table wavelength index
     ! No interpolation, closest available
@@ -1862,18 +1830,15 @@ CONTAINS
     ! look up tables
     ! ------------------------------- ------------------------
     DO issza = 1, vl_nsza
-       !re_sza(issza) = cosd(REAL(vl_sza(vl_nsza+1-issza), KIND = r8))
        re_sza(issza) = cos(d2r*REAL(vl_sza(vl_nsza+1-issza), KIND = r8))  ! JED fix
     END DO
     DO isvza = 1, vl_nvza
-       !re_vza(isvza) = cosd(REAL(vl_vza(vl_nvza+1-isvza), KIND = r8))
        re_vza(isvza) = cos(d2r*REAL(vl_vza(vl_nvza+1-isvza), KIND = r8)) ! JED fix
     END DO
     DO ispre = 1, vl_ncld
        re_pre(ispre) = REAL(vl_pre(ispre), KIND = r8) * 1013.0_r8
     END DO
     DO isalt = 1, vl_nalt
-       !re_alt(isalt) = 1013.0_r8 * (10.0_r8 ** ( REAL(vl_alt(1,1,vl_nalt+1-isalt), KIND = r8) / (-16.0_r8)))
        re_alt(isalt) = 1013.0_r8 * (10.0_r8 ** ( REAL(vl_alt(1,1,isalt), KIND = r8) / (-16.0_r8)))
     END DO
 
@@ -2131,35 +2096,27 @@ CONTAINS
     
   END SUBROUTINE COMPUTE_SCATT
 
-  SUBROUTINE compute_amf ( nt, nx, CmETA, climatology, cli_heights, cli_temperature, cli_psurface, &
-                           scattw, saoamf, amfdiag, errstat)
+  SUBROUTINE compute_amf ( nt, nx, CmETA, climatology, &
+                           scattw, saoamf, amfdiag )
 
     IMPLICIT NONE
 
     ! ---------------
     ! Input variables
     ! ---------------
-    INTEGER (KIND=i4),                                INTENT(IN) :: nt, nx, CmETA
-    REAL    (KIND=r8), DIMENSION (1:nx,0:nt-1,CmETA), INTENT(IN) :: climatology, cli_heights, &
-                                                                    cli_temperature, scattw
-    REAL    (KIND=r8), DIMENSION (1:nx,0:nt-1),       INTENT(IN) :: cli_psurface
-    INTEGER (KIND=i2), DIMENSION (1:nx,0:nt-1),       INTENT(IN) :: amfdiag
+    INTEGER (KIND=i4), INTENT(IN) :: nt, nx, CmETA
+    REAL (KIND=r8), DIMENSION (1:nx,0:nt-1,CmETA), INTENT(IN) :: climatology, scattw
+    INTEGER (KIND=i2), DIMENSION (1:nx,0:nt-1), INTENT(IN) :: amfdiag
 
     ! -----------------------------
     ! Output and modified variables
     ! -----------------------------
-    REAL    (KIND=r8), DIMENSION (1:nx,0:nt-1),       INTENT (INOUT) :: saoamf
-    INTEGER (KIND=i4),                                INTENT (INOUT) :: errstat
+    REAL (KIND=r8), DIMENSION (1:nx,0:nt-1), INTENT (INOUT) :: saoamf
 
     ! ---------------
     ! Local variables
     ! ---------------
-    INTEGER (KIND=i4)                      :: locerrstat, n, n1, ixtrack, itimes
-
-    ! ------------------------------
-    ! Name of this module/subroutine
-    ! ------------------------------
-    CHARACTER (LEN=11), PARAMETER :: modulename = 'compute_amf'
+    INTEGER (KIND=i4) :: ixtrack, itimes
 
     ! ----------------------
     ! Subroutine starts here
@@ -2193,30 +2150,23 @@ CONTAINS
     ! This routines writes the albedos obtained from the OMLER climatolo
     ! gy to the output file.
     ! ==================================================================
-    USE OMSAO_omidata_module,   ONLY: n_roff_dig
-
     IMPLICIT NONE
 
     ! ---------------
     ! Input variables
     ! ---------------
-    INTEGER (KIND=i4),                         INTENT (IN) :: nt, nx
+    INTEGER (KIND=i4), INTENT (IN) :: nt, nx
     REAL    (KIND=r8), DIMENSION(1:nx,0:nt-1), INTENT (IN) :: albedo
 
     ! ------------------
     ! Modified variables
     ! ------------------
-    INTEGER (KIND=i4),                         INTENT (INOUT) :: errstat
-
-    ! ------------------------------
-    ! Name of this module/subroutine
-    ! ------------------------------
-    CHARACTER (LEN=16), PARAMETER :: modulename = 'write_albedo_he5'
+    INTEGER (KIND=i4), INTENT (INOUT) :: errstat
     
     ! ---------------
     ! Local variables
     ! ---------------
-    INTEGER (KIND=i4)                          :: locerrstat
+    INTEGER (KIND=i4) :: locerrstat
     REAL    (KIND=r8), DIMENSION (1:nx,0:nt-1) :: colloc
 
     locerrstat = pge_errstat_ok
@@ -2242,30 +2192,23 @@ CONTAINS
     ! This routines writes the Target Gas Profiles from the GEOS-Chem
     ! climatology to the output file.
     ! ===============================================================
-    USE OMSAO_omidata_module,   ONLY: n_roff_dig
-
     IMPLICIT NONE
 
     ! ---------------
     ! Input variables
     ! ---------------
-    INTEGER (KIND=i4),                              INTENT (IN) :: nt, nx, nl
+    INTEGER (KIND=i4), INTENT (IN) :: nt, nx, nl
     REAL    (KIND=r8), DIMENSION(1:nx,0:nt-1,1:nl), INTENT (IN) :: climatology, cli_heights
 
     ! ------------------
     ! Modified variables
     ! ------------------
-    INTEGER (KIND=i4),                         INTENT (INOUT) :: errstat
-
-    ! ------------------------------
-    ! Name of this module/subroutine
-    ! ------------------------------
-    CHARACTER (LEN=24), PARAMETER :: modulename = 'write_climatology_he5' ! JED fix
+    INTEGER (KIND=i4), INTENT (INOUT) :: errstat
     
     ! ---------------
     ! Local variables
     ! ---------------
-    INTEGER (KIND=i4)                               :: locerrstat
+    INTEGER (KIND=i4) :: locerrstat
     REAL    (KIND=r8), DIMENSION (1:nx,0:nt-1,1:nl) :: colloc
 
     locerrstat = pge_errstat_ok
@@ -2299,25 +2242,18 @@ CONTAINS
     ! ===============================================================
     ! This routines writes the scattering weigths to the output file.
     ! ===============================================================
-    USE OMSAO_omidata_module,   ONLY: n_roff_dig
-
     IMPLICIT NONE
 
     ! ---------------
     ! Input variables
     ! ---------------
-    INTEGER (KIND=i4),                              INTENT (IN) :: nt, nx, nl
+    INTEGER (KIND=i4), INTENT (IN) :: nt, nx, nl
     REAL    (KIND=r8), DIMENSION(1:nx,0:nt-1,1:nl), INTENT (IN) :: scattw !, akernels
 
     ! ------------------
     ! Modified variables
     ! ------------------
-    INTEGER (KIND=i4),                         INTENT (INOUT) :: errstat
-
-    ! ------------------------------
-    ! Name of this module/subroutine
-    ! ------------------------------
-    CHARACTER (LEN=16), PARAMETER :: modulename = 'write_scatt_he5'
+    INTEGER (KIND=i4), INTENT (INOUT) :: errstat
     
     ! ---------------
     ! Local variables
@@ -2348,24 +2284,14 @@ SUBROUTINE he5_amf_write ( &
          pge_idx, nx, nt, saocol, saodco, amfmol, amfgeo, amfdiag, &
          amfcfr, amfctp, errstat )
 
-  USE OMSAO_precision_module, ONLY: i2, i4, r8
-  USE OMSAO_he5_module
-  USE OMSAO_errstat_module
-  USE OMSAO_omidata_module,   ONLY: n_roff_dig
-  USE OMSAO_indices_module,   ONLY: pge_hcho_idx, pge_gly_idx, pge_bro_idx
+  USE OMSAO_indices_module, ONLY: pge_hcho_idx, pge_gly_idx
 
   IMPLICIT NONE
-
-  ! ------------------------------
-  ! Name of this module/subroutine
-  ! ------------------------------
-  CHARACTER (LEN=13), PARAMETER :: modulename = 'he5_write_amf'
-
 
   ! ---------------
   ! Input variables
   ! ---------------
-  INTEGER (KIND=i4),                          INTENT (IN) :: pge_idx, nx, nt
+  INTEGER (KIND=i4), INTENT (IN) :: pge_idx, nx, nt
   REAL    (KIND=r8), DIMENSION (1:nx,0:nt-1), INTENT (IN) :: saocol, saodco
   REAL    (KIND=r8), DIMENSION (1:nx,0:nt-1), INTENT (IN) :: amfmol, amfgeo
   REAL    (KIND=r8), DIMENSION (1:nx,0:nt-1), INTENT (IN) :: amfcfr, amfctp
@@ -2379,7 +2305,7 @@ SUBROUTINE he5_amf_write ( &
   ! ---------------
   ! Local variables
   ! ---------------
-  INTEGER (KIND=i4)                          :: locerrstat
+  INTEGER (KIND=i4) :: locerrstat
   REAL    (KIND=r4), DIMENSION (1:nx,0:nt-1) :: amfloc
   REAL    (KIND=r8), DIMENSION (1:nx,0:nt-1) :: colloc
 

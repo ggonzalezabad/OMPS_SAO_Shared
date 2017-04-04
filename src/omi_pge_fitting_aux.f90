@@ -1,13 +1,11 @@
 SUBROUTINE omi_set_fitting_parameters ( pge_idx, errstat )
 
-  USE OMSAO_precision_module
-  USE OMSAO_parameters_module, ONLY: maxchlen
-  USE OMSAO_variables_module,  ONLY: l1b_channel
-  USE OMSAO_he5_module,        ONLY: swath_base_name, pge_swath_name
-  USE OMSAO_errstat_module,    ONLY: pge_errstat_ok
-  USE OMSAO_omidata_module,    ONLY: omi_radiance_swathname, omi_irradiance_swathname
-  USE OMSAO_indices_module,    ONLY: &
-       sao_molecule_names, pge_oclo_idx, pge_no2_idx, pge_no2d_idx, pge_gly_idx, pge_h2o_idx
+  USE OMSAO_precision_module, ONLY: i4
+  USE OMSAO_variables_module, ONLY: l1b_channel
+  USE OMSAO_he5_module, ONLY: swath_base_name, pge_swath_name
+  USE OMSAO_errstat_module, ONLY: pge_errstat_ok
+  USE OMSAO_omidata_module, ONLY: omi_radiance_swathname, omi_irradiance_swathname
+  USE OMSAO_indices_module, ONLY: sao_molecule_names
 
   IMPLICIT NONE
 
@@ -20,12 +18,6 @@ SUBROUTINE omi_set_fitting_parameters ( pge_idx, errstat )
   ! Output variables
   ! ----------------
   INTEGER (KIND=i4), INTENT (OUT) :: errstat
-
-
-  ! ------------------------------
-  ! Name of this module/subroutine
-  ! ------------------------------
-  CHARACTER (LEN=26), PARAMETER :: modulename = 'omi_set_fitting_parameters'
 
   ! --------------------------
   ! Initialize OUTPUT variable
@@ -58,16 +50,13 @@ END SUBROUTINE omi_set_fitting_parameters
 
 SUBROUTINE omi_adjust_irradiance_data ( &
      omi_ccdpix_idx, omi_ccdpix_exc, n_omi_irradwvl, omi_irrad_wvl, omi_irrad_spc, &
-     omi_irrad_qflg, omi_irrad_ccd, n_sol_wvl, curr_sol_spec, yn_skip_pix, errstat )
+     omi_irrad_ccd, n_sol_wvl, curr_sol_spec, yn_skip_pix, errstat )
 
-  USE OMSAO_precision_module
-  USE OMSAO_indices_module,         ONLY: &
-       wvl_idx, spc_idx, sig_idx, ccd_idx, &
-       qflg_mis_idx, qflg_bad_idx, qflg_err_idx, qflg_tra_idx, qflg_rts_idx
-  USE OMSAO_parameters_module,      ONLY: downweight, normweight, r4_missval
-  USE OMSAO_variables_module,       ONLY: &
-       fit_winexc_lim,  sol_wav_avg, yn_spectrum_norm
-  USE OMSAO_errstat_module
+  USE OMSAO_precision_module, ONLY: i4, r8
+  USE OMSAO_indices_module, ONLY: wvl_idx, spc_idx, sig_idx, ccd_idx
+  USE OMSAO_parameters_module, ONLY: downweight, normweight, r4_missval
+  USE OMSAO_variables_module, ONLY: sol_wav_avg, yn_spectrum_norm
+  USE OMSAO_errstat_module, ONLY: pge_errstat_ok
 
   IMPLICIT NONE
 
@@ -77,7 +66,6 @@ SUBROUTINE omi_adjust_irradiance_data ( &
   INTEGER (KIND=i4),                             INTENT (IN) :: n_omi_irradwvl
   INTEGER (KIND=i4), DIMENSION (2),              INTENT (IN) :: omi_ccdpix_exc
   INTEGER (KIND=i4), DIMENSION (4),              INTENT (IN) :: omi_ccdpix_idx
-  INTEGER (KIND=i2), DIMENSION (n_omi_irradwvl), INTENT (IN) :: omi_irrad_qflg
   REAL    (KIND=r8), DIMENSION (n_omi_irradwvl), INTENT (IN) :: omi_irrad_wvl, omi_irrad_spc
 
   ! ----------------
@@ -96,14 +84,10 @@ SUBROUTINE omi_adjust_irradiance_data ( &
   ! ---------------
   ! Local variables
   ! ---------------
-  INTEGER (KIND=i2), PARAMETER                            :: nbits = 16
-  INTEGER (KIND=i4)                                       :: &
-       i, j, locerrstat, imin1, imax1, imin2, imax2, j1, j2
-  LOGICAL                                                 :: have_good_window
-  INTEGER (KIND=i2), DIMENSION (n_omi_irradwvl,0:nbits-1) :: irrad_qflg_bit
-  INTEGER (KIND=i2), DIMENSION (n_omi_irradwvl)           :: irrad_qflg_mask
-  REAL    (KIND=r8), DIMENSION (n_omi_irradwvl)           :: weightsum
-  REAL    (KIND=r8)                                       :: sol_spec_avg, asum, ssum
+  INTEGER (KIND=i4) :: i, j, locerrstat, imin1, imax1, imin2, imax2, j1, j2
+  LOGICAL :: have_good_window
+  REAL (KIND=r8), DIMENSION (n_omi_irradwvl) :: weightsum
+  REAL (KIND=r8) :: sol_spec_avg, asum, ssum
 
   ! ----------------------------------------------
   ! Variables for separating the good from the bad
@@ -153,35 +137,6 @@ SUBROUTINE omi_adjust_irradiance_data ( &
      curr_sol_spec(sig_idx,1:n_sol_wvl) = downweight
      curr_sol_spec(spc_idx,1:n_sol_wvl) = 0.0_r8
   END WHERE
-
-!!$  ! ----------------------------------------------------------------------
-!!$  ! Find the pixel quality flags (not assigned correctly in the L1 product
-!!$  ! as of 13 September 2004 and thus not used yet; tpk note to himself)
-!!$  ! ----------------------------------------------------------------------
-!!$  ! -------------------------------------------------------------------
-!!$  ! CAREFUL: Only 15 flags/positions (0:14) can be returned or else the
-!!$  !          conversion will result in a numeric overflow.
-!!$  ! -------------------------------------------------------------------
-!!$  CALL convert_2bytes_to_16bits ( nbits-1, n_sol_wvl, &
-!!$       omi_irrad_qflg(1:n_sol_wvl), irrad_qflg_bit(1:n_sol_wvl,0:nbits-2) )
-!!$
-!!$  ! --------------------------------------------------------------------
-!!$  ! Add contributions from various quality flags. Any CCD pixel that has
-!!$  ! a cumulative quality flag > 0 will be excluded form the fitting.
-!!$  ! 
-!!$  ! Choice of flags is based on the recommendations of the L1b README.
-!!$  ! --------------------------------------------------------------------
-!!$  irrad_qflg_mask(1:n_sol_wvl) = 0_i2
-!!$  irrad_qflg_mask(1:n_sol_wvl) =                  &
-!!$       irrad_qflg_bit(1:n_sol_wvl,qflg_mis_idx) + &   ! Missing pixel
-!!$       irrad_qflg_bit(1:n_sol_wvl,qflg_bad_idx) + &   ! Bad pixel
-!!$       irrad_qflg_bit(1:n_sol_wvl,qflg_err_idx) !+ &   ! Processing error
-!!$  !irrad_qflg_bit(1:n_sol_wvl,qflg_rts_idx)       ! RTS
-!!$
-!!$  WHERE ( irrad_qflg_mask(1:n_sol_wvl) > 0_i2 )
-!!$     curr_sol_spec(sig_idx,1:n_sol_wvl) = downweight
-!!$     curr_sol_spec(spc_idx,1:n_sol_wvl) = 0.0_r8
-!!$  END WHERE
 
   ! -------------------------------------------------------------------------------
   ! Translate window limit wavelenghts into indices; making sure that Shift&Squeeze
@@ -290,19 +245,17 @@ END SUBROUTINE omi_adjust_irradiance_data
 
 
 SUBROUTINE omi_adjust_radiance_data (                                   &
-     omi_ccdpix_idx, omi_ccdpix_exc, n_omi_radwvl, omi_rad_wvl, omi_rad_spc, omi_rad_qflg, &
+     omi_ccdpix_idx, omi_ccdpix_exc, n_omi_radwvl, omi_rad_wvl, omi_rad_spc, &
      omi_rad_ccd, n_omi_irradwvl, curr_sol_weight, n_rad_wvl, curr_rad_spec,   &
      rad_spec_avg, yn_skip_pix )
 
-  USE OMSAO_precision_module
-  USE OMSAO_indices_module,       ONLY: &
-       wvl_idx, spc_idx, sig_idx, ccd_idx, &
-       qflg_mis_idx, qflg_bad_idx, qflg_err_idx, qflg_tra_idx, qflg_rts_idx, qflg_sat_idx
-  USE OMSAO_parameters_module,    ONLY: downweight, normweight, r4_missval
-  USE OMSAO_variables_module,     ONLY: fit_winexc_lim, yn_solar_comp, yn_spectrum_norm
-  USE OMSAO_radiance_ref_module,  ONLY: yn_radiance_reference
-  USE OMSAO_solcomp_module,       ONLY: solarcomp_pars
-  USE OMSAO_errstat_module
+  USE OMSAO_precision_module, ONLY: i4, r8
+  USE OMSAO_indices_module, ONLY: wvl_idx, spc_idx, sig_idx, ccd_idx
+  USE OMSAO_parameters_module, ONLY: downweight, r4_missval
+  USE OMSAO_variables_module, ONLY: yn_solar_comp, yn_spectrum_norm
+  USE OMSAO_radiance_ref_module, ONLY: yn_radiance_reference
+  USE OMSAO_solcomp_module, ONLY: solarcomp_pars
+  USE OMSAO_errstat_module, ONLY: pge_errstat_ok
 
   IMPLICIT NONE
 
@@ -312,7 +265,6 @@ SUBROUTINE omi_adjust_radiance_data (                                   &
   INTEGER (KIND=i4),                             INTENT (IN) :: n_omi_radwvl, n_omi_irradwvl
   INTEGER (KIND=i4), DIMENSION (2),              INTENT (IN) :: omi_ccdpix_exc
   INTEGER (KIND=i4), DIMENSION (4),              INTENT (IN) :: omi_ccdpix_idx
-  INTEGER (KIND=i2), DIMENSION (n_omi_radwvl),   INTENT (IN) :: omi_rad_qflg
   REAL    (KIND=r8), DIMENSION (n_omi_radwvl),   INTENT (IN) :: omi_rad_wvl, omi_rad_spc
   REAL    (KIND=r8), DIMENSION (n_omi_irradwvl), INTENT (IN) :: curr_sol_weight
 
@@ -333,13 +285,9 @@ SUBROUTINE omi_adjust_radiance_data (                                   &
   ! ---------------
   ! Local variables
   ! ---------------
-  INTEGER (KIND=i2), PARAMETER                          :: nbits = 16
-  INTEGER (KIND=i4)                                     :: &
-       i, locerrstat, imin1, imax1, imin2, imax2, j1, j2
-  LOGICAL                                               :: have_good_window
-  INTEGER (KIND=i2), DIMENSION (n_omi_radwvl,0:nbits-1) :: rad_qflg_bit
-  INTEGER (KIND=i2), DIMENSION (n_omi_radwvl)           :: rad_qflg_mask
-  REAL    (KIND=r8), DIMENSION (n_omi_radwvl)           :: weightsum
+  INTEGER (KIND=i4) :: i, locerrstat, imin1, imax1, imin2, imax2, j1, j2
+  LOGICAL :: have_good_window
+  REAL (KIND=r8), DIMENSION (n_omi_radwvl) :: weightsum
 
   locerrstat  = pge_errstat_ok
   yn_skip_pix = .FALSE.
@@ -416,36 +364,6 @@ SUBROUTINE omi_adjust_radiance_data (                                   &
   ! -------------------------------------------------------------------------------
   have_good_window = .TRUE.
 
-!!$  ! ----------------------------
-!!$  ! Find the pixel quality flags
-!!$  ! ----------------------------
-!!$  ! -------------------------------------------------------------------
-!!$  ! CAREFUL: Only 15 flags/positions (0:14) can be returned or else the
-!!$  !          conversion will result in a numeric overflow.
-!!$  ! -------------------------------------------------------------------
-!!$  CALL convert_2bytes_to_16bits ( nbits-1, n_rad_wvl, &
-!!$       omi_rad_qflg(1:n_rad_wvl), rad_qflg_bit(1:n_rad_wvl,0:nbits-2) )
-!!$
-!!$  ! --------------------------------------------------------------------
-!!$  ! Add contributions from various quality flags. Any CCD pixel that has
-!!$  ! a cumulative quality flag > 0 will be excluded form the fitting.
-!!$  ! 
-!!$  ! Choice of flags is based on the recommendations of the L1b README.
-!!$  ! --------------------------------------------------------------------
-!!$  rad_qflg_mask(1:n_rad_wvl) = 0_i2
-!!$  rad_qflg_mask(1:n_rad_wvl) = rad_qflg_mask(1:n_rad_wvl) + &
-!!$       rad_qflg_bit(1:n_rad_wvl,qflg_mis_idx) + &   ! Missing pixel
-!!$       rad_qflg_bit(1:n_rad_wvl,qflg_bad_idx) + &   ! Bad pixel
-!!$       rad_qflg_bit(1:n_rad_wvl,qflg_err_idx) !+ &   ! Processing error
-!!$  !rad_qflg_bit(1:n_rad_wvl,qflg_tra_idx) + &   ! Transient pixel
-!!$  !rad_qflg_bit(1:n_rad_wvl,qflg_rts_idx) + &   ! RTS pixel
-!!$  !rad_qflg_bit(1:n_rad_wvl,qflg_sat_idx)       ! Saturation
-!!$
-!!$  WHERE ( rad_qflg_mask(1:n_rad_wvl) > 0_i2 )
-!!$     curr_rad_spec(sig_idx,1:n_rad_wvl) = downweight
-!!$     curr_rad_spec(spc_idx,1:n_rad_wvl) = 0.0_r8
-!!$  END WHERE
-
   ! --------------------------------------------------
   ! Compute normalization factor for radiance spectrum
   ! --------------------------------------------------
@@ -521,13 +439,12 @@ SUBROUTINE omi_create_solcomp_irradiance ( nxt )
   ! ------------------------------------------------------------------
 
   USE OMSAO_parameters_module, ONLY: i2, i4, r8
-  USE OMSAO_variables_module,  ONLY: fit_winwav_lim, fit_winexc_lim, yn_spectrum_norm
-  USE OMSAO_solcomp_module,    ONLY: soco_compute
-  USE OMSAO_omidata_module,    ONLY:                                                    &
-       nwavel_max, omi_irradiance_spec, omi_irradiance_qflg, omi_irradiance_prec,       &
-       omi_irradiance_wavl, omi_nwav_irrad, omi_ccdpix_selection, omi_ccdpix_exclusion, &
-       omi_sol_wav_avg
-
+  USE OMSAO_variables_module, ONLY: fit_winwav_lim, fit_winexc_lim
+  USE OMSAO_solcomp_module, ONLY: soco_compute
+  USE OMSAO_omidata_module, ONLY: nwavel_max, omi_irradiance_spec, omi_irradiance_qflg, &
+       omi_irradiance_prec, omi_irradiance_wavl, omi_nwav_irrad, omi_ccdpix_selection, &
+       omi_ccdpix_exclusion, omi_sol_wav_avg
+  
 
   IMPLICIT NONE
 
@@ -606,7 +523,7 @@ END SUBROUTINE omi_create_solcomp_irradiance
 
 
 SUBROUTINE compute_fitting_statistics ( &
-     pge_idx, ntimes, nxtrack, xtrange, saocol, saodco, saorms, saofcf, saoiqf, saomqf, output, errstat )
+     pge_idx, ntimes, nxtrack, xtrange, saocol, saodco, saorms, saofcf, saomqf, output, errstat )
 
   USE OMSAO_precision_module,  ONLY: i2, i4, r4, r8
   USE OMSAO_parameters_module, ONLY: &
@@ -614,7 +531,6 @@ SUBROUTINE compute_fitting_statistics ( &
        elsunc_less_is_noise, main_qa_good, main_qa_suspect, main_qa_bad
   USE OMSAO_metadata_module,  ONLY:  QAPercentMissingData, QAPercentOutofBoundsData
   USE OMSAO_he5_module,       ONLY:  &
-       pge_swath_name, NrofScanLines, NrofCrossTrackPixels,                      &
        NrOfInputSamples, NrofGoodOutputSamples, NrofSuspectOutputSamples,        &
        NrofBadOutputSamples, NrofConvergedSamples, NrofFailedConvergenceSamples, &
        NrofExceededIterationsSamples, NrofOutofBoundsSamples, NrofMissingSamples, &
@@ -637,7 +553,6 @@ SUBROUTINE compute_fitting_statistics ( &
   INTEGER (KIND=i4), DIMENSION (0:ntimes-1,1:2),     INTENT (IN) :: xtrange
   REAL    (KIND=r8), DIMENSION (nxtrack,0:ntimes-1), INTENT (IN) :: saocol, saodco, saorms
   INTEGER (KIND=i2), DIMENSION (nxtrack,0:ntimes-1), INTENT (IN) :: saofcf
-  INTEGER (KIND=i2), DIMENSION (0:ntimes-1), INTENT (IN)         :: saoiqf
   LOGICAL                                          , INTENT (IN) :: output
 
   ! ----------------
@@ -699,8 +614,7 @@ SUBROUTINE compute_fitting_statistics ( &
         ! ------------------------------------------------------
         IF ( (saofcf(ix,it)      >= INT(elsunc_less_is_noise,KIND=i4)) .AND. &
              (saocol(ix,it)      >  r8_missval                       ) .AND. &
-             (ABS(saocol(ix,it)) <= max_good_col                     ) ) THEN !.AND. &
-!             (col2sig            >= 0.0_r8                           ) ) THEN
+             (ABS(saocol(ix,it)) <= max_good_col                     ) ) THEN 
 
            saomqf(ix,it) = main_qa_good
 
@@ -722,16 +636,11 @@ SUBROUTINE compute_fitting_statistics ( &
         !          pixels can count towards both the number of out-
         !          of bounds and the failed convergence samples.
         ! ----------------------------------------------------------
-        IF ( (saofcf(ix,it)      > i2_missval .AND. saofcf(ix,it) < 0_i2) ) THEN !.OR. &
-!             (saocol(ix,it)      > r8_missval .AND. col3sig < 0.0_r8    ) )  THEN
+        IF ( (saofcf(ix,it)      > i2_missval .AND. saofcf(ix,it) < 0_i2) ) THEN
 
            saomqf(ix,it) = main_qa_bad
 
-!!$           NrofGoodInputSamples = NrofGoodInputSamples + 1
            NrofBadOutputSamples = NrofBadOutputSamples + 1
-
-!!$           IF ( saocol(ix,it) > r8_missval .AND. col3sig < 0.0_r8 ) &
-!!$                NrofOutofBoundsSamples        = NrofOutofBoundsSamples        + 1
            IF ( saofcf(ix,it) < 0 .AND. saofcf(ix,it) >= elsunc_usrstop_eval ) &
                 NrofFailedConvergenceSamples  = NrofFailedConvergenceSamples  + 1
            IF ( saofcf(ix,it) == elsunc_maxiter_eval )                      &
@@ -746,7 +655,6 @@ SUBROUTINE compute_fitting_statistics ( &
         IF ( saocol(ix,it) > r8_missval ) THEN
 
            IF ( (saofcf(ix,it) >= 0_i2 .AND. saofcf(ix,it) < elsunc_less_is_noise) .OR. &
-!!$                (col2sig <  0.0_r8  .AND. col3sig >= 0.0_r8                      ) .OR. &
                 (ABS(saocol(ix,it)) > max_good_col                               ))  THEN
 
               saomqf(ix,it) = main_qa_suspect
@@ -819,7 +727,7 @@ SUBROUTINE compute_fitting_statistics ( &
 
   IF (output) THEN
      CALL he5_write_fitting_statistics (                                        &
-          pge_idx, max_good_col, nxtrack, ntimes, saomqf(1:nxtrack,0:ntimes-1), &
+          pge_idx, nxtrack, ntimes, saomqf(1:nxtrack,0:ntimes-1), &
           fitcol_avg, dfitcol_avg, rms_avg, locerrstat                            )
      errstat = MAX ( locerrstat, errstat )
   ENDIF
@@ -831,19 +739,15 @@ END SUBROUTINE compute_fitting_statistics
 
 SUBROUTINE set_input_pointer_and_versions ( pge_idx )
 
-  USE OMSAO_precision_module,    ONLY: i4
-  USE OMSAO_parameters_module,   ONLY : maxchlen
-  USE OMSAO_prefitcol_module,    ONLY : yn_o3_prefit, yn_bro_prefit,&
-  																			yn_lqh2o_prefit
-  USE OMSAO_indices_module,      ONLY: &
-       sao_pge_names,  pge_oclo_idx, pge_bro_idx, pge_hcho_idx, pge_o3_idx,    &
-       pge_gly_idx, l1b_radiance_lun, l1b_radianceref_lun, l1b_irradiance_lun, &
-       o3_prefit_lun, bro_prefit_lun, lqh2o_prefit_lun,                        &
-       voc_amf_luns, voc_amf_lun_str, voc_omicld_idx, pge_h2o_idx
-  USE OMSAO_omidata_module,      ONLY: l1b_radiance_esdt
-  USE OMSAO_he5_module,          ONLY: n_lun_inp, lun_input, input_versions
-  USE OMSAO_errstat_module,      ONLY: pge_errstat_ok
-  USE OMSAO_variables_module,    ONLY: yn_solar_comp, l1b_rad_filename
+  USE OMSAO_precision_module, ONLY: i4
+  USE OMSAO_prefitcol_module, ONLY : yn_o3_prefit, yn_bro_prefit, &
+       yn_lqh2o_prefit
+  USE OMSAO_indices_module, ONLY: pge_oclo_idx, pge_bro_idx, pge_hcho_idx, &
+       pge_o3_idx, pge_gly_idx, l1b_radiance_lun, l1b_radianceref_lun, &
+       l1b_irradiance_lun, o3_prefit_lun, bro_prefit_lun, lqh2o_prefit_lun, &
+       voc_amf_luns, voc_omicld_idx, pge_h2o_idx
+  USE OMSAO_he5_module, ONLY: n_lun_inp, lun_input, input_versions
+  USE OMSAO_variables_module, ONLY: yn_solar_comp, l1b_rad_filename
   USE OMSAO_radiance_ref_module, ONLY: yn_radiance_reference, l1b_radref_filename
 
   IMPLICIT NONE
@@ -857,11 +761,6 @@ SUBROUTINE set_input_pointer_and_versions ( pge_idx )
   ! Local variables
   ! ---------------
   LOGICAL :: yn_radref
-
-  ! ------------------------------
-  ! Name of this module/subroutine
-  ! ------------------------------
-  CHARACTER (LEN=31), PARAMETER :: modulename = 'set_input_pointer_and_versions'
 
   ! ----------------------------------------
   ! Initialize variables returned via MODULE
@@ -970,11 +869,13 @@ END SUBROUTINE set_input_pointer_and_versions
 
 SUBROUTINE get_input_versions (pge_idx, yn_solar_comp, yn_radref, input_versions )
 
-  USE OMSAO_precision_module,  ONLY: i4
-  USE OMSAO_parameters_module, ONLY: maxchlen
-  USE OMSAO_indices_module,    ONLY: pge_hcho_idx, pge_gly_idx, pge_h2o_idx
-  USE OMSAO_prefitcol_module,  ONLY: yn_o3_prefit, yn_bro_prefit, yn_lqh2o_prefit
-  USE OMSAO_metadata_module
+  USE OMSAO_precision_module, ONLY: i4
+  USE OMSAO_indices_module,  ONLY: pge_hcho_idx, pge_gly_idx, pge_h2o_idx
+  USE OMSAO_prefitcol_module, ONLY: yn_o3_prefit, yn_bro_prefit, yn_lqh2o_prefit
+  USE OMSAO_metadata_module, ONLY: n_mdata_omchocho, n_mdata_omhcho, n_mdata_str, &
+       n_mdata_voc, mdata_string_values, mdata_string_fields, mdata_voc_values, &
+       mdata_voc_fields, mdata_omchocho_values, mdata_omchocho_fields, &
+       mdata_omhcho_values, mdata_omhcho_fields, PGSd_MET_NAME_L
 
   IMPLICIT NONE
 
@@ -1000,7 +901,7 @@ SUBROUTINE get_input_versions (pge_idx, yn_solar_comp, yn_radref, input_versions
        cld_name, cld_version, &  ! Cloud ESDT
        bro_name, bro_version, &  ! BrO Prefit ESDT
        ooo_name, ooo_version, &  ! Ozone Prefit ESDT
-			 lqh2o_name, lqh2o_version   ! lqH2O Prefit ESDT
+       lqh2o_name, lqh2o_version   ! lqH2O Prefit ESDT
   ! --------------------------
   ! Initialize output variable
   ! --------------------------
@@ -1127,8 +1028,8 @@ SUBROUTINE get_input_versions (pge_idx, yn_solar_comp, yn_radref, input_versions
      input_versions = TRIM(ADJUSTL(input_versions)) // ' ' // &
           TRIM(ADJUSTL(cld_name))//':'//TRIM(ADJUSTL(cld_version))
 		 
-		 ! lqH2O prefit
-		 IF ( yn_lqh2o_prefit(1) ) THEN
+     ! lqH2O prefit
+     IF ( yn_lqh2o_prefit(1) ) THEN
         DO i = 1, n_mdata_omchocho
            IF ( TRIM(ADJUSTL(mdata_omchocho_fields(3,i))) == 'LQH2O' ) THEN
               IF ( TRIM(ADJUSTL(mdata_omchocho_fields(1,i))) == 'PGEVERSION' ) &
@@ -1212,7 +1113,7 @@ SUBROUTINE convert_1byte_to_8bits ( nbits, ndim, byte_num, bit_num )
   ! converts it into an NDIM x 8 dimensional integer BIT_NUM
   ! ==========================================================
 
-  USE OMSAO_precision_module
+  USE OMSAO_precision_module, ONLY: i1, i4
   IMPLICIT NONE
 
   ! ---------------
@@ -1268,7 +1169,7 @@ SUBROUTINE convert_2bytes_to_16bits ( nbits, ndim, byte_num, bit_num )
   ! converts it into an NDIM x 16 dimensional interger BIT_NUM
   ! ==========================================================
 
-  USE OMSAO_precision_module
+  USE OMSAO_precision_module, ONLY: i4, i2
   IMPLICIT NONE
 
   ! ---------------
@@ -1356,7 +1257,7 @@ END SUBROUTINE omi_radiance_wvl_smoothing
 SUBROUTINE compact_fitting_spectrum ( n_fit_wvl, curr_fit_spec )
 
   USE OMSAO_precision_module,  ONLY: i4, r8
-  USE OMSAO_indices_module,    ONLY: wvl_idx, sig_idx, spc_idx, ccd_idx
+  USE OMSAO_indices_module,    ONLY: wvl_idx, sig_idx, ccd_idx
   USE OMSAO_parameters_module, ONLY: normweight
 
   IMPLICIT NONE
@@ -1443,14 +1344,13 @@ SUBROUTINE check_wavelength_overlap ( &
 END SUBROUTINE check_wavelength_overlap
 
 
-SUBROUTINE omi_set_xtrpix_range (                 &
-     nTimes, nXtrack, pixnum_limits, omi_binfac,  &
+SUBROUTINE omi_set_xtrpix_range ( &
+     nTimes, nXtrack, pixnum_limits, &
      omi_xtrpix_range, first_wc_pix, last_wc_pix, &
      errstat )
 
-  USE OMSAO_precision_module,  ONLY: i1, i4
-  USE OMSAO_omidata_module,    ONLY: szoom_mode, global_mode, gzoom_spix, gzoom_epix
-  USE OMSAO_errstat_module
+  USE OMSAO_precision_module, ONLY: i4
+  USE OMSAO_errstat_module, ONLY: pge_errstat_ok
 
   IMPLICIT NONE
 
@@ -1507,7 +1407,6 @@ SUBROUTINE omi_set_xtrpix_range (                 &
   ! ---------------
   INTEGER (KIND=i4),                        INTENT (IN) :: nTimes, nXtrack
   INTEGER (KIND=i4), DIMENSION(2),          INTENT (IN) :: pixnum_limits
-  INTEGER (KIND=i1), DIMENSION(0:nTimes-1), INTENT (IN) :: omi_binfac
 
   ! ----------------
   ! Output variables
@@ -1524,11 +1423,6 @@ SUBROUTINE omi_set_xtrpix_range (                 &
   ! Local variables
   ! ---------------
   INTEGER (KIND=i4)          :: first_pix, last_pix, i, locerrstat
-
-  ! -----------------------
-  ! Name of this subroutine
-  ! -----------------------
-  CHARACTER (LEN=20), PARAMETER :: modulename = 'omi_set_xtrpix_range'
 
   ! ---------------------------
   ! Initialize return variables
@@ -1552,21 +1446,6 @@ SUBROUTINE omi_set_xtrpix_range (                 &
   ! fingers crossed.
   ! --------------------------------------------------------------------
   DO i = 0, nTimes -1 
-!!$     SELECT CASE ( omi_binfac(i) )
-!!$     CASE ( global_mode )
-!!$        first_wc_pix = first_pix
-!!$        last_wc_pix  = last_pix
-!!$     CASE ( szoom_mode )
-!!$        first_wc_pix = MAX ( first_pix, gzoom_spix )
-!!$        last_wc_pix  = MIN ( last_pix,  gzoom_epix )
-!!$     CASE DEFAULT
-!!$        ! ---------------------------------------------------
-!!$        ! Let's hope we never reach here. This spells TROUBLE.
-!!$        ! Setting the end pixel to less than the start pixel
-!!$        ! is a feeble attempt to avoid the worst of loops.
-!!$        ! ---------------------------------------------------
-!!$        first_wc_pix = -1 ; last_wc_pix = -2
-!!$     END SELECT
      omi_xtrpix_range(i,1) = first_wc_pix
      omi_xtrpix_range(i,2) = last_wc_pix
   END DO
@@ -1582,8 +1461,8 @@ SUBROUTINE convert_tai_to_utc ( nUTCdim, time_tai, time_utc )
 
   IMPLICIT NONE
 
-  INCLUDE 'PGS_SMF.f'
-  INCLUDE 'PGS_TD_3.f'
+!  INCLUDE 'PGS_SMF.f'
+!  INCLUDE 'PGS_TD_3.f'
 
   ! ------------------
   ! External functions
@@ -1679,7 +1558,7 @@ SUBROUTINE compute_common_mode ( &
      yn_reference_fit, xti, nwvl, fitwvl, fitres, yn_final_call )
 
   USE OMSAO_precision_module, ONLY: i2, i4, r8
-  USE OMSAO_indices_module,   ONLY: max_calfit_idx, max_rs_idx, comm_idx, mxs_idx
+  USE OMSAO_indices_module,   ONLY: max_calfit_idx, comm_idx, mxs_idx
   USE OMSAO_variables_module, ONLY:                                           &
        common_mode_spec, fitvar_rad_init, lo_radbnd, up_radbnd,               &
        common_fitpos, common_fitvar, common_latrange, refspecs_original
@@ -1701,9 +1580,6 @@ SUBROUTINE compute_common_mode ( &
   ! ---------------
   INTEGER (KIND=i4) :: i, j, k
   REAL    (KIND=r8) :: comnorm
-
-  CHARACTER (LEN=19), PARAMETER :: modulename = 'compute_common_mode'
-
 
   IF ( yn_final_call ) THEN
      ! ---------------------------------------------------
@@ -1824,25 +1700,17 @@ END SUBROUTINE compute_common_mode
 
 
 SUBROUTINE find_swathline_range ( &
-     l1bfile, l1bswath, nt, nx, l1blats, latrange, yn_in_range, errstat )
+     nt, nx, l1blats, latrange, yn_in_range, errstat )
 
-  USE OMSAO_precision_module
-  USE OMSAO_parameters_module, ONLY: r4_missval
-  USE OMSAO_variables_module,  ONLY: pixnum_lim
-  USE OMSAO_errstat_module
-  USE L1B_Reader_class
+  USE OMSAO_precision_module, ONLY: i4, r4
+  USE OMSAO_variables_module, ONLY: pixnum_lim
+  USE OMSAO_errstat_module, ONLY: pge_errstat_ok
 
   IMPLICIT NONE
-
-  ! ------------------------------
-  ! Name of this module/subroutine
-  ! ------------------------------
-  CHARACTER (LEN=20), PARAMETER :: modulename = 'find_swathline_range'
 
   ! ---------------
   ! Input variables
   ! ---------------
-  CHARACTER (LEN=*),                            INTENT (IN) :: l1bfile, l1bswath
   INTEGER   (KIND=i4),                          INTENT (IN) :: nt, nx
   REAL      (KIND=r4), DIMENSION (1:nx,0:nt-1), INTENT (IN) :: l1blats
   REAL      (KIND=r4), DIMENSION (2),           INTENT (IN) :: latrange
@@ -1859,9 +1727,6 @@ SUBROUTINE find_swathline_range ( &
   INTEGER (KIND=i4)                          :: estat, fpix, lpix, midnum, locerrstat
   REAL    (KIND=r4)                          :: midlat
   INTEGER (KIND=i4), DIMENSION (0:nt-1, 1:2) :: xtrange
-  INTEGER (KIND=i1), DIMENSION (0:nt-1)      :: binfac
-  LOGICAL,           DIMENSION (0:nt-1)      :: ynzoom
-
 
   locerrstat = pge_errstat_ok
   estat      = pge_errstat_ok
@@ -1870,11 +1735,8 @@ SUBROUTINE find_swathline_range ( &
   ! Read preparatory arrays for determining the range of swath lines
   ! that fall within the desired latitude interval.
   ! ----------------------------------------------------------------
-!!$  CALL omi_read_binning_factor ( &
-!!$       l1bfile, l1bswath, nt, binfac(0:nt-1), ynzoom(0:nt-1), estat )
-
   CALL omi_set_xtrpix_range ( &
-       nt, nx, pixnum_lim(3:4), binfac(0:nt-1), &
+       nt, nx, pixnum_lim(3:4), &
        xtrange(0:nt-1,1:2), fpix, lpix, estat    )
 
   ! ----------------------------------------------------------------------
@@ -1901,9 +1763,9 @@ END SUBROUTINE find_swathline_range
 SUBROUTINE find_swathline_by_latitude ( &
      nxrr, sline, eline, latr4, lat, xtrange, lnum, yn_found )
 
+  USE OMSAO_precision_module, ONLY: i4, r4
   USE OMSAO_parameters_module, ONLY: r4_missval
-  USE OMSAO_errstat_module
-  USE L1B_Reader_class
+  USE OMSAO_errstat_module, ONLY: pge_errstat_error
 
   IMPLICIT NONE
 
@@ -2047,10 +1909,8 @@ END SUBROUTINE find_swathline_by_latitude
 SUBROUTINE find_swathrange_by_latitude ( &
      nt, nx, latlow, latupp, latr4, xtrange, latmid, latnum, yn_in_range )
 
-  USE OMSAO_precision_module
+  USE OMSAO_precision_module, ONLY: i4, r4
   USE OMSAO_parameters_module, ONLY: r4_missval
-  USE OMSAO_errstat_module
-  USE L1B_Reader_class
 
   IMPLICIT NONE
 
@@ -2198,10 +2058,10 @@ END SUBROUTINE find_swathrange_by_latitude
 
 SUBROUTINE read_latitude (l1bfile, l1bswath, nt, nx, latr4 )
 
-  USE OMSAO_parameters_module, ONLY: r4_missval
-  USE OMSAO_omidata_module,    ONLY: nlines_max
-  USE OMSAO_errstat_module
-  USE L1B_Reader_class
+  USE OMSAO_precision_module, ONLY: i4, r4
+  USE OMSAO_omidata_module, ONLY: nlines_max
+  USE L1B_Reader_class, ONLY: L1B_block_type, l1br_getgeoline, &
+       l1bR_close, l1br_open
 
   IMPLICIT NONE
 

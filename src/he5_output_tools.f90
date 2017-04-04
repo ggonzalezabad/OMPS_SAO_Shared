@@ -16,9 +16,8 @@ FUNCTION he5_init_swath ( file_name, swath_name, nTimes, nXtrack, nSwLevels ) RE
   !
   !------------------------------------------------------------------------------
 
-  USE OMSAO_precision_module
   USE OMSAO_indices_module,   ONLY: max_calfit_idx, max_rs_idx
-  USE OMSAO_omidata_module,   ONLY: nclenfit, n_comm_wvl, nUTCdim, nwavel_max
+  USE OMSAO_omidata_module,   ONLY: nclenfit, nUTCdim, nwavel_max
   USE OMSAO_he5_module
   USE OMSAO_errstat_module
   USE OMSAO_variables_module, ONLY: n_fitvar_rad, yn_diagnostic_run
@@ -121,15 +120,17 @@ FUNCTION he5_define_fields ( pge_idx, swath_name, nTimes, nXtrack, nSwLevels ) R
   !
   !------------------------------------------------------------------------------
 
-  USE OMSAO_indices_module,    ONLY: &
-       pge_hcho_idx, pge_bro_idx, pge_gly_idx, pge_o3_idx, sao_molecule_names, &
-       o3_t1_idx, o3_t3_idx, pge_h2o_idx
-  USE OMSAO_parameters_module, ONLY: maxchlen, i4_missval, r4_missval, r8_missval
-  USE OMSAO_variables_module,  ONLY: yn_diagnostic_run, yn_sw
-  USE OMSAO_omidata_module,    ONLY: n_field_maxdim
+  USE OMSAO_indices_module, ONLY: sao_molecule_names
+  USE OMSAO_parameters_module, ONLY: maxchlen
+  USE OMSAO_variables_module,  ONLY: yn_sw, yn_diagnostic_run
+  USE OMSAO_omidata_module, ONLY: n_field_maxdim
   USE OMSAO_he5_module
-  USE OMSAO_he5_datafields_module
-  USE OMSAO_errstat_module
+  USE OMSAO_he5_datafields_module, ONLY: geo_he5fields, sol_calfit_he5fields, &
+       rad_calfit_he5fields, rad_reffit_he5fields, comdata_he5fields, &
+       diagnostic_he5fields, voc_he5fields, sw_he5fields
+  USE OMSAO_errstat_module, ONLY: pge_errstat_ok, pge_errstat_error, he5_stat_ok, &
+       error_check, vb_lev_default, he5_stat_fail, omsao_e_he5swattach, &
+       omsao_e_he5swdeffld, pge_errstat_fatal
 
   IMPLICIT NONE
 
@@ -430,19 +431,19 @@ END FUNCTION he5_define_fields
 
 SUBROUTINE he5_write_wavcal_output ( nXtloc, fpix, lpix, errstat )
 
-  USE OMSAO_precision_module, ONLY: i4, r8, r4
-  USE OMSAO_indices_module,   ONLY: max_calfit_idx
+  USE OMSAO_indices_module, ONLY: max_calfit_idx
   USE OMSAO_he5_module
-  USE OMSAO_he5_datafields_module
-  USE OMSAO_errstat_module
+  USE OMSAO_he5_datafields_module, ONLY: sol_calfit_he5fields, &
+       rad_calfit_he5fields, rad_reffit_he5fields
+  USE OMSAO_errstat_module, ONLY: pge_errstat_ok, pge_errstat_error, &
+       he5_stat_ok, error_check, vb_lev_default, &
+       omsao_e_he5swwrfld
   USE OMSAO_omidata_module,   ONLY: &
        n_roff_dig,                                            &
        omi_solcal_xflag,  omi_radcal_xflag, omi_radref_xflag, &
        omi_solcal_pars,   omi_radcal_pars,  omi_radref_pars,  &
-       omi_solcal_itnum,  omi_radcal_itnum, omi_radref_itnum, &
        omi_radref_col,    omi_radref_dcol,  omi_radref_rms,   &
-       omi_radref_xtrcol, omi_itnum_flag
-  USE OMSAO_variables_module,    ONLY: yn_diagnostic_run
+       omi_radref_xtrcol
   USE OMSAO_radiance_ref_module, ONLY: radref_latrange
 
   IMPLICIT NONE
@@ -564,22 +565,21 @@ END SUBROUTINE he5_write_wavcal_output
 
 
 SUBROUTINE he5_write_radfit_output ( &
-     pge_idx, iline, nXtrack, nblock, fpix, lpix, &
+     pge_idx, iline, nXtrack, fpix, lpix, &
      all_fitted_columns, all_fitted_errors, correlation_columns,&
-     omi_fitspc, nt, errstat )
+     omi_fitspc, errstat )
 
-  USE OMSAO_precision_module
-  USE OMSAO_parameters_module, ONLY: maxchlen, r8_missval
   USE OMSAO_variables_module,  ONLY: n_fitvar_rad, n_rad_wvl
-  USE OMSAO_indices_module,    ONLY: &
-       pge_bro_idx, pge_o3_idx, o3_t1_idx, sao_molecule_names, &
+  USE OMSAO_indices_module,    ONLY: sao_molecule_names, &
        corr_didx,  corrcol_didx, correrr_didx, itnum_didx,  &
        fitwt_didx, posobs_didx,  spcobs_didx,  spcfit_didx, &
        spcres_didx
   USE OMSAO_variables_module,  ONLY: yn_diagnostic_run
-  USE OMSAO_omidata_module
+  USE OMSAO_omidata_module, ONLY: nxtrack_max, n_roff_dig, nwavel_max, &
+       omi_itnum_flag
   USE OMSAO_he5_module
-  USE OMSAO_errstat_module
+  USE OMSAO_errstat_module, ONLY: pge_errstat_ok, pge_errstat_error, he5_stat_ok, &
+       error_check, vb_lev_default, omsao_e_he5swwrfld
 
   IMPLICIT NONE
 
@@ -591,7 +591,7 @@ SUBROUTINE he5_write_radfit_output ( &
   ! ---------------
   ! Input variables
   ! ---------------
-  INTEGER (KIND=i4), INTENT (IN) :: pge_idx, iline, nXtrack, nblock, fpix, lpix, nt
+  INTEGER (KIND=i4), INTENT (IN) :: pge_idx, iline, nXtrack, fpix, lpix
 
   ! CCM 
   REAL (KIND=r8), INTENT (IN), DIMENSION(nwavel_max,nxtrack_max,4) :: omi_fitspc
@@ -758,8 +758,8 @@ END SUBROUTINE he5_write_radfit_output
 
 SUBROUTINE he5_write_common_mode ( nXtrack, npts, errstat )
 
-  USE OMSAO_precision_module
-  USE OMSAO_errstat_module
+  USE OMSAO_errstat_module, ONLY: pge_errstat_ok, pge_errstat_error, he5_stat_ok, &
+       error_check, vb_lev_default, omsao_e_he5swwrfld
   USE OMSAO_he5_module
   USE OMSAO_indices_module,   ONLY: commcnt_didx, commspc_didx, &
        commwvl_didx, ccdpix_didx
@@ -858,13 +858,11 @@ END SUBROUTINE he5_write_common_mode
 
 SUBROUTINE he5_write_omi_database ( database_he5, database_he5_wvl, nRefSpec,  npts, nXtrack, errstat )
 
-  USE OMSAO_precision_module
-  USE OMSAO_errstat_module
+  USE OMSAO_errstat_module, ONLY: pge_errstat_ok, pge_errstat_error, he5_stat_ok, &
+       error_check, vb_lev_default, omsao_e_he5swwrfld
   USE OMSAO_he5_module
-  USE OMSAO_omidata_module,   ONLY: n_roff_dig
   USE OMSAO_variables_module, ONLY: refspecs_original
-  USE OMSAO_indices_module,   ONLY: refspec_strings, &
-       spdata_didx, spnrmf_didx, spname_didx, spdatw_didx
+  USE OMSAO_indices_module,   ONLY: spdata_didx, spnrmf_didx, spdatw_didx
   IMPLICIT NONE
 
   ! ------------------------------
@@ -935,13 +933,6 @@ SUBROUTINE he5_write_omi_database ( database_he5, database_he5_wvl, nRefSpec,  n
           tmp_normfactor)
   ENDIF
   
-  ! Write Refspec Names
-  !he5_start_2d  = (/ zerocl, zerocl /)
-  !he5_stride_2d = (/  onecl, zerocl /)
-  !he5_edge_2d   = (/ INT(nclenfit,KIND=C_LONG), zerocl /)
-  !locerrstat = HE5_SWWRFLD ( &
-  !        pge_swath_id, correlm_field,  he5_start_2d, he5_stride_2d, he5_edge_2d, &
-  !        TRIM(ADJUSTL(refspec_strings)) )
   ! ------------------
   ! Check error status
   ! ------------------
@@ -953,16 +944,15 @@ SUBROUTINE he5_write_omi_database ( database_he5, database_he5_wvl, nRefSpec,  n
 END SUBROUTINE he5_write_omi_database
 
 SUBROUTINE he5_write_fitting_statistics ( &
-     pge_idx, max_col, nx, nt, saomqf, avg_col, avg_dcol, avg_rms, errstat )
+     pge_idx, nx, nt, saomqf, avg_col, avg_dcol, avg_rms, errstat )
 
-  USE OMSAO_precision_module
-  USE OMSAO_indices_module,    ONLY: sao_molecule_names, correlm_didx
+  USE OMSAO_indices_module, ONLY: sao_molecule_names, correlm_didx
   USE OMSAO_he5_module
-  USE OMSAO_errstat_module
+  USE OMSAO_errstat_module, ONLY: pge_errstat_ok, pge_errstat_error, he5_stat_ok, &
+       omsao_e_he5swwrfld, error_check, vb_lev_default
   USE OMSAO_parameters_module, ONLY: maxchlen
-  USE OMSAO_variables_module,  ONLY: n_fitvar_rad, yn_diagnostic_run
-  USE OMSAO_omidata_module,    ONLY: &
-       correlation_names, correlation_names_concat, nclenfit, nlines_max
+  USE OMSAO_variables_module, ONLY: yn_diagnostic_run
+  USE OMSAO_omidata_module, ONLY: correlation_names_concat, nclenfit, nlines_max
 
   IMPLICIT NONE
 
@@ -975,7 +965,7 @@ SUBROUTINE he5_write_fitting_statistics ( &
   ! Input variables
   ! ---------------
   INTEGER (KIND=i4),                          INTENT (IN) :: pge_idx, nx, nt
-  REAL    (KIND=r8),                          INTENT (IN) :: max_col, avg_col, avg_dcol, avg_rms
+  REAL    (KIND=r8),                          INTENT (IN) :: avg_col, avg_dcol, avg_rms
   INTEGER (KIND=i2), DIMENSION (1:nx,0:nt-1), INTENT (IN) :: saomqf
 
   ! ---------------
@@ -1035,13 +1025,6 @@ SUBROUTINE he5_write_fitting_statistics ( &
   he5_stride_2d = (/  onecl, zerocl /)
   he5_edge_2d   = (/  onecl, zerocl /)
 
-  ! ----------------------------------------
-  ! Maximum column amount for QA flag "good"
-  ! ----------------------------------------
-!!$  locerrstat = HE5_SWwrfld ( &
-!!$       pge_swath_id,  TRIM(ADJUSTL(maxcol_field)), &
-!!$       he5_start_2d(1), he5_stride_2d(1), he5_edge_2d(1), max_col  )
-
   ! ---------------------------------------------------
   ! Average column amount, uncertainty, and fitting RMS
   ! ---------------------------------------------------
@@ -1084,126 +1067,6 @@ SUBROUTINE he5_write_fitting_statistics ( &
   RETURN
 END SUBROUTINE he5_write_fitting_statistics
 
-
-SUBROUTINE he5_write_amf ( &
-         pge_idx, nx, nt, saocol, saodco, amfmol, amfgeo, amfdiag, &
-         amfcfr, amfctp, errstat )
-
-  USE OMSAO_precision_module, ONLY: i2, i4, r8
-  USE OMSAO_he5_module
-  USE OMSAO_errstat_module
-  USE OMSAO_omidata_module,   ONLY: n_roff_dig
-  USE OMSAO_indices_module,   ONLY: pge_hcho_idx, pge_gly_idx, pge_bro_idx, pge_h2o_idx
-
-  IMPLICIT NONE
-
-  ! ------------------------------
-  ! Name of this module/subroutine
-  ! ------------------------------
-  CHARACTER (LEN=13), PARAMETER :: modulename = 'he5_write_amf'
-
-
-  ! ---------------
-  ! Input variables
-  ! ---------------
-  INTEGER (KIND=i4),                          INTENT (IN) :: pge_idx, nx, nt
-  REAL    (KIND=r8), DIMENSION (1:nx,0:nt-1), INTENT (IN) :: saocol, saodco
-  REAL    (KIND=r8), DIMENSION (1:nx,0:nt-1), INTENT (IN) :: amfmol, amfgeo
-  REAL    (KIND=r8), DIMENSION (1:nx,0:nt-1), INTENT (IN) :: amfcfr, amfctp
-  INTEGER (KIND=i2), DIMENSION (1:nx,0:nt-1), INTENT (IN) :: amfdiag
-
-  ! -----------------
-  ! Modified variable
-  ! -----------------
-  INTEGER (KIND=i4), INTENT (INOUT) :: errstat
-
-  ! ---------------
-  ! Local variables
-  ! ---------------
-  INTEGER (KIND=i4)                          :: locerrstat
-  REAL    (KIND=r4), DIMENSION (1:nx,0:nt-1) :: amfloc
-  REAL    (KIND=r8), DIMENSION (1:nx,0:nt-1) :: colloc
-
-  
-  ! -------------------------------------------------------------
-  ! Air mass factor plus diagnostic.
-  ! -------------------------------------------------------------
-  ! As yet, only OMBRO and OMHCHO have true, non-geometric AMFs.
-  ! But we try to have symmetric data fields as much as possible,
-  ! hence the presence of the "molecule specific" AMF and its
-  ! diagnostic for all PGEs. Non-OMBRO and -OMHCHO PGEs carry a
-  ! geometric AMF here.
-  ! 
-  ! For completeness, the geometric AMF is added.
-  ! -------------------------------------------------------------
-
-  locerrstat = pge_errstat_ok
-
-  he5_start_2d  = (/ 0, 0 /) ;  he5_stride_2d = (/ 1, 1 /) ; he5_edge_2d = (/ nx, nt /)
-
-  ! ----------------------------------------
-  ! (1) AMF diagnostic. No rounding required
-  ! ----------------------------------------
-  locerrstat = HE5_SWWRFLD ( pge_swath_id, TRIM(ADJUSTL(amfdiag_field)), &
-       he5_start_2d, he5_stride_2d, he5_edge_2d, amfdiag(1:nx,0:nt-1) )
-  errstat = MAX ( errstat, locerrstat )
-
-  ! -----------------
-  ! (2) Geometric AMF
-  ! -----------------
-  amfloc = REAL ( amfgeo, KIND=r4 )
-  CALL roundoff_2darr_r4 ( n_roff_dig, nx, nt, amfloc(1:nx,0:nt-1) )
-  locerrstat = HE5_SWWRFLD ( pge_swath_id, TRIM(ADJUSTL(amfgeo_field)), &
-       he5_start_2d, he5_stride_2d, he5_edge_2d, amfloc(1:nx,0:nt-1) )
-  errstat = MAX ( errstat, locerrstat )
-
-  ! -----------------
-  ! (3) Molecular AMF
-  ! -----------------
-  amfloc = REAL ( amfmol, KIND=r4 )
-  CALL roundoff_2darr_r4 ( n_roff_dig, nx, nt, amfloc(1:nx,0:nt-1) )
-  locerrstat = HE5_SWWRFLD ( pge_swath_id, TRIM(ADJUSTL(amfmol_field)), &
-       he5_start_2d, he5_stride_2d, he5_edge_2d, amfloc(1:nx,0:nt-1) )
-  errstat = MAX ( errstat, locerrstat )
-
-  ! ----------------------------------------------------------
-  ! (4) OMHCHO, OMCHOCHO only: AMF cloud fraction and pressure
-  ! ----------------------------------------------------------
-  IF ( pge_idx == pge_hcho_idx .OR. pge_idx == pge_gly_idx .OR. pge_idx == pge_h2o_idx) THEN
-     amfloc = REAL ( amfcfr, KIND=r4 )
-     CALL roundoff_2darr_r4 ( n_roff_dig, nx, nt, amfloc(1:nx,0:nt-1) )
-     locerrstat = HE5_SWWRFLD ( pge_swath_id, TRIM(ADJUSTL(amfcfr_field)), &
-          he5_start_2d, he5_stride_2d, he5_edge_2d, amfloc(1:nx,0:nt-1) )
-     errstat = MAX ( errstat, locerrstat )
-  
-     amfloc = REAL ( amfctp, KIND=r4 )
-     CALL roundoff_2darr_r4 ( n_roff_dig, nx, nt, amfloc(1:nx,0:nt-1) )
-     locerrstat = HE5_SWWRFLD ( pge_swath_id, TRIM(ADJUSTL(amfctp_field)), &
-          he5_start_2d, he5_stride_2d, he5_edge_2d, amfloc(1:nx,0:nt-1) )
-     errstat = MAX ( errstat, locerrstat )
-  END IF
-
-  ! -----------------------------------------------------------------------
-  ! (5) All PGEs: Output of columns and column uncertainties. For some PGEs
-  !     (e.g., OMBRO, OMHCHO, OMCHOCHO) those have been adjusted by the AMF,
-  !     but we have as yet to perform the rounding for any of them.
-  ! -----------------------------------------------------------------------
-  colloc = saocol
-  CALL roundoff_2darr_r8 ( n_roff_dig, nx, nt, colloc(1:nx,0:nt-1) )
-  locerrstat = HE5_SWWRFLD ( pge_swath_id, TRIM(ADJUSTL(col_field)), &
-       he5_start_2d, he5_stride_2d, he5_edge_2d, colloc(1:nx,0:nt-1) )
-  errstat = MAX ( errstat, locerrstat )
-  
-  colloc = saodco
-  CALL roundoff_2darr_r8 ( n_roff_dig, nx, nt, colloc(1:nx,0:nt-1) )
-  locerrstat = HE5_SWWRFLD ( pge_swath_id, TRIM(ADJUSTL(dcol_field)), &
-       he5_start_2d, he5_stride_2d, he5_edge_2d, colloc(1:nx,0:nt-1) )
-  errstat = MAX ( errstat, locerrstat )
-
-  RETURN
-END SUBROUTINE he5_write_amf
-
-
 FUNCTION he5_set_field_attributes ( pge_idx ) RESULT ( he5stat )
 
   !----------------------------------------------------------------------
@@ -1224,14 +1087,14 @@ FUNCTION he5_set_field_attributes ( pge_idx ) RESULT ( he5stat )
   !
   !------------------------------------------------------------------------------
 
-  USE OMSAO_indices_module,    ONLY: &
-       pge_hcho_idx, pge_bro_idx, pge_gly_idx, pge_o3_idx, max_calfit_idx, sao_molecule_names, &
-       o3_t1_idx, o3_t3_idx, pge_h2o_idx
-  USE OMSAO_parameters_module, ONLY: maxchlen, i4_missval, r4_missval, r8_missval
-  USE OMSAO_variables_module,  ONLY: yn_diagnostic_run, yn_sw
+  USE OMSAO_indices_module, ONLY: sao_molecule_names
+  USE OMSAO_variables_module, ONLY: yn_diagnostic_run, yn_sw
   USE OMSAO_he5_module
-  USE OMSAO_he5_datafields_module
-  USE OMSAO_errstat_module
+  USE OMSAO_he5_datafields_module, ONLY: sw_he5fields, voc_he5fields, &
+       diagnostic_he5fields, comdata_he5fields, rad_reffit_he5fields, &
+       rad_calfit_he5fields, sol_calfit_he5fields, geo_he5fields
+  USE OMSAO_errstat_module, ONLY: pge_errstat_ok, pge_errstat_warning, &
+       vb_lev_default, he5_stat_ok, omsao_w_he5swrlattr, error_check
 
   IMPLICIT NONE
 
@@ -1364,10 +1227,13 @@ FUNCTION he5_write_global_attributes ( ) RESULT ( he5stat )
   !------------------------------------------------------------------------------
 
   USE OMSAO_he5_module
-  USE OMSAO_metadata_module
-  USE OMSAO_errstat_module
+  USE OMSAO_metadata_module, ONLY: n_mdata_dbl, n_mdata_str, mdata_string_fields, &
+       mdata_string_values, mdata_double_fields, mdata_double_values
+  USE OMSAO_errstat_module, ONLY: pge_errstat_ok, error_check, pge_errstat_warning, &
+       omsao_w_he5ehwrglatt, f_sep, he5_stat_ok, pgs_s_success, vb_lev_default, &
+       omsao_w_mdl2arc
   USE OMSAO_parameters_module, ONLY: maxchlen, n_fit_winwav
-  USE OMSAO_indices_module,    ONLY: &
+  USE OMSAO_indices_module, ONLY: &
        n_config_luns, yn_config_lun_autocopy, config_lun_strings, config_lun_values
   USE OMSAO_variables_module,  ONLY: fit_winwav_lim, fit_winexc_lim
 
@@ -1610,13 +1476,13 @@ FUNCTION he5_close_output_file ( pge_idx ) RESULT ( he5stat )
   !
   !------------------------------------------------------------------------------
 
-  USE OMSAO_indices_module,    ONLY: &
+  USE OMSAO_indices_module, ONLY: &
        pge_bro_idx, pge_hcho_idx, pge_oclo_idx, pge_gly_idx, &
-       voc_isccp_idx, voc_isccp_idx, n_voc_amf_luns, n_voc_amf_luns, pge_h2o_idx
-  USE OMSAO_variables_module,  ONLY: verb_thresh_lev
+       voc_isccp_idx, voc_isccp_idx, n_voc_amf_luns, n_voc_amf_luns
   USE OMSAO_he5_module
-  USE OMSAO_errstat_module
-  USE OMSAO_AMF_module,        ONLY: &
+  USE OMSAO_errstat_module, ONLY: pge_errstat_ok, pge_errstat_warning, &
+       error_check, omsao_w_he5swclose, he5_stat_ok, vb_lev_default
+  USE OMSAO_wfamf_module,  ONLY: &
        amf_swath_names, amf_swath_ids, amf_swath_file_ids
 
   IMPLICIT NONE
@@ -1718,9 +1584,8 @@ END FUNCTION he5_close_output_file
 
 SUBROUTINE he5_set_fill_value ( data_field, errstat )
 
-  USE OMSAO_precision_module
-  USE OMSAO_errstat_module
-  USE OMSAO_parameters_module,     ONLY: maxchlen, str_missval
+  USE OMSAO_errstat_module, ONLY: pge_errstat_ok
+  USE OMSAO_parameters_module,     ONLY: str_missval
   USE OMSAO_he5_datafields_module, ONLY: DataField_HE5
   USE OMSAO_he5_module
 
@@ -1785,11 +1650,10 @@ END SUBROUTINE he5_set_fill_value
 
 SUBROUTINE he5_write_local_attributes ( addstr, data_field, errstat )
 
-  USE OMSAO_precision_module
-  USE OMSAO_errstat_module
-  USE OMSAO_parameters_module,     ONLY: maxchlen, str_missval
+  USE OMSAO_parameters_module,     ONLY: str_missval
   USE OMSAO_he5_datafields_module, ONLY: DataField_HE5
   USE OMSAO_he5_module
+  USE OMSAO_errstat_module, ONLY: pge_errstat_ok
 
   IMPLICIT NONE
 
@@ -1916,9 +1780,9 @@ FUNCTION he5_write_swath_attributes ( pge_idx ) RESULT ( he5stat )
   !
   !------------------------------------------------------------------------------
 
-  USE OMSAO_precision_module
   USE OMSAO_he5_module
-  USE OMSAO_errstat_module
+  USE OMSAO_errstat_module, ONLY: pge_errstat_error, omsao_e_he5swwrattr, &
+       vb_lev_default, he5_stat_ok, pge_errstat_ok, error_check
   USE OMSAO_omidata_module, ONLY: EarthSunDistance
   IMPLICIT NONE
 
@@ -1975,8 +1839,8 @@ SUBROUTINE he5_check_for_compressibility ( &
   USE OMSAO_he5_module
   USE OMSAO_errstat_module
   USE OMSAO_variables_module, ONLY: n_fitvar_rad
-  USE OMSAO_omidata_module,   ONLY: &
-       nclenfit, nUTCdim, n_field_maxdim, nlines_max, n_comm_wvl, nwavel_max
+  USE OMSAO_omidata_module,   ONLY: nclenfit, nUTCdim, n_field_maxdim, &
+       nwavel_max
 
 
   ! -----------------------------------------------------------------
@@ -2175,7 +2039,8 @@ FUNCTION he5_open_readwrite ( file_name, swath_name ) RESULT ( he5stat )
   !------------------------------------------------------------------------------
 
   USE OMSAO_he5_module
-  USE OMSAO_errstat_module
+  USE OMSAO_errstat_module, ONLY: vb_lev_default, pge_errstat_fatal, error_check, &
+       pge_errstat_ok, omsao_e_he5swattach, he5_stat_fail, omsao_f_he5swopen
 
   IMPLICIT NONE
 
@@ -2225,13 +2090,13 @@ END FUNCTION he5_open_readwrite
 SUBROUTINE saopge_geofield_read ( &
      ntimes, nxtrack, geodata_field, geodata, errstat )
 
-  USE OMSAO_precision_module, ONLY: i2, i4, r4, r8
+  USE OMSAO_precision_module, ONLY: i2, i4, r4
   USE OMSAO_omidata_module,   ONLY: nlines_max
   USE OMSAO_he5_module
-  USE OMSAO_errstat_module
-
+  USE OMSAO_errstat_module, ONLY: pge_errstat_ok
+  
   IMPLICIT NONE
-
+  
   ! ---------------
   ! Input variables
   ! ---------------
@@ -2297,11 +2162,11 @@ END SUBROUTINE saopge_geofield_read
 SUBROUTINE saopge_columninfo_read (              &
      ntimes, nxtrack, saocol, saodco, saorms, saoamf, saoqf, amfdiag, errstat )
 
-  USE OMSAO_precision_module,  ONLY: i2, i4, r8
+  USE OMSAO_precision_module,  ONLY: i2, i4
   USE OMSAO_parameters_module, ONLY: r8_missval, i2_missval
   USE OMSAO_omidata_module,    ONLY: nlines_max
   USE OMSAO_he5_module
-  USE OMSAO_errstat_module
+  USE OMSAO_errstat_module, ONLY: pge_errstat_ok, error_check
 
   IMPLICIT NONE
 
@@ -2389,14 +2254,16 @@ SUBROUTINE saopge_columninfo_read (              &
   RETURN
 END SUBROUTINE saopge_columninfo_read
 
-SUBROUTINE he5_write_geolocation ( pge_idx, swath_name, nTimes, nXtrack, &
+SUBROUTINE he5_write_geolocation ( nTimes, nXtrack, &
      fpix, lpix, locerrstat)
 
-  USE OMSAO_omidata_module
-  USE OMSAO_parameters_module, ONLY: maxchlen, r8_missval
-  USE OMSAO_omidata_module
+  USE OMSAO_omidata_module, ONLY: omi_auraalt, omi_instrument_flag, &
+       omi_latitude, omi_longitude, omi_sazimuth, omi_szenith, &
+       omi_vazimuth, omi_vzenith, omi_xtrflg, omi_height, &
+       omi_snowicefraction
   USE OMSAO_he5_module
-  USE OMSAO_errstat_module
+  USE OMSAO_errstat_module, ONLY: he5_stat_ok, omsao_e_he5swwrfld, &
+       pge_errstat_ok, pge_errstat_error, vb_lev_default, error_check
 
   IMPLICIT NONE
 
@@ -2409,8 +2276,7 @@ SUBROUTINE he5_write_geolocation ( pge_idx, swath_name, nTimes, nXtrack, &
   ! ---------------
   ! Input variables
   ! ---------------
-  INTEGER (KIND=i4), INTENT (IN)       :: pge_idx, nTimes, nXtrack, fpix, lpix
-  CHARACTER (LEN=maxchlen), INTENT(IN) :: swath_name
+  INTEGER (KIND=i4), INTENT (IN) :: nTimes, nXtrack, fpix, lpix
 
   ! ---------------
   ! Output variable
@@ -2475,14 +2341,13 @@ SUBROUTINE he5_write_geolocation ( pge_idx, swath_name, nTimes, nXtrack, &
 
 END SUBROUTINE he5_write_geolocation
 
-SUBROUTINE he5_write_results ( pge_idx, swath_name, nTimes, nXtrack, &
-     fpix, lpix, locerrstat)
+SUBROUTINE he5_write_results ( nTimes, nXtrack, locerrstat)
 
-  USE OMSAO_omidata_module
-  USE OMSAO_parameters_module, ONLY: maxchlen, r8_missval
-  USE OMSAO_omidata_module
+  USE OMSAO_omidata_module, ONLY: omi_column_amount, omi_column_uncert, &
+       omi_fitconv_flag, omi_fit_rms     
   USE OMSAO_he5_module
-  USE OMSAO_errstat_module
+  USE OMSAO_errstat_module, ONLY: he5_stat_ok, omsao_e_he5swwrfld, &
+       pge_errstat_ok, pge_errstat_error, vb_lev_default, error_check
 
   IMPLICIT NONE
 
@@ -2495,8 +2360,7 @@ SUBROUTINE he5_write_results ( pge_idx, swath_name, nTimes, nXtrack, &
   ! ---------------
   ! Input variables
   ! ---------------
-  INTEGER (KIND=i4), INTENT (IN)       :: pge_idx, nTimes, nXtrack, fpix, lpix
-  CHARACTER (LEN=maxchlen), INTENT(IN) :: swath_name
+  INTEGER (KIND=i4), INTENT (IN) :: nTimes, nXtrack
 
   ! ---------------
   ! Output variable
@@ -2539,11 +2403,12 @@ END SUBROUTINE he5_write_results
 
 SUBROUTINE he5_write_solarwavcal ( nw, ip, shift, residual, locerrstat)
 
-  USE OMSAO_omidata_module
-  USE OMSAO_parameters_module, ONLY: maxchlen, r8_missval
-  USE OMSAO_omidata_module
+  USE OMSAO_omidata_module, ONLY: omi_irradiance_wavl, &
+       omi_irradiance_spec, omi_irradiance_wght, &
+       omi_solcal_xflag
   USE OMSAO_he5_module
-  USE OMSAO_errstat_module
+  USE OMSAO_errstat_module, ONLY: he5_stat_ok, omsao_e_he5swwrfld, &
+       pge_errstat_ok, pge_errstat_error, vb_lev_default, error_check
 
   IMPLICIT NONE
 
@@ -2596,10 +2461,10 @@ END SUBROUTINE he5_write_solarwavcal
 
 SUBROUTINE he5_write_radiancewavcal ( nw, ip, shift, residual, locerrstat)
 
-  USE OMSAO_omidata_module
-  USE OMSAO_parameters_module, ONLY: maxchlen, r8_missval
+  USE OMSAO_omidata_module, ONLY: omi_radcal_xflag
   USE OMSAO_he5_module
-  USE OMSAO_errstat_module
+  USE OMSAO_errstat_module, ONLY: pge_errstat_ok, pge_errstat_error, &
+       omsao_e_he5swwrfld, he5_stat_ok, vb_lev_default, error_check
   USE OMSAO_indices_module, ONLY: wvl_idx, spc_idx, sig_idx
   USE OMSAO_variables_module, ONLY: curr_rad_spec
 

@@ -3,25 +3,23 @@ SUBROUTINE read_pcf_file ( pge_error_status )
   USE OMSAO_precision_module
   USE OMSAO_indices_module
   USE OMSAO_errstat_module
-  USE OMSAO_metadata_module,       ONLY: &
-       pcf_granule_s_time,  pcf_granule_e_time, &
+  USE OMSAO_metadata_module, ONLY: pcf_granule_s_time,  pcf_granule_e_time, &
        n_mdata_int, mdata_integer_fields, mdata_integer_values
-  USE OMSAO_parameters_module,     ONLY: zerospec_string, str_missval
-  USE OMSAO_he5_module,            ONLY: &
-       pge_swath_name, process_level, instrument_name, pge_version
-  USE OMSAO_omidata_module,        ONLY: l1b_radiance_esdt
-  USE OMSAO_variables_module,      ONLY: &
-       pge_idx, pge_name, verb_thresh_char, verb_thresh_lev, orbit_number, &
+  USE OMSAO_parameters_module, ONLY: zerospec_string, str_missval
+  USE OMSAO_he5_module, ONLY: pge_swath_name, process_level, &
+       instrument_name, pge_version
+  USE OMSAO_omidata_module, ONLY: l1b_radiance_esdt
+  USE OMSAO_variables_module, ONLY: pge_idx, pge_name, orbit_number, &
        ecs_version_id, l1b_rad_filename, l1b_irrad_filename, l2_filename,  &
        static_input_fnames, have_amftable, omi_slitfunc_fname,             &
        OMBRO_amf_filename, OMSAO_solcomp_filename, voc_amf_filenames,      &
        refspecs_original, OMSAO_solmonthave_filename,                      &
        OMSAO_refseccor_filename, OMSAO_OMLER_filename,                     &
-       OMSAO_refseccor_cld_filename
-  USE OMSAO_prefitcol_module,     ONLY: o3_prefit_fname, bro_prefit_fname, &
+       OMSAO_refseccor_cld_filename, verb_thresh_lev
+  USE OMSAO_prefitcol_module, ONLY: o3_prefit_fname, bro_prefit_fname, &
        lqh2o_prefit_fname
-  USE OMSAO_radiance_ref_module,  ONLY: l1b_radref_filename
-  USE OMSAO_wfamf_module,         ONLY: wfamf_table_lun, climatology_lun,  &
+  USE OMSAO_radiance_ref_module, ONLY: l1b_radref_filename
+  USE OMSAO_wfamf_module, ONLY: wfamf_table_lun, climatology_lun,  &
        OMSAO_wfamf_table_filename, OMSAO_climatology_filename
 
   IMPLICIT NONE

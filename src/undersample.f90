@@ -7,8 +7,8 @@ SUBROUTINE undersample ( xtrack_pix, n_sensor_pts, curr_wvl, hw1e, e_asym, phase
   !     more common in OMI spectra.
 
   USE OMSAO_precision_module
-  USE OMSAO_indices_module,    ONLY: solar_idx, us1_idx, us2_idx, wvl_idx, spc_idx
-  USE OMSAO_parameters_module, ONLY: max_spec_pts, maxchlen
+  USE OMSAO_indices_module,    ONLY: solar_idx, us1_idx, us2_idx
+  USE OMSAO_parameters_module, ONLY: max_spec_pts
   USE OMSAO_variables_module,  ONLY: &
        refspecs_original, database, have_undersampling, yn_use_labslitfunc
   USE OMSAO_slitfunction_module
@@ -69,7 +69,6 @@ SUBROUTINE undersample ( xtrack_pix, n_sensor_pts, curr_wvl, hw1e, e_asym, phase
   !                     Calculate solar spectrum at OMI positions
 
   CALL interpolation (                                                                &
-       modulename//f_sep//'Phase 1a',                                                 &
        npts, locwvl(1:npts), specmod(1:npts), n_sensor_pts, curr_wvl(1:n_sensor_pts), &
        resample(1:n_sensor_pts), 'endpoints', 0.0_r8, yn_full_range, locerrstat )
   CALL error_check (                                                    &
@@ -97,7 +96,6 @@ SUBROUTINE undersample ( xtrack_pix, n_sensor_pts, curr_wvl, hw1e, e_asym, phase
   IF ( tmpwav(2) <= tmpwav(1) ) tmpwav(2) = (tmpwav(1)+tmpwav(3))/2.0_r8
 
   CALL interpolation (                                                              &
-       modulename//f_sep//'Phase 1b',                                               &
        npts, locwvl(1:npts), specmod(1:npts), n_sensor_pts, tmpwav(1:n_sensor_pts), &
        over(1:n_sensor_pts), 'endpoints', 0.0_r8, yn_full_range, locerrstat )
   CALL error_check (                                                    &
@@ -113,7 +111,6 @@ SUBROUTINE undersample ( xtrack_pix, n_sensor_pts, curr_wvl, hw1e, e_asym, phase
   !     modulename//f_sep//'Phase 1b', vb_lev_omidebug, errstat )
 
   CALL interpolation (                                                                 &
-       modulename//f_sep//'Phase 1c',                                                  &
        n_sensor_pts, curr_wvl(1:n_sensor_pts), resample(1:n_sensor_pts), n_sensor_pts, &
        tmpwav(1:n_sensor_pts), under(1:n_sensor_pts), 'endpoints', 0.0_r8,             &
        yn_full_range, locerrstat )
@@ -151,7 +148,6 @@ SUBROUTINE undersample ( xtrack_pix, n_sensor_pts, curr_wvl, hw1e, e_asym, phase
   ! Phase2 calculation: Calculate solar spectrum at OMI positions, original and resampled.
   ! --------------------------------------------------------------------------------------
   CALL interpolation (                                                                &
-       modulename//f_sep//'Phase 2a',                                                 &
        npts, locwvl(1:npts), specmod(1:npts), n_sensor_pts, curr_wvl(1:n_sensor_pts), &
        over(1:n_sensor_pts), 'endpoints', 0.0_r8, yn_full_range, locerrstat )
   CALL error_check ( &
@@ -168,7 +164,6 @@ SUBROUTINE undersample ( xtrack_pix, n_sensor_pts, curr_wvl, hw1e, e_asym, phase
   !     modulename//f_sep//'Phase 2a', vb_lev_omidebug, errstat )
 
   CALL interpolation ( &
-       modulename//f_sep//'Phase 2b',                                                &
        n_sensor_pts, tmpwav(1:n_sensor_pts), resample(1:n_sensor_pts), n_sensor_pts, &
        curr_wvl(1:n_sensor_pts), under(1:n_sensor_pts), 'endpoints', 0.0_r8,         &
        yn_full_range, locerrstat )
@@ -215,10 +210,10 @@ SUBROUTINE undersample_new ( xtrack_pix, n_sensor_pts, curr_wvl, n_solar_pts, so
   !     more common in OMI spectra.
 
   USE OMSAO_precision_module
-  USE OMSAO_indices_module,    ONLY: solar_idx, us1_idx, us2_idx, wvl_idx, spc_idx
-  USE OMSAO_parameters_module, ONLY: max_spec_pts, maxchlen
+  USE OMSAO_indices_module,    ONLY: solar_idx, us1_idx, us2_idx
+  USE OMSAO_parameters_module, ONLY: max_spec_pts
   USE OMSAO_variables_module,  ONLY: &
-       refspecs_original, database, have_undersampling, yn_use_labslitfunc
+       refspecs_original, database, yn_use_labslitfunc
   USE OMSAO_slitfunction_module
   USE OMSAO_errstat_module
 
@@ -287,7 +282,6 @@ SUBROUTINE undersample_new ( xtrack_pix, n_sensor_pts, curr_wvl, n_solar_pts, so
   !                     Calculate solar spectrum at OMI radiance positions
 
   CALL interpolation (                                                                &
-       modulename//f_sep//'Phase 1a',                                                 &
        npts, locwvl(1:npts), specmod(1:npts), n_sensor_pts, curr_wvl(1:n_sensor_pts), &
        over(1:n_sensor_pts), 'endpoints', 0.0_r8, yn_full_range, locerrstat )
   CALL error_check (                                                    &
@@ -304,7 +298,6 @@ SUBROUTINE undersample_new ( xtrack_pix, n_sensor_pts, curr_wvl, n_solar_pts, so
 
   ! Convolved High resolution solar to OMI solar grid
   CALL interpolation (                                                               &
-       modulename//f_sep//'Phase 1b',                                                &
        npts, locwvl(1:npts), specmod(1:npts), n_solar_pts, tmpwav(1:n_solar_pts), &
        resample(1:n_solar_pts), 'endpoints', 0.0_r8, yn_full_range, locerrstat )
   CALL error_check (                                                    &
@@ -321,7 +314,6 @@ SUBROUTINE undersample_new ( xtrack_pix, n_sensor_pts, curr_wvl, n_solar_pts, so
 
   ! Undersample solar to radiance grid
   CALL interpolation (                                                                 &
-       modulename//f_sep//'Phase 1c',                                                  &
        n_solar_pts, tmpwav(1:n_solar_pts), resample(1:n_solar_pts), n_sensor_pts, &
        curr_wvl(1:n_sensor_pts), under(1:n_sensor_pts), 'endpoints', 0.0_r8,             &
        yn_full_range, locerrstat )

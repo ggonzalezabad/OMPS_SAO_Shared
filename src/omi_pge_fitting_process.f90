@@ -2,17 +2,12 @@ SUBROUTINE omi_pge_fitting_process ( pge_idx, n_max_rspec,             &
                                      pge_error_status )
 
   USE OMSAO_precision_module
-  USE OMSAO_parameters_module,   ONLY: maxchlen
-  USE OMSAO_errstat_module,      ONLY: pge_errstat_ok,                 &
-       pge_errstat_error,              &
+  USE OMSAO_errstat_module, ONLY: pge_errstat_ok, pge_errstat_error, &
        pge_errstat_fatal
-  USE OMSAO_he5_module,          ONLY: NrofScanLines,                  &
-       NrofCrossTrackPixels
-  USE OMSAO_solcomp_module
-  USE OMSAO_variables_module,    ONLY: l1b_rad_filename
-  USE OMSAO_omidata_module,      ONLY: omi_radiance_swathname, n_comm_wvl
-  USE OMSAO_radiance_ref_module, ONLY: yn_radiance_reference,          &
-       l1b_radref_filename
+  USE OMSAO_he5_module, ONLY: NrofScanLines, NrofCrossTrackPixels
+  USE OMSAO_variables_module, ONLY: l1b_rad_filename
+  USE OMSAO_solcomp_module, ONLY: soco_pars_deallocate
+  USE OMSAO_radiance_ref_module, ONLY: l1b_radref_filename
   USE OMSAO_OMPS_READER
 
   IMPLICIT NONE
@@ -33,11 +28,6 @@ SUBROUTINE omi_pge_fitting_process ( pge_idx, n_max_rspec,             &
   INTEGER (KIND=i4) :: nTimesRad,   nXtrackRad,   nWvlCCD
   INTEGER (KIND=i4) :: nTimesRadRR, nXtrackRadRR, nWvlCCDrr
   INTEGER (KIND=i4) :: errstat
-
-  ! ------------------------------
-  ! Name of this module/subroutine
-  ! ------------------------------
-  CHARACTER (LEN=23), PARAMETER :: modulename = 'omi_pge_fitting_process'
 
   ! ---------------------
   ! OMPS reader variables
@@ -95,7 +85,7 @@ SUBROUTINE omi_pge_fitting_process ( pge_idx, n_max_rspec,             &
 
   CALL omi_fitting (                                  &
        pge_idx,                                       &
-       nTimesRad,   nXtrackRad, nWvlCCD, n_max_rspec, &
+       nTimesRad,   nXtrackRad, n_max_rspec, &
        nTimesRadRR, nXtrackRadRR, nWvlCCDrr, OMPS_data_radiance_reference, pge_error_status       )
 
   IF ( pge_error_status >= pge_errstat_fatal ) GO TO 666
@@ -122,47 +112,42 @@ END SUBROUTINE omi_pge_fitting_process
 
 SUBROUTINE omi_fitting (                                  &
        pge_idx,                                           &
-       nTimesRad,   nXtrackRad,   nWvlCCD,   n_max_rspec, &
-       nTimesRadRR, nXtrackRadRR, nWvlCCDrr, OMPS_data_radiance_reference, pge_error_status             )
+       nTimesRad,   nXtrackRad, n_max_rspec, &
+       nTimesRadRR, nXtrackRadRR, nWvlCCDrr, &
+       OMPS_data_radiance_reference, pge_error_status )
 
-  USE OMSAO_precision_module
-  USE OMSAO_indices_module,    ONLY: &
-       wvl_idx, spc_idx, sig_idx, shi_idx,                                        &
-       sao_pge_names, hwe_idx, asy_idx, sao_molecule_names, bro_idx,              &
-       o3_t1_idx, o3_t3_idx, pge_o3_idx, pge_hcho_idx, pge_bro_idx, pge_oclo_idx, &
-       n_max_fitpars, radref_idx, radfit_idx, radcal_idx, voc_omicld_idx
-  USE OMSAO_parameters_module, ONLY:                                                     &
-       i2_missval, i4_missval, r4_missval, r8_missval,                                   &
-       main_qa_missing, deg2rad, one_r8, zero_r8
-  USE OMSAO_variables_module,  ONLY:  &
-       l1b_rad_filename,                                                                 &
-       verb_thresh_lev, hw1e, e_asym, phase, l2_filename, radwavcal_freq, pixnum_lim,    &
-       radfit_latrange, database, n_fitvar_rad, refspecs_original,                       &
-       fitvar_rad_init, fitvar_rad_saved, yn_solar_comp, yn_diagnostic_run,              &
-       n_fitres_loop, fitres_range, yn_common_iter, common_latlines, common_latrange,    &
-       radiance_wavcal_lnums, yn_solmonthave, refspecs_original, winwav_max, winwav_min, &
-       OMSAO_refseccor_cld_filename, voc_amf_filenames, yn_refseccor
-  USE OMSAO_omidata_module
-  USE OMSAO_he5_module,       ONLY:  pge_swath_name
+  USE OMSAO_errstat_module, ONLY: pge_errstat_ok, pge_errstat_fatal, &
+       pge_errstat_warning, pge_errstat_error, f_sep, omsao_w_nopixel, &
+       omsao_w_subroutine, vb_lev_default, error_check
+  USE OMSAO_indices_module, ONLY: sao_molecule_names, voc_omicld_idx
+  USE OMSAO_parameters_module, ONLY: i2_missval
+  USE OMSAO_variables_module, ONLY: l1b_rad_filename, &
+       l2_filename, pixnum_lim, radfit_latrange, &
+       yn_solar_comp, yn_diagnostic_run, &
+       yn_common_iter, common_latrange, OMSAO_refseccor_cld_filename, &
+       voc_amf_filenames, yn_refseccor
+  USE OMSAO_omidata_module, ONLY: omi_latitude, omi_column_amount, &
+       omi_cross_track_skippix, omi_radcal_itnum, omi_radcal_xflag, &
+       omi_solcal_itnum, omi_solcal_xflag, &
+       omi_longitude, omi_column_uncert, n_comm_wvl, omi_szenith, &
+       omi_fit_rms, omi_vzenith, omi_fitconv_flag, omi_height
+  USE OMSAO_he5_module, ONLY:  pge_swath_name
   USE OMSAO_he5_datafields_module
-  USE OMSAO_amf_module
-  USE OMSAO_solar_wavcal_module
-  USE OMSAO_radiance_ref_module
-  USE OMSAO_destriping_module, ONLY: ctr_maxcol
-  USE OMSAO_prefitcol_module
-  USE OMSAO_errstat_module
-  USE OMSAO_solmonthave_module
+  USE OMSAO_solar_wavcal_module, ONLY: xtrack_solar_calibration_loop
+  USE OMSAO_radiance_ref_module, ONLY: yn_remove_target, &
+       yn_radiance_reference, l1b_radref_filename, &
+       radiance_reference_lnums, xtrack_radiance_reference_loop
   USE OMSAO_wfamf_module, ONLY: omi_read_climatology, CmETA, amf_calculation_bis
-  USE OMSAO_pixelcorner_module
+  USE OMSAO_pixelcorner_module, ONLY: compute_pixel_corners
   USE OMSAO_Reference_sector_module, ONLY: Reference_Sector_Correction
-  USE OMSAO_OMPS_READER
+  USE OMSAO_OMPS_READER, ONLY: tc_sdr_omps_type
 
   IMPLICIT NONE
 
   ! ---------------
   ! Input variables
   ! ---------------
-  INTEGER (KIND=i4), INTENT (IN) :: pge_idx, nTimesRad, nXtrackRad, nWvlCCD, n_max_rspec
+  INTEGER (KIND=i4), INTENT (IN) :: pge_idx, nTimesRad, nXtrackRad, n_max_rspec
   INTEGER (KIND=i4), INTENT (IN) :: nTimesRadRR, nWvlCCDrr, nXtrackRadRR
   TYPE (TC_SDR_OMPS_type), INTENT(IN) :: OMPS_data_radiance_reference
   
@@ -249,8 +234,8 @@ SUBROUTINE omi_fitting (                                  &
   ! reference/calibration line.
   ! -------------------------------------------------------------------
   CALL omi_set_xtrpix_range ( &
-     nTimesRad, nXtrackRad, pixnum_lim(3:4),                         &
-     omi_binfac(0:nTimesRad-1), omi_xtrpix_range(0:nTimesRad-1,1:2), &
+     nTimesRad, nXtrackRad, pixnum_lim(3:4), &
+     omi_xtrpix_range(0:nTimesRad-1,1:2), &
      first_wc_pix, last_wc_pix, errstat )
 
   ! --------------------------------------------------------------------
@@ -261,8 +246,8 @@ SUBROUTINE omi_fitting (                                  &
   ! --------------------------------------------------------------------
   IF ( TRIM(ADJUSTL(l1b_radref_filename)) /= TRIM(ADJUSTL(l1b_rad_filename)) ) THEN
     CALL omi_set_xtrpix_range ( &
-          nTimesRadRR, nXtrackRadRR, pixnum_lim(3:4),                                 &
-          omi_binfac_rr(0:nTimesRadRR-1), omi_xtrpix_range_rr(0:nTimesRadRR-1,1:2), &
+          nTimesRadRR, nXtrackRadRR, pixnum_lim(3:4), &
+           omi_xtrpix_range_rr(0:nTimesRadRR-1,1:2), &
           first_wc_pix, last_wc_pix, errstat )
      pge_error_status = MAX ( pge_error_status, errstat )
      IF ( pge_error_status >= pge_errstat_error )  GO TO 666
@@ -296,7 +281,7 @@ SUBROUTINE omi_fitting (                                  &
   ! ------------------------
   ! Write geolocation fields
   ! ------------------------
-  CALL he5_write_geolocation ( pge_idx, pge_swath_name, nTimesRad, nXtrackRad, &
+  CALL he5_write_geolocation ( nTimesRad, nXtrackRad, &
        first_wc_pix, last_wc_pix, errstat)
 
   ! ---------------------------------------------------------------
@@ -305,7 +290,7 @@ SUBROUTINE omi_fitting (                                  &
   CALL compute_pixel_corners (nTimesRad, nXtrackRad, &
        omi_latitude(1:nXtrackRad, 0:nTimesRad-1),    &
        omi_longitude(1:nXtrackRad, 0:nTimesRad-1),   &
-       omi_yn_szoom, errstat)
+       errstat)
 
   ! ---------------------------------------------------------------
   ! Solar wavelength calibration, done even when we use a composite
@@ -404,7 +389,6 @@ SUBROUTINE omi_fitting (                                  &
      ! ----------------------------------------------------------
      yn_common_range(0:nTimesRad-1) = .FALSE.
      CALL find_swathline_range ( &
-          TRIM(ADJUSTL(l1b_rad_filename)), TRIM(ADJUSTL(omi_radiance_swathname)), &
           nTimesRad, nXtrackRad, l1b_latitudes(1:nXtrackRad,0:nTimesRad-1),       &
           common_latrange(1:2), yn_common_range(0:nTimesRad-1), errstat             )
 
@@ -432,11 +416,11 @@ SUBROUTINE omi_fitting (                                  &
      ! ------------------------------------------
      ! Interface to the loop over all swath lines
      ! ------------------------------------------
-     CALL omi_pge_swathline_loop (                              &
-          pge_idx, nTimesRad, nxtrackRad, nWvlCCD, n_max_rspec, &
-          yn_common_range(0:nTimesRad-1),                       &
-          omi_xtrpix_range(0:nTimesRad-1,1:2),                  &
-          yn_radiance_reference, .FALSE., -1,                   &
+     CALL omi_pge_swathline_loop (                     &
+          pge_idx, nTimesRad, nxtrackRad, n_max_rspec, &
+          yn_common_range(0:nTimesRad-1),              &
+          omi_xtrpix_range(0:nTimesRad-1,1:2),         &
+          yn_radiance_reference, .FALSE.,              &
           .FALSE., pge_error_status )
  
      ! ---------------------------------------------------
@@ -477,7 +461,6 @@ SUBROUTINE omi_fitting (                                  &
      IF ( radfit_latrange(1) > -90.0_r4    .OR. &
           radfit_latrange(2) < +90.0_r4           ) THEN
         CALL find_swathline_range ( &
-             TRIM(ADJUSTL(l1b_rad_filename)), TRIM(ADJUSTL(omi_radiance_swathname)), &
              nTimesRad, nXtrackRad, l1b_latitudes(1:nXtrackRad,0:nTimesRad-1),       &
              radfit_latrange(1:2), yn_radfit_range(0:nTimesRad-1), errstat             )
      ELSE
@@ -492,11 +475,11 @@ SUBROUTINE omi_fitting (                                  &
   ! ------------------------------------------
   ! Interface to the loop over all swath lines
   ! ------------------------------------------
-  CALL omi_pge_swathline_loop (                                  &
-       pge_idx, nTimesRad, nXtrackRad, nWvlCCD, n_max_rspec,     &
-       yn_radfit_range(0:nTimesRad-1),                           &
-       omi_xtrpix_range(0:nTimesRad-1,1:2),                      &
-       yn_radiance_reference, .FALSE., -1,                       &
+  CALL omi_pge_swathline_loop (                     &
+       pge_idx, nTimesRad, nXtrackRad, n_max_rspec, &
+       yn_radfit_range(0:nTimesRad-1),              &
+       omi_xtrpix_range(0:nTimesRad-1,1:2),         &
+       yn_radiance_reference, .FALSE.,              &
        .TRUE., pge_error_status )
 
   ! ---------------------------
@@ -534,7 +517,6 @@ SUBROUTINE omi_fitting (                                  &
        omi_column_uncert(1:nXtrackRad,0:nTimesRad-1), &
        omi_fit_rms(1:nXtrackRad,0:nTimesRad-1), &
        omi_fitconv_flag(1:nXtrackRad,0:nTimesRad-1), &
-       omi_instrument_flag(0:nTimesRad-1), &
        saomqf(1:nXtrackRad,0:nTimesRad-1), .TRUE., errstat)  
 
   ! -------------------------------------------------------------
@@ -544,8 +526,7 @@ SUBROUTINE omi_fitting (                                  &
   !   omi_fitconv_flag(i2) --------> Fit Convergence Flag(i2)
   !   omi_fit_rms(r8) -------------> Fitting RMS(r8)
   ! -------------------------------------------------------------
-  CALL he5_write_results ( pge_idx, pge_swath_name, nTimesRad, nXtrackRad, &
-       first_wc_pix, last_wc_pix, errstat)
+  CALL he5_write_results ( nTimesRad, nXtrackRad, errstat)
 
   ! -----------------------------------------------------
   ! Compute reference sector correction:
@@ -565,11 +546,11 @@ SUBROUTINE omi_fitting (                                  &
      ! -----------------
      ! Perform retrieval
      ! -----------------
-     CALL omi_pge_swathline_loop (                                    &
-          pge_idx, nTimesRadRR, nXtrackRadRR, nWvlCCDrr, n_max_rspec, &
-          yn_radfit_range(0:nTimesRadRR-1),                           &
-          omi_xtrpix_range(0:nTimesRadRR-1,1:2),                      &
-          yn_radiance_reference, .FALSE., -1,                         &
+     CALL omi_pge_swathline_loop (                         &
+          pge_idx, nTimesRadRR, nXtrackRadRR, n_max_rspec, &
+          yn_radfit_range(0:nTimesRadRR-1),                &
+          omi_xtrpix_range(0:nTimesRadRR-1,1:2),           &
+          yn_radiance_reference, .FALSE.,                  &
           .FALSE., pge_error_status )
      
      ! -----------------------
@@ -602,7 +583,6 @@ SUBROUTINE omi_fitting (                                  &
           omi_column_uncert(1:nXtrackRadRR,0:nTimesRadRR-1), &
           omi_fit_rms(1:nXtrackRadRR,0:nTimesRadRR-1), &
           omi_fitconv_flag(1:nXtrackRadRR,0:nTimesRadRR-1), &
-          omi_instrument_flag(0:nTimesRadRR-1), &
           refmqf(1:nXtrackRadRR,0:nTimesRadRR-1), .FALSE., errstat)
 
      CALL Reference_sector_Correction ( nTimesRad, nXtrackRad, nTimesRadRR, nXtrackRadRR, &

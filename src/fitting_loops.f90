@@ -2,20 +2,29 @@ SUBROUTINE xtrack_radiance_wvl_calibration (             &
      yn_radiance_reference, yn_solar_comp,               &
      first_pix, last_pix, n_max_rspec, n_comm_wvl_out, errstat )
 
-  USE OMSAO_precision_module
-  USE OMSAO_indices_module,    ONLY: &
-       wvl_idx, spc_idx, sig_idx, max_calfit_idx, max_rs_idx, hwe_idx, asy_idx,  &
-       shi_idx, squ_idx, oclo_idx, o2o2_idx, bro_idx, solar_idx, pge_bro_idx,    &
-       pge_oclo_idx, ccd_idx, radcal_idx
+  USE OMSAO_precision_module, ONLY: i2, i4, r8
+  USE OMSAO_indices_module, ONLY: wvl_idx, spc_idx, sig_idx, &
+       max_calfit_idx, max_rs_idx, hwe_idx, asy_idx,  &
+       shi_idx, squ_idx, solar_idx, ccd_idx, radcal_idx
   USE OMSAO_parameters_module, ONLY: maxchlen, downweight, normweight
-  USE OMSAO_variables_module,  ONLY:  &
-       verb_thresh_lev, hw1e, e_asym, n_rad_wvl, curr_rad_spec, rad_spec_wavcal, &
-       sol_wav_avg, database, fitvar_cal, fitvar_cal_saved,                      &
-       fitvar_rad_init, pge_idx, rad_wght_wavcal,         &
-       n_fitres_loop, fitres_range, yn_diagnostic_run
+  USE OMSAO_variables_module, ONLY: verb_thresh_lev, hw1e, e_asym, &
+       n_rad_wvl, curr_rad_spec, sol_wav_avg, database, fitvar_cal, &
+       fitvar_cal_saved, fitvar_rad_init, n_fitres_loop, &
+       fitres_range, yn_diagnostic_run
   USE OMSAO_slitfunction_module, ONLY: saved_shift, saved_squeeze
-  USE OMSAO_omidata_module !, exept_this_one => n_comm_wvl
-  USE OMSAO_errstat_module
+  USE OMSAO_omidata_module, ONLY: nwavel_max, nxtrack_max, &
+       omi_cross_track_skippix, omi_nwav_radref, omi_radcal_itnum, &
+       omi_radcal_xflag, omi_radcal_chisq, n_omi_database_wvl, &
+       omi_solcal_pars, omi_sol_wav_avg,  &
+       omi_nwav_irrad, omi_irradiance_wght, omi_irradiance_wavl, &
+       omi_irradiance_spec, omi_database, omi_database_wvl, &
+       omi_radref_spec, omi_radref_wavl, omi_radref_qflg, omi_radref_wght, &
+       omi_nwav_rad, omi_radiance_spec, omi_radiance_wavl, omi_radiance_qflg, &
+       omi_ccdpix_selection, omi_ccdpix_exclusion, omi_radiance_ccdpix, &
+       omi_radcal_pars, curr_xtrack_pixnum, n_omi_irradwvl, n_omi_radwvl      
+  USE OMSAO_errstat_module, ONLY: f_sep, omsao_s_progress, omsao_w_skippix, &
+       pge_errstat_error,pge_errstat_ok, pge_errstat_warning, vb_lev_default, &
+       vb_lev_omidebug, vb_lev_screen, error_check
   USE OMSAO_he5_module, ONLY : NrofScanLines
   USE EZspline_obj
   USE EZspline
@@ -165,7 +174,6 @@ SUBROUTINE xtrack_radiance_wvl_calibration (             &
           n_omi_radwvl,                                &
           calibration_wavl   (1:n_omi_radwvl),         &
           calibration_spec   (1:n_omi_radwvl),         &
-          calibration_qflg   (1:n_omi_radwvl),         &
           omi_radiance_ccdpix(1:n_omi_radwvl,ipix,0),  &
           n_omi_irradwvl, ref_wgt(1:n_omi_irradwvl),   &
           n_rad_wvl, curr_rad_spec(wvl_idx:ccd_idx,1:n_omi_radwvl), rad_spec_avg, &
@@ -287,7 +295,6 @@ SUBROUTINE xtrack_radiance_wvl_calibration (             &
         imax = MAXVAL ( MAXLOC ( omi_irradiance_wavl(1:n_omi_irradwvl,ipix) ) )
 
         CALL interpolation ( &
-             modulename, &
              imax, omi_irradiance_wavl(1:imax,ipix),                     &
              omi_irradiance_spec(1:imax,ipix),                           &
              n_rad_wvl, omi_database_wvl(1:n_rad_wvl,ipix),              &
@@ -328,36 +335,35 @@ END SUBROUTINE xtrack_radiance_wvl_calibration
 
 SUBROUTINE xtrack_radiance_fitting_loop (                             &
      n_max_rspec, first_pix, last_pix, pge_idx, iloop,                &
-     ctr_maxcol, n_fitvar_rad, allfit_cols, allfit_errs, corr_matrix, &
+     n_fitvar_rad, allfit_cols, allfit_errs, corr_matrix, &
      target_var, errstat, fitspc_out, fitspc_out_dim0                 )
 
-  USE OMSAO_precision_module
-  USE OMSAO_indices_module,    ONLY: &
-       wvl_idx, spc_idx, sig_idx, o3_t1_idx, o3_t3_idx, hwe_idx, asy_idx, shi_idx, squ_idx, &
-       pge_o3_idx, pge_hcho_idx, n_max_fitpars, solar_idx, ccd_idx, radfit_idx, bro_idx,    &
-       pge_gly_idx
-  USE OMSAO_parameters_module, ONLY: &
-       i2_missval, i4_missval, r4_missval, r8_missval, maxchlen, elsunc_less_is_noise
-  USE OMSAO_variables_module,  ONLY:  &
-       database, curr_sol_spec, n_rad_wvl, curr_rad_spec, sol_wav_avg, hw1e, e_asym,     &
-       verb_thresh_lev, fitvar_rad_saved, fitvar_rad_init, n_database_wvl, &
-       fitvar_rad, rad_wght_wavcal, n_fitres_loop, fitres_range, refspecs_original,      &
-       yn_solar_comp, max_itnum_rad, szamax, n_fincol_idx
-  USE OMSAO_radiance_ref_module, ONLY: yn_radiance_reference, yn_reference_fit
+  USE OMSAO_precision_module, ONLY: i2, i4, r8
+  USE OMSAO_indices_module, ONLY: wvl_idx, spc_idx, sig_idx, &
+       o3_t1_idx, o3_t3_idx, hwe_idx, asy_idx, &
+       pge_o3_idx, solar_idx, ccd_idx, radfit_idx
+  USE OMSAO_parameters_module, ONLY: i2_missval, r8_missval
+  USE OMSAO_variables_module,  ONLY: database, curr_sol_spec, n_rad_wvl, &
+       curr_rad_spec, sol_wav_avg, hw1e, e_asym, n_database_wvl, &
+       n_fitres_loop, fitres_range, szamax, n_fincol_idx
+  USE OMSAO_radiance_ref_module, ONLY: yn_reference_fit
   USE OMSAO_slitfunction_module, ONLY: saved_shift, saved_squeeze
-  USE OMSAO_prefitcol_module, ONLY: &
-       yn_o3_prefit,  o3_prefit_col,  o3_prefit_dcol,  &
-       yn_bro_prefit, bro_prefit_col, bro_prefit_dcol, &
-       yn_lqh2o_prefit, lqh2o_prefit_col, lqh2o_prefit_dcol
-  USE OMSAO_omidata_module ! nxtrack_max, ...
-  USE OMSAO_errstat_module
+  USE OMSAO_omidata_module, ONLY: nxtrack_max, n_comm_wvl, &
+       omi_column_uncert, omi_column_amount, omi_fit_rms, omi_radfit_chisq, &
+       omi_itnum_flag, omi_fitconv_flag, omi_solcal_pars, omi_sol_wav_avg, &
+       n_omi_database_wvl, omi_nwav_rad, omi_szenith, omi_xtrackpix_no, &
+       omi_cross_track_skippix, n_omi_radwvl, n_omi_irradwvl, &
+       curr_xtrack_pixnum, omi_o3_uncert, omi_o3_amount, omi_radiance_wavl, &
+       omi_ccdpix_exclusion, omi_ccdpix_selection, omi_database, &
+       omi_database_wvl, max_rs_idx, omi_radiance_spec, omi_radiance_ccdpix, &
+       omi_radref_wght
+  USE OMSAO_errstat_module, ONLY: pge_errstat_ok
      
   IMPLICIT NONE
 
   ! ---------------
   ! Input Variables
   ! ---------------
-  REAL    (KIND=r8), INTENT (IN) :: ctr_maxcol
   INTEGER (KIND=i4), INTENT (IN) :: &
        pge_idx, iloop, first_pix, last_pix, n_max_rspec, n_fitvar_rad, &
        fitspc_out_dim0
@@ -375,16 +381,13 @@ SUBROUTINE xtrack_radiance_fitting_loop (                             &
   REAL (KIND=r8), DIMENSION(n_fincol_idx,first_pix:last_pix), INTENT (OUT) :: target_var
 
   ! CCM Output fit spectra
-  !REAL (KIND=r8), DIMENSION(n_comm_wvl,nxtrack_max,4), INTENT (OUT) :: fitspc_out	
   REAL (KIND=r8), DIMENSION(fitspc_out_dim0,nxtrack_max,4), INTENT (OUT) :: fitspc_out
 
   ! ---------------
   ! Local variables
   ! ---------------
   INTEGER (KIND=i4) :: locerrstat, ipix, radfit_exval, radfit_itnum
-  REAL    (KIND=r8) :: fitcol, rms, dfitcol, chisquav, rad_spec_avg
-  REAL    (KIND=r8) :: brofit_col, brofit_dcol
-  REAL    (KIND=r8) :: lqh2ofit_col, lqh2ofit_dcol
+  REAL    (KIND=r8) :: fitcol, rms, dfitcol, chisquav, rad_spec_avg  
   REAL    (KIND=r8), DIMENSION (o3_t1_idx:o3_t3_idx) :: o3fit_cols, o3fit_dcols
   LOGICAL                                     :: yn_skip_pix, yn_cycle_this_pix
   LOGICAL                                     :: yn_bad_pixel
@@ -395,8 +398,6 @@ SUBROUTINE xtrack_radiance_fitting_loop (                             &
 
   ! CCM Array for holding fitted spectra
   REAL    (KIND=r8), DIMENSION (n_comm_wvl)   :: fitspc
-  INTEGER (KIND=i4) :: id
-  CHARACTER (LEN=28), PARAMETER :: modulename = 'xtrack_radiance_fitting_loop'
 
   locerrstat = pge_errstat_ok
 
@@ -469,26 +470,10 @@ SUBROUTINE xtrack_radiance_fitting_loop (                             &
           n_omi_radwvl,                                            &
           omi_radiance_wavl  (1:n_omi_radwvl,ipix,iloop),          &
           omi_radiance_spec  (1:n_omi_radwvl,ipix,iloop),          &
-          omi_radiance_qflg  (1:n_omi_radwvl,ipix,iloop),          &
           omi_radiance_ccdpix(1:n_omi_radwvl,ipix,iloop),          &
           n_omi_radwvl, omi_radref_wght(1:n_omi_radwvl,ipix),      &
           n_rad_wvl, curr_rad_spec(wvl_idx:ccd_idx,1:n_omi_radwvl),&
           rad_spec_avg, yn_skip_pix )
-
-!!$     SELECT CASE ( pge_idx )
-!!$		 
-!!$     CASE (pge_hcho_idx)
-!!$        o3fit_cols (o3_t1_idx:o3_t3_idx) = o3_prefit_col (o3_t1_idx:o3_t3_idx,ipix,iloop)
-!!$        o3fit_dcols(o3_t1_idx:o3_t3_idx) = o3_prefit_dcol(o3_t1_idx:o3_t3_idx,ipix,iloop)
-!!$        brofit_col                       = bro_prefit_col (ipix,iloop)
-!!$        brofit_dcol                      = bro_prefit_dcol(ipix,iloop)
-!!$     
-!!$     CASE ( pge_gly_idx )
-!!$        lqh2ofit_col                     = lqh2o_prefit_col (ipix,iloop)
-!!$        lqh2ofit_dcol                    = lqh2o_prefit_dcol(ipix,iloop)
-!!$     CASE DEFAULT
-!!$     		! Nothing
-!!$     END SELECT
 
      ! --------------------
      ! The radiance fitting
@@ -510,9 +495,7 @@ SUBROUTINE xtrack_radiance_fitting_loop (                             &
              yn_reference_fit,                                                     &
              n_rad_wvl, curr_rad_spec(wvl_idx:ccd_idx,1:n_rad_wvl),                &
              fitcol, rms, dfitcol, radfit_exval, radfit_itnum, chisquav,           &
-             o3fit_cols, o3fit_dcols, brofit_col, brofit_dcol,                     &
-             lqh2ofit_col, lqh2ofit_dcol,                                          &
-             target_var(1:n_fincol_idx,ipix),                                      &
+             o3fit_cols, o3fit_dcols, target_var(1:n_fincol_idx,ipix),             &
              allfit_cols(1:n_fitvar_rad,ipix), allfit_errs(1:n_fitvar_rad,ipix),   &
              corr_matrix(1:n_fitvar_rad,ipix), yn_bad_pixel, fitspc(1:n_rad_wvl) )
 

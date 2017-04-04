@@ -40,7 +40,7 @@ MODULE OMSAO_OMPS_READER
 
      ! Calibration data
      REAL(KIND=4), DIMENSION(:,:,:),   POINTER :: BandCenterWavelengths => NULL()
-     REAL(KIND=4), DIMENSION(:,:,:),   POINTER :: CCDRowColIndicies => NULL()
+     INTEGER(KIND=2), DIMENSION(:,:,:),POINTER :: CCDRowColIndicies => NULL()
      REAL(KIND=4), DIMENSION(:,:),     POINTER :: DarkCurrentCorrection => NULL()
      REAL(KIND=4), DIMENSION(:,:),     POINTER :: RadianceCalCoeff => NULL()
      REAL(KIND=4), DIMENSION(:,:,:),   POINTER :: SmearCorrection => NULL()
@@ -50,9 +50,9 @@ MODULE OMSAO_OMPS_READER
      ! Geolocation data
      REAL(KIND=8), DIMENSION(:),       POINTER :: GoniometricSolarAzimuth => NULL()
      REAL(KIND=8), DIMENSION(:),       POINTER :: GoniometricSolarElevation => NULL()
-     INTEGER(KIND=4), DIMENSION(:,:),  POINTER :: GroundPixelQualityFlags => NULL()
+     INTEGER(KIND=2), DIMENSION(:,:),  POINTER :: GroundPixelQualityFlags => NULL()
      REAL(KIND=8), DIMENSION(:),       POINTER :: ImageMidpoint_TAI93 => NULL()
-     INTEGER(KIND=4), DIMENSION(:),    POINTER :: InstrumentQualityFlags => NULL()
+     INTEGER(KIND=2), DIMENSION(:),    POINTER :: InstrumentQualityFlags => NULL()
      REAL(KIND=4), DIMENSION(:,:),     POINTER :: Latitude => NULL()
      REAL(KIND=4), DIMENSION(:,:),     POINTER :: Longitude => NULL()
      REAL(KIND=4), DIMENSION(:,:),     POINTER :: SatelliteAzimuth => NULL()
@@ -80,8 +80,8 @@ MODULE OMSAO_OMPS_READER
      ! Science data
      REAL(KIND=4), DIMENSION(:,:),     POINTER :: ExposureTime => NULL()
      REAL(KIND=4), DIMENSION(:,:),     POINTER :: HousekeepingData => NULL()
-     INTEGER(KIND=4), DIMENSION(:,:),  POINTER :: NumberCoadds => NULL()
-     INTEGER(KIND=4), DIMENSION(:,:,:),POINTER :: PixelQualityFlags => NULL()
+     INTEGER(KIND=1), DIMENSION(:,:),  POINTER :: NumberCoadds => NULL()
+     INTEGER(KIND=2), DIMENSION(:,:,:),POINTER :: PixelQualityFlags => NULL()
      REAL(KIND=4), DIMENSION(:,:,:),   POINTER :: Radiance => NULL()
      REAL(KIND=4), DIMENSION(:,:,:),   POINTER :: RadianceError => NULL()
      REAL(KIND=4), DIMENSION(:,:,:),   POINTER :: RawCounts => NULL()
@@ -383,12 +383,6 @@ MODULE OMSAO_OMPS_READER
             ErrorMessage = 'Error reading House keeping data'
             GOTO 990
          END IF
-!!$         ALLOCATE(this%IntegrationTimeUsed(this%nWavel,this%nXtrack,this%nLines), &
-!!$         STAT = ierr)
-!!$         IF ( ierr .NE. 0 ) THEN
-!!$            ErrorMessage = 'Error reading Integration Time Used'
-!!$            GOTO 990
-!!$         END IF
          ALLOCATE(this%NumberCoadds(1,this%nLines), STAT = ierr)
          IF ( ierr .NE. 0 ) THEN
             ErrorMessage = 'Error reading Number Coadds'
@@ -636,10 +630,10 @@ MODULE OMSAO_OMPS_READER
               "/SCIENCE_DATA/SensorStatusBits", this%SensorStatusBits)
          IF (ErrorFlag.lt.0) goto 990
 
-         status = ErrorFlag
+         status = INT(ErrorFlag,KIND=2)
          RETURN
 990      WRITE(*, '(A)') ErrorMessage
-         status = ErrorFlag
+         status = INT(ErrorFlag,KIND=2)
          RETURN
 
        END FUNCTION TC_SDR_OMPS_READER

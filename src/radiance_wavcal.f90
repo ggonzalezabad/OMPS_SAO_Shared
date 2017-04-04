@@ -3,18 +3,15 @@ SUBROUTINE radiance_wavcal (                              &
      curr_rad_spec, radcal_exval, radcal_itnum, chisquav, &
      yn_bad_pixel, fitres_out, errstat )
 
-  USE OMSAO_precision_module,     ONLY: i2, i4, r8
-  USE OMSAO_parameters_module,    ONLY: &
-       i2_missval, i4_missval, r8_missval, downweight, elsunc_less_is_noise
-  USE OMSAO_indices_module,       ONLY: &
-       max_calfit_idx, shi_idx, squ_idx, wvl_idx, spc_idx, sig_idx, ccd_idx, &
-       hwe_idx, asy_idx
-  USE OMSAO_variables_module,   ONLY: &
-       fitwavs, fitweights, currspec,                                 &
-       fitvar_cal, fitvar_rad_init, fitvar_sol_init, fitvar_cal_saved,&
-       mask_fitvar_cal, lo_sunbnd, up_sunbnd, n_fitvar_cal,           &
-       fitvar_rad, n_fitvar_rad, lo_radbnd, up_radbnd, lobnd, upbnd,  &
-       max_itnum_sol, hw1e, e_asym, rad_wav_avg, yn_newshift, sol_wav_avg
+  USE OMSAO_precision_module, ONLY: i2, i4, r8
+  USE OMSAO_parameters_module, ONLY: i2_missval, i4_missval, r8_missval, &
+       downweight, elsunc_less_is_noise
+  USE OMSAO_indices_module, ONLY: max_calfit_idx, shi_idx, squ_idx, wvl_idx, &
+       spc_idx, sig_idx, ccd_idx, hwe_idx, asy_idx
+  USE OMSAO_variables_module, ONLY: fitwavs, fitweights, currspec, &
+       fitvar_cal, fitvar_rad_init, fitvar_sol_init, fitvar_cal_saved, &
+       mask_fitvar_cal, n_fitvar_cal, lo_radbnd, up_radbnd, lobnd, upbnd, &
+       max_itnum_sol, hw1e, e_asym, yn_newshift, sol_wav_avg
   USE OMSAO_errstat_module
 
   IMPLICIT NONE

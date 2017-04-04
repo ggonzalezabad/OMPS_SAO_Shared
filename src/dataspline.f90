@@ -10,21 +10,19 @@ SUBROUTINE dataspline ( xtrack_pix, n_radwvl, curr_rad_wvl, n_max_rspec, errstat
   !    errstat .............. error status returned from the subroutine
   ! ---------------------------------------------------------------------
 
-  USE OMSAO_precision_module
-  USE OMSAO_indices_module,     ONLY: &
-       max_rs_idx, mxs_idx, max_calfit_idx, solar_idx, wvl_idx, spc_idx, &
-       refspec_strings, hwe_idx, asy_idx, ring_idx, comm_idx, us1_idx,   &
-       us2_idx, o2o2_idx, o3_t1_idx, o3_t2_idx, o3_t3_idx, no2_t1_idx,   &
-       no2_t2_idx, pge_bro_idx, pge_gly_idx, vraman_idx
-  USE OMSAO_parameters_module,  ONLY: &
-       maxchlen, zerospec_string, ozone_300du, no2_1du,&
-       solar_i0_scd,yn_i0_spc
-  USE OMSAO_variables_module,   ONLY: &
-       refspecs_original, common_mode_spec, database, fitvar_rad_init, &
-       lo_radbnd, up_radbnd, yn_use_labslitfunc, yn_solar_i0, pge_idx
+  USE OMSAO_precision_module, ONLY: i4, r8
+  USE OMSAO_indices_module, ONLY: max_rs_idx, mxs_idx, &
+       max_calfit_idx, solar_idx, refspec_strings, &
+       hwe_idx, asy_idx, comm_idx, us1_idx, us2_idx
+  USE OMSAO_parameters_module, ONLY: zerospec_string, &
+       solar_i0_scd, yn_i0_spc
+  USE OMSAO_variables_module, ONLY: refspecs_original, common_mode_spec, &
+       database, fitvar_rad_init, lo_radbnd, up_radbnd, yn_use_labslitfunc, &
+       yn_solar_i0
   USE OMSAO_omidata_module, ONLY : omi_solcal_pars
-  USE OMSAO_slitfunction_module
-  USE OMSAO_errstat_module
+  USE OMSAO_errstat_module, ONLY: pge_errstat_ok, pge_errstat_warning, &
+       pge_errstat_error, omsao_w_interpol_range, omsao_e_interpol_refspec, &
+       vb_lev_default, vb_lev_develop, f_sep, error_check
 
   IMPLICIT NONE
 
@@ -43,7 +41,7 @@ SUBROUTINE dataspline ( xtrack_pix, n_radwvl, curr_rad_wvl, n_max_rspec, errstat
   ! Local variables
   ! ---------------
   LOGICAL                                       :: yn_full_range
-  INTEGER (KIND=i4)                             :: idx, npts, locerrstat, iii, nsol, ios, k
+  INTEGER (KIND=i4)                             :: idx, npts, locerrstat, iii, nsol, ios
   REAL    (KIND=r8)                             :: DU_load
   REAL    (KIND=r8), DIMENSION (n_max_rspec)    :: tmp_spec, tmp_wavl
   REAL    (KIND=r8), DIMENSION (n_radwvl)       :: dbase_loc
@@ -131,7 +129,6 @@ SUBROUTINE dataspline ( xtrack_pix, n_radwvl, curr_rad_wvl, n_max_rspec, errstat
            ! 1: Interpolate cross sections to solar reference spectrum wavelength
            ! --------------------------------------------------------------------
            CALL interpolation ( &
-                modulename//'--'//TRIM(ADJUSTL(refspecs_original(idx)%FileName)), &
                 npts, tmp_wavl(1:npts), tmp_spec(1:npts),                         &
                 nsol, solar_wvl(1:nsol), xsec_i0_spc(1:nsol),                     &
                 'fillvalue', 0.0_r8, yn_full_range, locerrstat )
@@ -188,7 +185,6 @@ SUBROUTINE dataspline ( xtrack_pix, n_radwvl, curr_rad_wvl, n_max_rspec, errstat
         ! more serious condition that requires termination.
         ! ----------------------------------------------------------------------------
         CALL interpolation ( &
-             modulename//'--'//TRIM(ADJUSTL(refspecs_original(idx)%FileName)), &
              npts, tmp_wavl(1:npts), tmp_spec(1:npts),                         &
              n_radwvl, curr_rad_wvl(1:n_radwvl), dbase_loc(1:n_radwvl),        &
              'fillvalue', 0.0_r8, yn_full_range, locerrstat )
@@ -221,9 +217,11 @@ SUBROUTINE convolve_data (                                     &
      xtrack_pix, npts, wvl_in, spec_in, yn_labslit, hw1e, asy, &
      spec_conv, errstat )
 
-  USE OMSAO_precision_module
-  USE OMSAO_slitfunction_module
-  USE OMSAO_errstat_module
+  USE OMSAO_precision_module, ONLY: i4, r8
+  USE OMSAO_slitfunction_module, ONLY: omi_slitfunc_convolve, &
+       asymmetric_gaussian_sf
+  USE OMSAO_errstat_module, ONLY: pge_errstat_ok, pge_errstat_warning, &
+       omsao_w_interpol, f_sep, vb_lev_default, error_check
 
   IMPLICIT NONE
 
@@ -243,7 +241,7 @@ SUBROUTINE convolve_data (                                     &
   ! ---------------
   ! Local variables
   ! ---------------
-  INTEGER   (KIND=i4)           :: errstat, i
+  INTEGER   (KIND=i4)           :: errstat
   CHARACTER (LEN=13), PARAMETER :: modulename = 'convolve_data'
 
 

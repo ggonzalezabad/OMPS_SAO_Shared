@@ -1,7 +1,9 @@
 MODULE OMSAO_radiance_ref_module
 
-  USE OMSAO_precision_module
-  USE OMSAO_parameters_module,   ONLY: maxchlen
+  USE OMSAO_precision_module, ONLY: i2, i4, r4, r8
+  USE OMSAO_parameters_module, ONLY: i2_missval, r8_missval, downweight, &
+       maxchlen
+
 
   IMPLICIT NONE
 
@@ -20,33 +22,25 @@ CONTAINS
   SUBROUTINE xtrack_radiance_reference_loop (     &
        yn_radiance_reference, yn_remove_target, nx, nw, fpix, lpix, pge_idx, errstat )
 
-    USE OMSAO_indices_module,    ONLY: &
-         wvl_idx, spc_idx, sig_idx, o3_t1_idx, o3_t3_idx, hwe_idx, asy_idx, shi_idx, squ_idx, &
-         pge_bro_idx, pge_o3_idx, pge_hcho_idx, n_max_fitpars, solar_idx, ccd_idx, radref_idx,&
-         bro_idx
-    USE OMSAO_parameters_module, ONLY:  &
-         i2_missval, i4_missval, r4_missval, r8_missval, downweight, normweight
-    USE OMSAO_variables_module,  ONLY:  &
-         database, curr_sol_spec, n_rad_wvl, curr_rad_spec, sol_wav_avg,                  &
-         hw1e, e_asym, n_fitvar_rad, verb_thresh_lev, fitvar_rad_saved, fitvar_rad_init,  &
-         n_database_wvl, fitvar_rad, n_fincol_idx, fincol_idx,                            &
-         n_fitres_loop, fitres_range, refspecs_original, xtrack_fitres_limit, yn_solar_comp
-    USE OMSAO_prefitcol_module, ONLY:                                                     &
-         yn_o3_prefit, o3_prefit_col, o3_prefit_dcol,                                     &
-         yn_bro_prefit, bro_prefit_col, bro_prefit_dcol,                                  &
-         yn_lqh2o_prefit, lqh2o_prefit_col, lqh2o_prefit_dcol
+    USE OMSAO_indices_module, ONLY: solar_idx, wvl_idx, spc_idx, sig_idx, &
+         o3_t1_idx, o3_t3_idx, hwe_idx, asy_idx, shi_idx, squ_idx, &
+         ccd_idx, radref_idx
+    USE OMSAO_variables_module,  ONLY: database, curr_sol_spec, n_rad_wvl, &
+         curr_rad_spec, sol_wav_avg, hw1e, e_asym, n_fitvar_rad, verb_thresh_lev, &
+         fitvar_rad_saved, fitvar_rad_init, n_database_wvl, fitvar_rad, &
+         n_fincol_idx, fincol_idx, n_fitres_loop, fitres_range, xtrack_fitres_limit
     USE OMSAO_slitfunction_module, ONLY: saved_shift, saved_squeeze
-    USE OMSAO_omidata_module, ONLY: &
-         omi_nwav_irrad, omi_irradiance_wght, omi_nwav_rad, n_omi_database_wvl, &
-         omi_cross_track_skippix, curr_xtrack_pixnum, n_omi_radwvl, max_rs_idx, &
-         omi_database, omi_database_wvl, omi_sol_wav_avg, omi_solcal_pars,      &
-         omi_radiance_wavl, omi_radref_wavl, omi_radiance_spec, omi_radref_spec,&
-         omi_radiance_qflg, omi_radref_qflg, omi_radiance_spec,                 &
-         omi_ccdpix_selection, omi_radiance_ccdpix, omi_ccdpix_exclusion,       &
-         omi_xtrackpix_no, omi_radref_wght, omi_radref_pars, max_calfit_idx,    &
-         omi_radref_xflag, omi_radref_itnum, omi_radref_chisq, omi_radref_col,  &
-         omi_radref_rms, omi_radref_dcol, omi_radref_xtrcol
-    USE OMSAO_errstat_module
+    USE OMSAO_omidata_module, ONLY: omi_nwav_irrad, omi_irradiance_wght, &
+         omi_nwav_rad, n_omi_database_wvl, omi_cross_track_skippix, &
+         curr_xtrack_pixnum, n_omi_radwvl, max_rs_idx, omi_database, &
+         omi_database_wvl, omi_sol_wav_avg, omi_solcal_pars, omi_radref_wavl, &
+         omi_radref_spec, omi_ccdpix_selection, omi_radiance_ccdpix, &
+         omi_ccdpix_exclusion, omi_xtrackpix_no, omi_radref_wght, &
+         omi_radref_pars, max_calfit_idx, omi_radref_xflag, omi_radref_itnum, &
+         omi_radref_chisq, omi_radref_col, omi_radref_rms, omi_radref_dcol, &
+         omi_radref_xtrcol
+    USE OMSAO_errstat_module, ONLY: pge_errstat_ok, omsao_s_progress, &
+         vb_lev_screen, vb_lev_omidebug, error_check
 
     IMPLICIT NONE
 
@@ -76,8 +70,6 @@ CONTAINS
     INTEGER (KIND=i4)                                :: n_solar_pts
     REAL    (KIND=r8), DIMENSION (1:nw)              :: solar_wgt
     REAL    (KIND=r8), DIMENSION (n_fincol_idx,1:nx) :: target_var 
-
-    CHARACTER (LEN=30), PARAMETER :: modulename = 'xtrack_radiance_reference_loop'
 
     ! CCM fitted spectrum now returned from radiance_fit.f90
     REAL    (KIND=r8), DIMENSION (1:nw)              :: fitspctmp
@@ -177,7 +169,6 @@ CONTAINS
                n_omi_radwvl,                                &
                omi_radref_wavl(1:n_omi_radwvl,ipix),        &
                omi_radref_spec(1:n_omi_radwvl,ipix),        &
-               omi_radref_qflg(1:n_omi_radwvl,ipix),        &
                omi_radiance_ccdpix (1:n_omi_radwvl,ipix,0), &
                n_solar_pts, solar_wgt(1:n_solar_pts),       &
                n_rad_wvl, curr_rad_spec(wvl_idx:ccd_idx,1:n_omi_radwvl), rad_spec_avg, &
@@ -187,15 +178,6 @@ CONTAINS
           ! Update the weights for the Reference/Wavelength Calibration Radiance
           ! --------------------------------------------------------------------
           omi_radref_wght(1:n_omi_radwvl,ipix) = curr_rad_spec(sig_idx,1:n_omi_radwvl)
-
-!!$          IF ( pge_idx == pge_hcho_idx .AND. &
-!!$               ( .NOT. yn_radiance_reference )  ) THEN
-!!$             o3fit_cols (o3_t1_idx:o3_t3_idx) = o3_prefit_col (o3_t1_idx:o3_t3_idx,ipix,0)
-!!$             o3fit_dcols(o3_t1_idx:o3_t3_idx) = o3_prefit_dcol(o3_t1_idx:o3_t3_idx,ipix,0)
-!!$          ELSE
-!!$             o3fit_cols (o3_t1_idx:o3_t3_idx) = 0.0_r8
-!!$             o3fit_dcols(o3_t1_idx:o3_t3_idx) = 0.0_r8
-!!$          END IF
 
           ! --------------------
           ! The radiance fitting
@@ -215,9 +197,7 @@ CONTAINS
                   yn_reference_fit,                                                         &
                   n_rad_wvl, curr_rad_spec(wvl_idx:ccd_idx,1:n_rad_wvl),                    &
                   fitcol, rms, dfitcol, radfit_exval, radfit_itnum, chisquav,               &
-                  o3fit_cols, o3fit_dcols, bro_prefit_col(ipix,0), bro_prefit_dcol(ipix,0), &
-                  lqh2o_prefit_col(ipix,0), lqh2o_prefit_dcol(ipix,0),                      &
-                  target_var(1:n_fincol_idx,ipix),                                          &
+                  o3fit_cols, o3fit_dcols, target_var(1:n_fincol_idx,ipix),                 &
                   allfit_cols_tmp(1:n_fitvar_rad), allfit_errs_tmp(1:n_fitvar_rad),         &
                   corr_matrix_tmp(1:n_fitvar_rad), yn_bad_pixel, fitspctmp(1:n_rad_wvl) )
 
@@ -294,11 +274,9 @@ CONTAINS
        ipix, jpix, n_fincol_idx, fincol_idx, &
        target_npol, target_var, target_fit   )
 
-    USE OMSAO_indices_module,   ONLY: solar_idx
-    USE OMSAO_parameters_module,ONLY: downweight, r8_missval
-    USE OMSAO_omidata_module,   ONLY: omi_radref_spec, n_omi_database_wvl, omi_database, omi_nwav_radref, nwavel_max
+    USE OMSAO_omidata_module, ONLY: omi_radref_spec, omi_database, omi_nwav_radref, nwavel_max
     USE OMSAO_variables_module, ONLY: refspecs_original
-    USE OMSAO_median_module,    ONLY: median
+    USE OMSAO_median_module, ONLY: median
 
     IMPLICIT NONE
 
@@ -322,8 +300,6 @@ CONTAINS
     INTEGER (KIND=i4)                         :: i, j, k, l, nwvl
     REAL    (KIND=r8)                         :: yfloc
     REAL    (KIND=r8), DIMENSION (nwavel_max) :: tmpexp
-
-    CHARACTER (LEN=27), PARAMETER :: modulename = 'remove_target_from_radiance'
 
     ! ----------------
     ! DPOLFt variables

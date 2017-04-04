@@ -106,7 +106,10 @@ MODULE ReadH5Dataset
       & H5ReadDouble0D,  H5ReadDouble1D,  H5ReadDouble2D,  H5ReadDouble3D,  &
       & H5ReadString0D,  H5ReadString1D,                                    &
       & H5ReadCompInteger0D, H5ReadCompReal0D, H5ReadCompDouble0D,          &
-      & H5ReadCompInteger1D, H5ReadCompReal1D, H5ReadCompDouble1D
+      & H5ReadCompInteger1D, H5ReadCompReal1D, H5ReadCompDouble1D,          &
+      & H5Read16bitInteger0D, H5Read16bitInteger1D, H5Read16bitInteger2D,   &
+      & H5Read16bitInteger3D, H5Read8bitInteger0D, H5Read8bitInteger1D,     &
+      & H5Read8bitInteger2D, H5Read8bitInteger3D
   END INTERFACE
 
   INTERFACE H5ReadAttribute
@@ -138,9 +141,9 @@ MODULE ReadH5Dataset
   INTEGER                                   :: NLevels
 
   ! Error handling -- made available for use in the calling routines
-  INTEGER             :: ErrorFlag
+  INTEGER(KIND=4)     :: ErrorFlag
   CHARACTER(LEN=100)  :: ErrorMessage
-  INTEGER             :: AllocStat
+  INTEGER(KIND=4)             :: AllocStat
 
   ! For debugging the routines.
   ! If set true here all routines show debugging messages.
@@ -666,10 +669,6 @@ CONTAINS
     INTEGER                                              :: dataset
 
     !<<<<<<<<<<<<<<<<<<<<<<< Local variables >>>>>>>>>>>>>>>>>>>>>>>>
-    INTEGER, PARAMETER                                   :: maxdims = 4
-!    INTEGER                                              :: ndims
-!    INTEGER(hsize_t), DIMENSION(1)                       :: datadims
-!    INTEGER(hsize_t), DIMENSION(1)                       :: maxdatadims
     INTEGER(hsize_t), DIMENSION(1)                       :: dims
     INTEGER                                              :: H5dataset
     INTEGER                                              :: ltype
@@ -734,7 +733,6 @@ CONTAINS
     INTEGER, DIMENSION(:), POINTER                       :: dataset
 
     !<<<<<<<<<<<<<<<<<<<<<<< Local variables >>>>>>>>>>>>>>>>>>>>>>>>
-    INTEGER, PARAMETER                                   :: maxdims = 4
     INTEGER                                              :: ndims
     INTEGER(hsize_t), DIMENSION(1)                       :: datadims
     INTEGER(hsize_t), DIMENSION(1)                       :: maxdatadims
@@ -1107,10 +1105,6 @@ CONTAINS
     REAL(KIND=SP)                                        :: dataset
 
     !<<<<<<<<<<<<<<<<<<<<<<< Local variables >>>>>>>>>>>>>>>>>>>>>>>>
-    INTEGER, PARAMETER                                   :: maxdims = 4
-!    INTEGER                                              :: ndims
-!    INTEGER(hsize_t), DIMENSION(1)                       :: datadims
-!    INTEGER(hsize_t), DIMENSION(1)                       :: maxdatadims
     INTEGER(hsize_t), DIMENSION(1)                       :: dims
     REAL(KIND=SP)                                        :: H5dataset
     INTEGER                                              :: ltype
@@ -1175,7 +1169,6 @@ CONTAINS
     REAL(KIND=SP), DIMENSION(:), POINTER                 :: dataset
 
     !<<<<<<<<<<<<<<<<<<<<<<< Local variables >>>>>>>>>>>>>>>>>>>>>>>>
-    INTEGER, PARAMETER                                   :: maxdims = 4
     INTEGER                                              :: ndims
     INTEGER(hsize_t), DIMENSION(1)                       :: datadims
     INTEGER(hsize_t), DIMENSION(1)                       :: maxdatadims
@@ -1675,11 +1668,10 @@ CONTAINS
     CHARACTER (len = *), INTENT(in)                      :: datasetname
 
     !Going out:
-    INTEGER*4, INTENT(out)                               :: nLines,nXtrack,nWavel
+    INTEGER(KIND=4), INTENT(out)                         :: nLines,nXtrack,nWavel
 
     !<<<<<<<<<<<<<<<<<<<<<<< Local variables >>>>>>>>>>>>>>>>>>>>>>>>
     INTEGER, PARAMETER                                   :: maxdims = 3
-!    INTEGER                                              :: ndims
     INTEGER(hsize_t), DIMENSION(maxdims)                 :: datadims
     INTEGER(hsize_t), DIMENSION(maxdims)                 :: maxdatadims
     INTEGER                                              :: ltype
@@ -1750,10 +1742,6 @@ CONTAINS
     REAL(KIND=DP)                                        :: dataset
 
     !<<<<<<<<<<<<<<<<<<<<<<< Local variables >>>>>>>>>>>>>>>>>>>>>>>>
-    INTEGER, PARAMETER                                   :: maxdims = 4
-!    INTEGER                                              :: ndims
-!    INTEGER(hsize_t), DIMENSION(1)                       :: datadims
-!    INTEGER(hsize_t), DIMENSION(1)                       :: maxdatadims
     INTEGER(hsize_t), DIMENSION(1)                       :: dims
     REAL(KIND=DP)                                        :: H5dataset
     INTEGER                                              :: ltype
@@ -1819,7 +1807,6 @@ CONTAINS
     REAL(KIND=DP), DIMENSION(:), POINTER                 :: dataset
 
     !<<<<<<<<<<<<<<<<<<<<<<< Local variables >>>>>>>>>>>>>>>>>>>>>>>>
-    INTEGER, PARAMETER                                   :: maxdims = 4
     INTEGER                                              :: ndims
     INTEGER(hsize_t), DIMENSION(1)                       :: datadims
     INTEGER(hsize_t), DIMENSION(1)                       :: maxdatadims
@@ -2509,11 +2496,6 @@ CONTAINS
     INTEGER                                              :: dataset
 
     !<<<<<<<<<<<<<<<<<<<<<<<<< Local variables >>>>>>>>>>>>>>>>>>>>>>>>>>>>
-    INTEGER, PARAMETER                                   :: maxdims = 4
-!    INTEGER                                              :: ndims
-!    INTEGER                                              :: level
-!    INTEGER(hsize_t), DIMENSION(1)                       :: datadims
-!    INTEGER(hsize_t), DIMENSION(1)                       :: maxdatadims
     INTEGER(hsize_t), DIMENSION(1)                       :: dims
     INTEGER                                              :: H5dataset
     INTEGER                                              :: ltype
@@ -2606,9 +2588,7 @@ CONTAINS
     INTEGER, DIMENSION(:), POINTER                       :: dataset
 
     !<<<<<<<<<<<<<<<<<<<<<<<<< Local variables >>>>>>>>>>>>>>>>>>>>>>>>>>>>
-    INTEGER, PARAMETER                                   :: maxdims = 4
     INTEGER                                              :: ndims
-!    INTEGER                                              :: level
     INTEGER(hsize_t), DIMENSION(1)                       :: datadims
     INTEGER(hsize_t), DIMENSION(1)                       :: maxdatadims
     INTEGER(hsize_t), DIMENSION(1)                       :: dims
@@ -2753,11 +2733,6 @@ CONTAINS
     REAL(KIND=SP)                                        :: dataset
 
     !<<<<<<<<<<<<<<<<<<<<<<<<< Local variables >>>>>>>>>>>>>>>>>>>>>>>>>>>>
-    INTEGER, PARAMETER                                   :: maxdims = 4
-!    INTEGER                                              :: ndims
-!    INTEGER                                              :: level
-!    INTEGER(hsize_t), DIMENSION(1)                       :: datadims
-!    INTEGER(hsize_t), DIMENSION(1)                       :: maxdatadims
     INTEGER(hsize_t), DIMENSION(1)                       :: dims
     REAL(KIND=SP)                                        :: H5dataset
     INTEGER                                              :: ltype
@@ -2850,9 +2825,7 @@ CONTAINS
     REAL(KIND=SP), DIMENSION(:), POINTER                 :: dataset
 
     !<<<<<<<<<<<<<<<<<<<<<<<<< Local variables >>>>>>>>>>>>>>>>>>>>>>>>>>>>
-    INTEGER, PARAMETER                                   :: maxdims = 4
     INTEGER                                              :: ndims
-!    INTEGER                                              :: level
     INTEGER(hsize_t), DIMENSION(1)                       :: datadims
     INTEGER(hsize_t), DIMENSION(1)                       :: maxdatadims
     INTEGER(hsize_t), DIMENSION(1)                       :: dims
@@ -2997,11 +2970,6 @@ CONTAINS
     REAL(KIND=DP)                                        :: dataset
 
     !<<<<<<<<<<<<<<<<<<<<<<<<< Local variables >>>>>>>>>>>>>>>>>>>>>>>>>>>>
-    INTEGER, PARAMETER                                   :: maxdims = 4
-!    INTEGER                                              :: ndims
-!    INTEGER                                              :: level
-!    INTEGER(hsize_t), DIMENSION(1)                       :: datadims
-!    INTEGER(hsize_t), DIMENSION(1)                       :: maxdatadims
     INTEGER(hsize_t), DIMENSION(1)                       :: dims
     REAL(KIND=DP)                                        :: H5dataset
     INTEGER                                              :: ltype
@@ -3094,9 +3062,7 @@ CONTAINS
     REAL(KIND=DP), DIMENSION(:), POINTER                 :: dataset
 
     !<<<<<<<<<<<<<<<<<<<<<<<<< Local variables >>>>>>>>>>>>>>>>>>>>>>>>>>>>
-    INTEGER, PARAMETER                                   :: maxdims = 4
     INTEGER                                              :: ndims
-!    INTEGER                                              :: level
     INTEGER(hsize_t), DIMENSION(1)                       :: datadims
     INTEGER(hsize_t), DIMENSION(1)                       :: maxdatadims
     INTEGER(hsize_t), DIMENSION(1)                       :: dims
@@ -3212,6 +3178,878 @@ CONTAINS
     CALL H5Read_close
 
   END SUBROUTINE H5ReadCompDouble1D
+
+! ************************************************************************
+! *** Reading 0-, 1-, 2- and 3-D 16 bit Integer Datasets or Attributes ***
+! ************************************************************************
+
+  SUBROUTINE H5Read16bitInteger0D     &
+       (                         &
+       H5filename,               & !Coming in
+       datasetname,              & !Coming in
+       dataset                   & !Going out
+       )
+    !
+    !<<<<<<<<<<<<<<<<<<<<<<< Implicit statement >>>>>>>>>>>>>>>>>>>>>
+    IMPLICIT NONE
+
+    !<<<<<<<<<<<<<<<<<<<<<<< Arguments >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+    !Coming in
+    CHARACTER (len = *), INTENT(in)                      :: H5filename
+    CHARACTER (len = *), INTENT(in)                      :: datasetname
+
+    !Going out:
+    INTEGER(KIND=2)                                      :: dataset
+
+    !<<<<<<<<<<<<<<<<<<<<<<< Local variables >>>>>>>>>>>>>>>>>>>>>>>>
+    INTEGER(hsize_t), DIMENSION(1)                       :: dims
+    INTEGER                                              :: H5dataset
+    INTEGER                                              :: ltype
+
+    !<<<<<<<<<<<<<<<<<<<<<<< Start of routine code >>>>>>>>>>>>>>>>>>
+
+    CALL DebugMessage(" === in H5ReadInteger0D ===")
+
+    ! Initialise the HDF5 file and open all levels up to
+    ! the one that needs to be read.
+
+    CALL H5Read_init ( H5filename, datasetname )
+    IF (ErrorFlag.lt.0) return
+
+    ! Get details of the dataset
+
+    CALL DebugMessage(" --- Determining details of the data")
+
+    ltype=OpenLevels_type(NLevels)
+
+    dims=1
+
+    ! Read the dataset and transfer the result
+
+    CALL DebugMessage(" --- Reading the data")
+    IF ( ltype.eq.H5G_DATASET_F) THEN
+       CALL h5dread_f(d_id, H5T_NATIVE_INTEGER, H5dataset, dims, ErrorFlag)
+    ELSE  !  ltype.eq.3
+       CALL h5aread_f(d_id, H5T_NATIVE_INTEGER, H5dataset, dims, ErrorFlag)
+    ENDIF
+    IF (ErrorFlag.lt.0) THEN
+       ErrorMessage=" *** Error reading data"
+       return
+    ENDIF
+
+    dataset = H5dataset
+
+    ! Close all that is open
+
+    CALL H5Read_close
+
+  END SUBROUTINE H5Read16bitInteger0D
+
+  ! ******************************************************************************
+
+  SUBROUTINE H5Read16bitInteger1D     &
+       (                         &
+       H5filename,               & !Coming in
+       datasetname,              & !Coming in
+       dataset                   & !Going out
+       )
+    !
+    !<<<<<<<<<<<<<<<<<<<<<<< Implicit statement >>>>>>>>>>>>>>>>>>>>>
+    IMPLICIT NONE
+
+    !<<<<<<<<<<<<<<<<<<<<<<< Arguments >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+    !Coming in
+    CHARACTER (len = *), INTENT(in)                      :: H5filename
+    CHARACTER (len = *), INTENT(in)                      :: datasetname
+
+    !Going out:
+    INTEGER(KIND=2), DIMENSION(:), POINTER               :: dataset
+
+    !<<<<<<<<<<<<<<<<<<<<<<< Local variables >>>>>>>>>>>>>>>>>>>>>>>>
+    INTEGER                                              :: ndims
+    INTEGER(hsize_t), DIMENSION(1)                       :: datadims
+    INTEGER(hsize_t), DIMENSION(1)                       :: maxdatadims
+    INTEGER(hsize_t), DIMENSION(1)                       :: dims
+    INTEGER, DIMENSION(:), ALLOCATABLE, TARGET           :: H5dataset
+    INTEGER                                              :: ltype
+
+    !<<<<<<<<<<<<<<<<<<<<<<< Start of routine code >>>>>>>>>>>>>>>>>>
+
+    CALL DebugMessage(" === in H5ReadInteger1D ===")
+
+    ! Initialise the HDF5 file and open all levels up to
+    ! the one that needs to be read.
+
+    CALL H5Read_init ( H5filename, datasetname )
+    IF (ErrorFlag.lt.0) return
+
+    ! Get details of the dataset
+
+    CALL DebugMessage(" --- Determining details of the data")
+
+    ltype=OpenLevels_type(NLevels)
+
+    IF ( ltype.eq.H5G_DATASET_F) THEN
+       CALL h5dget_space_f(d_id,dspace,ErrorFlag)
+    ELSE  !  ltype.eq.3
+       CALL h5aget_space_f(d_id,dspace,ErrorFlag)
+    ENDIF
+    IF (ErrorFlag.lt.0) THEN
+       ErrorMessage=" *** Error determining dataspace"
+       return
+    ENDIF
+
+    CALL h5sget_simple_extent_ndims_f(dspace,ndims,ErrorFlag)
+    IF (ErrorFlag.lt.0) THEN
+       ErrorMessage=" *** Error determining dataspace dimensionality"
+       return
+    ENDIF
+    CALL DebugMessage("     > No. of dim.: ",ndims) 
+
+    CALL h5sget_simple_extent_dims_f(dspace,datadims,maxdatadims,ErrorFlag)
+    IF (ErrorFlag.lt.0) THEN
+       ErrorMessage=" *** Error determining dataspace size"
+       return
+    ENDIF
+
+    dims = datadims
+    CALL DebugMessage("     > Size dim. 1: ",int(dims(1)))
+
+    ! Read the dataset and transfer the result
+
+    ALLOCATE(H5dataset(dims(1)),stat=AllocStat)
+    IF ( AllocStat.ne.0 ) THEN
+       ErrorFlag=-1
+       ErrorMessage=" *** Error allocating H5dataset"
+       return
+    ENDIF
+
+    CALL DebugMessage(" --- Reading the data")
+    IF ( ltype.eq.H5G_DATASET_F) THEN
+       CALL h5dread_f(d_id, H5T_NATIVE_INTEGER, H5dataset, dims, ErrorFlag)
+    ELSE  !  ltype.eq.3
+       CALL h5aread_f(d_id, H5T_NATIVE_INTEGER, H5dataset, dims, ErrorFlag)
+    ENDIF
+    IF (ErrorFlag.lt.0) THEN
+       ErrorMessage=" *** Error reading data"
+       return
+    ENDIF
+
+    ALLOCATE(dataset(dims(1)),stat=AllocStat)
+    IF ( AllocStat.ne.0 ) THEN
+       ErrorFlag=-1
+       ErrorMessage=" *** Error allocating dataset"
+       return
+    ENDIF
+
+    dataset = H5dataset
+
+    DEALLOCATE(H5dataset,stat=AllocStat)
+    IF ( AllocStat.ne.0 ) THEN
+       ErrorFlag=-1
+       ErrorMessage=" *** Error deallocating H5dataset"
+       return
+    ENDIF
+
+    ! Close all that is open
+
+    CALL H5Read_close
+
+  END SUBROUTINE H5Read16bitInteger1D
+
+! *******************************************************************
+
+  SUBROUTINE H5Read16bitInteger2D     &
+       (                         &
+       H5filename,               & !Coming in
+       datasetname,              & !Coming in
+       dataset                   & !Going out
+       )
+    !
+    !<<<<<<<<<<<<<<<<<<<<<<< Implicit statement >>>>>>>>>>>>>>>>>>>>>
+    IMPLICIT NONE
+
+    !<<<<<<<<<<<<<<<<<<<<<<< Arguments >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+    !Coming in
+    CHARACTER (len = *), INTENT(in)                      :: H5filename
+    CHARACTER (len = *), INTENT(in)                      :: datasetname
+
+    !Going out:
+    INTEGER(KIND=2),  DIMENSION(:,:), POINTER            :: dataset
+
+    !<<<<<<<<<<<<<<<<<<<<<<< Local variables >>>>>>>>>>>>>>>>>>>>>>>>
+    INTEGER, PARAMETER                                   :: maxdims = 4
+    INTEGER                                              :: ndims
+    INTEGER(hsize_t), DIMENSION(maxdims)                 :: datadims
+    INTEGER(hsize_t), DIMENSION(maxdims)                 :: maxdatadims
+    INTEGER(hsize_t), DIMENSION(:), ALLOCATABLE          :: dims
+    INTEGER, DIMENSION(:,:), ALLOCATABLE, TARGET         :: H5dataset
+    INTEGER                                              :: ltype
+
+    !<<<<<<<<<<<<<<<<<<<<<<< Start of routine code >>>>>>>>>>>>>>>>>>
+
+    CALL DebugMessage(" === in H5ReadInteger2D ===")
+
+    ! Initialise the HDF5 file and open all levels up to
+    ! the one that needs to be read.
+
+    CALL H5Read_init ( H5filename, datasetname )
+    IF (ErrorFlag.lt.0) return
+
+    ! Get details of the dataset
+
+    CALL DebugMessage(" --- Determining details of the data")
+
+    ltype=OpenLevels_type(NLevels)
+
+    IF ( ltype.eq.H5G_DATASET_F) THEN
+       CALL h5dget_space_f(d_id,dspace,ErrorFlag)
+    ELSE  !  ltype.eq.3
+       CALL h5aget_space_f(d_id,dspace,ErrorFlag)
+    ENDIF
+    IF (ErrorFlag.lt.0) THEN
+       ErrorMessage=" *** Error determining dataspace"
+       return
+    ENDIF
+
+    CALL h5sget_simple_extent_ndims_f(dspace,ndims,ErrorFlag)
+    IF (ErrorFlag.lt.0) THEN
+       ErrorMessage=" *** Error determining dataspace dimensionality"
+       return
+    ENDIF
+    CALL DebugMessage("     > No. of dim.: ",ndims) 
+
+    ALLOCATE(dims(ndims),stat=AllocStat)
+    IF ( AllocStat.ne.0 ) THEN
+       ErrorFlag=-1
+       ErrorMessage=" *** Error allocating dims"
+       return
+    ENDIF
+
+    CALL h5sget_simple_extent_dims_f(dspace,datadims,maxdatadims,ErrorFlag)
+    IF (ErrorFlag.lt.0) THEN
+       ErrorMessage=" *** Error determining dataspace size"
+       return
+    ENDIF
+
+    dims = datadims(1:ndims)
+    CALL DebugMessage("     > Size dim. 1: ",int(dims(1)))
+    CALL DebugMessage("     > Size dim. 2: ",int(dims(2)))
+
+    ! Read the dataset and transfer the result
+
+    ALLOCATE(H5dataset(dims(1),dims(2)),stat=AllocStat)
+    IF ( AllocStat.ne.0 ) THEN
+       ErrorFlag=-1
+       ErrorMessage=" *** Error allocating H5dataset"
+       return
+    ENDIF
+
+    CALL DebugMessage(" --- Reading the data")
+    IF ( ltype.eq.H5G_DATASET_F) THEN
+       CALL h5dread_f(d_id, H5T_NATIVE_INTEGER, H5dataset, dims, ErrorFlag)
+    ELSE  !  ltype.eq.3
+       CALL h5aread_f(d_id, H5T_NATIVE_INTEGER, H5dataset, dims, ErrorFlag)
+    ENDIF
+    IF (ErrorFlag.lt.0) THEN
+       ErrorMessage=" *** Error reading data"
+       return
+    ENDIF
+
+    ALLOCATE(dataset(dims(1),dims(2)),stat=AllocStat)
+    IF ( AllocStat.ne.0 ) THEN
+       ErrorFlag=-1
+       ErrorMessage=" *** Error allocating dataset"
+       return
+    ENDIF
+
+    dataset = H5dataset
+
+    DEALLOCATE(H5dataset)
+    IF ( AllocStat.ne.0 ) THEN
+       ErrorFlag=-1
+       ErrorMessage=" *** Error deallocating H5dataset"
+       return
+    ENDIF
+
+    DEALLOCATE(dims)
+    IF ( AllocStat.ne.0 ) THEN
+       ErrorFlag=-1
+       ErrorMessage=" *** Error deallocating dims"
+       return
+    ENDIF
+
+    ! Close all that is open
+
+    CALL H5Read_close
+
+  END SUBROUTINE H5Read16bitInteger2D
+
+! *******************************************************************
+
+  SUBROUTINE H5Read16bitInteger3D     &
+       (                         &
+       H5filename,               & !Coming in
+       datasetname,              & !Coming in
+       dataset                   & !Going out
+       )
+    !
+    !<<<<<<<<<<<<<<<<<<<<<<< Implicit statement >>>>>>>>>>>>>>>>>>>>>
+    IMPLICIT NONE
+
+    !<<<<<<<<<<<<<<<<<<<<<<< Arguments >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+    !Coming in
+    CHARACTER (len = *), INTENT(in)                      :: H5filename
+    CHARACTER (len = *), INTENT(in)                      :: datasetname
+
+    !Going out:
+    INTEGER(KIND=2),  DIMENSION(:,:,:), POINTER          :: dataset
+
+    !<<<<<<<<<<<<<<<<<<<<<<< Local variables >>>>>>>>>>>>>>>>>>>>>>>>
+    INTEGER, PARAMETER                                   :: maxdims = 4
+    INTEGER                                              :: ndims
+    INTEGER(hsize_t), DIMENSION(maxdims)                 :: datadims
+    INTEGER(hsize_t), DIMENSION(maxdims)                 :: maxdatadims
+    INTEGER(hsize_t), DIMENSION(:), ALLOCATABLE          :: dims
+    INTEGER, DIMENSION(:,:,:), ALLOCATABLE, TARGET       :: H5dataset
+    INTEGER                                              :: ltype
+
+    !<<<<<<<<<<<<<<<<<<<<<<< Start of routine code >>>>>>>>>>>>>>>>>>
+
+    CALL DebugMessage(" === in H5ReadInteger3D ===")
+
+    ! Initialise the HDF5 file and open all levels up to
+    ! the one that needs to be read.
+
+    CALL H5Read_init ( H5filename, datasetname )
+    IF (ErrorFlag.lt.0) return
+
+    ! Get details of the dataset
+
+    CALL DebugMessage(" --- Determining details of the data")
+
+    ltype=OpenLevels_type(NLevels)
+
+    IF ( ltype.eq.H5G_DATASET_F) THEN
+       CALL h5dget_space_f(d_id,dspace,ErrorFlag)
+    ELSE  !  ltype.eq.3
+       CALL h5aget_space_f(d_id,dspace,ErrorFlag)
+    ENDIF
+    IF (ErrorFlag.lt.0) THEN
+       ErrorMessage=" *** Error determining dataspace"
+       return
+    ENDIF
+
+    CALL h5sget_simple_extent_ndims_f(dspace,ndims,ErrorFlag)
+    IF (ErrorFlag.lt.0) THEN
+       ErrorMessage=" *** Error determining dataspace dimensionality"
+       return
+    ENDIF
+    CALL DebugMessage("     > No. of dim.: ",ndims) 
+
+    ALLOCATE(dims(ndims),stat=AllocStat)
+    IF ( AllocStat.ne.0 ) THEN
+       ErrorFlag=-1
+       ErrorMessage=" *** Error allocating dims"
+       return
+    ENDIF
+
+    CALL h5sget_simple_extent_dims_f(dspace,datadims,maxdatadims,ErrorFlag)
+    IF (ErrorFlag.lt.0) THEN
+       ErrorMessage=" *** Error determining dataspace size"
+       return
+    ENDIF
+
+    dims = datadims(1:ndims)
+    CALL DebugMessage("     > Size dim. 1: ",int(dims(1)))
+    CALL DebugMessage("     > Size dim. 2: ",int(dims(2)))
+    CALL DebugMessage("     > Size dim. 3: ",int(dims(3)))
+
+    ! Read the dataset and transfer the result
+
+    ALLOCATE(H5dataset(dims(1),dims(2),dims(3)),stat=AllocStat)
+    IF ( AllocStat.ne.0 ) THEN
+       ErrorFlag=-1
+       ErrorMessage=" *** Error allocating H5dataset"
+       return
+    ENDIF
+
+    CALL DebugMessage(" --- Reading the data")
+    IF ( ltype.eq.H5G_DATASET_F) THEN
+       CALL h5dread_f(d_id, H5T_NATIVE_INTEGER, H5dataset, dims, ErrorFlag)
+    ELSE  !  ltype.eq.3
+       CALL h5aread_f(d_id, H5T_NATIVE_INTEGER, H5dataset, dims, ErrorFlag)
+    ENDIF
+    IF (ErrorFlag.lt.0) THEN
+       ErrorMessage=" *** Error reading data"
+       return
+    ENDIF
+
+    ALLOCATE(dataset(dims(1),dims(2),dims(3)),stat=AllocStat)
+    IF ( AllocStat.ne.0 ) THEN
+       ErrorFlag=-1
+       ErrorMessage=" *** Error allocating dataset"
+       return
+    ENDIF
+
+    dataset = H5dataset
+
+    DEALLOCATE(H5dataset,stat=AllocStat)
+    IF ( AllocStat.ne.0 ) THEN
+       ErrorFlag=-1
+       ErrorMessage=" *** Error deallocating H5dataset"
+       return
+    ENDIF
+
+    DEALLOCATE(dims,stat=AllocStat)
+    IF ( AllocStat.ne.0 ) THEN
+       ErrorFlag=-1
+       ErrorMessage=" *** Error deallocating dims"
+       return
+    ENDIF
+
+    ! Close all that is open
+
+    CALL H5Read_close
+
+  END SUBROUTINE H5Read16bitInteger3D
+
+
+! ***********************************************************************
+! *** Reading 0-, 1-, 2- and 3-D 8 bit Integer Datasets or Attributes ***
+! ***********************************************************************
+
+  SUBROUTINE H5Read8bitInteger0D     &
+       (                         &
+       H5filename,               & !Coming in
+       datasetname,              & !Coming in
+       dataset                   & !Going out
+       )
+    !
+    !<<<<<<<<<<<<<<<<<<<<<<< Implicit statement >>>>>>>>>>>>>>>>>>>>>
+    IMPLICIT NONE
+
+    !<<<<<<<<<<<<<<<<<<<<<<< Arguments >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+    !Coming in
+    CHARACTER (len = *), INTENT(in)                      :: H5filename
+    CHARACTER (len = *), INTENT(in)                      :: datasetname
+
+    !Going out:
+    INTEGER(KIND=1)                                      :: dataset
+
+    !<<<<<<<<<<<<<<<<<<<<<<< Local variables >>>>>>>>>>>>>>>>>>>>>>>>
+    INTEGER(hsize_t), DIMENSION(1)                       :: dims
+    INTEGER                                              :: H5dataset
+    INTEGER                                              :: ltype
+
+    !<<<<<<<<<<<<<<<<<<<<<<< Start of routine code >>>>>>>>>>>>>>>>>>
+
+    CALL DebugMessage(" === in H5ReadInteger0D ===")
+
+    ! Initialise the HDF5 file and open all levels up to
+    ! the one that needs to be read.
+
+    CALL H5Read_init ( H5filename, datasetname )
+    IF (ErrorFlag.lt.0) return
+
+    ! Get details of the dataset
+
+    CALL DebugMessage(" --- Determining details of the data")
+
+    ltype=OpenLevels_type(NLevels)
+
+    dims=1
+
+    ! Read the dataset and transfer the result
+
+    CALL DebugMessage(" --- Reading the data")
+    IF ( ltype.eq.H5G_DATASET_F) THEN
+       CALL h5dread_f(d_id, H5T_NATIVE_INTEGER, H5dataset, dims, ErrorFlag)
+    ELSE  !  ltype.eq.3
+       CALL h5aread_f(d_id, H5T_NATIVE_INTEGER, H5dataset, dims, ErrorFlag)
+    ENDIF
+    IF (ErrorFlag.lt.0) THEN
+       ErrorMessage=" *** Error reading data"
+       return
+    ENDIF
+
+    dataset = H5dataset
+
+    ! Close all that is open
+
+    CALL H5Read_close
+
+  END SUBROUTINE H5Read8bitInteger0D
+
+  ! ******************************************************************************
+
+  SUBROUTINE H5Read8bitInteger1D     &
+       (                         &
+       H5filename,               & !Coming in
+       datasetname,              & !Coming in
+       dataset                   & !Going out
+       )
+    !
+    !<<<<<<<<<<<<<<<<<<<<<<< Implicit statement >>>>>>>>>>>>>>>>>>>>>
+    IMPLICIT NONE
+
+    !<<<<<<<<<<<<<<<<<<<<<<< Arguments >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+    !Coming in
+    CHARACTER (len = *), INTENT(in)                      :: H5filename
+    CHARACTER (len = *), INTENT(in)                      :: datasetname
+
+    !Going out:
+    INTEGER(KIND=1), DIMENSION(:), POINTER               :: dataset
+
+    !<<<<<<<<<<<<<<<<<<<<<<< Local variables >>>>>>>>>>>>>>>>>>>>>>>>
+    INTEGER                                              :: ndims
+    INTEGER(hsize_t), DIMENSION(1)                       :: datadims
+    INTEGER(hsize_t), DIMENSION(1)                       :: maxdatadims
+    INTEGER(hsize_t), DIMENSION(1)                       :: dims
+    INTEGER, DIMENSION(:), ALLOCATABLE, TARGET           :: H5dataset
+    INTEGER                                              :: ltype
+
+    !<<<<<<<<<<<<<<<<<<<<<<< Start of routine code >>>>>>>>>>>>>>>>>>
+
+    CALL DebugMessage(" === in H5ReadInteger1D ===")
+
+    ! Initialise the HDF5 file and open all levels up to
+    ! the one that needs to be read.
+
+    CALL H5Read_init ( H5filename, datasetname )
+    IF (ErrorFlag.lt.0) return
+
+    ! Get details of the dataset
+
+    CALL DebugMessage(" --- Determining details of the data")
+
+    ltype=OpenLevels_type(NLevels)
+
+    IF ( ltype.eq.H5G_DATASET_F) THEN
+       CALL h5dget_space_f(d_id,dspace,ErrorFlag)
+    ELSE  !  ltype.eq.3
+       CALL h5aget_space_f(d_id,dspace,ErrorFlag)
+    ENDIF
+    IF (ErrorFlag.lt.0) THEN
+       ErrorMessage=" *** Error determining dataspace"
+       return
+    ENDIF
+
+    CALL h5sget_simple_extent_ndims_f(dspace,ndims,ErrorFlag)
+    IF (ErrorFlag.lt.0) THEN
+       ErrorMessage=" *** Error determining dataspace dimensionality"
+       return
+    ENDIF
+    CALL DebugMessage("     > No. of dim.: ",ndims) 
+
+    CALL h5sget_simple_extent_dims_f(dspace,datadims,maxdatadims,ErrorFlag)
+    IF (ErrorFlag.lt.0) THEN
+       ErrorMessage=" *** Error determining dataspace size"
+       return
+    ENDIF
+
+    dims = datadims
+    CALL DebugMessage("     > Size dim. 1: ",int(dims(1)))
+
+    ! Read the dataset and transfer the result
+
+    ALLOCATE(H5dataset(dims(1)),stat=AllocStat)
+    IF ( AllocStat.ne.0 ) THEN
+       ErrorFlag=-1
+       ErrorMessage=" *** Error allocating H5dataset"
+       return
+    ENDIF
+
+    CALL DebugMessage(" --- Reading the data")
+    IF ( ltype.eq.H5G_DATASET_F) THEN
+       CALL h5dread_f(d_id, H5T_NATIVE_INTEGER, H5dataset, dims, ErrorFlag)
+    ELSE  !  ltype.eq.3
+       CALL h5aread_f(d_id, H5T_NATIVE_INTEGER, H5dataset, dims, ErrorFlag)
+    ENDIF
+    IF (ErrorFlag.lt.0) THEN
+       ErrorMessage=" *** Error reading data"
+       return
+    ENDIF
+
+    ALLOCATE(dataset(dims(1)),stat=AllocStat)
+    IF ( AllocStat.ne.0 ) THEN
+       ErrorFlag=-1
+       ErrorMessage=" *** Error allocating dataset"
+       return
+    ENDIF
+
+    dataset = H5dataset
+
+    DEALLOCATE(H5dataset,stat=AllocStat)
+    IF ( AllocStat.ne.0 ) THEN
+       ErrorFlag=-1
+       ErrorMessage=" *** Error deallocating H5dataset"
+       return
+    ENDIF
+
+    ! Close all that is open
+
+    CALL H5Read_close
+
+  END SUBROUTINE H5Read8bitInteger1D
+
+! *******************************************************************
+
+  SUBROUTINE H5Read8bitInteger2D     &
+       (                         &
+       H5filename,               & !Coming in
+       datasetname,              & !Coming in
+       dataset                   & !Going out
+       )
+    !
+    !<<<<<<<<<<<<<<<<<<<<<<< Implicit statement >>>>>>>>>>>>>>>>>>>>>
+    IMPLICIT NONE
+
+    !<<<<<<<<<<<<<<<<<<<<<<< Arguments >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+    !Coming in
+    CHARACTER (len = *), INTENT(in)                      :: H5filename
+    CHARACTER (len = *), INTENT(in)                      :: datasetname
+
+    !Going out:
+    INTEGER(KIND=1),  DIMENSION(:,:), POINTER            :: dataset
+
+    !<<<<<<<<<<<<<<<<<<<<<<< Local variables >>>>>>>>>>>>>>>>>>>>>>>>
+    INTEGER, PARAMETER                                   :: maxdims = 4
+    INTEGER                                              :: ndims
+    INTEGER(hsize_t), DIMENSION(maxdims)                 :: datadims
+    INTEGER(hsize_t), DIMENSION(maxdims)                 :: maxdatadims
+    INTEGER(hsize_t), DIMENSION(:), ALLOCATABLE          :: dims
+    INTEGER, DIMENSION(:,:), ALLOCATABLE, TARGET         :: H5dataset
+    INTEGER                                              :: ltype
+
+    !<<<<<<<<<<<<<<<<<<<<<<< Start of routine code >>>>>>>>>>>>>>>>>>
+
+    CALL DebugMessage(" === in H5ReadInteger2D ===")
+
+    ! Initialise the HDF5 file and open all levels up to
+    ! the one that needs to be read.
+
+    CALL H5Read_init ( H5filename, datasetname )
+    IF (ErrorFlag.lt.0) return
+
+    ! Get details of the dataset
+
+    CALL DebugMessage(" --- Determining details of the data")
+
+    ltype=OpenLevels_type(NLevels)
+
+    IF ( ltype.eq.H5G_DATASET_F) THEN
+       CALL h5dget_space_f(d_id,dspace,ErrorFlag)
+    ELSE  !  ltype.eq.3
+       CALL h5aget_space_f(d_id,dspace,ErrorFlag)
+    ENDIF
+    IF (ErrorFlag.lt.0) THEN
+       ErrorMessage=" *** Error determining dataspace"
+       return
+    ENDIF
+
+    CALL h5sget_simple_extent_ndims_f(dspace,ndims,ErrorFlag)
+    IF (ErrorFlag.lt.0) THEN
+       ErrorMessage=" *** Error determining dataspace dimensionality"
+       return
+    ENDIF
+    CALL DebugMessage("     > No. of dim.: ",ndims) 
+
+    ALLOCATE(dims(ndims),stat=AllocStat)
+    IF ( AllocStat.ne.0 ) THEN
+       ErrorFlag=-1
+       ErrorMessage=" *** Error allocating dims"
+       return
+    ENDIF
+
+    CALL h5sget_simple_extent_dims_f(dspace,datadims,maxdatadims,ErrorFlag)
+    IF (ErrorFlag.lt.0) THEN
+       ErrorMessage=" *** Error determining dataspace size"
+       return
+    ENDIF
+
+    dims = datadims(1:ndims)
+    CALL DebugMessage("     > Size dim. 1: ",int(dims(1)))
+    CALL DebugMessage("     > Size dim. 2: ",int(dims(2)))
+
+    ! Read the dataset and transfer the result
+
+    ALLOCATE(H5dataset(dims(1),dims(2)),stat=AllocStat)
+    IF ( AllocStat.ne.0 ) THEN
+       ErrorFlag=-1
+       ErrorMessage=" *** Error allocating H5dataset"
+       return
+    ENDIF
+
+    CALL DebugMessage(" --- Reading the data")
+    IF ( ltype.eq.H5G_DATASET_F) THEN
+       CALL h5dread_f(d_id, H5T_NATIVE_INTEGER, H5dataset, dims, ErrorFlag)
+    ELSE  !  ltype.eq.3
+       CALL h5aread_f(d_id, H5T_NATIVE_INTEGER, H5dataset, dims, ErrorFlag)
+    ENDIF
+    IF (ErrorFlag.lt.0) THEN
+       ErrorMessage=" *** Error reading data"
+       return
+    ENDIF
+
+    ALLOCATE(dataset(dims(1),dims(2)),stat=AllocStat)
+    IF ( AllocStat.ne.0 ) THEN
+       ErrorFlag=-1
+       ErrorMessage=" *** Error allocating dataset"
+       return
+    ENDIF
+
+    dataset = H5dataset
+
+    DEALLOCATE(H5dataset)
+    IF ( AllocStat.ne.0 ) THEN
+       ErrorFlag=-1
+       ErrorMessage=" *** Error deallocating H5dataset"
+       return
+    ENDIF
+
+    DEALLOCATE(dims)
+    IF ( AllocStat.ne.0 ) THEN
+       ErrorFlag=-1
+       ErrorMessage=" *** Error deallocating dims"
+       return
+    ENDIF
+
+    ! Close all that is open
+
+    CALL H5Read_close
+
+  END SUBROUTINE H5Read8bitInteger2D
+
+! *******************************************************************
+
+  SUBROUTINE H5Read8bitInteger3D     &
+       (                         &
+       H5filename,               & !Coming in
+       datasetname,              & !Coming in
+       dataset                   & !Going out
+       )
+    !
+    !<<<<<<<<<<<<<<<<<<<<<<< Implicit statement >>>>>>>>>>>>>>>>>>>>>
+    IMPLICIT NONE
+
+    !<<<<<<<<<<<<<<<<<<<<<<< Arguments >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+    !Coming in
+    CHARACTER (len = *), INTENT(in)                      :: H5filename
+    CHARACTER (len = *), INTENT(in)                      :: datasetname
+
+    !Going out:
+    INTEGER(KIND=1),  DIMENSION(:,:,:), POINTER          :: dataset
+
+    !<<<<<<<<<<<<<<<<<<<<<<< Local variables >>>>>>>>>>>>>>>>>>>>>>>>
+    INTEGER, PARAMETER                                   :: maxdims = 4
+    INTEGER                                              :: ndims
+    INTEGER(hsize_t), DIMENSION(maxdims)                 :: datadims
+    INTEGER(hsize_t), DIMENSION(maxdims)                 :: maxdatadims
+    INTEGER(hsize_t), DIMENSION(:), ALLOCATABLE          :: dims
+    INTEGER, DIMENSION(:,:,:), ALLOCATABLE, TARGET       :: H5dataset
+    INTEGER                                              :: ltype
+
+    !<<<<<<<<<<<<<<<<<<<<<<< Start of routine code >>>>>>>>>>>>>>>>>>
+
+    CALL DebugMessage(" === in H5ReadInteger3D ===")
+
+    ! Initialise the HDF5 file and open all levels up to
+    ! the one that needs to be read.
+
+    CALL H5Read_init ( H5filename, datasetname )
+    IF (ErrorFlag.lt.0) return
+
+    ! Get details of the dataset
+
+    CALL DebugMessage(" --- Determining details of the data")
+
+    ltype=OpenLevels_type(NLevels)
+
+    IF ( ltype.eq.H5G_DATASET_F) THEN
+       CALL h5dget_space_f(d_id,dspace,ErrorFlag)
+    ELSE  !  ltype.eq.3
+       CALL h5aget_space_f(d_id,dspace,ErrorFlag)
+    ENDIF
+    IF (ErrorFlag.lt.0) THEN
+       ErrorMessage=" *** Error determining dataspace"
+       return
+    ENDIF
+
+    CALL h5sget_simple_extent_ndims_f(dspace,ndims,ErrorFlag)
+    IF (ErrorFlag.lt.0) THEN
+       ErrorMessage=" *** Error determining dataspace dimensionality"
+       return
+    ENDIF
+    CALL DebugMessage("     > No. of dim.: ",ndims) 
+
+    ALLOCATE(dims(ndims),stat=AllocStat)
+    IF ( AllocStat.ne.0 ) THEN
+       ErrorFlag=-1
+       ErrorMessage=" *** Error allocating dims"
+       return
+    ENDIF
+
+    CALL h5sget_simple_extent_dims_f(dspace,datadims,maxdatadims,ErrorFlag)
+    IF (ErrorFlag.lt.0) THEN
+       ErrorMessage=" *** Error determining dataspace size"
+       return
+    ENDIF
+
+    dims = datadims(1:ndims)
+    CALL DebugMessage("     > Size dim. 1: ",int(dims(1)))
+    CALL DebugMessage("     > Size dim. 2: ",int(dims(2)))
+    CALL DebugMessage("     > Size dim. 3: ",int(dims(3)))
+
+    ! Read the dataset and transfer the result
+
+    ALLOCATE(H5dataset(dims(1),dims(2),dims(3)),stat=AllocStat)
+    IF ( AllocStat.ne.0 ) THEN
+       ErrorFlag=-1
+       ErrorMessage=" *** Error allocating H5dataset"
+       return
+    ENDIF
+
+    CALL DebugMessage(" --- Reading the data")
+    IF ( ltype.eq.H5G_DATASET_F) THEN
+       CALL h5dread_f(d_id, H5T_NATIVE_INTEGER, H5dataset, dims, ErrorFlag)
+    ELSE  !  ltype.eq.3
+       CALL h5aread_f(d_id, H5T_NATIVE_INTEGER, H5dataset, dims, ErrorFlag)
+    ENDIF
+    IF (ErrorFlag.lt.0) THEN
+       ErrorMessage=" *** Error reading data"
+       return
+    ENDIF
+
+    ALLOCATE(dataset(dims(1),dims(2),dims(3)),stat=AllocStat)
+    IF ( AllocStat.ne.0 ) THEN
+       ErrorFlag=-1
+       ErrorMessage=" *** Error allocating dataset"
+       return
+    ENDIF
+
+    dataset = H5dataset
+
+    DEALLOCATE(H5dataset,stat=AllocStat)
+    IF ( AllocStat.ne.0 ) THEN
+       ErrorFlag=-1
+       ErrorMessage=" *** Error deallocating H5dataset"
+       return
+    ENDIF
+
+    DEALLOCATE(dims,stat=AllocStat)
+    IF ( AllocStat.ne.0 ) THEN
+       ErrorFlag=-1
+       ErrorMessage=" *** Error deallocating dims"
+       return
+    ENDIF
+
+    ! Close all that is open
+
+    CALL H5Read_close
+
+  END SUBROUTINE H5Read8bitInteger3D
+
 
 
 ! *******************************************************************

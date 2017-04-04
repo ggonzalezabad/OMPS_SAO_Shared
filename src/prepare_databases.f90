@@ -7,10 +7,9 @@ SUBROUTINE prepare_databases ( &
   !
   ! ===========================================
 
-
-  USE OMSAO_precision_module
-  USE OMSAO_variables_module, ONLY: hw1e, e_asym, phase, have_undersampling, database
-  USE OMSAO_errstat_module
+  USE OMSAO_precision_module, ONLY: i4, r8
+  USE OMSAO_variables_module, ONLY: hw1e, e_asym, phase, have_undersampling
+  USE OMSAO_errstat_module, ONLY: pge_errstat_error, pge_errstat_ok
   IMPLICIT NONE
 
   ! ---------------
@@ -47,12 +46,6 @@ SUBROUTINE prepare_databases ( &
        xtrack_pix, n_rad_wvl, curr_rad_wvl(1:n_rad_wvl), hw1e, e_asym, phase, locerrstat )
   errstat = MAX ( errstat, locerrstat )
   IF ( errstat >= pge_errstat_error ) RETURN
-  !IF ( ANY (have_undersampling) ) &
-  !     CALL undersample_new (                                                             &
-  !     xtrack_pix, n_rad_wvl, curr_rad_wvl(1:n_rad_wvl), n_sol_wvl, sol_wvl(1:n_sol_wvl), &
-  !     hw1e, e_asym, locerrstat )
-  !errstat = MAX ( errstat, locerrstat )
-  !IF ( errstat >= pge_errstat_error ) RETURN
 
   ! -------------------------------------------------------------------------------------
   ! Calculate the splined fitting database. This will be saved into a nXtrack-dimensional
@@ -80,12 +73,13 @@ SUBROUTINE prepare_solar_refspec ( &
   !
   ! ***********************************************************
 
-  USE OMSAO_precision_module
-  USE OMSAO_indices_module,    ONLY: &
-       max_rs_idx, solar_idx, ring_idx, wvl_idx, spc_idx
-  USE OMSAO_parameters_module, ONLY: maxchlen
-  USE OMSAO_variables_module,  ONLY: yn_doas, fit_winwav_idx, yn_smooth, n_refspec, database
-  USE OMSAO_errstat_module
+  USE OMSAO_precision_module, ONLY: i4, r8
+  USE OMSAO_indices_module, ONLY: &
+       max_rs_idx, solar_idx, ring_idx
+  USE OMSAO_variables_module, ONLY: yn_doas, fit_winwav_idx, yn_smooth, database
+  USE OMSAO_errstat_module, ONLY: omsao_e_interpol, omsao_w_interpol_range, &
+       pge_errstat_error, pge_errstat_ok, pge_errstat_warning, vb_lev_default, &
+       vb_lev_develop, error_check
 
   IMPLICIT NONE
 
@@ -144,7 +138,6 @@ SUBROUTINE prepare_solar_refspec ( &
   ! Interpolate (spectral overlap is taken care of in INTERPOLATION)
   ! ----------------------------------------------------------------
   CALL interpolation ( &
-       modulename,                                                                 &
        n_sol_tmp, tmp_sol_wvl(1:n_sol_tmp), tmp_sol_spec(1:n_sol_tmp),             &
        n_radpts, curr_rad_wvl(1:n_radpts), spline_sun(1:n_radpts),                 &
        'endpoints', 0.0_r8, yn_full_range, locerrstat )

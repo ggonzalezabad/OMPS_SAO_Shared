@@ -8,8 +8,11 @@ MODULE OMSAO_solcomp_module
   ! =================================================================
 
   USE OMSAO_precision_module,  ONLY: i4, r8, C_LONG
-  USE OMSAO_omidata_module,    ONLY: nxtrack_max
-  USE OMSAO_errstat_module
+  USE OMSAO_omidata_module, ONLY: nxtrack_max
+  USE OMSAO_he5_module, ONLY: maxchlen, he5f_acc_rdonly
+  USE OMSAO_errstat_module, ONLY: pge_errstat_ok, pge_errstat_warning, &
+       pge_errstat_error, omsao_e_he5swattach, omi_s_success, he5_stat_fail, &
+       omsao_e_he5swopen, omsao_e_prefitcol, f_sep, vb_lev_default, error_check
 
   IMPLICIT NONE
   
@@ -55,8 +58,6 @@ CONTAINS
 
     USE OMSAO_parameters_module, ONLY: maxchlen
     IMPLICIT NONE
-
-    INCLUDE 'hdfeos5.inc'
 
     ! ---------------------------------------------------------------------
     ! Explanation of subroutine arguments:
@@ -236,8 +237,6 @@ CONTAINS
     USE OMSAO_parameters_module, ONLY: maxchlen
     IMPLICIT NONE
 
-    INCLUDE 'hdfeos5.inc'
-
     ! ---------------------------------------------------------------------
     ! Explanation of subroutine arguments:
     !
@@ -275,10 +274,10 @@ CONTAINS
     REAL    (KIND=r8), DIMENSION (:),     ALLOCATABLE :: tmp_wvls
     REAL    (KIND=r8), DIMENSION (:,:,:), ALLOCATABLE :: tmp_pars
 
-    INTEGER   (KIND=i4)                :: he5stat, swath_file_id, swath_id
-    INTEGER   (KIND=C_LONG)               :: he5statcl, he5_start_1, he5_stride_1, he5_edge_1
+    INTEGER   (KIND=i4) :: he5stat, swath_file_id, swath_id
+    INTEGER   (KIND=C_LONG) :: he5_start_1, he5_stride_1, he5_edge_1
     INTEGER   (KIND=C_LONG), DIMENSION(3) :: he5_start_3, he5_stride_3, he5_edge_3
-    CHARACTER (LEN=maxchlen)           :: soco_he5_field, swath_name
+    CHARACTER (LEN=maxchlen) :: soco_he5_field, swath_name
 
     ! ---------------------------------
     ! External OMI and Toolkit routines
@@ -522,12 +521,6 @@ CONTAINS
     ! ---------------
     INTEGER (KIND=i4) :: iwvl, iloc, ipow, nbin, npol
     REAL    (KIND=r8) :: binwvl, binpow, snorm
-
-    ! -------------------------------
-    ! Name of the function/subroutine
-    ! -------------------------------
-    CHARACTER (LEN=12), PARAMETER :: modulename = 'soco_compute'
-
 
     nbin  = solarcomp_pars%nBins
     npol  = solarcomp_pars%nPol

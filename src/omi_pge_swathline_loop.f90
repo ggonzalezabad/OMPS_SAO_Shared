@@ -1,22 +1,20 @@
 SUBROUTINE omi_pge_swathline_loop ( &
-     pge_idx, nt, nx, nccd, n_max_rspec, yn_process,  &
-     xtrange, yn_radiance_reference, yn_remove_target, ntargpol,    &
+     pge_idx, nt, nx, n_max_rspec, yn_process,  &
+     xtrange, yn_radiance_reference, yn_remove_target, &
      yn_commit, errstat)
 
 
   USE OMSAO_precision_module,  ONLY: i4, r8
-  USE OMSAO_parameters_module, ONLY: i2_missval, r8_missval, main_qa_missing, maxchlen
-  USE OMSAO_indices_module,    ONLY: pge_hcho_idx, n_max_fitpars, solar_idx, pge_gly_idx
+  USE OMSAO_parameters_module, ONLY: i2_missval, r8_missval, maxchlen
+  USE OMSAO_indices_module,    ONLY: n_max_fitpars
   USE OMSAO_variables_module,  ONLY:  &
-       n_fitvar_rad, fitvar_rad_init, fitvar_rad_saved, l1b_rad_filename, &
-       verb_thresh_lev, n_fincol_idx, fincol_idx, n_rad_wvl
+       n_fitvar_rad, fitvar_rad_init, fitvar_rad_saved, &
+       verb_thresh_lev, n_fincol_idx
   USE OMSAO_omidata_module,    ONLY:  &
        nlines_max, nUTCdim, omi_scanline_no, &
        omi_itnum_flag, omi_fitconv_flag, omi_column_amount, &
-       omi_column_uncert, omi_time_utc, omi_time, omi_latitude, omi_fit_rms,  &
-       omi_radiance_errstat, omi_nwav_radref, omi_radref_spec, omi_radref_wavl, &
+       omi_column_uncert, omi_time_utc, omi_fit_rms,  &
        nwavel_max
-  USE OMSAO_destriping_module, ONLY: ctr_maxcol
   USE OMSAO_prefitcol_module
   USE OMSAO_errstat_module
   USE OMSAO_radiance_ref_module, ONLY: remove_target_from_radiance
@@ -27,7 +25,7 @@ SUBROUTINE omi_pge_swathline_loop ( &
   ! ---------------
   ! Input variables
   ! ---------------
-  INTEGER (KIND=i4), INTENT (IN) :: pge_idx, nx, nt, nccd, ntargpol, n_max_rspec
+  INTEGER (KIND=i4), INTENT (IN) :: pge_idx, nx, nt, n_max_rspec
   INTEGER (KIND=i4), DIMENSION (0:nt-1,1:2),  INTENT (IN) :: xtrange
   LOGICAL,           DIMENSION (0:nt-1),      INTENT (IN) :: yn_process
   LOGICAL,           INTENT (IN) :: yn_commit, yn_radiance_reference, yn_remove_target
@@ -40,11 +38,8 @@ SUBROUTINE omi_pge_swathline_loop ( &
   ! ---------------
   ! Local variables
   ! ---------------
-  INTEGER   (KIND=i4)      :: iline, iloop, nblock, fpix, lpix, ipix, estat, locerrstat
+  INTEGER   (KIND=i4)      :: iline, fpix, lpix, ipix, estat, locerrstat
   CHARACTER (LEN=maxchlen) :: addmsg
-
-	! CCM for looping
-	INTEGER (KIND=i4) :: i,j,k
 
   ! ---------------------------------------------------------------
   ! Variables to remove target gas from radiance reference spectrum
@@ -133,7 +128,7 @@ SUBROUTINE omi_pge_swathline_loop ( &
      
      CALL xtrack_radiance_fitting_loop (                         &
           n_max_rspec, fpix, lpix, pge_idx, iline,               &
-          ctr_maxcol, n_fitvar_rad,                              &
+          n_fitvar_rad,                              &
           all_fitted_columns (1:n_fitvar_rad,fpix:lpix,iline),   &
           all_fitted_errors  (1:n_fitvar_rad,fpix:lpix,iline),   &
           correlation_columns(1:n_fitvar_rad,fpix:lpix,iline),   &
@@ -142,16 +137,10 @@ SUBROUTINE omi_pge_swathline_loop ( &
      addmsg = ''
      WRITE (addmsg,'(I5, I3,1P,(3E15.5),I5)') omi_scanline_no, ipix, &
           omi_column_amount(ipix, iline), omi_column_uncert(ipix, iline), &
-          omi_fit_rms   (ipix, iline), MAX(-1,omi_itnum_flag(ipix, iline))
+          omi_fit_rms   (ipix, iline), MAX(INT(-1,KIND=2),omi_itnum_flag(ipix, iline))
      estat = OMI_SMF_setmsg ( OMSAO_S_PROGRESS, TRIM(addmsg), " ", vb_lev_omidebug )
      IF ( verb_thresh_lev >= vb_lev_screen ) WRITE (*, '(A)') TRIM(addmsg)
      
-     ! -----------------------
-     ! Convert TAI to UTC time
-     ! -----------------------
-!!$     CALL convert_tai_to_utc ( &
-!!$          nUTCdim, omi_time(iloop), omi_time_utc(1:nUTCdim,iline) )
-
      ! ----------------------------------------------------------------
      ! AMF calculation and update of fitting statistics only need to be
      ! done for the final round throught the common mode iteration loop
@@ -159,11 +148,11 @@ SUBROUTINE omi_pge_swathline_loop ( &
      IF ( yn_commit ) THEN
 
         CALL he5_write_radfit_output (                       &
-             pge_idx, iline, nx, nblock, fpix, lpix,         &
+             pge_idx, iline, nx, fpix, lpix,         &
              all_fitted_columns (1:n_fitvar_rad,1:nx,iline), &
              all_fitted_errors  (1:n_fitvar_rad,1:nx,iline), &
              correlation_columns(1:n_fitvar_rad,1:nx,iline), &
-             fitspc_tmp,nt,locerrstat )
+             fitspc_tmp,locerrstat )
         errstat = MAX ( errstat, locerrstat )
 
      END IF

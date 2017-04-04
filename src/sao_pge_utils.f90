@@ -10,7 +10,7 @@ SUBROUTINE get_pge_ident ( tmpchar, pge_name, pge_idx, errstat )
   ! Find name and index of current PGE from input string
   ! ====================================================
 
-  USE OMSAO_indices_module, ONLY: n_sao_pge, sao_pge_names, sao_pge_min_idx, sao_pge_max_idx
+  USE OMSAO_indices_module, ONLY: sao_pge_names, sao_pge_min_idx, sao_pge_max_idx
   USE OMSAO_errstat_module
 
   IMPLICIT NONE
@@ -159,7 +159,7 @@ SUBROUTINE utc_julian_date_and_time ( year, month, day, julday, hour, minute, se
   ! i.e., day of the year.
   ! -------------------------------------------------------------
 
-  USE OMSAO_precision_module, ONLY: i4, r4
+  USE OMSAO_precision_module, ONLY: i4
   IMPLICIT NONE
 
   ! ---------------
@@ -729,17 +729,16 @@ REAL (KIND=KIND(1.0D0)) FUNCTION signdp ( x )
 END FUNCTION signdp
 
 SUBROUTINE interpolation ( &
-     calledfrom,           &
      n1, x1, y1, n2, x2, y2, filltype, fillval, yn_full_range, errstat )
 
   USE OMSAO_precision_module
-  USE OMSAO_errstat_module, ONLY: pge_errstat_ok, pge_errstat_warning, pge_errstat_error
+  USE OMSAO_errstat_module, ONLY: pge_errstat_ok, pge_errstat_error
   IMPLICIT NONE
 
   ! ---------------
   ! Input variables
   ! ---------------
-  CHARACTER (LEN=*),                 INTENT (IN) :: calledfrom, filltype
+  CHARACTER (LEN=*),                 INTENT (IN) :: filltype
   INTEGER (KIND=i4),                 INTENT (IN) :: n1, n2
   REAL    (KIND=r8),                 INTENT (IN) :: fillval
   REAL    (KIND=r8), DIMENSION (n1), INTENT (IN) :: x1, y1
@@ -769,8 +768,6 @@ SUBROUTINE interpolation ( &
   ! Find indices in radiance wavelength spectrum that cover reference spectrum
   ! --------------------------------------------------------------------------
   imin = -1 ; imax = -1
-  !imin = MAXVAL ( MINLOC ( x2(1:n2), MASK=(x2(1:n2) >= x1( 1)) ) )
-  !imax = MAXVAL ( MAXLOC ( x2(1:n2), MASK=(x2(1:n2) <= x1(n1)) ) )
   CALL array_locate_r8 ( n2, x2(1:n2), x1( 1), 'GE', imin )
   CALL array_locate_r8 ( n2, x2(1:n2), x1(n1), 'LE', imax )
 
@@ -1278,7 +1275,7 @@ SUBROUTINE array_locate_r8 ( n, x, x0, psel, ipos )
         ilow = imid
      END IF
   END DO
-  
+
   ! -------------------------------------------------------------
   ! Force the Upper and Lower indices into the range of the array
   ! -------------------------------------------------------------

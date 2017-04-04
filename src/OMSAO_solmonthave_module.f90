@@ -4,9 +4,13 @@ MODULE OMSAO_solmonthave_module
   ! This module defines variables associated with the monthly average
   ! solar spectrum and contains necessary subroutines to read and use it
   ! ====================================================================
-  USE OMSAO_precision_module, ONLY: i4, r8, C_LONG
-  USE OMSAO_omidata_module,   ONLY: nxtrack_max
-  USE OMSAO_errstat_module
+  USE OMSAO_precision_module, ONLY: i2, i4, r4, r8, C_LONG
+  USE OMSAO_omidata_module, ONLY: nxtrack_max
+  USE OMSAO_errstat_module, ONLY: pge_errstat_ok, pge_errstat_warning, &
+       pge_errstat_error, file_read_ok, omsao_e_open_solmonave_file, &
+       omsao_e_read_solmonave_file, omsao_w_close_solmonave_file, &
+       pgs_smf_mask_lev_s, pgsd_io_gen_rseqfrm, f_sep, &
+       vb_lev_default, error_check
 
   IMPLICIT NONE
 
@@ -21,15 +25,14 @@ CONTAINS
     ! tra for each day makes that option no too charming
     ! ---------------------------------------------------------------------
 
-    USE OMSAO_variables_module, ONLY: &
-         OMSAO_solmonthave_filename, l1b_channel, verb_thresh_lev, fit_winwav_lim, &
-         fit_winexc_lim
-    USE OMSAO_omidata_module,   ONLY: &
-         nwavel_max, nxtrack_max, omi_irradiance_swathname, omi_irradiance_spec,        &
+    USE OMSAO_variables_module, ONLY: OMSAO_solmonthave_filename, l1b_channel, &
+         fit_winwav_lim, fit_winexc_lim
+    USE OMSAO_omidata_module, ONLY: &
+         nwavel_max, nxtrack_max, omi_irradiance_spec,        &
          omi_irradiance_qflg, omi_irradiance_prec, omi_irradiance_wavl, omi_nwav_irrad, &
-         omi_irradiance_ccdpix, omi_ccdpix_selection, omi_ccdpix_exclusion,             &
+         omi_ccdpix_selection, omi_ccdpix_exclusion,             &
          omi_sol_wav_avg, EarthSunDistance
-    USE OMSAO_indices_module,   ONLY: &
+    USE OMSAO_indices_module, ONLY: &
          OMSAO_solmonthave_lun
 
     IMPLICIT NONE
@@ -43,7 +46,7 @@ CONTAINS
     ! ---------------
     ! Local variables
     ! ---------------
-    INTEGER (KIND=i4) :: funit, ios, dummy, ix, jw, nwavel, nwavelcoef, nwvl, imin,    &
+    INTEGER (KIND=i4) :: funit, ios, dummy, ix, jw, nwavel, nwavelcoef, imin,    &
          imax, icnt, iw, j
     REAL    (KIND=r4), DIMENSION (nwavel_max,nxtrack_max) :: tmp_spc, tmp_wvl, tmp_prc
     INTEGER (KIND=i4), DIMENSION (nwavel_max,nxtrack_max) :: tmp_flg, tmp_n

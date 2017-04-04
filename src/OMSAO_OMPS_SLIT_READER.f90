@@ -366,6 +366,7 @@ CONTAINS
             IF( LFAIL ) THEN
                msg = TRIM(modulename) //':'// TRIM(msg)
                SlitDataStaged = .FALSE. 
+               ib = -1
                RETURN
             ENDIF
          ENDIF

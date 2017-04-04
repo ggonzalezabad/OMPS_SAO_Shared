@@ -44,8 +44,6 @@ CONTAINS
     ! gga, several changes to fix convolution
     ! ---------------------------------------
 
-    CHARACTER (LEN=21), PARAMETER :: modulename = 'omi_slitfunc_convolve'
-
     ! ---------------
     ! Input variables
     ! ---------------
@@ -208,7 +206,7 @@ CONTAINS
        ! normalization applied below
        ! -------------------------------------------------------
        CALL interpolation ( &
-            modulename, ntmp, sfwvl_tmp(1:ntmp), sfpro_tmp(1:ntmp),                           &
+            ntmp, sfwvl_tmp(1:ntmp), sfpro_tmp(1:ntmp),                 &
             k2-k1+1, wvl(k1:k2), convtmp(k1:k2), 'endpoints', 0.0_r8, &
             yn_full_range, locerrstat )
        

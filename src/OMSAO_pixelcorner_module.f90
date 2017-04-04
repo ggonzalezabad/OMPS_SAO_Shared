@@ -39,7 +39,7 @@ MODULE OMSAO_pixelcorner_module
 CONTAINS
 
 
-  SUBROUTINE compute_pixel_corners ( ntimes, nxtrack, lat, lon, yn_szoom, errstat )
+  SUBROUTINE compute_pixel_corners ( ntimes, nxtrack, lat, lon, errstat )
 
     ! =======================================================
     ! Computes OMI pixel corner coordinates, start to finish:
@@ -56,7 +56,6 @@ CONTAINS
     ! ---------------
     INTEGER (KIND=i4),                                    INTENT (IN) :: ntimes, nxtrack
     REAL    (KIND=r4), DIMENSION (1:nxtrack, 0:ntimes-1), INTENT (IN) :: lat, lon
-    LOGICAL,           DIMENSION (           0:ntimes-1), INTENT (IN) :: yn_szoom
 
     ! ----------------
     ! Output variables
@@ -66,14 +65,9 @@ CONTAINS
     ! ---------------
     ! Local variables
     ! ---------------
-    INTEGER (KIND=i4)                                  :: estat, iline, nchunk, nxtloc, spix, epix
+    INTEGER (KIND=i4)                                  :: estat
     REAL (KIND=r8), DIMENSION (0:nxtrack,0:ntimes)     :: corner_lat, corner_lon
-    REAL (KIND=r4), DIMENSION (:,:), ALLOCATABLE       :: cor_latlon
-
     
-    CHARACTER (LEN=21), PARAMETER :: modulename = 'compute_pixel_corners'
-
-
     errstat = pge_errstat_ok
 
     ! --------------------------------------------

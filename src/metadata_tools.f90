@@ -1,6 +1,6 @@
 SUBROUTINE init_metadata ( errstat )
 
-  USE OMSAO_precision_module,   ONLY: i4, r8
+  USE OMSAO_precision_module,   ONLY: i4
   USE OMSAO_indices_module,     ONLY: &
        l1b_irradiance_lun, l1b_radiance_lun, l1b_radianceref_lun, &
        mcf_lun, md_inventory_idx, md_archive_idx,                 &
@@ -8,15 +8,16 @@ SUBROUTINE init_metadata ( errstat )
        voc_amf_luns, voc_omicld_idx, o3_prefit_lun, bro_prefit_lun
        
   USE OMSAO_metadata_module
-  USE OMSAO_errstat_module
+  USE OMSAO_errstat_module, ONLY: f_sep, omsao_e_getattr, omsao_f_metinit, &
+       omsao_w_getattr, omsao_w_tai93, pge_errstat_error, pge_errstat_fatal, &
+       pge_errstat_ok, pge_errstat_warning, pgs_s_success, vb_lev_default, &
+       error_check, PGSTD_E_NO_LEAP_SECS
   USE OMSAO_parameters_module, ONLY: str_missval, int16_missval, r8_missval
-  USE OMSAO_variables_module,  ONLY: l1b_rad_filename, pge_idx, l1br_opf_version
-  USE OMSAO_prefitcol_module,  ONLY: yn_o3_prefit, yn_bro_prefit, yn_lqh2o_prefit
-  USE OMSAO_he5_module,        ONLY: &
-       granule_day, granule_month, granule_year, TAI93At0zOfGranule, l1b_orbitdata
+  USE OMSAO_variables_module,  ONLY: pge_idx, l1br_opf_version
+  USE OMSAO_prefitcol_module,  ONLY: yn_o3_prefit, yn_bro_prefit
+  USE OMSAO_he5_module, ONLY: granule_day, granule_month, granule_year, &
+       TAI93At0zOfGranule, l1b_orbitdata
   IMPLICIT NONE
-
-  INCLUDE 'PGS_TD_3.f'
 
   ! ------------------------------
   ! Name of this module/subroutine
@@ -43,7 +44,7 @@ SUBROUTINE init_metadata ( errstat )
        PGS_TD_UTCtoTAI,      PGS_MET_init, &
        PGS_MET_getSetAttr_s, PGS_MET_getSetAttr_i, PGS_MET_getSetAttr_d, &
        PGS_MET_getPCAttr_s,  PGS_MET_getPCAttr_i,  PGS_MET_getPCAttr_d,  &
-       day_of_year!, L1B_getGlobalAttrname, 
+       day_of_year
 
   ! ------------------------------------------------------------
   ! Variables for the extraction of the L1B radiance OPF version
@@ -571,14 +572,15 @@ END SUBROUTINE check_metadata_consistency
 
 SUBROUTINE set_l2_metadata ( errstat )
 
-  USE OMSAO_precision_module,  ONLY: i4, r8
-  USE OMSAO_indices_module,    ONLY: &
-       md_inventory_idx, md_archive_idx, pge_l2_output_lun, sao_molecule_names
+  USE OMSAO_precision_module,  ONLY: i4
+  USE OMSAO_indices_module,    ONLY: md_inventory_idx, md_archive_idx, pge_l2_output_lun
   USE OMSAO_he5_module,        ONLY: n_lun_inp_max, n_lun_inp, lun_input
   USE OMSAO_metadata_module
-  USE OMSAO_errstat_module
+  USE OMSAO_errstat_module, ONLY: f_sep, omsao_e_getlun, omsao_e_getref, omsao_e_mdinit, &
+       omsao_e_mdl2inv, omsao_w_amdwrt, omsao_w_cmdwrt, pge_errstat_error, pge_errstat_ok, &
+       pge_errstat_warning, pgs_s_success, vb_lev_default, error_check, PGS_SMF_MAX_MSG_SIZE
   USE OMSAO_parameters_module, ONLY: maxchlen
-  USE OMSAO_variables_module,  ONLY: pge_idx, l2_filename
+  USE OMSAO_variables_module,  ONLY: l2_filename
 
   IMPLICIT NONE
 
@@ -733,18 +735,13 @@ END SUBROUTINE set_l2_metadata
 
 SUBROUTINE copy_psa_metadata ( errstat )
 
-  USE OMSAO_precision_module,  ONLY: i4, r8
+  USE OMSAO_precision_module,  ONLY: i4
   USE OMSAO_indices_module,    ONLY: &
-       md_inventory_idx, md_archive_idx, pge_l2_output_lun, l1b_radiance_lun
+       md_inventory_idx, l1b_radiance_lun
   USE OMSAO_metadata_module
-  USE OMSAO_errstat_module
+  USE OMSAO_errstat_module, ONLY: pge_errstat_ok, pgs_s_success
 
   IMPLICIT NONE
-
-  ! ------------------------------
-  ! Name of this module/subroutine
-  ! ------------------------------
-  CHARACTER (LEN=17), PARAMETER :: modulename = "copy_psa_metadata"
 
   ! ---------------
   ! Output variable
@@ -884,11 +881,12 @@ END SUBROUTINE copy_psa_metadata
 
 SUBROUTINE set_str_int_dbl_metadata ( errstat )
 
-  USE OMSAO_precision_module,  ONLY: i4, r8
-  USE OMSAO_indices_module,    ONLY: md_inventory_idx, md_archive_idx
+  USE OMSAO_precision_module, ONLY: i4
+  USE OMSAO_indices_module, ONLY: md_inventory_idx, md_archive_idx
   USE OMSAO_metadata_module
-  USE OMSAO_errstat_module
-  USE OMSAO_variables_module,  ONLY: pge_idx
+  USE OMSAO_errstat_module, ONLY: f_sep, omsao_w_mdl2inv, &
+       pge_errstat_ok, pge_errstat_warning, pgs_s_success, &
+       vb_lev_default, error_check
   IMPLICIT NONE
 
   ! ------------------------------
@@ -1049,10 +1047,11 @@ END SUBROUTINE set_str_int_dbl_metadata
 
 SUBROUTINE set_pge_metadata ( errstat )
 
-  USE OMSAO_precision_module,  ONLY: i4, r8
-  USE OMSAO_indices_module,    ONLY: md_inventory_idx, md_archive_idx
+  USE OMSAO_precision_module,  ONLY: i4
+  USE OMSAO_indices_module, ONLY: md_inventory_idx
   USE OMSAO_metadata_module
-  USE OMSAO_errstat_module
+  USE OMSAO_errstat_module, ONLY: f_sep, omsao_w_mdl2inv, pge_errstat_ok, &
+       pge_errstat_warning, pgs_s_success, vb_lev_default, error_check
   USE OMSAO_variables_module,  ONLY: pge_idx
 
   IMPLICIT NONE
@@ -1070,7 +1069,7 @@ SUBROUTINE set_pge_metadata ( errstat )
   ! ---------------
   ! Local variables
   ! ---------------
-  CHARACTER (LEN=5)                         :: ipstring
+  CHARACTER (LEN=5)             :: ipstring
   CHARACTER (LEN=PGSd_MET_MAX_STRING_SET_L) :: parname
   INTEGER   (KIND=i4)                       :: imd, md_stat, locerrstat
 
@@ -1138,10 +1137,11 @@ CHARACTER (LEN=*) FUNCTION compose_localgranuleid ( errstat ) RESULT ( local_gra
   ! Function to compose local granule id
   ! ====================================
 
-  USE OMSAO_precision_module,  ONLY: i4, r4
+  USE OMSAO_precision_module,  ONLY: i4
   USE OMSAO_parameters_module, ONLY: maxchlen
   USE OMSAO_metadata_module
-  USE OMSAO_errstat_module
+  USE OMSAO_errstat_module, ONLY: omsao_e_lgidcomp, pge_errstat_error, &
+       pge_errstat_ok, vb_lev_default, error_check
   USE OMSAO_variables_module,  ONLY: orbit_number
 
   IMPLICIT NONE
@@ -1319,7 +1319,7 @@ END SUBROUTINE set_automatic_quality_flag
 SUBROUTINE get_l1br_opf_version ( l1br_opf_version )
 
   USE OMSAO_precision_module,   ONLY: i4
-  USE OMSAO_indices_module,     ONLY: l1b_radiance_lun, md_inventory_idx
+  USE OMSAO_indices_module,     ONLY: l1b_radiance_lun
   USE OMSAO_metadata_module
   IMPLICIT NONE
 

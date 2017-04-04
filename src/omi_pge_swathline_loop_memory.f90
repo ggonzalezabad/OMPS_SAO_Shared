@@ -19,7 +19,6 @@ SUBROUTINE omi_pge_swathline_loop_memory (                               &
        omi_column_uncert, omi_time_utc, omi_time, omi_latitude, omi_fit_rms,    &
        omi_radiance_errstat, omi_nwav_radref, omi_radref_spec, omi_radref_wavl, &
        omi_szenith, omi_vzenith, omi_longitude, omi_xtrflg, omi_height
-  USE OMSAO_destriping_module, ONLY: ctr_maxcol
   USE OMSAO_prefitcol_module
   USE OMSAO_errstat_module
   USE OMSAO_radiance_ref_module, ONLY: remove_target_from_radiance
@@ -188,7 +187,7 @@ SUBROUTINE omi_pge_swathline_loop_memory (                               &
 
            CALL xtrack_radiance_fitting_loop (                         &
                 n_max_rspec, fpix, lpix, pge_idx, iloop,               &
-                ctr_maxcol, n_fitvar_rad,                              &
+                n_fitvar_rad,                              &
                 all_fitted_columns (1:n_fitvar_rad,fpix:lpix,iloop),   & !gga (1:nx to fpix:lpix)
                 all_fitted_errors  (1:n_fitvar_rad,fpix:lpix,iloop),   & !gga (1:nx to fpix:lpix)
                 correlation_columns(1:n_fitvar_rad,fpix:lpix,iloop),   & !gga (1:nx to fpix:lpix)
@@ -262,11 +261,11 @@ SUBROUTINE omi_pge_swathline_loop_memory (                               &
      IF ( .NOT. yn_commit ) THEN
 
         CALL he5_write_radfit_output (                            &
-             pge_idx, iline, nx, nblock, fpix, lpix,              &
+             pge_idx, iline, nx, fpix, lpix,              &
              all_fitted_columns (1:n_fitvar_rad,1:nx,0:nblock-1), &
              all_fitted_errors  (1:n_fitvar_rad,1:nx,0:nblock-1), &
              correlation_columns(1:n_fitvar_rad,1:nx,0:nblock-1), &
-             omi_fitspc,nt,locerrstat )
+             omi_fitspc,locerrstat )
         errstat = MAX ( errstat, locerrstat )
 
      END IF

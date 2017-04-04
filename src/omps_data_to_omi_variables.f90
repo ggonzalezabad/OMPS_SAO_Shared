@@ -32,8 +32,8 @@ SUBROUTINE omps_data_to_omi_variables (OMPS_data,nt,nx,nw)
   ! complete as the OMI l1b files and I don't have
   ! good documentation on the OMPS files
   ! ------------------------------------------------
-  omi_auraalt(0:nt-1) = OMPS_data%SpacecraftAltitude(1:nt) !Possible problem with kind r8 to r4
-  omi_xtrflg(1:nx,0:nt-1) = OMPS_data%GroundPixelQualityFlags(1:nx,1:nt) !Possible problem with kind i4 to i2
+  omi_auraalt(0:nt-1) = REAL(OMPS_data%SpacecraftAltitude(1:nt),KIND=4)
+  omi_xtrflg(1:nx,0:nt-1) = OMPS_data%GroundPixelQualityFlags(1:nx,1:nt)
   omi_instrument_flag(0:nt-1) = OMPS_data%InstrumentQualityFlags(1:nt)
 
   omi_latitude(1:nx,0:nt-1)        = OMPS_data%Latitude(1:nx,1:nt)
@@ -81,8 +81,6 @@ SUBROUTINE omps_data_to_omi_variables (OMPS_data,nt,nx,nw)
      icnt = imax - imin + 1
      omi_irradiance_wavl(1:icnt,ix) = REAL(OMPS_data%SolarFluxWavelengths(imin:imax,ix), KIND=r8)
      omi_irradiance_spec(1:icnt,ix) = REAL(OMPS_data%SolarFlux(imin:imax,ix), KIND=r8)
-!!$     omi_irradiance_prec(1:icnt,ix) = REAL(tmp_prc(imin:imax,ix), KIND=r8)
-!!$     omi_irradiance_qflg(1:icnt,ix) = tmp_flg(imin:imax,ix)
      omi_nwav_irrad (ix) = icnt
      omi_sol_wav_avg(ix) = SUM( OMPS_data%SolarFluxWavelengths(imin:imax,ix) ) / REAL(icnt, KIND=r8)
      

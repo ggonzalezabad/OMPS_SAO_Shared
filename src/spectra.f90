@@ -2,15 +2,12 @@ SUBROUTINE spectrum_solar ( &
      npoints, nfitvar, sol_wav_avg, locwvl, fit, fitvar)
 
   USE OMSAO_precision_module
-  USE OMSAO_indices_module, ONLY: &
-       wvl_idx, spc_idx,      &
-       max_rs_idx, solar_idx, &
+  USE OMSAO_indices_module, ONLY: solar_idx, &
        bl0_idx, bl1_idx, bl2_idx, bl3_idx, bl4_idx, bl5_idx, sc0_idx, sc1_idx, &
        sc2_idx, sc3_idx, sc4_idx, sc5_idx, sin_idx, hwe_idx, asy_idx, shi_idx, &
        squ_idx
-  USE OMSAO_parameters_module, ONLY: max_spec_pts
   USE OMSAO_variables_module,  ONLY: &
-       refspecs_original, phase, fitwavs, solar_spec_convolved, yn_use_labslitfunc, &
+       refspecs_original, solar_spec_convolved, yn_use_labslitfunc, &
        fitvar_cal, mask_fitvar_cal, yn_spectrum_norm, yn_newshift
   USE OMSAO_omidata_module,  ONLY: curr_xtrack_pixnum
   USE OMSAO_slitfunction_module
@@ -127,7 +124,7 @@ SUBROUTINE spectrum_solar ( &
   ! Re-sample the solar reference spectrum to the OMI grid
   ! ------------------------------------------------------
   CALL interpolation ( &
-       modulename, npts, solar_pos(1:npts), solar_spec_convolved(1:npts), &
+       npts, solar_pos(1:npts), solar_spec_convolved(1:npts), &
        npoints, locwvl(1:npoints), sunspec_ss(1:npoints), 'endpoints', 0.0_r8, &
        yn_full_range, errstat )
   CALL error_check ( &
@@ -179,20 +176,15 @@ SUBROUTINE spectrum_earthshine ( &
      npts, n_fitvar, rad_wav_avg, locwvl, fit, fitvar, database, doas )
 
   USE OMSAO_precision_module
-  USE OMSAO_indices_module, ONLY: &
-       max_rs_idx, max_calfit_idx, solar_idx, ring_idx, ad1_idx, &
-       lbe_idx, ad2_idx, mxs_idx, wvl_idx, spc_idx,                   &
-       bl0_idx, bl1_idx, bl2_idx, bl3_idx, bl4_idx, bl5_idx, sc0_idx, sc1_idx, sc2_idx, &
-       sc3_idx, sc4_idx, sc5_idx, sin_idx, hwe_idx, asy_idx, shi_idx, squ_idx, bro_idx, &
-       o3_t1_idx, o3_t3_idx, io_idx
+  USE OMSAO_indices_module, ONLY: max_rs_idx, max_calfit_idx, solar_idx, &
+       ring_idx, ad1_idx, lbe_idx, ad2_idx, mxs_idx, wvl_idx, spc_idx, &
+       bl0_idx, bl1_idx, bl2_idx, bl3_idx, bl4_idx, bl5_idx, sc0_idx, &
+       sc1_idx, sc2_idx, sc3_idx, sc4_idx, sc5_idx, sin_idx, shi_idx, &
+       squ_idx
   USE OMSAO_parameters_module, ONLY: max_spec_pts, downweight
-  USE OMSAO_variables_module,  ONLY: &
-       n_database_wvl, curr_sol_spec, fitvar_rad, mask_fitvar_rad, fitweights, &
-       yn_solar_comp, yn_spectrum_norm, yn_newshift
-  USE OMSAO_prefitcol_module,  ONLY:                             &
-       o3_prefit_fitidx,    yn_o3_prefit,    o3_prefit_var,      &
-       bro_prefit_fitidx,   yn_bro_prefit,   bro_prefit_var,     &
-       lqh2o_prefit_fitidx, yn_lqh2o_prefit, lqh2o_prefit_var
+  USE OMSAO_variables_module, ONLY: n_database_wvl, curr_sol_spec, &
+       fitvar_rad, mask_fitvar_rad, fitweights, yn_solar_comp, &
+       yn_spectrum_norm, yn_newshift
   USE OMSAO_omidata_module,      ONLY: curr_xtrack_pixnum, omi_solcal_pars
   USE OMSAO_slitfunction_module, ONLY: saved_shift, saved_squeeze
   USE OMSAO_radiance_ref_module, ONLY: yn_radiance_reference, yn_reference_fit
@@ -284,24 +276,6 @@ SUBROUTINE spectrum_earthshine ( &
   shift   = fitvar_rad(shi_idx)
   squeeze = fitvar_rad(squ_idx)
 
-!!$	! -------------------------------------
-!!$	! Dealing with any pre-fitted variables 
-!!$	! -------------------------------------
-!!$	! (1) OMCHOCHO
-!!$	! ------------
-!!$	IF ( yn_lqh2o_prefit(1) .AND. (.NOT. yn_lqh2o_prefit(2)) .AND. lqh2o_prefit_var /= 0.0_r8 ) &
-!!$       fitvar_rad(lqh2o_prefit_fitidx) = lqh2o_prefit_var
-!!$  ! ----------
-!!$  ! (2) OMHCHO
-!!$  !-----------
-!!$  IF ( yn_bro_prefit(1) .AND. (.NOT. yn_bro_prefit(2)) .AND. bro_prefit_var /= 0.0_r8 ) &
-!!$       fitvar_rad(bro_prefit_fitidx) = bro_prefit_var
-!!$  IF ( yn_o3_prefit(1)  .AND. (.NOT. yn_o3_prefit(2))  ) THEN
-!!$     DO j = o3_t1_idx, o3_t3_idx
-!!$        IF ( o3_prefit_var(j) /= 0.0_r8 ) fitvar_rad(o3_prefit_fitidx(j)) = o3_prefit_var(j)
-!!$     END DO
-!!$  END IF
-
   ! -----------------------------------------------------------------------------------------
   ! Assign current solar spectrum to local arrays. This depends on whether we are using
   ! actual measured solar spectra or solar composites. Since there is no point to interpolate
@@ -361,7 +335,6 @@ SUBROUTINE spectrum_earthshine ( &
                 locwvl_shift(1:npts)+soco_shi, sunspec_ss(1:npts) )
         ELSE
            CALL interpolation (                                                 &
-                modulename,                                                     &
                 n_sunpos, sunpos_ss(1:n_sunpos), sunspec_loc(1:n_sunpos),       &
                 npts, locwvl(1:npts), sunspec_ss(1:npts), 'endpoints', 0.0_r8,  &
                 yn_full_range, errstat                                            )
@@ -502,12 +475,11 @@ SUBROUTINE spectrum_earthshine_o3exp ( &
      npts, n_fitvar, rad_wav_avg, locwvl, fit, fitvar, database, doas )
 
   USE OMSAO_precision_module
-  USE OMSAO_indices_module, ONLY: &
-       max_rs_idx, max_calfit_idx, solar_idx, ring_idx, ad1_idx, &
-       lbe_idx, ad2_idx, mxs_idx, wvl_idx, spc_idx,                   &
-       bl0_idx, bl1_idx, bl2_idx, bl3_idx, bl4_idx, bl5_idx, sc0_idx, sc1_idx, sc2_idx, &
-       sc3_idx, sc4_idx, sc5_idx, sin_idx, hwe_idx, asy_idx, shi_idx, squ_idx, bro_idx, &
-       o3_t1_idx, o3_t2_idx, o3_t3_idx
+  USE OMSAO_indices_module, ONLY: max_rs_idx, max_calfit_idx, solar_idx, &
+       ring_idx, ad1_idx, lbe_idx, ad2_idx, mxs_idx, wvl_idx, spc_idx, &
+       bl0_idx, bl1_idx, bl2_idx, bl3_idx, bl4_idx, bl5_idx, sc0_idx, &
+       sc1_idx, sc2_idx, sc3_idx, sc4_idx, sc5_idx, sin_idx, shi_idx, &
+       squ_idx, o3_t1_idx, o3_t2_idx, o3_t3_idx
   USE OMSAO_parameters_module, ONLY: max_spec_pts, downweight
   USE OMSAO_variables_module,  ONLY: &
        n_database_wvl, curr_sol_spec, fitvar_rad, mask_fitvar_rad, fitweights, &
@@ -675,7 +647,6 @@ SUBROUTINE spectrum_earthshine_o3exp ( &
                 locwvl_shift(1:npts)+soco_shi, sunspec_ss(1:npts) )
         ELSE
            CALL interpolation (                                                         &
-                modulename,                                                             &
                 n_sunpos, sunpos_ss(1:n_sunpos), sunspec_loc(1:n_sunpos),               &
                 npts, locwvl(1:npts), sunspec_ss(1:npts), 'endpoints', 0.0_r8, &
                 yn_full_range, errstat                                                   )

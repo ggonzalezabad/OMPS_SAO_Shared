@@ -1,28 +1,28 @@
 MODULE OMSAO_parameters_module
-
+  
   USE OMSAO_precision_module
   IMPLICIT NONE
-
+  
   ! ================================================
   ! Define array dimensions and other parameters for
   ! SAO Trace Gas Fitting Algorithms
   ! ================================================
-
+  
   ! -----------------------------------
   ! Maximum length of CHARACTER strings
   ! -----------------------------------
   INTEGER (KIND=i4), PARAMETER :: maxchlen = 256
-
+  
   ! ----------------------------------
   ! Maximum iteration number for loops
   ! ----------------------------------
   INTEGER (KIND=i4), PARAMETER :: forever = HUGE(1_i4)
-
+  
   ! -------------------------------------------------------------------------
   ! Maximum numbers for fitting parameters, GOME pixels, spectral points, ...
   ! -------------------------------------------------------------------------
   INTEGER (KIND=i4), PARAMETER :: max_spec_pts = 15001
-
+  
   ! ==================
   ! Physical constants
   ! ==================
@@ -35,105 +35,105 @@ MODULE OMSAO_parameters_module
   REAL (KIND=r8), PARAMETER :: &
        c1 = 1.0000834213_r8, c2 = 2.406030E-02_r8, c3 = 130.0_r8, &
        c4 = 1.5997E-04_r8, c5 = 38.9_r8
-
+  
   ! ------------
   ! Dobson units
   ! ------------
   REAL (KIND=r8), PARAMETER :: dobson_units = 2.68676E+16_r8
-
+  
   ! -------------------------------------------------------------
   ! "Typical" O3 and O3 loading for cases of I0 Effect correction
   ! -------------------------------------------------------------
   REAL (KIND=r8), PARAMETER :: &
        ozone_300du = 300.0_r8 * dobson_units, &
        no2_1du     =   1.0_r8 * dobson_units
-
-	! ---------------------------------------------------------
-	! "Typical" Slant Columns for all species for I0 correction
-	! 
-	! NB Modified for glyoxal retrieval to work when the 
-	!    yn_solar_i0 switch set. May require seperate switch
-	!    if others do not want it CCM
-	!    
-	! ---------------------------------------------------------
-	REAL (KIND=r8), DIMENSION(27), PARAMETER :: &
-			 solar_i0_scd = (/   1.0_r8 * dobson_units,& ! solar
-			 									   1.0_r8               ,& ! ring
+  
+  ! ---------------------------------------------------------
+  ! "Typical" Slant Columns for all species for I0 correction
+  ! 
+  ! NB Modified for glyoxal retrieval to work when the 
+  !    yn_solar_i0 switch set. May require seperate switch
+  !    if others do not want it CCM
+  !    
+  ! ---------------------------------------------------------
+  REAL (KIND=r8), DIMENSION(27), PARAMETER :: &
+       solar_i0_scd = (/   1.0_r8 * dobson_units,& ! solar
+       1.0_r8               ,& ! ring
 !!$			 									   1.0_r8 * dobson_units,& ! ring
-			 									 300.0_r8 * dobson_units,& ! o3_t1
-			 									 300.0_r8 * dobson_units,& ! o3_t2
-			 									 300.0_r8 * dobson_units,& ! o3_t3
-			 									   2.0d16               ,& ! no2_t1
-			 									   2.0d16               ,& ! no2_t2
-			 									   5.0d44               ,& ! o2o2
-			 									   1.0_r8 * dobson_units,& ! so2 
-			 									   2.0d14               ,& ! bro
-			 									   1.0_r8 * dobson_units,& ! oclo
-			 									   1.0d16               ,& ! hcho
+       300.0_r8 * dobson_units,& ! o3_t1
+       300.0_r8 * dobson_units,& ! o3_t2
+       300.0_r8 * dobson_units,& ! o3_t3
+       2.0d16               ,& ! no2_t1
+       2.0d16               ,& ! no2_t2
+       5.0d44               ,& ! o2o2
+       1.0_r8 * dobson_units,& ! so2 
+       2.0d14               ,& ! bro
+       1.0_r8 * dobson_units,& ! oclo
+       1.0d16               ,& ! hcho
 !!$			 									   5.0d44 * dobson_units,& ! o2o2
 !!$			 									   1.0_r8 * dobson_units,& ! so2 
 !!$			 									   1.0_r8 * dobson_units,& ! bro
 !!$			 									   1.0_r8 * dobson_units,& ! oclo
 !!$			 									   1.0_r8 * dobson_units,& ! hcho
-				 									 2.0d23               ,& ! h2o
-				 									 2.0d01               ,& ! lqh2o
-				 									 5.0d14               ,& ! glyox
-				 									 1.0_r8 * dobson_units,& ! io
-				 									 1.0_r8 * dobson_units,& ! hono
-				 									 1.0_r8 * dobson_units,& ! vraman
-				 									 1.0_r8 * dobson_units,& ! commod
-				 									 1.0_r8 * dobson_units,& ! resid
-				 									 1.0_r8 * dobson_units,& ! pseudo
-				 									 1.0_r8 * dobson_units,& ! polcor
-				 									 1.0_r8 * dobson_units,& ! usamp1
-				 									 1.0_r8 * dobson_units,& ! usamp2
-				 									 1.0_r8 * dobson_units,& ! bro_tc
-                                                                                                   1.0_r8 * dobson_units,& ! o3_tc
-			 									   1.0_r8 * dobson_units /)! noname
-	
-	! Logicals to do correction CCM
-	LOGICAL, DIMENSION(27), PARAMETER :: &
-			 yn_i0_spc = (/ .FALSE.,& ! solar
-			 								.FALSE.,& ! ring
-			 								.TRUE. ,& ! o3_t1
-			 							        .TRUE. ,& ! o3_t2
-			 								.FALSE.,& ! o3_t3
-			 								.TRUE.,& ! no2_t1
-			 								.FALSE., & ! no2_t2
-			 								.FALSE.,& ! o2o2
-			 								.FALSE.,& ! so2 
-			 								.TRUE.,& ! bro
-			 								.FALSE.,& ! oclo
-			 								.FALSE.,& ! hcho
-				 							.FALSE., & ! h2o
-				 							.FALSE.,& ! lqh2o
-				 							.FALSE., & ! glyox
-				 							.FALSE.,& ! io
-				 							.FALSE.,& ! hono
-				 							.FALSE.,& ! vraman
-				 							.FALSE.,& ! commod
-				 							.FALSE.,& ! resid
-				 							.FALSE.,& ! pseudo
-				 							.FALSE.,& ! polcor
-				 							.FALSE.,& ! usamp1
-				 							.FALSE.,& ! usamp2
-				 							.FALSE.,& ! bro_tc
-				 							.FALSE.,& ! o3_tc
-			 								.FALSE. /)! noname
-
+       2.0d23               ,& ! h2o
+       2.0d01               ,& ! lqh2o
+       5.0d14               ,& ! glyox
+       1.0_r8 * dobson_units,& ! io
+       1.0_r8 * dobson_units,& ! hono
+       1.0_r8 * dobson_units,& ! vraman
+       1.0_r8 * dobson_units,& ! commod
+       1.0_r8 * dobson_units,& ! resid
+       1.0_r8 * dobson_units,& ! pseudo
+       1.0_r8 * dobson_units,& ! polcor
+       1.0_r8 * dobson_units,& ! usamp1
+       1.0_r8 * dobson_units,& ! usamp2
+       1.0_r8 * dobson_units,& ! bro_tc
+       1.0_r8 * dobson_units,& ! o3_tc
+       1.0_r8 * dobson_units /)! noname
+  
+  ! Logicals to do correction CCM
+  LOGICAL, DIMENSION(27), PARAMETER :: &
+       yn_i0_spc = (/ .FALSE.,& ! solar
+       .FALSE.,& ! ring
+       .TRUE. ,& ! o3_t1
+       .TRUE. ,& ! o3_t2
+       .FALSE.,& ! o3_t3
+       .TRUE.,& ! no2_t1
+       .FALSE., & ! no2_t2
+       .FALSE.,& ! o2o2
+       .FALSE.,& ! so2 
+       .TRUE.,& ! bro
+       .FALSE.,& ! oclo
+       .FALSE.,& ! hcho
+       .FALSE., & ! h2o
+       .FALSE.,& ! lqh2o
+       .FALSE., & ! glyox
+       .FALSE.,& ! io
+       .FALSE.,& ! hono
+       .FALSE.,& ! vraman
+       .FALSE.,& ! commod
+       .FALSE.,& ! resid
+       .FALSE.,& ! pseudo
+       .FALSE.,& ! polcor
+       .FALSE.,& ! usamp1
+       .FALSE.,& ! usamp2
+       .FALSE.,& ! bro_tc
+       .FALSE.,& ! o3_tc
+       .FALSE. /)! noname
+  
   ! --------------------------------------------
   ! Average Earth Radius and EOS-Aura eleveation
   ! --------------------------------------------
   REAL (KIND=r4), PARAMETER :: earth_radius_avg = 6371.0_r4
   REAL (KIND=r4), PARAMETER :: eos_aura_avgalt  =  705.0_r4
-
+  
   ! =============================================================
   ! Large weight for wavelengths to be excluded from the fitting;
   ! small weight for wavelengths to be included in the fitting
   ! =============================================================
   REAL (KIND=r8), PARAMETER :: downweight = 1.0E-30_r8, normweight = 1.0_r8
-
-
+  
+  
   ! =========================================
   ! Order of polynomial for DOAS baseline fit
   ! =========================================

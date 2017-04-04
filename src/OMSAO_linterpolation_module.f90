@@ -788,7 +788,7 @@ end function interpol7D
    INTEGER, INTENT(OUT) :: Node 
 
    !LOCAL
-   INTEGER :: is, xdim, sdim
+   INTEGER :: is, sdim
    
    !Find dimension of dimscale
    sdim = SIZE( dimscale)

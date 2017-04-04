@@ -65,7 +65,7 @@ MODULE OMSAO_he5_datafields_module
 
     SUBROUTINE he5_initialize_datafields (  )
   
-      USE OMSAO_parameters_module, ONLY: r8_missval, r4_missval, i4_missval, i2_missval, str_missval
+      USE OMSAO_parameters_module, ONLY: r8_missval
 
       IMPLICIT NONE
 
@@ -387,7 +387,7 @@ MODULE OMSAO_he5_datafields_module
     SUBROUTINE he5_find_datatype ( tyc, numtype, missval )
 
       USE OMSAO_parameters_module, ONLY: &
-           r8_missval, r4_missval, i4_missval, i2_missval, i1_missval, str_missval
+           r8_missval, r4_missval, i4_missval, i2_missval, i1_missval
       IMPLICIT NONE
 
       CHARACTER (LEN=2), INTENT (IN) :: tyc

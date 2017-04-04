@@ -12,20 +12,20 @@ MODULE OMSAO_prefitcol_module
   USE OMSAO_parameters_module, ONLY: maxchlen
   USE OMSAO_indices_module,    ONLY: &
        o3_t1_idx, o3_t2_idx, o3_t3_idx, bro_idx, lqh2o_idx, &
-  	   pge_hcho_idx, pge_gly_idx
-
+       pge_hcho_idx, pge_gly_idx
+  
   IMPLICIT NONE
-
+  
   ! -------------------------------------
   ! Logicals for use of prefitted columns
   ! -------------------------------------
-  LOGICAL, DIMENSION (2) :: yn_bro_prefit, yn_o3_prefit, yn_lqh2o_prefit	
-
+  LOGICAL, DIMENSION (2) :: yn_bro_prefit, yn_o3_prefit, yn_lqh2o_prefit
+  
   ! ------------------------------------------
   ! Total number of prefitted column variables
   ! ------------------------------------------
   INTEGER (KIND=i4) :: n_prefit_vars
-
+  
   ! --------------------------------------------
   ! BrO prefitted column variables
   ! --------------------------------------------
@@ -58,7 +58,9 @@ CONTAINS
 
   SUBROUTINE init_prefit_files ( pge_idx, ntimes, nxtrack, errstat )
 
-    USE OMSAO_errstat_module
+    USE OMSAO_errstat_module, ONLY: pge_errstat_ok, pge_errstat_error, &
+         pge_errstat_fatal, f_sep, omi_s_success, omsao_e_prefitdim, &
+         vb_lev_default, error_check
     USE OMSAO_he5_module, ONLY: &
          o3fit_swath_id,    o3fit_swath_file_id,    o3fit_swath_name,  &
          brofit_swath_id,   brofit_swath_file_id,   brofit_swath_name, &
@@ -89,74 +91,74 @@ CONTAINS
     ! ---------------------------
     o3fit_swath_id  = -1 ; o3fit_swath_file_id  = -1
     brofit_swath_id = -1 ; brofit_swath_file_id = -1
-		lqh2ofit_swath_id = -1 ; lqh2ofit_swath_file_id = -1
+    lqh2ofit_swath_id = -1 ; lqh2ofit_swath_file_id = -1
 
-		! --------------------
-		! Return if no prefits
-		! --------------------
+    ! --------------------
+    ! Return if no prefits
+    ! --------------------
     IF ( .NOT. ANY((/yn_o3_prefit, yn_bro_prefit,yn_lqh2o_prefit/)) ) RETURN
 		
-		! ----------------------------------
-		! Add prefits for specific retrieval
-		! ----------------------------------
-		SELECT CASE( pge_idx )
-		CASE ( pge_hcho_idx )
-		
-	    ! ----------
-	    ! O3 prefits
-	    ! ----------
-	    locerrstat = pge_errstat_ok
-	    IF ( yn_o3_prefit(1) ) THEN
-	       CALL he5_init_input_file ( &
-	            o3_prefit_fname, o3fit_swath_name, o3fit_swath_id, o3fit_swath_file_id, &
-	            ntimes_o3, nxtrack_o3, errstat )
-	       IF ( ntimes_o3 /= ntimes .OR. nxtrack_o3 /= nxtrack ) THEN
-	          locerrstat = pge_errstat_error
-	          CALL error_check ( locerrstat, OMI_S_SUCCESS, pge_errstat_fatal, OMSAO_E_PREFITDIM, &
-	               modulename//f_sep//"O3 access failed.", vb_lev_default, errstat )
-	          yn_o3_prefit = .FALSE.
-	       END IF
-	    END IF
-
-	    ! -----------
-	    ! BrO prefits
-	    ! -----------
-	    locerrstat = pge_errstat_ok
-	    IF ( yn_bro_prefit(1) ) THEN
-	       CALL he5_init_input_file ( &
-	            bro_prefit_fname, brofit_swath_name, brofit_swath_id, &
-	            brofit_swath_file_id, ntimes_bro, nxtrack_bro, locerrstat )
-	       IF ( ntimes_bro /= ntimes .OR. nxtrack_bro /= nxtrack ) THEN
-	          locerrstat = pge_errstat_error
-	          CALL error_check ( locerrstat, OMI_S_SUCCESS, pge_errstat_fatal, OMSAO_E_PREFITDIM, &
-	               modulename//f_sep//"BrO access failed.", vb_lev_default, errstat )
-	          yn_bro_prefit = .FALSE.
-	       END IF
-	    END IF
-		
-		CASE ( pge_gly_idx )
-		
-			! -------------
-	    ! lqH2O prefits
-	    ! -------------
-	    
-	    locerrstat = pge_errstat_ok
-	    IF ( yn_lqh2o_prefit(1) ) THEN
-	       CALL he5_init_input_file ( &
-	            lqh2o_prefit_fname, lqh2ofit_swath_name, lqh2ofit_swath_id, &
-	            lqh2ofit_swath_file_id, ntimes_lqh2o, nxtrack_lqh2o, locerrstat )
-	       IF ( ntimes_lqh2o /= ntimes .OR. nxtrack_lqh2o /= nxtrack ) THEN
-	          locerrstat = pge_errstat_error
-	          CALL error_check ( locerrstat, OMI_S_SUCCESS, pge_errstat_fatal, OMSAO_E_PREFITDIM, &
-	               modulename//f_sep//"lqH2O access failed.", vb_lev_default, errstat )
-	          yn_lqh2o_prefit = .FALSE.
-	       END IF
-	    END IF
-		
-		CASE DEFAULT
-			RETURN
-		END SELECT
-
+    ! ----------------------------------
+    ! Add prefits for specific retrieval
+    ! ----------------------------------
+    SELECT CASE( pge_idx )
+    CASE ( pge_hcho_idx )
+       
+       ! ----------
+       ! O3 prefits
+       ! ----------
+       locerrstat = pge_errstat_ok
+       IF ( yn_o3_prefit(1) ) THEN
+          CALL he5_init_input_file ( &
+               o3_prefit_fname, o3fit_swath_name, o3fit_swath_id, o3fit_swath_file_id, &
+               ntimes_o3, nxtrack_o3, errstat )
+          IF ( ntimes_o3 /= ntimes .OR. nxtrack_o3 /= nxtrack ) THEN
+             locerrstat = pge_errstat_error
+             CALL error_check ( locerrstat, OMI_S_SUCCESS, pge_errstat_fatal, OMSAO_E_PREFITDIM, &
+                  modulename//f_sep//"O3 access failed.", vb_lev_default, errstat )
+             yn_o3_prefit = .FALSE.
+          END IF
+       END IF
+       
+       ! -----------
+       ! BrO prefits
+       ! -----------
+       locerrstat = pge_errstat_ok
+       IF ( yn_bro_prefit(1) ) THEN
+          CALL he5_init_input_file ( &
+               bro_prefit_fname, brofit_swath_name, brofit_swath_id, &
+               brofit_swath_file_id, ntimes_bro, nxtrack_bro, locerrstat )
+          IF ( ntimes_bro /= ntimes .OR. nxtrack_bro /= nxtrack ) THEN
+             locerrstat = pge_errstat_error
+             CALL error_check ( locerrstat, OMI_S_SUCCESS, pge_errstat_fatal, OMSAO_E_PREFITDIM, &
+                  modulename//f_sep//"BrO access failed.", vb_lev_default, errstat )
+             yn_bro_prefit = .FALSE.
+          END IF
+       END IF
+       
+    CASE ( pge_gly_idx )
+       
+       ! -------------
+       ! lqH2O prefits
+       ! -------------
+       
+       locerrstat = pge_errstat_ok
+       IF ( yn_lqh2o_prefit(1) ) THEN
+          CALL he5_init_input_file ( &
+               lqh2o_prefit_fname, lqh2ofit_swath_name, lqh2ofit_swath_id, &
+               lqh2ofit_swath_file_id, ntimes_lqh2o, nxtrack_lqh2o, locerrstat )
+          IF ( ntimes_lqh2o /= ntimes .OR. nxtrack_lqh2o /= nxtrack ) THEN
+             locerrstat = pge_errstat_error
+             CALL error_check ( locerrstat, OMI_S_SUCCESS, pge_errstat_fatal, OMSAO_E_PREFITDIM, &
+                  modulename//f_sep//"lqH2O access failed.", vb_lev_default, errstat )
+             yn_lqh2o_prefit = .FALSE.
+          END IF
+       END IF
+       
+    CASE DEFAULT
+       RETURN
+    END SELECT
+    
     RETURN
   END SUBROUTINE init_prefit_files
 
@@ -165,12 +167,9 @@ CONTAINS
 
     USE OMSAO_parameters_module, ONLY: r8_missval
     USE OMSAO_variables_module,  ONLY: refspecs_original
-    USE OMSAO_he5_module,        ONLY:            &
-         o3_prefit_fields,                        &
-         o3fit_swath_id,    o3fit_swath_file_id,  &
-         brofit_swath_id,   brofit_swath_file_id, &
-         lqh2ofit_swath_id, lqh2ofit_swath_file_id
-    USE OMSAO_errstat_module
+    USE OMSAO_he5_module, ONLY: o3_prefit_fields, o3fit_swath_id, &
+         brofit_swath_id, lqh2ofit_swath_id
+    USE OMSAO_errstat_module, ONLY: pge_errstat_ok
 
     IMPLICIT NONE
 
@@ -193,95 +192,92 @@ CONTAINS
     CHARACTER (LEN=17), PARAMETER :: dcol_str = "ColumnUncertainty"
     INTEGER  (KIND=i4), PARAMETER :: lcolstr = LEN(col_str), ldcolstr = LEN(dcol_str)
 
-    CHARACTER (LEN=19), PARAMETER :: modulename = 'read_prefit_columns'
-
-		! -----------------------------------
-		! Read prefits for specific retrieval
-		! -----------------------------------
-		SELECT CASE ( pge_idx )
-		CASE( pge_hcho_idx )
-		
-	    ! ---------------------------------------------
-	    ! O3 prefitted columns and column uncertainties
-	    ! ---------------------------------------------
-	    yn_read_amf = .FALSE. ; locerrstat = pge_errstat_ok
-	    IF ( yn_o3_prefit(1) ) THEN
-	       o3_prefit_col = 0.0_r8  ;  o3_prefit_dcol = 0.0_r8
-	       DO i = o3_t1_idx, o3_t3_idx
-	          CALL he5_read_prefit_columns (                                                       &
-	               o3fit_swath_id, nloop, nxtrack, iline,                                          &
-	               LEN_TRIM(ADJUSTL(o3_prefit_fields(i,1))), TRIM(ADJUSTL(o3_prefit_fields(i,1))), &
-	               o3_prefit_col (i,1:nxtrack,0:nloop-1),                                          &
-	               LEN_TRIM(ADJUSTL(o3_prefit_fields(i,2))), TRIM(ADJUSTL(o3_prefit_fields(i,2))), &
-	               o3_prefit_dcol(i,1:nxtrack,0:nloop-1),                                          &
-	               yn_read_amf, locerrstat )
-	          errstat = MAX( errstat, locerrstat )
-
-	          ! ----------------------------------------------------------------------
-	          ! Multiply O3 columns with normalization factor to return to true values
-	          ! ----------------------------------------------------------------------
-	          WHERE ( o3_prefit_col (i,1:nxtrack,0:nloop-1) > r8_missval )
-	             o3_prefit_col (i,1:nxtrack,0:nloop-1) = &
-	                  o3_prefit_col (i,1:nxtrack,0:nloop-1) * refspecs_original(i)%NormFactor
-	             o3_prefit_dcol(i,1:nxtrack,0:nloop-1) = &
-	                  o3_prefit_dcol(i,1:nxtrack,0:nloop-1) * refspecs_original(i)%NormFactor
-	          END WHERE
-
-	       END DO
-	    END IF
-
-	    ! -----------------------------------------------
-	    ! BrO prefitted columns and column uncertainties
-	    ! -----------------------------------------------
-	    yn_read_amf = .TRUE. ; locerrstat = pge_errstat_ok
-	    IF ( yn_bro_prefit(1) ) THEN
-	       CALL he5_read_prefit_columns (                                 &
-	            brofit_swath_id, nloop, nxtrack, iline,                   &
-	            lcolstr,   col_str, bro_prefit_col (1:nxtrack,0:nloop-1), &
-	            ldcolstr, dcol_str, bro_prefit_dcol(1:nxtrack,0:nloop-1), &
-	            yn_read_amf, locerrstat )
-	       errstat = MAX( errstat, locerrstat )
-
-	       ! -----------------------------------------------------------------------
-	       ! Multiply BrO columns with normalization factor to return to true values
-	       ! -----------------------------------------------------------------------
-	       WHERE ( bro_prefit_col (1:nxtrack,0:nloop-1) > r8_missval )
-	          bro_prefit_col (1:nxtrack,0:nloop-1) = &
-	               bro_prefit_col (1:nxtrack,0:nloop-1) * refspecs_original(bro_idx)%NormFactor
-	          bro_prefit_dcol(1:nxtrack,0:nloop-1) = &
-	               bro_prefit_dcol(1:nxtrack,0:nloop-1) * refspecs_original(bro_idx)%NormFactor
-	       END WHERE
-	    END IF
-		
-		CASE ( pge_gly_idx )
-		
-			! ------------------------------------------------
-	    ! lqH2O prefitted columns and column uncertainties
-	    ! ------------------------------------------------
-	    ! ccm - Retrieved "Slant Columns"
-	    yn_read_amf = .FALSE. ; locerrstat = pge_errstat_ok
-	    IF ( yn_lqh2o_prefit(1) ) THEN
-	       CALL he5_read_prefit_columns (                                 &
-	            lqh2ofit_swath_id, nloop, nxtrack, iline,                   &
-	            lcolstr,   col_str, lqh2o_prefit_col (1:nxtrack,0:nloop-1), &
-	            ldcolstr, dcol_str, lqh2o_prefit_dcol(1:nxtrack,0:nloop-1), &
-	            yn_read_amf, locerrstat )
-	       errstat = MAX( errstat, locerrstat )
-
-	       ! -------------------------------------------------------------------------
-	       ! Multiply lqH2O columns with normalization factor to return to true values
-	       ! -------------------------------------------------------------------------
-	       WHERE ( lqh2o_prefit_col (1:nxtrack,0:nloop-1) > r8_missval )
-	          lqh2o_prefit_col (1:nxtrack,0:nloop-1) = &
-	               lqh2o_prefit_col (1:nxtrack,0:nloop-1) * refspecs_original(lqh2o_idx)%NormFactor
-	          lqh2o_prefit_dcol(1:nxtrack,0:nloop-1) = &
-	               lqh2o_prefit_dcol(1:nxtrack,0:nloop-1) * refspecs_original(lqh2o_idx)%NormFactor
-	       END WHERE
-	    END IF
-		
-		END SELECT
-
-
+    ! -----------------------------------
+    ! Read prefits for specific retrieval
+    ! -----------------------------------
+    SELECT CASE ( pge_idx )
+    CASE( pge_hcho_idx )
+       
+       ! ---------------------------------------------
+       ! O3 prefitted columns and column uncertainties
+       ! ---------------------------------------------
+       yn_read_amf = .FALSE. ; locerrstat = pge_errstat_ok
+       IF ( yn_o3_prefit(1) ) THEN
+          o3_prefit_col = 0.0_r8  ;  o3_prefit_dcol = 0.0_r8
+          DO i = o3_t1_idx, o3_t3_idx
+             CALL he5_read_prefit_columns (                                                       &
+                  o3fit_swath_id, nloop, nxtrack, iline,                                          &
+                  LEN_TRIM(ADJUSTL(o3_prefit_fields(i,1))), TRIM(ADJUSTL(o3_prefit_fields(i,1))), &
+                  o3_prefit_col (i,1:nxtrack,0:nloop-1),                                          &
+                  LEN_TRIM(ADJUSTL(o3_prefit_fields(i,2))), TRIM(ADJUSTL(o3_prefit_fields(i,2))), &
+                  o3_prefit_dcol(i,1:nxtrack,0:nloop-1),                                          &
+                  yn_read_amf, locerrstat )
+             errstat = MAX( errstat, locerrstat )
+             
+             ! ----------------------------------------------------------------------
+             ! Multiply O3 columns with normalization factor to return to true values
+             ! ----------------------------------------------------------------------
+             WHERE ( o3_prefit_col (i,1:nxtrack,0:nloop-1) > r8_missval )
+                o3_prefit_col (i,1:nxtrack,0:nloop-1) = &
+                     o3_prefit_col (i,1:nxtrack,0:nloop-1) * refspecs_original(i)%NormFactor
+                o3_prefit_dcol(i,1:nxtrack,0:nloop-1) = &
+                     o3_prefit_dcol(i,1:nxtrack,0:nloop-1) * refspecs_original(i)%NormFactor
+             END WHERE
+             
+          END DO
+       END IF
+       
+       ! -----------------------------------------------
+       ! BrO prefitted columns and column uncertainties
+       ! -----------------------------------------------
+       yn_read_amf = .TRUE. ; locerrstat = pge_errstat_ok
+       IF ( yn_bro_prefit(1) ) THEN
+          CALL he5_read_prefit_columns (                                 &
+               brofit_swath_id, nloop, nxtrack, iline,                   &
+               lcolstr,   col_str, bro_prefit_col (1:nxtrack,0:nloop-1), &
+               ldcolstr, dcol_str, bro_prefit_dcol(1:nxtrack,0:nloop-1), &
+               yn_read_amf, locerrstat )
+          errstat = MAX( errstat, locerrstat )
+          
+          ! -----------------------------------------------------------------------
+          ! Multiply BrO columns with normalization factor to return to true values
+          ! -----------------------------------------------------------------------
+          WHERE ( bro_prefit_col (1:nxtrack,0:nloop-1) > r8_missval )
+             bro_prefit_col (1:nxtrack,0:nloop-1) = &
+                  bro_prefit_col (1:nxtrack,0:nloop-1) * refspecs_original(bro_idx)%NormFactor
+             bro_prefit_dcol(1:nxtrack,0:nloop-1) = &
+                  bro_prefit_dcol(1:nxtrack,0:nloop-1) * refspecs_original(bro_idx)%NormFactor
+          END WHERE
+       END IF
+       
+    CASE ( pge_gly_idx )
+       
+       ! ------------------------------------------------
+       ! lqH2O prefitted columns and column uncertainties
+       ! ------------------------------------------------
+       ! ccm - Retrieved "Slant Columns"
+       yn_read_amf = .FALSE. ; locerrstat = pge_errstat_ok
+       IF ( yn_lqh2o_prefit(1) ) THEN
+          CALL he5_read_prefit_columns (                                 &
+               lqh2ofit_swath_id, nloop, nxtrack, iline,                   &
+               lcolstr,   col_str, lqh2o_prefit_col (1:nxtrack,0:nloop-1), &
+               ldcolstr, dcol_str, lqh2o_prefit_dcol(1:nxtrack,0:nloop-1), &
+               yn_read_amf, locerrstat )
+          errstat = MAX( errstat, locerrstat )
+          
+          ! -------------------------------------------------------------------------
+          ! Multiply lqH2O columns with normalization factor to return to true values
+          ! -------------------------------------------------------------------------
+          WHERE ( lqh2o_prefit_col (1:nxtrack,0:nloop-1) > r8_missval )
+             lqh2o_prefit_col (1:nxtrack,0:nloop-1) = &
+                  lqh2o_prefit_col (1:nxtrack,0:nloop-1) * refspecs_original(lqh2o_idx)%NormFactor
+             lqh2o_prefit_dcol(1:nxtrack,0:nloop-1) = &
+                  lqh2o_prefit_dcol(1:nxtrack,0:nloop-1) * refspecs_original(lqh2o_idx)%NormFactor
+          END WHERE
+       END IF
+       
+    END SELECT
+    
     ! --------------------------------------------------------------------------
     ! Shift the prefit-values to the proper index positions (e.g., spatial zoom)
     ! --------------------------------------------------------------------------
@@ -416,9 +412,10 @@ CONTAINS
     !
     !------------------------------------------------------------------------------
 
-    USE OMSAO_variables_module,  ONLY: verb_thresh_lev
-    USE OMSAO_he5_module
-    USE OMSAO_errstat_module
+    USE OMSAO_he5_module, ONLY: HE5_SWdetach, HE5_SWclose
+    USE OMSAO_errstat_module, ONLY: pge_errstat_ok, he5_stat_ok, &
+         pge_errstat_warning, omsao_w_he5swclose, vb_lev_default, &
+         error_check
 
     IMPLICIT NONE
 
