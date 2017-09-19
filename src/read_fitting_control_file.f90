@@ -23,14 +23,11 @@ SUBROUTINE read_fitting_control_file ( l1b_radiance_esdt, pge_error_status )
        radwavcal_freq, pm_one, phase, fit_winwav_lim, &
        fit_winexc_lim, fitvar_rad_str, &
        winwav_min, winwav_max, have_undersampling, n_fitres_loop, fitres_range, &
-       l1b_channel, yn_solar_i0, &
-       yn_common_iter, common_fitpos, common_fitvar, common_latrange, yn_o3amf_cor, &
-       max_good_col, yn_solmonthave, yn_newshift, yn_refseccor, yn_sw, &
+       l1b_channel, yn_solar_i0, yn_o3amf_cor, &
+       max_good_col, yn_newshift, yn_refseccor, yn_sw, &
        pcfvar, ctrvar
   USE OMSAO_prefitcol_module, ONLY: yn_bro_prefit, yn_o3_prefit, yn_lqh2o_prefit
   USE OMSAO_omidata_module, ONLY: nxtrack_max
-  USE OMSAO_radiance_ref_module, ONLY: yn_radiance_reference, radref_latrange, &
-       yn_remove_target, target_npol
   USE OMSAO_destriping_module, ONLY: ctr_pol_base, ctr_pol_scal, ctr_pol_patt, &
        ctr_nloop, ctrdst_latrange, ctr_nblocks, ctr_fitfunc_calls, ctr_maxcol, &
        yn_remove_ctrbias, ctr_bias_pol, yn_run_destriping
@@ -182,7 +179,7 @@ SUBROUTINE read_fitting_control_file ( l1b_radiance_esdt, pge_error_status )
        modulename//f_sep//scpline_str, vb_lev_default, pge_error_status )
   IF ( pge_error_status >= pge_errstat_error ) RETURN
 
-  READ (fit_ctrl_unit, *) yn_solmonthave
+  READ (fit_ctrl_unit, *) ctrvar%yn_solmonthave
 
   ! -------------------------------------------------------
   ! Position cursor to read spectum normalization selection
@@ -195,8 +192,7 @@ SUBROUTINE read_fitting_control_file ( l1b_radiance_esdt, pge_error_status )
   IF ( pge_error_status >= pge_errstat_error ) RETURN
 
   READ (fit_ctrl_unit, *) ctrvar%yn_spectrum_norm
-
-
+  
   ! ---------------------------------------------------------------------
   ! Position cursor to read common mode iteration. .TRUE. will lead to a
   ! second run through the orbit, using the common mode spectrum that has
@@ -209,9 +205,8 @@ SUBROUTINE read_fitting_control_file ( l1b_radiance_esdt, pge_error_status )
        modulename//f_sep//comline_str, vb_lev_default, pge_error_status )
   IF ( pge_error_status >= pge_errstat_error ) RETURN
 
-  READ (fit_ctrl_unit, *) yn_common_iter
-  IF ( yn_common_iter ) READ (fit_ctrl_unit, *) common_latrange
-
+  READ (fit_ctrl_unit, *) ctrvar%yn_common_iter
+  IF ( ctrvar%yn_common_iter ) READ (fit_ctrl_unit, *) ctrvar%common_latrange
 
   ! ---------------------------------------------------------------------
   ! Position cursor to read radiance reference settings.
@@ -223,9 +218,9 @@ SUBROUTINE read_fitting_control_file ( l1b_radiance_esdt, pge_error_status )
        modulename//f_sep//rrsline_str, vb_lev_default, pge_error_status )
   IF ( pge_error_status >= pge_errstat_error ) RETURN
 
-  READ (fit_ctrl_unit, *) yn_radiance_reference
-  READ (fit_ctrl_unit, *) yn_remove_target, target_npol
-  READ (fit_ctrl_unit, *) radref_latrange(1:2)
+  READ (fit_ctrl_unit, *) ctrvar%yn_radiance_reference
+  READ (fit_ctrl_unit, *) ctrvar%yn_remove_target, ctrvar%target_npol
+  READ (fit_ctrl_unit, *) ctrvar%radref_latrange(1:2)
 
   ! ----------------------------------------------------------
   ! Position cursor to read solar calibration input parameters
@@ -238,7 +233,7 @@ SUBROUTINE read_fitting_control_file ( l1b_radiance_esdt, pge_error_status )
   IF ( pge_error_status >= pge_errstat_error ) RETURN
 
   READ (fit_ctrl_unit, *) max_itnum_sol
-
+  stop
   yn_use_labslitfunc = .TRUE.
   solpars: DO i = 1, max_calfit_idx
 
@@ -323,8 +318,8 @@ SUBROUTINE read_fitting_control_file ( l1b_radiance_esdt, pge_error_status )
   ! calibration spectrum. 
   ! If larger than 90 deg, set to 0.0, i.e., the Equator.
   ! ---------------------------------------------------------------------
-  WHERE ( ABS(radref_latrange) > 90.0_r4 )
-     radref_latrange = 0.0_r4
+  WHERE ( ABS(ctrvar%radref_latrange) > 90.0_r4 )
+     ctrvar%radref_latrange = 0.0_r4
   END WHERE
 
   ! ---------------------------------------------------------
@@ -414,9 +409,9 @@ SUBROUTINE read_fitting_control_file ( l1b_radiance_esdt, pge_error_status )
            ! --------------------------------------------------
            ! Check for on-line Common Mode spectrum computation
            ! --------------------------------------------------
-           IF ( ridx == comm_idx .AND. yn_common_iter ) THEN
-              common_fitvar(1:3) = (/ vartmp, lotmp, uptmp /)
-              common_fitpos      = sidx
+           IF ( ridx == comm_idx .AND. ctrvar%yn_common_iter ) THEN
+              ctrvar%common_fitvar(1:3) = (/ vartmp, lotmp, uptmp /)
+              ctrvar%common_fitpos      = sidx
            END IF
         END IF
      END DO getblock
@@ -652,8 +647,7 @@ SUBROUTINE find_radiance_fitting_variables ( errstat )
        o3_t1_idx, o3_t3_idx, bro_idx, comm_idx
   USE OMSAO_variables_module,    ONLY: &
        n_fitvar_rad, all_radfit_idx, mask_fitvar_rad, fitvar_rad_init,         &
-       lo_radbnd, up_radbnd, &
-       yn_common_iter, common_fitpos, ctrvar
+       lo_radbnd, up_radbnd, ctrvar
   USE OMSAO_prefitcol_module, ONLY:                                            &
        o3_prefit_fitidx, bro_prefit_fitidx, yn_bro_prefit, yn_o3_prefit,       &
        n_prefit_vars
@@ -791,13 +785,13 @@ SUBROUTINE find_radiance_fitting_variables ( errstat )
      ! also the set-up of temporary arrays require all dimensions, it
      ! is really the easiest way to do things.
      ! ---------------------------------------------------------------
-     IF ( i == comm_idx .AND. yn_common_iter ) THEN
+     IF ( i == comm_idx .AND. ctrvar%yn_common_iter ) THEN
 
         ! ------------------------------------------------------------------
         ! The Common Mode fitting position has been saved from the
         ! fitting control file
         ! ------------------------------------------------------------------
-        j = common_fitpos
+        j = ctrvar%common_fitpos
         idx = max_calfit_idx + (i-1)*mxs_idx+j
 
         !n_fitvar_rad = n_fitvar_rad + 1

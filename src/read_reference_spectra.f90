@@ -6,7 +6,7 @@ SUBROUTINE read_reference_spectra ( pge_idx, n_max_rspec, pge_error_status )
   USE OMSAO_parameters_module, ONLY: zerospec_string, r8_missval
   USE OMSAO_variables_module,  ONLY: winwav_min, winwav_max, ReferenceSpectrum,&
        refspecs_original, common_mode_spec, &
-       l1b_channel, yn_common_iter, ctrvar, pcfvar
+       l1b_channel, ctrvar, pcfvar
   USE OMSAO_he5_datafields_module, ONLY: o3_prefit_he5fields
   USE OMSAO_solcomp_module
   USE OMSAO_errstat_module
@@ -58,7 +58,7 @@ SUBROUTINE read_reference_spectra ( pge_idx, n_max_rspec, pge_error_status )
         errstat = pge_errstat_ok
         SELECT CASE ( i )
         CASE ( comm_idx )
-           IF ( .NOT. yn_common_iter ) THEN
+           IF ( .NOT. ctrvar%yn_common_iter ) THEN
               ! --------------------------------------------------------------
               ! The common mode spectrum for OMI has 60 across-track positions
               ! --------------------------------------------------------------

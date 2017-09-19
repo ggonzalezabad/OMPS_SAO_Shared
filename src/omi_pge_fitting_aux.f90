@@ -253,7 +253,6 @@ SUBROUTINE omi_adjust_radiance_data (                                   &
   USE OMSAO_indices_module, ONLY: wvl_idx, spc_idx, sig_idx, ccd_idx
   USE OMSAO_parameters_module, ONLY: downweight, r4_missval
   USE OMSAO_variables_module, ONLY: ctrvar
-  USE OMSAO_radiance_ref_module, ONLY: yn_radiance_reference
   USE OMSAO_solcomp_module, ONLY: solarcomp_pars
   USE OMSAO_errstat_module, ONLY: pge_errstat_ok
 
@@ -417,7 +416,7 @@ SUBROUTINE omi_adjust_radiance_data (                                   &
      ! closely associated with (but not necessarily identical to) the scene albedo.
      ! -----------------------------------------------------------------------------
      IF ( .NOT. ctrvar%yn_spectrum_norm ) THEN                               ! branch for "(2)" or "(3)"
-        IF ( ctrvar%yn_solar_comp .AND. (.NOT. yn_radiance_reference) ) THEN ! "(2)"
+        IF ( ctrvar%yn_solar_comp .AND. (.NOT. ctrvar%yn_radiance_reference) ) THEN ! "(2)"
            rad_spec_avg = solarcomp_pars%SolarNorm
         ELSE                                                          ! "(3)"
            rad_spec_avg = 1.0_r8
@@ -748,7 +747,7 @@ SUBROUTINE set_input_pointer_and_versions ( pge_idx )
        voc_amf_luns, voc_omicld_idx, pge_h2o_idx
   USE OMSAO_he5_module, ONLY: n_lun_inp, lun_input, input_versions
   USE OMSAO_variables_module, ONLY: l1b_rad_filename, ctrvar
-  USE OMSAO_radiance_ref_module, ONLY: yn_radiance_reference, l1b_radref_filename
+  USE OMSAO_radiance_ref_module, ONLY: l1b_radref_filename
 
   IMPLICIT NONE
 
@@ -784,7 +783,7 @@ SUBROUTINE set_input_pointer_and_versions ( pge_idx )
   ! --------------------------------
   ! (a) Earthshine reference granule
   ! --------------------------------
-  IF ( yn_radiance_reference .AND. &
+  IF ( ctrvar%yn_radiance_reference .AND. &
        ( TRIM(ADJUSTL(l1b_rad_filename)) /= TRIM(ADJUSTL(l1b_radref_filename))) ) THEN
      n_lun_inp = n_lun_inp + 1
      lun_input(n_lun_inp) = l1b_radianceref_lun
@@ -1561,7 +1560,7 @@ SUBROUTINE compute_common_mode ( &
   USE OMSAO_indices_module,   ONLY: max_calfit_idx, comm_idx, mxs_idx
   USE OMSAO_variables_module, ONLY:                                           &
        common_mode_spec, fitvar_rad_init, lo_radbnd, up_radbnd,               &
-       common_fitpos, common_fitvar, common_latrange, refspecs_original
+       refspecs_original, ctrvar
   USE OMSAO_omidata_module,   ONLY:                                           &
        common_spc, common_wvl, common_cnt, n_omi_database_wvl, omi_database,  &
        omi_ccdpix_selection, omi_scanline_no, omi_latitude, n_comm_wvl
@@ -1586,10 +1585,10 @@ SUBROUTINE compute_common_mode ( &
      ! Set the index value of the Common Mode spectrum and
      ! assign values to the fitting parameter arrays
      ! ---------------------------------------------------
-     i = max_calfit_idx + (comm_idx-1)*mxs_idx + common_fitpos
-     fitvar_rad_init(i) = common_fitvar(1)
-     lo_radbnd      (i) = common_fitvar(2)
-     up_radbnd      (i) = common_fitvar(3)
+     i = max_calfit_idx + (comm_idx-1)*mxs_idx + ctrvar%common_fitpos
+     fitvar_rad_init(i) = ctrvar%common_fitvar(1)
+     lo_radbnd      (i) = ctrvar%common_fitvar(2)
+     up_radbnd      (i) = ctrvar%common_fitvar(3)
      DO i = 1, xti  ! NOTE: "xti == nxtrack" for this call
         j = n_omi_database_wvl(i)
 
@@ -1645,7 +1644,7 @@ SUBROUTINE compute_common_mode ( &
      ! Set the index value of the Common Mode spectrum and
      ! assign values to the fitting parameter arrays
      ! ---------------------------------------------------
-     i = max_calfit_idx + (comm_idx-1)*mxs_idx + common_fitpos
+     i = max_calfit_idx + (comm_idx-1)*mxs_idx + ctrvar%common_fitpos
      fitvar_rad_init(i) = 0.0_r8
      lo_radbnd      (i) = 0.0_r8
      up_radbnd      (i) = 0.0_r8
@@ -1674,8 +1673,8 @@ SUBROUTINE compute_common_mode ( &
      ! --------------------------------------------------------
      ! The Reguar Fitting branch updates the spectrum and count
      ! --------------------------------------------------------
-     IF ( omi_latitude(xti,omi_scanline_no) >= common_latrange(1) .AND. &
-          omi_latitude(xti,omi_scanline_no) <= common_latrange(2)         )  THEN
+     IF ( omi_latitude(xti,omi_scanline_no) >= ctrvar%common_latrange(1) .AND. &
+          omi_latitude(xti,omi_scanline_no) <= ctrvar%common_latrange(2)         )  THEN
 
         comnorm = 1.0_r8
         IF ( nwvl > 0 ) THEN

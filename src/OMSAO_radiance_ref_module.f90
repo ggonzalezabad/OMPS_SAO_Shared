@@ -10,10 +10,8 @@ MODULE OMSAO_radiance_ref_module
   ! -------------------------------------------------------
   ! Variables connected with  a radiance reference spectrum
   ! -------------------------------------------------------
-  LOGICAL                          :: yn_radiance_reference, yn_reference_fit, yn_remove_target
-  INTEGER (KIND=i4)                :: target_npol
+  LOGICAL                          :: yn_reference_fit
   INTEGER (KIND=i4), DIMENSION (2) :: radiance_reference_lnums
-  REAL    (KIND=r4), DIMENSION (2) :: radref_latrange
 
   CHARACTER (LEN=maxchlen) :: l1b_radref_filename
 
@@ -252,7 +250,7 @@ CONTAINS
        ! ----------------------------------------------------------------
        CALL remove_target_from_radiance (                              &
             fpix, lpix, ctrvar%n_fincol_idx, ctrvar%fincol_idx(1:2,1:ctrvar%n_fincol_idx),  &
-            target_npol, target_var(1:ctrvar%n_fincol_idx,fpix:lpix), omi_radref_xtrcol(fpix:lpix) )
+            ctrvar%target_npol, target_var(1:ctrvar%n_fincol_idx,fpix:lpix), omi_radref_xtrcol(fpix:lpix) )
        
     END IF
 

@@ -64,7 +64,7 @@ SUBROUTINE create_radiance_reference (nt, nx, nw, locerrstat)
   ! Initialize some some variables
   ! ------------------------------
   radiance_reference_lnums = -1  ! This will be written to file, hence needs a value
-  lat_midpt = SUM ( radref_latrange ) / 2.0_r4
+  lat_midpt = SUM ( ctrvar%radref_latrange ) / 2.0_r4
 
   CALL omi_set_xtrpix_range ( &
        nt, nx, ctrvar%pixnum_lim(3:4), &
@@ -83,15 +83,15 @@ SUBROUTINE create_radiance_reference (nt, nx, nw, locerrstat)
   ! are identical, then we keep the midpoint line number as the only
   ! reference. Else locate the corresponding swath line numbers.
   ! --------------------------------------------------------------------
-  IF ( radref_latrange(1) == radref_latrange(2) ) THEN
+  IF ( ctrvar%radref_latrange(1) == ctrvar%radref_latrange(2) ) THEN
      radiance_reference_lnums(1:2) = midpt_line
      yn_have_limits(1:2)           = .TRUE.
   ELSE
      CALL find_swathline_by_latitude ( &
-          nx, 0, midpt_line, latr4(1:nx,0:midpt_line), radref_latrange(1), &
+          nx, 0, midpt_line, latr4(1:nx,0:midpt_line), ctrvar%radref_latrange(1), &
           xtrange(0:midpt_line,1:2), radiance_reference_lnums(1), yn_have_limits(1)   )
      CALL find_swathline_by_latitude ( &
-          nx, midpt_line, nt-1, latr4(1:nx,midpt_line:nt-1), radref_latrange(2), &
+          nx, midpt_line, nt-1, latr4(1:nx,midpt_line:nt-1), ctrvar%radref_latrange(2), &
           xtrange(midpt_line:nt-1,1:2), radiance_reference_lnums(2), yn_have_limits(2) )
   END IF
 

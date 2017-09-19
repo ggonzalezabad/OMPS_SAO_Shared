@@ -444,7 +444,7 @@ SUBROUTINE he5_write_wavcal_output ( nXtloc, fpix, lpix, errstat )
        omi_solcal_pars,   omi_radcal_pars,  omi_radref_pars,  &
        omi_radref_col,    omi_radref_dcol,  omi_radref_rms,   &
        omi_radref_xtrcol
-  USE OMSAO_radiance_ref_module, ONLY: radref_latrange
+  USE OMSAO_variables_module, ONLY: ctrvar
 
   IMPLICIT NONE
 
@@ -527,7 +527,7 @@ SUBROUTINE he5_write_wavcal_output ( nXtloc, fpix, lpix, errstat )
 
   locerrstat = HE5_SWWRFLD (                                                  &
        rad_reffit_he5fields(i)%Swath_ID, TRIM(ADJUSTL(rrlr_field )),          &
-       he5_start_2d(1), he5_stride_2d(1), he5_edge_2d(1), radref_latrange(1:2) )
+       he5_start_2d(1), he5_stride_2d(1), he5_edge_2d(1), ctrvar%radref_latrange(1:2) )
 
   ! ---------------------------------------------------------------------------
   ! Write results for column and column uncertainty from radiance reference fit

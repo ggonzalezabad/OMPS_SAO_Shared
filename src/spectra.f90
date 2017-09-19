@@ -187,7 +187,7 @@ SUBROUTINE spectrum_earthshine ( &
        yn_newshift, ctrvar
   USE OMSAO_omidata_module,      ONLY: curr_xtrack_pixnum, omi_solcal_pars
   USE OMSAO_slitfunction_module, ONLY: saved_shift, saved_squeeze
-  USE OMSAO_radiance_ref_module, ONLY: yn_radiance_reference, yn_reference_fit
+  USE OMSAO_radiance_ref_module, ONLY: yn_reference_fit
   USE OMSAO_errstat_module
   USE OMSAO_solcomp_module
   USE EZspline_obj
@@ -254,8 +254,8 @@ SUBROUTINE spectrum_earthshine ( &
   ! the radiance only. The Solar Composite shift must be subtracted from
   ! the wavelength array, hence the negative sign.
   ! ---------------------------------------------------------------------
-  IF ( ( ctrvar%yn_solar_comp .AND. (.NOT. yn_radiance_reference) ) .OR. &
-       ( ctrvar%yn_solar_comp .AND. (yn_radiance_reference .AND. yn_reference_fit) ) ) THEN
+  IF ( ( ctrvar%yn_solar_comp .AND. (.NOT. ctrvar%yn_radiance_reference) ) .OR. &
+       ( ctrvar%yn_solar_comp .AND. (ctrvar%yn_radiance_reference .AND. yn_reference_fit) ) ) THEN
      yn_solsynth = .TRUE.
      soco_shi = -omi_solcal_pars(shi_idx,curr_xtrack_pixnum)
   ELSE
@@ -489,7 +489,7 @@ SUBROUTINE spectrum_earthshine_o3exp ( &
        yn_o3_prefit, o3_prefit_var
   USE OMSAO_omidata_module,      ONLY: curr_xtrack_pixnum, omi_solcal_pars
   USE OMSAO_slitfunction_module, ONLY: saved_shift, saved_squeeze
-  USE OMSAO_radiance_ref_module, ONLY: yn_radiance_reference, yn_reference_fit
+  USE OMSAO_radiance_ref_module, ONLY: yn_reference_fit
   USE OMSAO_errstat_module
   USE OMSAO_solcomp_module
   USE EZspline_obj
@@ -556,8 +556,8 @@ SUBROUTINE spectrum_earthshine_o3exp ( &
   ! the radiance only. The Solar Composite shift must be subtracted from
   ! the wavelength array, hence the negative sign.
   ! ---------------------------------------------------------------------
-  IF ( ( ctrvar%yn_solar_comp .AND. (.NOT. yn_radiance_reference) ) .OR. &
-       ( ctrvar%yn_solar_comp .AND. (yn_radiance_reference .AND. yn_reference_fit) ) ) THEN
+  IF ( ( ctrvar%yn_solar_comp .AND. (.NOT. ctrvar%yn_radiance_reference) ) .OR. &
+       ( ctrvar%yn_solar_comp .AND. (ctrvar%yn_radiance_reference .AND. yn_reference_fit) ) ) THEN
      yn_solsynth = .TRUE.
      soco_shi = -omi_solcal_pars(shi_idx,curr_xtrack_pixnum)
   ELSE

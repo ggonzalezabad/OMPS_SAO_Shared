@@ -10,15 +10,15 @@ MODULE OMSAO_variables_module
 
   IMPLICIT NONE
 
-  ! -----------------------------
+  ! -----------------------------------------------------
   ! Variables read from PCF file
-  ! -----------------------------
+  ! -----------------------------------------------------
   ! * Current PGE name and index
   ! * Verbosity threshold
   ! * Orbit number, Version ID, L1B radiance OPF version
-  ! * Name of the tabulated OMI slit function data
-  ! * Filename, logical and type indices for composite Solar Spectrum
-  ! --------------------------------------------
+  ! * Filenames: Slit function, Composite Solar Spectrum, 
+  !              Monthly average Solar Spectrum
+  ! -----------------------------------------------------
 
   INTEGER (KIND=I4) :: l1br_opf_version
 
@@ -28,7 +28,7 @@ MODULE OMSAO_variables_module
      INTEGER (KIND=I4) :: verb_thresh_lev
      INTEGER (KIND=I4) :: orbit_number, ecs_version_id
      CHARACTER (LEN=maxchlen), DIMENSION (icf_idx:max_rs_idx) :: static_input_fnames
-     CHARACTER (LEN=maxchlen) :: slitfunc_fname, solcomp_filename
+     CHARACTER (LEN=maxchlen) :: slitfunc_fname, solcomp_filename, solmonthave_filename
   END type pcf_variables
   TYPE(pcf_variables):: pcfvar
 
@@ -46,24 +46,29 @@ MODULE OMSAO_variables_module
   !               includes the subindices, hence the dimension.
   ! N_FINCOL_IDX: Number of final column indices.
   ! * Logicals for processing mode (diagnostic or production), smooth, doas,
-  !   normalization, solar composite
+  !   normalization, solar composite, common mode, solar_monthly_average, 
+  !   radiance reference, radiance reference remove target
   ! * Pixel number limits:
   !    1,2: First and last scan line number
   !    3,4: First and last cross-track pixel
-  ! * Latitude limits: Lower and upper latitude to process
+  ! * Latitude limits: Orbit processing, common mode, radiance reference
   ! * Variables connected with ELSUNC numerical precision/convergence criteria
-  ! * Solar composite type
+  ! * Solar composite type, Index position of Common Mode add-on, radiance
+  !    reference polynomial order
+  ! * Array for common mode initial fitting variables
   ! ----------------------------------------------------------------------
   TYPE ctr_variables
      INTEGER (KIND=I4) :: n_mol_fit, n_fincol_idx
      INTEGER (KIND=I4), DIMENSION (max_mol_fit) :: fitcol_idx
      INTEGER (KIND=I4), DIMENSION (2,max_mol_fit*mxs_idx) :: fincol_idx
      LOGICAL :: yn_diagnostic_run, yn_smooth, yn_doas, yn_spectrum_norm, &
-          yn_solar_comp
+          yn_solar_comp, yn_common_iter, yn_solmonthave, yn_radiance_reference, &
+          yn_remove_target
      INTEGER (KIND=I4), DIMENSION (4) :: pixnum_lim
-     REAL(KIND=r4), DIMENSION (2) :: radfit_latrange
+     REAL(KIND=r4), DIMENSION (2) :: radfit_latrange, common_latrange, radref_latrange
      REAL (KIND=r8) :: tol,  epsrel,  epsabs,  epsx
-     INTEGER (KIND=i4) :: solar_comp_typ
+     INTEGER (KIND=i4) :: solar_comp_typ, common_fitpos, target_npol
+     REAL (KIND=r8), DIMENSION (3) :: common_fitvar
   END type ctr_variables
   TYPE(ctr_variables) :: ctrvar
 
@@ -246,28 +251,10 @@ MODULE OMSAO_variables_module
   CHARACTER (LEN=maxchlen)                               :: OMBRO_amf_filename
   CHARACTER (LEN=maxchlen), DIMENSION (n_voc_amf_luns)   :: voc_amf_filenames
 
-  ! -------------------------------------------------------
-  ! Filename and logical for solar monthly average spectrum
-  ! -------------------------------------------------------
-  CHARACTER (LEN=maxchlen) :: OMSAO_solmonthave_filename
-  LOGICAL                  :: yn_solmonthave
-
   ! -------------------------------
   ! Logicals for Solar I0 correction
   ! -------------------------------
   LOGICAL           :: yn_solar_i0
-
-  ! --------------------------------------------
-  ! * Logical for Common Mode Iteration
-  ! * Index position of Common Mode add-on
-  ! * Array for initial fitting variables
-  ! * Latitude range for common mode computation
-  ! --------------------------------------------
-  LOGICAL                          :: yn_common_iter
-  INTEGER (KIND=i4)                :: common_fitpos
-  REAL    (KIND=r8), DIMENSION (3) :: common_fitvar
-  REAL    (KIND=r4), DIMENSION (2) :: common_latrange
-  INTEGER (KIND=i4), DIMENSION (2) :: common_latlines
 
   ! ---------------------------------------------------------------------
   ! 3-letter string to identify the OMI channel (UV2 or VIS) we are using

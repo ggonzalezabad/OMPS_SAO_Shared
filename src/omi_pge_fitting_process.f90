@@ -123,7 +123,7 @@ SUBROUTINE omi_fitting (                                  &
   USE OMSAO_parameters_module, ONLY: i2_missval
   USE OMSAO_variables_module, ONLY: l1b_rad_filename, &
        l2_filename, &
-       yn_common_iter, common_latrange, OMSAO_refseccor_cld_filename, &
+       OMSAO_refseccor_cld_filename, &
        voc_amf_filenames, yn_refseccor, ctrvar
   USE OMSAO_omidata_module, ONLY: omi_latitude, omi_column_amount, &
        omi_cross_track_skippix, omi_radcal_itnum, omi_radcal_xflag, &
@@ -133,8 +133,7 @@ SUBROUTINE omi_fitting (                                  &
   USE OMSAO_he5_module, ONLY:  pge_swath_name
   USE OMSAO_he5_datafields_module
   USE OMSAO_solar_wavcal_module, ONLY: xtrack_solar_calibration_loop
-  USE OMSAO_radiance_ref_module, ONLY: yn_remove_target, &
-       yn_radiance_reference, l1b_radref_filename, &
+  USE OMSAO_radiance_ref_module, ONLY: l1b_radref_filename, &
        radiance_reference_lnums, xtrack_radiance_reference_loop
   USE OMSAO_wfamf_module, ONLY: omi_read_climatology, CmETA, amf_calculation_bis
   USE OMSAO_pixelcorner_module, ONLY: compute_pixel_corners
@@ -306,7 +305,7 @@ SUBROUTINE omi_fitting (                                  &
   ! reference file and work out an efective radiance
   ! reference that is saved to the solar array
   ! ------------------------------------------------
-  IF (yn_radiance_reference) THEN
+  IF (ctrvar%yn_radiance_reference) THEN
      CALL create_radiance_reference (nTimesRadRR, nXtrackRadRR, nWvlCCDrr, errstat)
   END IF
 
@@ -315,7 +314,7 @@ SUBROUTINE omi_fitting (                                  &
   ! -----------------------------------------------------
   omi_radcal_itnum = i2_missval ; omi_radcal_xflag = i2_missval
   CALL xtrack_radiance_wvl_calibration (                          &
-       yn_radiance_reference, ctrvar%yn_solar_comp,                      &
+       ctrvar%yn_radiance_reference, ctrvar%yn_solar_comp,                      &
        first_wc_pix, last_wc_pix, n_max_rspec, n_comm_wvl, errstat )
   pge_error_status = MAX ( pge_error_status, errstat )
   IF ( pge_error_status >= pge_errstat_error )  GO TO 666
@@ -337,14 +336,14 @@ SUBROUTINE omi_fitting (                                  &
   ! (owing to the fact that the average of hundreds of OMI spectra still
   !  doesn't produce a decently fitted column).
   ! ---------------------------------------------------------------------
-  IF ( yn_radiance_reference) THEN ! .AND. yn_remove_target ) THEN
+  IF ( ctrvar%yn_radiance_reference) THEN 
 
      iline = SUM ( radiance_reference_lnums(1:2) ) / 2
      IF ( iline < 0 .OR. iline > nTimesRadRR ) iline = nTimesRadRR / 2
      first_pix = omi_xtrpix_range_rr(iline,1)
      last_pix  = omi_xtrpix_range_rr(iline,2)
      CALL xtrack_radiance_reference_loop (                                   &
-          yn_radiance_reference, yn_remove_target,                           &
+          ctrvar%yn_radiance_reference, ctrvar%yn_remove_target,                           &
           nXtrackRadRR, nWvlCCDrr, first_pix, last_pix, pge_idx, pge_error_status )
 
      ! -------------------------------------------------------------
@@ -380,7 +379,7 @@ SUBROUTINE omi_fitting (                                  &
   ! -----------------------------------------------------------------
   ! Now we enter the on-line computation of the common mode spectrum.
   ! -----------------------------------------------------------------
-  IF ( yn_common_iter ) THEN
+  IF ( ctrvar%yn_common_iter ) THEN
      
      ! ----------------------------------------------------------
      ! Set the logical YN array that determines which swath lines
@@ -389,7 +388,7 @@ SUBROUTINE omi_fitting (                                  &
      yn_common_range(0:nTimesRad-1) = .FALSE.
      CALL find_swathline_range ( &
           nTimesRad, nXtrackRad, l1b_latitudes(1:nXtrackRad,0:nTimesRad-1),       &
-          common_latrange(1:2), yn_common_range(0:nTimesRad-1), errstat             )
+          ctrvar%common_latrange(1:2), yn_common_range(0:nTimesRad-1), errstat             )
 
      ! -------------------------------------------------------------
      ! First and last swath line number will be overwritten. Hence
@@ -407,19 +406,13 @@ SUBROUTINE omi_fitting (                                  &
      ! way may be to remember that we can control everything through
      ! the fitting control file.
      ! ------------------------------------------------------------------
-     !IF ( MINVAL(common_latlines(1:2)) >= 0 .AND. &
-     !     MAXVAL(common_latlines(1:2)) <= ntimesrad ) THEN
-     !   first_line = common_latlines(1) !MAX(first_line, common_latlines(1))
-     !   last_line  = common_latlines(2) !MIN(last_line,  common_latlines(2))
-     !END IF
-     ! ------------------------------------------
      ! Interface to the loop over all swath lines
      ! ------------------------------------------
      CALL omi_pge_swathline_loop (                     &
           pge_idx, nTimesRad, nxtrackRad, n_max_rspec, &
           yn_common_range(0:nTimesRad-1),              &
           omi_xtrpix_range(0:nTimesRad-1,1:2),         &
-          yn_radiance_reference, .FALSE.,              &
+          ctrvar%yn_radiance_reference, .FALSE.,       &
           .FALSE., pge_error_status )
  
      ! ---------------------------------------------------
@@ -478,7 +471,7 @@ SUBROUTINE omi_fitting (                                  &
        pge_idx, nTimesRad, nXtrackRad, n_max_rspec, &
        yn_radfit_range(0:nTimesRad-1),              &
        omi_xtrpix_range(0:nTimesRad-1,1:2),         &
-       yn_radiance_reference, .FALSE.,              &
+       ctrvar%yn_radiance_reference, .FALSE.,       &
        .TRUE., pge_error_status )
 
   ! ---------------------------
@@ -549,7 +542,7 @@ SUBROUTINE omi_fitting (                                  &
           pge_idx, nTimesRadRR, nXtrackRadRR, n_max_rspec, &
           yn_radfit_range(0:nTimesRadRR-1),                &
           omi_xtrpix_range(0:nTimesRadRR-1,1:2),           &
-          yn_radiance_reference, .FALSE.,                  &
+          ctrvar%yn_radiance_reference, .FALSE.,           &
           .FALSE., pge_error_status )
      
      ! -----------------------
