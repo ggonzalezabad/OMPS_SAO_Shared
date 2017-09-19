@@ -1,4 +1,4 @@
-SUBROUTINE read_fitting_control_file ( pge_idx, l1b_radiance_esdt, pge_error_status )
+SUBROUTINE read_fitting_control_file ( l1b_radiance_esdt, pge_error_status )
 
   ! ***********************************************************
   !
@@ -11,7 +11,7 @@ SUBROUTINE read_fitting_control_file ( pge_idx, l1b_radiance_esdt, pge_error_sta
        radfit_strings, mxs_idx, hwe_idx, refspec_strings, icf_idx, &
        pge_static_input_luns, genline_str, socline_str, racline_str, &
        rrsline_str, procline_str, rafline_str, molline_str, eoi3str, &
-       us1_idx, us2_idx, pge_hcho_idx, pge_gly_idx, solcal_idx, radcal_idx, &
+       us1_idx, us2_idx, solcal_idx, radcal_idx, &
        radref_idx, radfit_idx, wavwindow_str, fitresconst_str, destriping_str, &
        scpline_str, nrmline_str, comline_str, o3amf_str, maxgoodcol_str, &
        comm_idx, procmode_diag, solmonthave_str, wfmod_amf_str, newshift_str, &
@@ -40,11 +40,6 @@ SUBROUTINE read_fitting_control_file ( pge_idx, l1b_radiance_esdt, pge_error_sta
        amf_alb_sno, amf_wvl, amf_wvl2, amf_alb_cld, amf_max_sza
 
   IMPLICIT NONE
-
-  ! ---------------
-  ! Input variables
-  ! ---------------
-  INTEGER (KIND=i4), INTENT (IN) :: pge_idx
 
   ! ---------------
   ! Output variable
@@ -290,14 +285,9 @@ SUBROUTINE read_fitting_control_file ( pge_idx, l1b_radiance_esdt, pge_error_sta
   ! (1) Use Liquid Water prefitted columns?
   ! (2) Vary those prefitted columns within their fitting uncertainties?
   ! --------------------------------------------------------------------
-  SELECT CASE ( pge_idx )
-  CASE ( pge_hcho_idx )
-     READ (fit_ctrl_unit, *) yn_o3_prefit (1:2)
-     READ (fit_ctrl_unit, *) yn_bro_prefit(1:2)
-  CASE ( pge_gly_idx )
-     READ (fit_ctrl_unit, *) yn_lqh2o_prefit (1:2)
-  CASE DEFAULT
-  END SELECT
+  READ (fit_ctrl_unit, *) yn_o3_prefit (1:2)
+  READ (fit_ctrl_unit, *) yn_bro_prefit(1:2)
+  READ (fit_ctrl_unit, *) yn_lqh2o_prefit (1:2)
 
   READ (fit_ctrl_unit, *) yn_solar_i0
   READ (fit_ctrl_unit, *) max_itnum_rad

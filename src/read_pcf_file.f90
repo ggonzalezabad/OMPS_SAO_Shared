@@ -227,7 +227,7 @@ SUBROUTINE read_pcf_file ( pge_error_status )
   ! ingestion of the L1b radiance file.
   ! ----------------------------------------------------
   errstat = pge_errstat_ok
-  CALL read_fitting_control_file ( pcfvar%pge_idx, l1b_radiance_esdt, errstat )
+  CALL read_fitting_control_file ( l1b_radiance_esdt, errstat )
   CALL error_check ( errstat, pge_errstat_ok, pge_errstat_warning, OMSAO_W_SUBROUTINE, &
        modulename//f_sep//"READ_FITTING_CONTROL_FILE.", vb_lev_default, pge_error_status )
   IF ( pge_error_status >= pge_errstat_fatal ) RETURN
