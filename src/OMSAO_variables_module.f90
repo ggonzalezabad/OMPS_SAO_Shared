@@ -14,13 +14,11 @@ MODULE OMSAO_variables_module
   ! Variables read from PCF file
   ! -----------------------------
   ! * Current PGE name and index
-  ! -----------------------------
-  ! ---------------------
   ! * Verbosity threshold
-  ! ---------------------
-  ! ----------------------------------------------------
   ! * Orbit number, Version ID, L1B radiance OPF version
-  ! ----------------------------------------------------
+  ! * Name of the tabulated OMI slit function data
+  ! --------------------------------------------
+
   INTEGER (KIND=I4) :: l1br_opf_version
 
   TYPE pcf_variables
@@ -28,6 +26,8 @@ MODULE OMSAO_variables_module
      CHARACTER (LEN=6) :: pge_name
      INTEGER (KIND=I4) :: verb_thresh_lev
      INTEGER (KIND=I4) :: orbit_number, ecs_version_id
+     CHARACTER (LEN=maxchlen), DIMENSION (icf_idx:max_rs_idx) :: static_input_fnames
+     CHARACTER (LEN=maxchlen) :: slitfunc_fname
   END type pcf_variables
   TYPE(pcf_variables):: pcfvar
 
@@ -126,9 +126,6 @@ MODULE OMSAO_variables_module
   ! A special beast: The undersampling spectrum
   ! -------------------------------------------
   LOGICAL, DIMENSION (us1_idx:us2_idx) :: have_undersampling
-
-
-  CHARACTER (LEN=maxchlen), DIMENSION (icf_idx:max_rs_idx) :: static_input_fnames
 
   REAL (KIND=r8), DIMENSION (max_spec_pts) :: cubic_x, cubic_y, cubic_w
 
@@ -237,7 +234,6 @@ MODULE OMSAO_variables_module
   ! --------------------------------------------
   ! Name of the tabulated OMI slit function data
   ! --------------------------------------------
-  CHARACTER (LEN=maxchlen) :: omi_slitfunc_fname
   LOGICAL                  :: yn_use_labslitfunc
 
   ! ---------------------------------------------------------------------------

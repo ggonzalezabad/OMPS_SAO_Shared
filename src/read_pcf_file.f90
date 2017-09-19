@@ -21,7 +21,7 @@ SUBROUTINE read_pcf_file ( pge_error_status )
   USE OMSAO_omidata_module, ONLY: l1b_radiance_esdt
   USE OMSAO_variables_module, ONLY: &
        l1b_rad_filename, l1b_irrad_filename, l2_filename,  &
-       static_input_fnames, have_amftable, omi_slitfunc_fname,             &
+       have_amftable, &
        OMBRO_amf_filename, OMSAO_solcomp_filename, voc_amf_filenames,      &
        refspecs_original, OMSAO_solmonthave_filename,                      &
        OMSAO_refseccor_filename, OMSAO_OMLER_filename,                     &
@@ -188,19 +188,18 @@ SUBROUTINE read_pcf_file ( pge_error_status )
   ! Static input file with tabulated OMI slit function values
   ! ---------------------------------------------------------
   version = 1
-  errstat = PGS_PC_GetReference (omi_slitfunc_lun, version, omi_slitfunc_fname)
+  errstat = PGS_PC_GetReference (omi_slitfunc_lun, version, pcfvar%slitfunc_fname)
   errstat = PGS_SMF_TestStatusLevel(errstat)
   CALL error_check ( errstat, PGS_SMF_MASK_LEV_S, pge_errstat_fatal, OMSAO_F_GETLUN, &
        modulename//f_sep//"OMI_SLITFUNC_LUN", vb_lev_default, pge_error_status )
   IF ( pge_error_status >= pge_errstat_error ) RETURN
-
 
   ! ------------------------------------------------------------------
   ! Read names of static input files from PCF. The first entry is the 
   ! algorithm control file (initial fitting values, etc.), the other
   ! entries are reference spectra.
   ! ------------------------------------------------------------------
-  static_input_fnames = zerospec_string
+  pcfvar%static_input_fnames = zerospec_string
   DO i = icf_idx, max_rs_idx
      version = 1
      errstat = PGS_PC_GetReference (pge_static_input_luns(i), version, tmpchar)
@@ -214,14 +213,13 @@ SUBROUTINE read_pcf_file ( pge_error_status )
              vb_lev_default, pge_error_status )
         IF ( pge_error_status >= pge_errstat_error ) RETURN
      ELSE IF ( INDEX ( TRIM(ADJUSTL(tmpchar)), zerospec_string ) == 0 ) THEN
-        static_input_fnames(i) = TRIM(ADJUSTL(tmpchar))
+        pcfvar%static_input_fnames(i) = TRIM(ADJUSTL(tmpchar))
      END IF
   END DO
-
   ! ------------------------------------------------------
   ! Save file names with reference spectra to global array
   ! ------------------------------------------------------
-  refspecs_original(1:max_rs_idx)%FileName = static_input_fnames(1:max_rs_idx)
+  refspecs_original(1:max_rs_idx)%FileName = pcfvar%static_input_fnames(1:max_rs_idx)
 
   ! ----------------------------------------------------
   ! Read fitting conrol parameters from input file; this
@@ -234,7 +232,7 @@ SUBROUTINE read_pcf_file ( pge_error_status )
        modulename//f_sep//"READ_FITTING_CONTROL_FILE.", vb_lev_default, pge_error_status )
   IF ( pge_error_status >= pge_errstat_fatal ) RETURN
 
-
+  stop
   ! -----------------------------
   ! Read Irradiance L1B file name
   ! -----------------------------

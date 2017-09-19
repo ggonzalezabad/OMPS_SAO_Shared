@@ -21,11 +21,12 @@ SUBROUTINE read_fitting_control_file ( pge_idx, l1b_radiance_esdt, pge_error_sta
        yn_smooth, yn_doas, fitvar_sol_init, fitvar_rad_init,  fitvar_rad_saved, szamax,  &
        zatmos, lo_sunbnd, up_sunbnd, lo_radbnd, up_radbnd, yn_use_labslitfunc, &
        radwavcal_freq, tol, epsrel, epsabs, epsx, pm_one, phase, fit_winwav_lim, &
-       fit_winexc_lim, pixnum_lim, radfit_latrange, static_input_fnames, fitvar_rad_str, &
+       fit_winexc_lim, pixnum_lim, radfit_latrange, fitvar_rad_str, &
        winwav_min, winwav_max, have_undersampling, n_fitres_loop, fitres_range, &
        l1b_channel, yn_solar_i0, yn_solar_comp, solar_comp_typ, yn_spectrum_norm, &
        yn_common_iter, common_fitpos, common_fitvar, common_latrange, yn_o3amf_cor, &
-       yn_diagnostic_run, max_good_col, yn_solmonthave, yn_newshift, yn_refseccor, yn_sw
+       yn_diagnostic_run, max_good_col, yn_solmonthave, yn_newshift, yn_refseccor, yn_sw, &
+       pcfvar
   USE OMSAO_prefitcol_module, ONLY: yn_bro_prefit, yn_o3_prefit, yn_lqh2o_prefit
   USE OMSAO_omidata_module, ONLY: nxtrack_max
   USE OMSAO_radiance_ref_module, ONLY: yn_radiance_reference, radref_latrange, &
@@ -96,7 +97,7 @@ SUBROUTINE read_fitting_control_file ( pge_idx, l1b_radiance_esdt, pge_error_sta
   errstat = PGS_SMF_TESTSTATUSLEVEL(errstat)
   CALL error_check ( &
        errstat, PGS_SMF_MASK_LEV_S, pge_errstat_fatal, OMSAO_F_OPEN_FITCTRL_FILE, &
-       modulename//f_sep//TRIM(ADJUSTL(static_input_fnames(icf_idx))), &
+       modulename//f_sep//TRIM(ADJUSTL(pcfvar%static_input_fnames(icf_idx))), &
        vb_lev_default, pge_error_status )
   IF ( pge_error_status >= pge_errstat_error ) RETURN
 
@@ -576,12 +577,12 @@ SUBROUTINE read_fitting_control_file ( pge_idx, l1b_radiance_esdt, pge_error_sta
   errstat = PGS_SMF_TESTSTATUSLEVEL(errstat)
   CALL error_check ( &
        errstat, pgs_smf_mask_lev_s, pge_errstat_warning, OMSAO_W_CLOSE_FITCTRL_FILE, &
-       modulename//f_sep//TRIM(ADJUSTL(static_input_fnames(icf_idx))),               &
+       modulename//f_sep//TRIM(ADJUSTL(pcfvar%static_input_fnames(icf_idx))),               &
        vb_lev_default, pge_error_status )
 
   CALL error_check ( &
        0, 1, pge_errstat_ok, OMSAO_S_READ_FITCTRL_FILE,                &
-       modulename//f_sep//TRIM(ADJUSTL(static_input_fnames(icf_idx))), &
+       modulename//f_sep//TRIM(ADJUSTL(pcfvar%static_input_fnames(icf_idx))), &
        vb_lev_default, pge_error_status )
 
   RETURN
