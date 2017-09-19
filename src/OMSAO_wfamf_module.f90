@@ -457,7 +457,7 @@ CONTAINS
     ! ==========================================================
     
     USE OMSAO_indices_module,   ONLY: sao_molecule_names
-    USE OMSAO_variables_module, ONLY: pge_idx
+    USE OMSAO_variables_module, ONLY: pcfvar
     IMPLICIT NONE    
 
     ! ------------------
@@ -651,16 +651,16 @@ CONTAINS
     ! -----------------------------------------------------------------------
     ndatafields = HE5_swinqdflds(swath_id, datafield_name, datafield_rank, datafield_type)
     CALL extract_swathname(nswath, TRIM(ADJUSTL(datafield_name)), &
-         TRIM(ADJUSTL(sao_molecule_names(pge_idx))), gasdatafieldname)
+         TRIM(ADJUSTL(sao_molecule_names(pcfvar%pge_idx))), gasdatafieldname)
 
     ! ---------------------------------------------------------------------------
     ! Check if we found the correct swath name. If not, report an error and exit.
     ! ---------------------------------------------------------------------------
-    IF ( INDEX (TRIM(ADJUSTL(gasdatafieldname)),TRIM(ADJUSTL(sao_molecule_names(pge_idx)))) == 0 ) THEN
+    IF ( INDEX (TRIM(ADJUSTL(gasdatafieldname)),TRIM(ADJUSTL(sao_molecule_names(pcfvar%pge_idx)))) == 0 ) THEN
        CALL error_check ( &
             0, 1, pge_errstat_error, OMSAO_E_HE5SWLOCATE, modulename, &
             vb_lev_default, locerrstat )
-       WRITE(*,*) "Climatology file does not contain data for ", sao_molecule_names(pge_idx)
+       WRITE(*,*) "Climatology file does not contain data for ", sao_molecule_names(pcfvar%pge_idx)
        errstat = MAX ( errstat, locerrstat )
        RETURN
     END IF
@@ -1776,7 +1776,7 @@ CONTAINS
                              scattw)
 
     USE OMSAO_lininterpolation_module, ONLY: lininterpol
-    USE OMSAO_variables_module, ONLY: verb_thresh_lev
+    USE OMSAO_variables_module, ONLY: pcfvar
 
     IMPLICIT NONE
 
@@ -2090,7 +2090,7 @@ CONTAINS
           END WHERE
 
        END DO ! End loop xtrack
-       IF ( verb_thresh_lev .GE. vb_lev_screen ) WRITE(*,*) 'Scattering weights line', itime
+       IF ( pcfvar%verb_thresh_lev .GE. vb_lev_screen ) WRITE(*,*) 'Scattering weights line', itime
 
     END DO ! End loop lines
     

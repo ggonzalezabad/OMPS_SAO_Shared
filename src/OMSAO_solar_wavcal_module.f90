@@ -8,10 +8,10 @@ MODULE OMSAO_solar_wavcal_module
   USE OMSAO_parameters_module, ONLY: &
        i2_missval, i4_missval, r8_missval, normweight, downweight, maxchlen, max_spec_pts
   USE OMSAO_variables_module,  ONLY: &
-       verb_thresh_lev, hw1e, e_asym, curr_sol_spec, sol_wav_avg, fitvar_cal, fitvar_cal_saved,  &
+       hw1e, e_asym, curr_sol_spec, sol_wav_avg, fitvar_cal, fitvar_cal_saved,  &
        fitvar_sol_init, n_fitres_loop, fitres_range, mask_fitvar_cal, n_fitvar_cal, lobnd, upbnd,&
        fitwavs, fitweights, currspec, lo_sunbnd, up_sunbnd, max_itnum_sol, refspecs_original,    &
-       winwav_min, winwav_max
+       winwav_min, winwav_max, pcfvar
   USE OMSAO_omidata_module
   USE OMSAO_errstat_module
   USE OMSAO_he5_module
@@ -139,7 +139,7 @@ CONTAINS
        CALL error_check ( &
             0, 1, pge_errstat_ok, OMSAO_S_PROGRESS, TRIM(ADJUSTL(addmsg)), &
             vb_lev_omidebug, errstat )
-       IF ( verb_thresh_lev >= vb_lev_screen  ) WRITE (*, '(A)') TRIM(ADJUSTL(addmsg))
+       IF ( pcfvar%verb_thresh_lev >= vb_lev_screen  ) WRITE (*, '(A)') TRIM(ADJUSTL(addmsg))
 
        CALL he5_write_solarwavcal (n_sol_wvl, ipix, fitvar_cal(shi_idx), fitres_out(1:n_sol_wvl), locerrstat)
 

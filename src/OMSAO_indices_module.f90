@@ -4,31 +4,18 @@ MODULE OMSAO_indices_module
   USE OMSAO_parameters_module, ONLY: maxchlen
   IMPLICIT NONE
 
-  ! ================================================================
+  ! ===============================================================
   ! In this MODULE we collect all indices that we have defined to
   ! generalize the match between reference spectra and their
   ! associated fitting parameters. Some of the indices overlap with
   ! those required for unique idenfication of I/O files for the OMI
   ! PGE PCF file.
-  ! ================================================================
+  ! ===============================================================
 
-  ! -------------------------------------
-  ! GOME data fitting or OMI data fitting
-  ! -------------------------------------
-  INTEGER   (KIND=i4),                       PARAMETER :: omi_idx = 1, gome_idx = 2
-  CHARACTER (LEN=4),   DIMENSION (gome_idx), PARAMETER :: which_instrument = (/ 'OMI ', 'GOME' /)
-  INTEGER   (KIND=i4)                                  :: instrument_idx
-
-  ! ----------------------------------
-  ! Indices for the three OMI channels
-  ! ----------------------------------
-  INTEGER (KIND=i4), PARAMETER :: omi_uv1_idx = 1, omi_uv2_idx = 2, omi_vis_idx = 3
-  INTEGER (KIND=i4), PARAMETER :: omi_chan_max_idx = omi_vis_idx
-
-  ! --------------------------------------------------------------------
+  ! ------------------------------------------------------------------
   ! The following list represents all the reference spectra we can
-  ! encounter during OMI fitting of OClO, BrO, and HCHO (the "PGEs").
-  ! Not all entries are required for all three SAO PGEs, but each of 
+  ! encounter during OMPS fitting of OClO, BrO, and HCHO (the "PGEs").
+  ! Not all entries are required for all three molecules but each of 
   ! them is present in at least one PGE. 
   !
   ! The entry for the fitting input control file (ICF) is not a 
@@ -60,12 +47,12 @@ MODULE OMSAO_indices_module
   !     vraman: Vibrational Raman ("Water Ring")
   !     comm:   Common mode
   !     resid:  Residual (like a common mode, or vice versa)
-  !     pseudo: Pseudo Absorber (no real use identified yet)
+  !     pseudo1:Pseudo Absorber (no real use identified yet)
+  !     pseudo2:Pseudo Absorber (no real use identified yet)
+  !     pseudo3:Pseudo Absorber (no real use identified yet)
   !     polcor: Polarization correction
   !     us1:    First undersampling spectrum
   !     us2:    Second undersampling spectrum
-  !     bro_tc: BrO slant column (from OMBRO   PGE fitting)
-  !     o3_tc:  O3  slant column (from OMHCHO  PGE fitting)
   !     noname: Not yet determined, dummy placeholder
   ! ---------------------------------------------------------------------
   INTEGER (KIND=i4), PARAMETER :: &
@@ -74,8 +61,8 @@ MODULE OMSAO_indices_module
        o2o2_idx   =  8, so2_idx    =  9, bro_idx    = 10, oclo_idx   = 11, &
        hcho_idx   = 12, h2o_idx    = 13, lqh2o_idx  = 14, glyox_idx  = 15, &
        io_idx     = 16, hono_idx   = 17, vraman_idx = 18, comm_idx   = 19, &
-       resid_idx  = 20, pabs_idx   = 21, polcor_idx = 22, us1_idx    = 23, &
-       us2_idx    = 24, bro_sc_idx = 25, o3_sc_idx  = 26, noname_idx = 27
+       resid_idx  = 20, pabs1_idx  = 21, pabs2_idx  = 22, pabs3_idx  = 23, &
+       polcor_idx = 24, us1_idx    = 25, us2_idx    = 25, noname_idx = 27
 
   ! ----------------------------------------------------------
   ! The minimum and maximum indices of reference spectra (rs).
@@ -85,12 +72,12 @@ MODULE OMSAO_indices_module
   ! --------------------------------------------------------------
   ! The identification strings associated with the fitting indices
   ! --------------------------------------------------------------
-  CHARACTER (LEN=6), DIMENSION (min_rs_idx:max_rs_idx), PARAMETER ::         &
+  CHARACTER (LEN=7), DIMENSION (min_rs_idx:max_rs_idx), PARAMETER ::         &
        refspec_strings = (/                                                  &
-       'solar ', 'ring  ', 'o3_t1 ', 'o3_t2 ', 'o3_t3 ', 'no2_t1', 'no2_t2', &
-       'o2o2  ', 'so2   ', 'bro   ', 'oclo  ', 'hcho  ', 'h2o   ', 'lqh2o ', &
-       'glyox ', 'io    ', 'hono  ', 'vraman', 'commod', 'resid ', 'pseudo', &
-       'polcor', 'usamp1', 'usamp2', 'bro_tc', 'o3_tc ', 'noname'            /)
+       'solar  ', 'ring   ', 'o3_t1  ', 'o3_t2  ', 'o3_t3  ', 'no2_t1 ', 'no2_t2 ', &
+       'o2o2   ', 'so2    ', 'bro    ', 'oclo   ', 'hcho   ', 'h2o    ', 'lqh2o  ', &
+       'glyox  ', 'io     ', 'hono   ', 'vraman ', 'commod ', 'resid  ', 'pseudo1', &
+       'pseudo2', 'pseudo3', 'polcor ', 'usamp1 ', 'usamp2 ', 'noname '            /)
 
   CHARACTER (LEN=24), DIMENSION (min_rs_idx:max_rs_idx), PARAMETER :: &
        refspec_titles = (/ &
@@ -114,18 +101,17 @@ MODULE OMSAO_indices_module
        'Vibrational Raman       ', &
        'Common Mode Spectrum    ', &
        'Fitting Residuals       ', &
-       'Pseudo Absorber         ', &
+       'Pseudo Absorber 1       ', &
+       'Pseudo Absorber 2       ', &
+       'Pseudo Absorber 3       ', &
        'Polarization Correction ', &
        'Undersampling Phase 1   ', &
        'Undersampling Phase 2   ', &
-       'BrO pre-fitted          ', &
-       'O3 pre-fitted           ', &
        'NaN                     '  /)
 
   ! ==============================================
   ! Now we define the specific fitting parameters.
   ! ==============================================
-
   ! -----------------------------------------------------------------
   ! Particular fitting parameters: Solar fit and radiance calibration
   ! -----------------------------------------------------------------
@@ -189,7 +175,6 @@ MODULE OMSAO_indices_module
   INTEGER   (KIND=i4),                    PARAMETER :: mns_idx = ad1_idx, mxs_idx = ad2_idx
   CHARACTER (LEN=3), DIMENSION (mxs_idx), PARAMETER :: &
        radfit_strings = (/ 'ad1', 'lbe', 'ad2' /)
-
   CHARACTER (LEN=14), DIMENSION (mxs_idx), PARAMETER :: &
        radfit_titles = (/ '(added first) ', '(Lambert-Beer)', '(added last)  ' /)
 
@@ -206,16 +191,10 @@ MODULE OMSAO_indices_module
   INTEGER (KIND=i4), PARAMETER :: &
        elsunc_unconstrained = 0, elsunc_same_lower = 1, elsunc_userdef = 2
 
-  ! ------------------------------------------------------
-  ! Indices for fitting wavelengths, spectrum, and weights
-  ! ------------------------------------------------------
+  ! --------------------------------------------------------------------
+  ! Indices for fitting wavelengths, spectrum, weights, and CCD detector
+  ! --------------------------------------------------------------------
   INTEGER (KIND=i4), PARAMETER :: wvl_idx = 1, spc_idx = 2, sig_idx = 3, ccd_idx = 4
-
-  ! -----------------------------------------
-  ! Indices for angles and AMFs in AMF tables
-  ! -----------------------------------------
-  !INTEGER (KIND=i4), PARAMETER :: amftab_ang_idx = 1, amftab_amf_idx = 2
-  !INTEGER (KIND=i4), PARAMETER :: n_amftab_ang_max = 16, n_amftab_dim_max = 2, n_amftab_coef_max = 10
 
   ! ---------------------------------------------------------------
   ! Indices for Solar and Radiance Wavelength Calibration, Radiance 
@@ -224,11 +203,10 @@ MODULE OMSAO_indices_module
   INTEGER (KIND=i4), PARAMETER :: &
        solcal_idx = 1, radcal_idx = 2, radref_idx = 3, radfit_idx = 4
 
-
   ! ------------------------------------------------------------------
   ! Quality flag indices. Used for flagging any CCD detector pixel for
   ! exclusion from the fitting process. For details on the definition
-  ! of these flags see the Dutch Space L1B produce document.
+  ! of these flags see the Dutch Space L1B produce document. <--FIXME Need to be adapted to OMPS description
   ! ------------------------------------------------------------------
   INTEGER (KIND=i4), PARAMETER :: &
        qflg_mis_idx = 0, qflg_bad_idx = 1, qflg_err_idx = 2, qflg_tra_idx = 3, &
@@ -236,13 +214,11 @@ MODULE OMSAO_indices_module
        qflg_off_idx = 8, qflg_exp_idx = 9, qflg_str_idx = 10
   
   ! =================================================================
-  !
   ! This module defines a range of indices for the OMI SAO PGE fitting
   ! processes. These are mostly associated with file unit numbers as
   ! they are required by the PGE Process Control File (PCF). But they
   ! also include the number of SAO PGEs, the official PGE numbers for
   ! the molecules, etc.
-  !
   ! =================================================================
 
   ! ------------------------------------------------------------------------

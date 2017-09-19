@@ -7,10 +7,10 @@ SUBROUTINE xtrack_radiance_wvl_calibration (             &
        max_calfit_idx, max_rs_idx, hwe_idx, asy_idx,  &
        shi_idx, squ_idx, solar_idx, ccd_idx, radcal_idx
   USE OMSAO_parameters_module, ONLY: maxchlen, downweight, normweight
-  USE OMSAO_variables_module, ONLY: verb_thresh_lev, hw1e, e_asym, &
+  USE OMSAO_variables_module, ONLY: hw1e, e_asym, &
        n_rad_wvl, curr_rad_spec, sol_wav_avg, database, fitvar_cal, &
        fitvar_cal_saved, fitvar_rad_init, n_fitres_loop, &
-       fitres_range, yn_diagnostic_run
+       fitres_range, yn_diagnostic_run, pcfvar
   USE OMSAO_slitfunction_module, ONLY: saved_shift, saved_squeeze
   USE OMSAO_omidata_module, ONLY: nwavel_max, nxtrack_max, &
        omi_cross_track_skippix, omi_nwav_radref, omi_radcal_itnum, &
@@ -223,7 +223,7 @@ SUBROUTINE xtrack_radiance_wvl_calibration (             &
      CALL error_check ( &
           0, 1, pge_errstat_ok, OMSAO_S_PROGRESS, TRIM(ADJUSTL(addmsg)), &
           vb_lev_omidebug, locerrstat )
-     IF ( verb_thresh_lev >= vb_lev_screen ) WRITE (*, '(A)') TRIM(ADJUSTL(addmsg))
+     IF ( pcfvar%verb_thresh_lev >= vb_lev_screen ) WRITE (*, '(A)') TRIM(ADJUSTL(addmsg))
 
      ! ---------------------------------
      ! Save crucial variables for output

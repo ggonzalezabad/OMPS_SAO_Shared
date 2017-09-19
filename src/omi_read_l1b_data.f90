@@ -3,7 +3,7 @@ SUBROUTINE omi_read_irradiance_data ( ntimes, nxtrack, errstat )
   USE OMSAO_precision_module
   USE OMSAO_parameters_module, ONLY: maxchlen
   USE OMSAO_variables_module,  ONLY: &
-       l1b_irrad_filename, l1b_channel, verb_thresh_lev, fit_winwav_lim, &
+       l1b_irrad_filename, l1b_channel, fit_winwav_lim, &
        fit_winexc_lim
   USE OMSAO_omidata_module,    ONLY: &
        nwavel_max, nxtrack_max, omi_irradiance_swathname, omi_irradiance_spec,        &
@@ -167,7 +167,7 @@ SUBROUTINE omi_read_radiance_paras ( &
 
   USE OMSAO_precision_module
   USE OMSAO_parameters_module, ONLY : maxchlen, r4_missval, r8_missval
-  USE OMSAO_variables_module,  ONLY : verb_thresh_lev, l1b_channel
+  USE OMSAO_variables_module,  ONLY : l1b_channel
   USE OMSAO_omidata_module,    ONLY : EarthSunDistance
   USE OMSAO_errstat_module
   USE hdfeos4_parameters
@@ -264,7 +264,7 @@ SUBROUTINE omi_read_binning_factor ( &
 
   USE OMSAO_precision_module
   USE OMSAO_parameters_module, ONLY : maxchlen, r4_missval, r8_missval
-  USE OMSAO_variables_module,  ONLY : verb_thresh_lev, l1b_channel
+  USE OMSAO_variables_module,  ONLY : l1b_channel
   USE OMSAO_omidata_module,    ONLY : global_mode, szoom_mode
   USE OMSAO_errstat_module
   USE hdfeos4_parameters
@@ -407,7 +407,7 @@ SUBROUTINE omi_read_radiance_lines ( &
        min_zenith, max_zenith, min_azimuth, max_azimuth, &  ! "non-inclusive"
        min_latitude, max_latitude, min_longitude, max_longitude, &
        earth_radius_avg, eos_aura_avgalt
-  USE OMSAO_variables_module,  ONLY: verb_thresh_lev, zatmos, pge_idx
+  USE OMSAO_variables_module,  ONLY: zatmos, pge_idx
   USE OMSAO_omidata_module,  ONLY: &
        nxtrack_max, omi_radiance_swathname, omi_radiance_spec, omi_radiance_prec,  &
        omi_radiance_wavl, omi_radiance_qflg, omi_height, omi_geoflg, omi_latitude,             &
@@ -645,7 +645,6 @@ SUBROUTINE omi_read_glint_ice_flags ( l1bfile, nx, nt, snow_ice_flg, glint_flg, 
 
   USE OMSAO_precision_module
   USE OMSAO_parameters_module, ONLY: i2_missval
-  USE OMSAO_variables_module,  ONLY: verb_thresh_lev
   USE OMSAO_omidata_module,    ONLY: omi_radiance_swathname
   USE OMSAO_errstat_module
   USE hdfeos4_parameters
@@ -892,7 +891,7 @@ SUBROUTINE omi_xtract_swathname ( l1bfile, l1bchan, omiswath )
 
   USE OMSAO_precision_module
 
-  USE OMSAO_variables_module,  ONLY : verb_thresh_lev, l1b_channel
+  USE OMSAO_variables_module,  ONLY : l1b_channel
   USE OMSAO_parameters_module, ONLY : maxchlen
   USE hdfeos4_parameters
 

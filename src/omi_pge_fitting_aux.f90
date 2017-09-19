@@ -540,7 +540,7 @@ SUBROUTINE compute_fitting_statistics ( &
        PercentBadOutputSamples, &
        AbsolutePercentMissingSamples
   USE OMSAO_errstat_module,   ONLY: vb_lev_screen, pge_errstat_ok
-  USE OMSAO_variables_module, ONLY: verb_thresh_lev, max_good_col
+  USE OMSAO_variables_module, ONLY: max_good_col, pcfvar
 
 
   IMPLICIT NONE
@@ -717,7 +717,7 @@ SUBROUTINE compute_fitting_statistics ( &
   ! ------------------------------------------------------------------------
   CALL set_automatic_quality_flag ( PercentGoodOutputSamples )
 
-  IF ( verb_thresh_lev >= vb_lev_screen ) THEN
+  IF ( pcfvar%verb_thresh_lev >= vb_lev_screen ) THEN
      WRITE (*, '(A, 3(1PE15.5))')          'Col-DCol-RMS: ', fitcol_avg, dfitcol_avg, rms_avg
      WRITE (*, '(A, I7,A,I7,A,F7.1,A)')  'Statistics:   ', &
           MAX(NrofGoodOutputSamples,0), ' of ', MAX(NrofGoodInputSamples,0), ' converged - ', &

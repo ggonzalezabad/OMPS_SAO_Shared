@@ -1,7 +1,17 @@
 SUBROUTINE read_pcf_file ( pge_error_status )
 
   USE OMSAO_precision_module
-  USE OMSAO_indices_module
+  USE OMSAO_indices_module, ONLY: config_lun_array, config_lun_values, &
+       config_lun_strings, pge_static_input_luns, pge_l2_output_lun, &
+       omsao_solmonthave_lun, omsao_solcomp_lun, omsao_refseccor_lun, &
+       omsao_refseccor_cld_lun, omsao_omler_lun, omi_slitfunc_lun, &
+       n_config_luns, max_rs_idx, l1b_radiance_lun, l1b_radianceref_lun, &
+       l1b_irradiance_lun, icf_idx, pge_gly_idx, voc_amf_luns, &
+       lqh2o_prefit_lun, n_voc_amf_luns, pge_hcho_idx, o3_prefit_lun, &
+       bro_prefit_lun, pge_h2o_idx, pge_bro_idx, pge_molid_lun, &
+       versionid_lun, ombro_amf_lun, swathname_lun, instrument_name_lun, &
+       pge_version_lun, proclevel_lun, granule_e_lun, granule_s_lun, &
+       orbitnumber_lun, verbosity_lun
   USE OMSAO_errstat_module
   USE OMSAO_metadata_module, ONLY: pcf_granule_s_time,  pcf_granule_e_time, &
        n_mdata_int, mdata_integer_fields, mdata_integer_values
@@ -9,13 +19,13 @@ SUBROUTINE read_pcf_file ( pge_error_status )
   USE OMSAO_he5_module, ONLY: pge_swath_name, process_level, &
        instrument_name, pge_version
   USE OMSAO_omidata_module, ONLY: l1b_radiance_esdt
-  USE OMSAO_variables_module, ONLY: pge_idx, pge_name, orbit_number, &
-       ecs_version_id, l1b_rad_filename, l1b_irrad_filename, l2_filename,  &
+  USE OMSAO_variables_module, ONLY: &
+       l1b_rad_filename, l1b_irrad_filename, l2_filename,  &
        static_input_fnames, have_amftable, omi_slitfunc_fname,             &
        OMBRO_amf_filename, OMSAO_solcomp_filename, voc_amf_filenames,      &
        refspecs_original, OMSAO_solmonthave_filename,                      &
        OMSAO_refseccor_filename, OMSAO_OMLER_filename,                     &
-       OMSAO_refseccor_cld_filename, verb_thresh_lev
+       OMSAO_refseccor_cld_filename, pcfvar
   USE OMSAO_prefitcol_module, ONLY: o3_prefit_fname, bro_prefit_fname, &
        lqh2o_prefit_fname
   USE OMSAO_radiance_ref_module, ONLY: l1b_radref_filename
@@ -80,7 +90,7 @@ SUBROUTINE read_pcf_file ( pge_error_status )
         ! --------------------------------------------------------------------
      CASE ( verbosity_lun )
         IF ( errstat /= PGS_SMF_MASK_LEV_S ) config_lun_values(i) = "1"
-        READ (config_lun_values(i), '(I1)') verb_thresh_lev
+        READ (config_lun_values(i), '(I1)') pcfvar%verb_thresh_lev
         ! ----------------------------------------------------------------------
         ! Get the orbit number. This will be checked against L1B MetaData later.
         ! Note that the source for OrbitNumber is the L1B file, NOT the PCF. But
@@ -89,7 +99,7 @@ SUBROUTINE read_pcf_file ( pge_error_status )
         ! ----------------------------------------------------------------------
      CASE ( orbitnumber_lun )
         IF ( errstat /= PGS_SMF_MASK_LEV_S ) config_lun_values(i) = "00000"
-        READ (config_lun_values(i), '(I5)') orbit_number
+        READ (config_lun_values(i), '(I5)') pcfvar%orbit_number
 
         ! -----------------------------------------------------------------
         ! Get Granule Start and End time. This is provided by the Scheduler
@@ -135,12 +145,12 @@ SUBROUTINE read_pcf_file ( pge_error_status )
         ! Get ECS Collection version number and assign it to a Metadata variable
         ! ----------------------------------------------------------------------
      CASE ( versionid_lun )
-        READ (config_lun_values(i), '(I1)') ecs_version_id
+        READ (config_lun_values(i), '(I1)') pcfvar%ecs_version_id
         getidx: DO j = 1, n_mdata_int
            IF ( mdata_integer_fields(3,j) == "pcf"              .AND. ( &
                 INDEX(mdata_integer_fields(1,j), 'VERSIONID') /= 0 .OR. &
                 INDEX(mdata_integer_fields(1,j), 'VersionID') /= 0     )  ) THEN
-              mdata_integer_values(j) = ecs_version_id
+              mdata_integer_values(j) = pcfvar%ecs_version_id
               EXIT getidx
            END IF
         END DO getidx
@@ -163,12 +173,12 @@ SUBROUTINE read_pcf_file ( pge_error_status )
         ! ---------------------------------------------------------------
         errstat = pge_errstat_ok
         CALL get_pge_ident ( &
-             TRIM(ADJUSTL(config_lun_values(i))), pge_name, pge_idx, errstat )
+             TRIM(ADJUSTL(config_lun_values(i))), pcfvar%pge_name, pcfvar%pge_idx, errstat )
         CALL error_check ( errstat, pge_errstat_ok, pge_errstat_fatal, &
              OMSAO_F_GET_MOLINDEX, modulename, vb_lev_default, pge_error_status )
         IF ( pge_error_status >= pge_errstat_fatal ) RETURN
         CALL error_check ( 0, 1, pge_errstat_ok, OMSAO_S_GET_MOLINDEX, &
-             TRIM(ADJUSTL(pge_name)), vb_lev_stmdebug, errstat )  
+             TRIM(ADJUSTL(pcfvar%pge_name)), vb_lev_stmdebug, errstat )  
      END SELECT
   END DO
 
@@ -219,7 +229,7 @@ SUBROUTINE read_pcf_file ( pge_error_status )
   ! ingestion of the L1b radiance file.
   ! ----------------------------------------------------
   errstat = pge_errstat_ok
-  CALL read_fitting_control_file ( pge_idx, l1b_radiance_esdt, errstat )
+  CALL read_fitting_control_file ( pcfvar%pge_idx, l1b_radiance_esdt, errstat )
   CALL error_check ( errstat, pge_errstat_ok, pge_errstat_warning, OMSAO_W_SUBROUTINE, &
        modulename//f_sep//"READ_FITTING_CONTROL_FILE.", vb_lev_default, pge_error_status )
   IF ( pge_error_status >= pge_errstat_fatal ) RETURN
@@ -268,7 +278,7 @@ SUBROUTINE read_pcf_file ( pge_error_status )
   ! to the output file.
   ! -------------------------------------------------------------------------
   have_amftable = .TRUE.
-  SELECT CASE ( pge_idx )
+  SELECT CASE ( pcfvar%pge_idx )
   CASE ( pge_bro_idx )
      version = 1
      errstat = PGS_PC_GetReference ( OMBRO_amf_lun, version, tmpchar)
@@ -471,7 +481,7 @@ SUBROUTINE read_pcf_file ( pge_error_status )
   ! ---------------------------------------------------------
   ! For OMHCHO read HE5 file names with pre-fitted O3 and BrO
   ! ---------------------------------------------------------
-  SELECT CASE ( pge_idx )
+  SELECT CASE ( pcfvar%pge_idx )
   
   
   CASE ( pge_hcho_idx )

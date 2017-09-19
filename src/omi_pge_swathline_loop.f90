@@ -9,7 +9,7 @@ SUBROUTINE omi_pge_swathline_loop ( &
   USE OMSAO_indices_module,    ONLY: n_max_fitpars
   USE OMSAO_variables_module,  ONLY:  &
        n_fitvar_rad, fitvar_rad_init, fitvar_rad_saved, &
-       verb_thresh_lev, n_fincol_idx
+       n_fincol_idx, pcfvar
   USE OMSAO_omidata_module,    ONLY:  &
        nlines_max, nUTCdim, omi_scanline_no, &
        omi_itnum_flag, omi_fitconv_flag, omi_column_amount, &
@@ -139,7 +139,7 @@ SUBROUTINE omi_pge_swathline_loop ( &
           omi_column_amount(ipix, iline), omi_column_uncert(ipix, iline), &
           omi_fit_rms   (ipix, iline), MAX(INT(-1,KIND=2),omi_itnum_flag(ipix, iline))
      estat = OMI_SMF_setmsg ( OMSAO_S_PROGRESS, TRIM(addmsg), " ", vb_lev_omidebug )
-     IF ( verb_thresh_lev >= vb_lev_screen ) WRITE (*, '(A)') TRIM(addmsg)
+     IF ( pcfvar%verb_thresh_lev >= vb_lev_screen ) WRITE (*, '(A)') TRIM(addmsg)
      
      ! ----------------------------------------------------------------
      ! AMF calculation and update of fitting statistics only need to be

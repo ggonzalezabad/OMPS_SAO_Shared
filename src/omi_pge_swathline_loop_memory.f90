@@ -12,7 +12,7 @@ SUBROUTINE omi_pge_swathline_loop_memory (                               &
   USE OMSAO_indices_module,    ONLY: pge_hcho_idx, n_max_fitpars, solar_idx
   USE OMSAO_variables_module,  ONLY:  &
        n_fitvar_rad, fitvar_rad_init, fitvar_rad_saved, l1b_rad_filename, &
-       verb_thresh_lev, n_fincol_idx, fincol_idx, n_rad_wvl
+       n_fincol_idx, fincol_idx, n_rad_wvl, pcfvar
   USE OMSAO_omidata_module,    ONLY:  &
        nlines_max, nUTCdim, omi_scanline_no, omi_blockline_no,                  &
        omi_itnum_flag, omi_fitconv_flag, omi_column_amount,                     &
@@ -178,7 +178,6 @@ SUBROUTINE omi_pge_swathline_loop_memory (                               &
         addmsg = ''
         WRITE (addmsg,'(A,I5)') 'Working on scan line', omi_scanline_no
         estat = OMI_SMF_setmsg ( OMSAO_S_PROGRESS, TRIM(ADJUSTL(addmsg)), " ", vb_lev_omidebug )
-        !IF ( verb_thresh_lev >= vb_lev_screen ) WRITE (*, '(A)') TRIM(ADJUSTL(addmsg))
 
         IF ( omi_radiance_errstat(iloop) /= pge_errstat_error ) THEN
 
@@ -198,7 +197,7 @@ SUBROUTINE omi_pge_swathline_loop_memory (                               &
                 omi_column_amount(ipix, iloop), omi_column_uncert(ipix, iloop), &
                 omi_fit_rms   (ipix, iloop), MAX(-1,omi_itnum_flag(ipix, iloop))
            estat = OMI_SMF_setmsg ( OMSAO_S_PROGRESS, TRIM(addmsg), " ", vb_lev_omidebug )
-           IF ( verb_thresh_lev >= vb_lev_screen ) WRITE (*, '(A)') TRIM(addmsg)
+           IF ( pcfvar%verb_thresh_lev >= vb_lev_screen ) WRITE (*, '(A)') TRIM(addmsg)
 
 					 ! CCM Add omi_fitspc - Assignment problem - do an inefficient loop for now
 					 DO i=1,n_rad_wvl

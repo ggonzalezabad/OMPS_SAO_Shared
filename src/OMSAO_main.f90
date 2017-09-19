@@ -1,22 +1,21 @@
 SUBROUTINE OMSAO_main ( exit_value )
 
-  ! ************************************************************************
+  ! ********************************************************************
   !
-  ! This is the main program of the SAO Product Generation Executives (PGEs)
-  ! for  the Ozone Monitoring Istrument (OMI).
+  ! This is the main program of the SAO Ozone Mapping and Profiler Suite
+  ! Nadir Mapper (OMPS NM) Trace Gas retrievals.
   !
-  ! Authors: Thomas P. Kurosu, Kelly Chance
+  ! Authors: Gonzalo Gonzalez Abad
   !          Smithsonian Astrophysical Observatory
   !          60 Garden Street (MS 50)
   !          Cambridge, MA 02138 (USA)
   !
-  !          EMail: tkurosu@cfa.harvard.edu
-  !                 kchance@cfa.harvard.edu
+  !          EMail: ggonzalezabad@cfa.harvard.edu
   !
-  ! ************************************************************************
+  ! ********************************************************************
 
   USE OMSAO_precision_module, ONLY: i4
-  USE OMSAO_variables_module,  ONLY: pge_idx
+  USE OMSAO_variables_module, ONLY: pcfvar
   USE OMSAO_errstat_module, ONLY: pge_errstat_ok, pge_errstat_warning, &
        pge_errstat_error, pge_errstat_fatal, omsao_a_subroutine, &
        omsao_w_subroutine, f_sep, vb_lev_default, error_check, &
@@ -66,7 +65,7 @@ SUBROUTINE OMSAO_main ( exit_value )
        modulename//f_sep//"READ_PCF_FILE.", vb_lev_default, pge_error_status )
   IF ( pge_error_status >= pge_errstat_error ) GOTO 666
   errstat = pge_errstat_ok
-
+  stop
   ! ------------------------------------------------------------
   CALL init_metadata ( errstat )  ! Initialize MetaData
   ! ------------------------------------------------------------
@@ -76,7 +75,7 @@ SUBROUTINE OMSAO_main ( exit_value )
   errstat = pge_errstat_ok
 
   ! ----------------------------------------------------------------------------------------
-  CALL read_reference_spectra ( pge_idx, n_max_rspec, errstat )     ! Read reference spectra
+  CALL read_reference_spectra ( pcfvar%pge_idx, n_max_rspec, errstat )     ! Read reference spectra
   ! ----------------------------------------------------------------------------------------
   CALL error_check ( errstat, pge_errstat_ok, pge_errstat_warning, OMSAO_W_SUBROUTINE, &
        modulename//f_sep//"READ_REFERENCE_SPECTRA.", vb_lev_default, pge_error_status )
@@ -87,15 +86,15 @@ SUBROUTINE OMSAO_main ( exit_value )
   CALL error_check ( errstat, pge_errstat_ok, pge_errstat_warning, OMSAO_W_SUBROUTINE, &
        modulename//f_sep//"OMI_SLITFUNC_READ.", vb_lev_default, pge_error_status )
   IF ( pge_error_status >= pge_errstat_fatal ) GOTO 666
-
+  stop
   ! ---------------------------------------------
   ! Set number of InputPointers and InputVersions
   ! ---------------------------------------------
-  CALL set_input_pointer_and_versions ( pge_idx )
+  CALL set_input_pointer_and_versions ( pcfvar%pge_idx )
   errstat = pge_errstat_ok
 
   ! --------------------------------------------------------------------------------------------
-  CALL omi_pge_fitting_process  ( pge_idx, n_max_rspec, errstat )   ! Where all the work is done
+  CALL omi_pge_fitting_process  ( pcfvar%pge_idx, n_max_rspec, errstat )   ! Where all the work is done
   ! --------------------------------------------------------------------------------------------
   CALL error_check ( errstat, pge_errstat_warning, errstat, OMSAO_A_SUBROUTINE, &
        modulename//f_sep//"OMI_PGE_FITTING_PROCESS.", vb_lev_default, pge_error_status )

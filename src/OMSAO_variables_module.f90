@@ -5,11 +5,8 @@ MODULE OMSAO_variables_module
        max_rs_idx, max_calfit_idx, n_max_fitpars, mxs_idx, sig_idx, icf_idx, &
        o3_t1_idx, o3_t2_idx, o3_t3_idx,                                      &
        us1_idx, us2_idx, n_voc_amf_luns, ccd_idx, radfit_idx
-       !n_amftab_ang_max, n_amftab_dim_max, n_amftab_coef_max,                &
-
-  USE OMSAO_parameters_module,   ONLY: maxchlen, max_spec_pts, n_fit_winwav, max_mol_fit
-  USE OMSAO_omidata_module,      ONLY: nwavel_max, nxtrack_max, nlines_max
-  USE EZspline_obj
+  USE OMSAO_parameters_module, ONLY: maxchlen, max_spec_pts, n_fit_winwav, max_mol_fit
+  USE OMSAO_omidata_module, ONLY: nwavel_max, nxtrack_max, nlines_max
 
   IMPLICIT NONE
 
@@ -18,17 +15,21 @@ MODULE OMSAO_variables_module
   ! -----------------------------
   ! * Current PGE name and index
   ! -----------------------------
-  INTEGER (KIND=I4) :: pge_idx
-  CHARACTER (LEN=6) :: pge_name
   ! ---------------------
   ! * Verbosity threshold
   ! ---------------------
-  CHARACTER (LEN=1) :: verb_thresh_char
-  INTEGER (KIND=I4) :: verb_thresh_lev
   ! ----------------------------------------------------
   ! * Orbit number, Version ID, L1B radiance OPF version
   ! ----------------------------------------------------
-  INTEGER (KIND=I4) :: orbit_number, ecs_version_id, l1br_opf_version
+  INTEGER (KIND=I4) :: l1br_opf_version
+
+  TYPE pcf_variables
+     INTEGER (KIND=I4) :: pge_idx
+     CHARACTER (LEN=6) :: pge_name
+     INTEGER (KIND=I4) :: verb_thresh_lev
+     INTEGER (KIND=I4) :: orbit_number, ecs_version_id
+  END type pcf_variables
+  TYPE(pcf_variables):: pcfvar
 
   ! -------------------------------------------------
   ! Variables defined in preamble of original program

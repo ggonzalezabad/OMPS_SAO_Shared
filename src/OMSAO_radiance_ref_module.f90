@@ -26,9 +26,9 @@ CONTAINS
          o3_t1_idx, o3_t3_idx, hwe_idx, asy_idx, shi_idx, squ_idx, &
          ccd_idx, radref_idx
     USE OMSAO_variables_module,  ONLY: database, curr_sol_spec, n_rad_wvl, &
-         curr_rad_spec, sol_wav_avg, hw1e, e_asym, n_fitvar_rad, verb_thresh_lev, &
+         curr_rad_spec, sol_wav_avg, hw1e, e_asym, n_fitvar_rad, &
          fitvar_rad_saved, fitvar_rad_init, n_database_wvl, fitvar_rad, &
-         n_fincol_idx, fincol_idx, n_fitres_loop, fitres_range, xtrack_fitres_limit
+         n_fincol_idx, fincol_idx, n_fitres_loop, fitres_range, xtrack_fitres_limit, pcfvar
     USE OMSAO_slitfunction_module, ONLY: saved_shift, saved_squeeze
     USE OMSAO_omidata_module, ONLY: omi_nwav_irrad, omi_irradiance_wght, &
          omi_nwav_rad, n_omi_database_wvl, omi_cross_track_skippix, &
@@ -218,7 +218,7 @@ CONTAINS
           ! ------------------
           CALL error_check ( &
                0, 1, pge_errstat_ok, OMSAO_S_PROGRESS, TRIM(ADJUSTL(addmsg)), vb_lev_omidebug, errstat )
-          IF ( verb_thresh_lev >= vb_lev_screen ) WRITE (*, '(A)') TRIM(ADJUSTL(addmsg))
+          IF ( pcfvar%verb_thresh_lev >= vb_lev_screen ) WRITE (*, '(A)') TRIM(ADJUSTL(addmsg))
 
           ! -----------------------------------
           ! Assign pixel values to final arrays

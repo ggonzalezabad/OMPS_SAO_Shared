@@ -13,7 +13,7 @@ SUBROUTINE init_metadata ( errstat )
        pge_errstat_ok, pge_errstat_warning, pgs_s_success, vb_lev_default, &
        error_check, PGSTD_E_NO_LEAP_SECS
   USE OMSAO_parameters_module, ONLY: str_missval, int16_missval, r8_missval
-  USE OMSAO_variables_module,  ONLY: pge_idx, l1br_opf_version
+  USE OMSAO_variables_module,  ONLY: pcfvar, l1br_opf_version
   USE OMSAO_prefitcol_module,  ONLY: yn_o3_prefit, yn_bro_prefit
   USE OMSAO_he5_module, ONLY: granule_day, granule_month, granule_year, &
        TAI93At0zOfGranule, l1b_orbitdata
@@ -182,7 +182,7 @@ SUBROUTINE init_metadata ( errstat )
   ! ----------------------------------------------------
   ! Initialize MetaData STRING fields special for OMHCHO
   ! ----------------------------------------------------
-  SELECT CASE ( pge_idx )
+  SELECT CASE ( pcfvar%pge_idx )
   CASE (  pge_hcho_idx )
      DO imd = 1, n_mdata_omhcho
         version = 1
@@ -470,7 +470,7 @@ SUBROUTINE check_metadata_consistency ( errstat )
   ! ================================================================
 
   USE OMSAO_precision_module, ONLY: i4
-  USE OMSAO_variables_module, ONLY: orbit_number
+  USE OMSAO_variables_module, ONLY: pcfvar
   USE OMSAO_metadata_module
   USE OMSAO_errstat_module
 
@@ -505,8 +505,8 @@ SUBROUTINE check_metadata_consistency ( errstat )
      IF ( mdata_integer_fields(3,i) == "l1r"              .AND. &
           mdata_integer_fields(2,i) == "inv"              .AND. &
           INDEX(mdata_integer_fields(1,i), orbn_str) /= 0 .AND. &
-          orbit_number /= mdata_integer_values(i)           ) THEN
-        orbit_number = mdata_integer_values(i)
+          pcfvar%orbit_number /= mdata_integer_values(i)           ) THEN
+        pcfvar%orbit_number = mdata_integer_values(i)
         CALL error_check ( &
              1, 0, pge_errstat_warning, OMSAO_W_MDMISMATCH, &
              modulename//f_sep//orbn_str, vb_lev_default, errstat )
@@ -1052,7 +1052,7 @@ SUBROUTINE set_pge_metadata ( errstat )
   USE OMSAO_metadata_module
   USE OMSAO_errstat_module, ONLY: f_sep, omsao_w_mdl2inv, pge_errstat_ok, &
        pge_errstat_warning, pgs_s_success, vb_lev_default, error_check
-  USE OMSAO_variables_module,  ONLY: pge_idx
+  USE OMSAO_variables_module,  ONLY: pcfvar
 
   IMPLICIT NONE
 
@@ -1092,7 +1092,7 @@ SUBROUTINE set_pge_metadata ( errstat )
 
      parname = "ParameterName."//TRIM(ADJUSTL(ipstring)) 
      md_stat = PGS_MET_setAttr_s ( mcf_groups(md_inventory_idx), &
-          TRIM(ADJUSTL(parname)), TRIM(ADJUSTL(pge_parameter_names(imd,pge_idx))) )
+          TRIM(ADJUSTL(parname)), TRIM(ADJUSTL(pge_parameter_names(imd,pcfvar%pge_idx))) )
      CALL error_check ( &
           md_stat, PGS_S_SUCCESS, pge_errstat_warning, OMSAO_W_MDL2INV, &
           modulename//f_sep//TRIM(ADJUSTL(parname)), vb_lev_default, errstat )
@@ -1142,7 +1142,7 @@ CHARACTER (LEN=*) FUNCTION compose_localgranuleid ( errstat ) RESULT ( local_gra
   USE OMSAO_metadata_module
   USE OMSAO_errstat_module, ONLY: omsao_e_lgidcomp, pge_errstat_error, &
        pge_errstat_ok, vb_lev_default, error_check
-  USE OMSAO_variables_module,  ONLY: orbit_number
+  USE OMSAO_variables_module,  ONLY: pcfvar
 
   IMPLICIT NONE
 
@@ -1247,7 +1247,7 @@ CHARACTER (LEN=*) FUNCTION compose_localgranuleid ( errstat ) RESULT ( local_gra
   ! found in the L1B file. This is taken care of by the call to
   ! CHECK_METADATA_CONSITENCY earlier in the flow of the PGE.
   ! ------------------------------------------------------------------
-  orbnum_str  = int2string ( orbit_number,  5 )
+  orbnum_str  = int2string ( pcfvar%orbit_number,  5 )
   mcf_vid_str = int2string ( mcf_versionid, 3 )
 
   ! -------------------------------------------------------------------
