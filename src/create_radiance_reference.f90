@@ -8,7 +8,7 @@ SUBROUTINE create_radiance_reference (nt, nx, nw, locerrstat)
        omi_ccdpix_selection, omi_nwav_radref, omi_radref_spec, omi_radref_wavl,     &
        omi_radref_qflg, omi_radref_sza, omi_radref_vza, omi_radref_wght,            &
        omi_ccdpix_exclusion, omi_sol_wav_avg 
-  USE OMSAO_variables_module, ONLY : pixnum_lim, fit_winwav_lim, fit_winexc_lim
+  USE OMSAO_variables_module, ONLY : fit_winwav_lim, fit_winexc_lim, ctrvar
   USe OMSAO_parameters_module
 
   IMPLICIT NONE
@@ -67,7 +67,7 @@ SUBROUTINE create_radiance_reference (nt, nx, nw, locerrstat)
   lat_midpt = SUM ( radref_latrange ) / 2.0_r4
 
   CALL omi_set_xtrpix_range ( &
-       nt, nx, pixnum_lim(3:4), &
+       nt, nx, ctrvar%pixnum_lim(3:4), &
        xtrange(0:nt-1,1:2), fpix, lpix, locerrstat )
 
   ! ----------------------------------------------------------------------

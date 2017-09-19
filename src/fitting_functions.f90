@@ -96,8 +96,8 @@ SUBROUTINE specfit_func ( fitvar, nfitvar, ymod, npoints, ctrl, dyda, mdy )
 
   USE OMSAO_precision_module
   USE OMSAO_parameters_module, ONLY : elsunc_infloop_eval
-  USE OMSAO_variables_module, ONLY : database, yn_doas, rad_wav_avg, fitwavs, fitweights, currspec, &
-       lobnd, upbnd, num_fitfunc_calls, num_fitfunc_jacobi, max_fitfunc_calls
+  USE OMSAO_variables_module, ONLY : database, rad_wav_avg, fitwavs, fitweights, currspec, &
+       lobnd, upbnd, num_fitfunc_calls, num_fitfunc_jacobi, max_fitfunc_calls, ctrvar
 
   IMPLICIT NONE
 
@@ -141,7 +141,7 @@ SUBROUTINE specfit_func ( fitvar, nfitvar, ymod, npoints, ctrl, dyda, mdy )
      ! -----------------------------------------------------------------------
      CALL spectrum_earthshine ( &
           npoints, nfitvar, rad_wav_avg, locwvl(1:npoints), ymod(1:npoints), &
-          fitvar(1:nfitvar), database, yn_doas )
+          fitvar(1:nfitvar), database, ctrvar%yn_doas )
      !IF ( .NOT. yn_reference_fit ) THEN
      !   WRITE (99,'(3I6)') num_fitfunc_calls, nfitvar, npoints
      !   WRITE (99,'(1P100(E15.5:))') fitvar(1:nfitvar)
@@ -174,7 +174,7 @@ SUBROUTINE specfit_func ( fitvar, nfitvar, ymod, npoints, ctrl, dyda, mdy )
      ! Calculate the spectrum, without weighting
      CALL spectrum_earthshine ( &
           npoints, nfitvar, rad_wav_avg, locwvl(1:npoints), ymod(1:npoints), &
-          fitvar(1:nfitvar), database, yn_doas )
+          fitvar(1:nfitvar), database, ctrvar%yn_doas )
 
   CASE DEFAULT
      !WRITE (*,'(A,I4)') &
@@ -196,8 +196,8 @@ SUBROUTINE specfit_func_o3exp ( fitvar, nfitvar, ymod, npoints, ctrl, dyda, mdy 
 
   USE OMSAO_precision_module, ONLY: i4, r8
   USE OMSAO_parameters_module, ONLY : elsunc_infloop_eval
-  USE OMSAO_variables_module, ONLY : database, yn_doas, rad_wav_avg, fitwavs, fitweights, currspec, &
-       lobnd, upbnd, num_fitfunc_calls, num_fitfunc_jacobi, max_fitfunc_calls
+  USE OMSAO_variables_module, ONLY : database, rad_wav_avg, fitwavs, fitweights, currspec, &
+       lobnd, upbnd, num_fitfunc_calls, num_fitfunc_jacobi, max_fitfunc_calls, ctrvar
 
   IMPLICIT NONE
 
@@ -241,7 +241,7 @@ SUBROUTINE specfit_func_o3exp ( fitvar, nfitvar, ymod, npoints, ctrl, dyda, mdy 
      ! -----------------------------------------------------------------------
      CALL spectrum_earthshine_o3exp ( &
           npoints, nfitvar, rad_wav_avg, locwvl(1:npoints), ymod(1:npoints), &
-          fitvar(1:nfitvar), database, yn_doas )
+          fitvar(1:nfitvar), database, ctrvar%yn_doas )
 
      !WRITE (*,'(1P100(E12.4:))') fitvar(1:nfitvar)
      !IF ( .NOT. yn_reference_fit ) THEN
@@ -275,7 +275,7 @@ SUBROUTINE specfit_func_o3exp ( fitvar, nfitvar, ymod, npoints, ctrl, dyda, mdy 
      ! Calculate the spectrum, without weighting
      CALL spectrum_earthshine_o3exp ( &
           npoints, nfitvar, rad_wav_avg, locwvl(1:npoints), ymod(1:npoints), &
-          fitvar(1:nfitvar), database, yn_doas )
+          fitvar(1:nfitvar), database, ctrvar%yn_doas )
 
   CASE DEFAULT
      !WRITE (*,'(A,I4)') &

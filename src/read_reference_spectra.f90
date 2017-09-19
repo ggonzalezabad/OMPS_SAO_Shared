@@ -4,9 +4,9 @@ SUBROUTINE read_reference_spectra ( pge_idx, n_max_rspec, pge_error_status )
   USE OMSAO_indices_module,    ONLY: max_rs_idx, pge_static_input_luns, &
        pge_o3_idx, o3_t1_idx, o3_t2_idx, o3_t3_idx, comm_idx
   USE OMSAO_parameters_module, ONLY: zerospec_string, r8_missval
-  USE OMSAO_variables_module,  ONLY: winwav_min, winwav_max, ReferenceSpectrum, &
-       refspecs_original, common_mode_spec, yn_solar_comp, solar_comp_typ, &
-       OMSAO_solcomp_filename, l1b_channel, yn_common_iter
+  USE OMSAO_variables_module,  ONLY: winwav_min, winwav_max, ReferenceSpectrum,&
+       refspecs_original, common_mode_spec, &
+       OMSAO_solcomp_filename, l1b_channel, yn_common_iter, ctrvar
   USE OMSAO_he5_datafields_module, ONLY: o3_prefit_he5fields
   USE OMSAO_solcomp_module
   USE OMSAO_errstat_module
@@ -106,10 +106,10 @@ SUBROUTINE read_reference_spectra ( pge_idx, n_max_rspec, pge_error_status )
   ! Practically, this isn't a reference spectrum of the same ilk, but it is
   ! ingested here since it is used in a similar way than all the others. 
   ! -----------------------------------------------------------------------
-  IF ( yn_solar_comp ) THEN
+  IF ( ctrvar%yn_solar_comp ) THEN
      errstat = pge_errstat_ok
      CALL soco_pars_read ( &
-          OMSAO_solcomp_filename, solar_comp_typ, l1b_channel, &
+          OMSAO_solcomp_filename, ctrvar%solar_comp_typ, l1b_channel, &
           winwav_min, winwav_max, errstat )
      CALL error_check ( &
           errstat, pge_errstat_ok, pge_errstat_error, OMSAO_E_READ_REFSPEC_FILE, &

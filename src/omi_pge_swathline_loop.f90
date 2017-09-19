@@ -9,7 +9,7 @@ SUBROUTINE omi_pge_swathline_loop ( &
   USE OMSAO_indices_module,    ONLY: n_max_fitpars
   USE OMSAO_variables_module,  ONLY:  &
        n_fitvar_rad, fitvar_rad_init, fitvar_rad_saved, &
-       n_fincol_idx, pcfvar
+       pcfvar, ctrvar
   USE OMSAO_omidata_module,    ONLY:  &
        nlines_max, nUTCdim, omi_scanline_no, &
        omi_itnum_flag, omi_fitconv_flag, omi_column_amount, &
@@ -44,7 +44,7 @@ SUBROUTINE omi_pge_swathline_loop ( &
   ! ---------------------------------------------------------------
   ! Variables to remove target gas from radiance reference spectrum
   ! ---------------------------------------------------------------
-  REAL (KIND=r8), DIMENSION (n_fincol_idx,1:nx) :: target_var, targsum, targcnt
+  REAL (KIND=r8), DIMENSION (ctrvar%n_fincol_idx,1:nx) :: target_var, targsum, targcnt
   REAL (KIND=r8), DIMENSION (1:nx)              :: target_fit, target_col
 
   ! ---------------------------------------------------------------------------------
@@ -132,7 +132,7 @@ SUBROUTINE omi_pge_swathline_loop ( &
           all_fitted_columns (1:n_fitvar_rad,fpix:lpix,iline),   &
           all_fitted_errors  (1:n_fitvar_rad,fpix:lpix,iline),   &
           correlation_columns(1:n_fitvar_rad,fpix:lpix,iline),   &
-          target_var(1:n_fincol_idx,fpix:lpix), locerrstat, fitspc_tmp, nwavel_max )
+          target_var(1:ctrvar%n_fincol_idx,fpix:lpix), locerrstat, fitspc_tmp, nwavel_max )
      ipix = (fpix+lpix)/2
      addmsg = ''
      WRITE (addmsg,'(I5, I3,1P,(3E15.5),I5)') omi_scanline_no, ipix, &

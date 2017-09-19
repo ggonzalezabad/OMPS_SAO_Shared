@@ -8,7 +8,7 @@ SUBROUTINE spectrum_solar ( &
        squ_idx
   USE OMSAO_variables_module,  ONLY: &
        refspecs_original, solar_spec_convolved, yn_use_labslitfunc, &
-       fitvar_cal, mask_fitvar_cal, yn_spectrum_norm, yn_newshift
+       fitvar_cal, mask_fitvar_cal, yn_newshift, ctrvar
   USE OMSAO_omidata_module,  ONLY: curr_xtrack_pixnum
   USE OMSAO_slitfunction_module
   USE OMSAO_errstat_module
@@ -57,7 +57,7 @@ SUBROUTINE spectrum_solar ( &
   npts               = refspecs_original(solar_idx)%nPoints
   solar_pos (1:npts) = refspecs_original(solar_idx)%RefSpecWavs(1:npts)
   solar_spec(1:npts) = refspecs_original(solar_idx)%RefSpecData(1:npts)
-  IF ( .NOT. yn_spectrum_norm ) &
+  IF ( .NOT. ctrvar%yn_spectrum_norm ) &
        solar_spec(1:npts) = solar_spec(1:npts) * refspecs_original(solar_idx)%NormFactor
 
   ! =========================================================================
@@ -183,8 +183,8 @@ SUBROUTINE spectrum_earthshine ( &
        squ_idx
   USE OMSAO_parameters_module, ONLY: max_spec_pts, downweight
   USE OMSAO_variables_module, ONLY: n_database_wvl, curr_sol_spec, &
-       fitvar_rad, mask_fitvar_rad, fitweights, yn_solar_comp, &
-       yn_spectrum_norm, yn_newshift
+       fitvar_rad, mask_fitvar_rad, fitweights, &
+       yn_newshift, ctrvar
   USE OMSAO_omidata_module,      ONLY: curr_xtrack_pixnum, omi_solcal_pars
   USE OMSAO_slitfunction_module, ONLY: saved_shift, saved_squeeze
   USE OMSAO_radiance_ref_module, ONLY: yn_radiance_reference, yn_reference_fit
@@ -254,8 +254,8 @@ SUBROUTINE spectrum_earthshine ( &
   ! the radiance only. The Solar Composite shift must be subtracted from
   ! the wavelength array, hence the negative sign.
   ! ---------------------------------------------------------------------
-  IF ( ( yn_solar_comp .AND. (.NOT. yn_radiance_reference) ) .OR. &
-       ( yn_solar_comp .AND. (yn_radiance_reference .AND. yn_reference_fit) ) ) THEN
+  IF ( ( ctrvar%yn_solar_comp .AND. (.NOT. yn_radiance_reference) ) .OR. &
+       ( ctrvar%yn_solar_comp .AND. (yn_radiance_reference .AND. yn_reference_fit) ) ) THEN
      yn_solsynth = .TRUE.
      soco_shi = -omi_solcal_pars(shi_idx,curr_xtrack_pixnum)
   ELSE
@@ -331,7 +331,7 @@ SUBROUTINE spectrum_earthshine ( &
 
         IF ( squeeze == 0.0_r8 .AND. yn_solsynth ) THEN
            CALL soco_compute ( &
-                yn_spectrum_norm, curr_xtrack_pixnum, npts, &
+                ctrvar%yn_spectrum_norm, curr_xtrack_pixnum, npts, &
                 locwvl_shift(1:npts)+soco_shi, sunspec_ss(1:npts) )
         ELSE
            CALL interpolation (                                                 &
@@ -483,7 +483,7 @@ SUBROUTINE spectrum_earthshine_o3exp ( &
   USE OMSAO_parameters_module, ONLY: max_spec_pts, downweight
   USE OMSAO_variables_module,  ONLY: &
        n_database_wvl, curr_sol_spec, fitvar_rad, mask_fitvar_rad, fitweights, &
-       yn_solar_comp, yn_spectrum_norm, yn_newshift
+       yn_newshift, ctrvar
   USE OMSAO_prefitcol_module,  ONLY:                                           &
        bro_prefit_fitidx, o3_prefit_fitidx, yn_bro_prefit, bro_prefit_var,     &
        yn_o3_prefit, o3_prefit_var
@@ -556,8 +556,8 @@ SUBROUTINE spectrum_earthshine_o3exp ( &
   ! the radiance only. The Solar Composite shift must be subtracted from
   ! the wavelength array, hence the negative sign.
   ! ---------------------------------------------------------------------
-  IF ( ( yn_solar_comp .AND. (.NOT. yn_radiance_reference) ) .OR. &
-       ( yn_solar_comp .AND. (yn_radiance_reference .AND. yn_reference_fit) ) ) THEN
+  IF ( ( ctrvar%yn_solar_comp .AND. (.NOT. yn_radiance_reference) ) .OR. &
+       ( ctrvar%yn_solar_comp .AND. (yn_radiance_reference .AND. yn_reference_fit) ) ) THEN
      yn_solsynth = .TRUE.
      soco_shi = -omi_solcal_pars(shi_idx,curr_xtrack_pixnum)
   ELSE
@@ -643,7 +643,7 @@ SUBROUTINE spectrum_earthshine_o3exp ( &
 
         IF ( squeeze == 0.0_r8 .AND. yn_solsynth ) THEN
            CALL soco_compute ( &
-                yn_spectrum_norm, curr_xtrack_pixnum, npts, &
+                ctrvar%yn_spectrum_norm, curr_xtrack_pixnum, npts, &
                 locwvl_shift(1:npts)+soco_shi, sunspec_ss(1:npts) )
         ELSE
            CALL interpolation (                                                         &

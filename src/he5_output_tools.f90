@@ -20,7 +20,7 @@ FUNCTION he5_init_swath ( file_name, swath_name, nTimes, nXtrack, nSwLevels ) RE
   USE OMSAO_omidata_module,   ONLY: nclenfit, nUTCdim, nwavel_max
   USE OMSAO_he5_module
   USE OMSAO_errstat_module
-  USE OMSAO_variables_module, ONLY: n_fitvar_rad, yn_diagnostic_run
+  USE OMSAO_variables_module, ONLY: n_fitvar_rad, ctrvar
 
   IMPLICIT NONE
 
@@ -86,7 +86,7 @@ FUNCTION he5_init_swath ( file_name, swath_name, nTimes, nXtrack, nSwLevels ) RE
   ! ---------------------------------------------------------
   ! Dimensions for Diagnostic Fields
   ! ---------------------------------------------------------
-  IF ( yn_diagnostic_run ) THEN
+  IF ( ctrvar%yn_diagnostic_run ) THEN
      errstat = HE5_SWdefdim  ( pge_swath_id, nfv,   INT(n_fitvar_rad,   KIND=C_LONG) )
      errstat = HE5_SWDefdim  ( pge_swath_id, ncv,   INT(nclenfit,       KIND=C_LONG) )
      errstat = HE5_SWdefdim  ( pge_swath_id, nwcp,  INT(max_calfit_idx, KIND=C_LONG) )
@@ -122,7 +122,7 @@ FUNCTION he5_define_fields ( pge_idx, swath_name, nTimes, nXtrack, nSwLevels ) R
 
   USE OMSAO_indices_module, ONLY: sao_molecule_names
   USE OMSAO_parameters_module, ONLY: maxchlen
-  USE OMSAO_variables_module,  ONLY: yn_sw, yn_diagnostic_run
+  USE OMSAO_variables_module,  ONLY: yn_sw, ctrvar
   USE OMSAO_omidata_module, ONLY: n_field_maxdim
   USE OMSAO_he5_module
   USE OMSAO_he5_datafields_module, ONLY: geo_he5fields, sol_calfit_he5fields, &
@@ -315,7 +315,7 @@ FUNCTION he5_define_fields ( pge_idx, swath_name, nTimes, nXtrack, nSwLevels ) R
   ! --------------------------
   ! (2) Diagnostic Data Fields
   ! --------------------------
-  IF ( yn_diagnostic_run ) THEN
+  IF ( ctrvar%yn_diagnostic_run ) THEN
 
      DO i = 1, n_diag_fields
 
@@ -574,7 +574,7 @@ SUBROUTINE he5_write_radfit_output ( &
        corr_didx,  corrcol_didx, correrr_didx, itnum_didx,  &
        fitwt_didx, posobs_didx,  spcobs_didx,  spcfit_didx, &
        spcres_didx
-  USE OMSAO_variables_module,  ONLY: yn_diagnostic_run
+  USE OMSAO_variables_module,  ONLY: ctrvar
   USE OMSAO_omidata_module, ONLY: nxtrack_max, n_roff_dig, nwavel_max, &
        omi_itnum_flag
   USE OMSAO_he5_module
@@ -641,7 +641,7 @@ SUBROUTINE he5_write_radfit_output ( &
   ! --------------------------------------------------
   ! Correlation Information (requires additional rank)
   ! --------------------------------------------------
-  IF ( yn_diagnostic_run ) THEN
+  IF ( ctrvar%yn_diagnostic_run ) THEN
 
      he5_start_2d = (/ 0, iline /) ;  he5_stride_2d = (/ 1, 1 /) ; he5_edge_2d = (/ nxtrack, 1 /)
      
@@ -680,7 +680,7 @@ SUBROUTINE he5_write_radfit_output ( &
   ! -------------------------------
   ! CCM Write Fit residuals to disk
   ! -------------------------------
-  IF( yn_diagnostic_run ) THEN
+  IF( ctrvar%yn_diagnostic_run ) THEN
           
      ! Write to he5
      he5_start_3d  = (/ 0,                0, iline /)
@@ -763,7 +763,7 @@ SUBROUTINE he5_write_common_mode ( nXtrack, npts, errstat )
   USE OMSAO_he5_module
   USE OMSAO_indices_module,   ONLY: commcnt_didx, commspc_didx, &
        commwvl_didx, ccdpix_didx
-  USE OMSAO_variables_module, ONLY: common_mode_spec, yn_diagnostic_run
+  USE OMSAO_variables_module, ONLY: common_mode_spec, ctrvar
   USE OMSAO_omidata_module,   ONLY: n_roff_dig
 
   IMPLICIT NONE
@@ -842,7 +842,7 @@ SUBROUTINE he5_write_common_mode ( nXtrack, npts, errstat )
   ! --------------------------
   ! CCD Pixel - First and Last
   ! --------------------------
-  IF ( yn_diagnostic_run .AND. yn_output_diag(ccdpix_didx)) THEN
+  IF ( ctrvar%yn_diagnostic_run .AND. yn_output_diag(ccdpix_didx)) THEN
      he5_start_2d  = (/ 0, 0 /) ;  he5_stride_2d = (/ 1, 1 /) ; he5_edge_2d = (/ nXtrack, 2 /)
      locerrstat = HE5_SWWRFLD ( &
           pge_swath_id, ccdpix_field, he5_start_2d, he5_stride_2d, he5_edge_2d, locccd(1:nXtrack,1:2) )
@@ -951,7 +951,7 @@ SUBROUTINE he5_write_fitting_statistics ( &
   USE OMSAO_errstat_module, ONLY: pge_errstat_ok, pge_errstat_error, he5_stat_ok, &
        omsao_e_he5swwrfld, error_check, vb_lev_default
   USE OMSAO_parameters_module, ONLY: maxchlen
-  USE OMSAO_variables_module, ONLY: yn_diagnostic_run
+  USE OMSAO_variables_module, ONLY: ctrvar
   USE OMSAO_omidata_module, ONLY: correlation_names_concat, nclenfit, nlines_max
 
   IMPLICIT NONE
@@ -1050,7 +1050,7 @@ SUBROUTINE he5_write_fitting_statistics ( &
   ! non-TLCF implementations of HDF-EOS5). We have thus adopted the work-around
   ! solution of converting everything to INTEGERs first and write those to file.
   ! ----------------------------------------------------------------------------
-  IF ( yn_diagnostic_run .AND. yn_output_diag(correlm_didx) ) THEN
+  IF ( ctrvar%yn_diagnostic_run .AND. yn_output_diag(correlm_didx) ) THEN
      he5_start_2d  = (/ zerocl, zerocl /)
      he5_stride_2d = (/  onecl, zerocl /)
      he5_edge_2d   = (/ INT(nclenfit,KIND=C_LONG), zerocl /)
@@ -1088,7 +1088,7 @@ FUNCTION he5_set_field_attributes ( pge_idx ) RESULT ( he5stat )
   !------------------------------------------------------------------------------
 
   USE OMSAO_indices_module, ONLY: sao_molecule_names
-  USE OMSAO_variables_module, ONLY: yn_diagnostic_run, yn_sw
+  USE OMSAO_variables_module, ONLY: ctrvar, yn_sw
   USE OMSAO_he5_module
   USE OMSAO_he5_datafields_module, ONLY: sw_he5fields, voc_he5fields, &
        diagnostic_he5fields, comdata_he5fields, rad_reffit_he5fields, &
@@ -1167,7 +1167,7 @@ FUNCTION he5_set_field_attributes ( pge_idx ) RESULT ( he5stat )
   ! ----------------------
   ! Diagnostic Data Fields
   ! ----------------------
-  IF ( yn_diagnostic_run ) THEN
+  IF ( ctrvar%yn_diagnostic_run ) THEN
      DO i = 1, n_diag_fields      
         ! Only do if we are outputting the field CCM
         IF( yn_output_diag(i) ) THEN

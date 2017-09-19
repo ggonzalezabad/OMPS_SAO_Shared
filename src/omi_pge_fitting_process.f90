@@ -122,10 +122,9 @@ SUBROUTINE omi_fitting (                                  &
   USE OMSAO_indices_module, ONLY: sao_molecule_names, voc_omicld_idx
   USE OMSAO_parameters_module, ONLY: i2_missval
   USE OMSAO_variables_module, ONLY: l1b_rad_filename, &
-       l2_filename, pixnum_lim, radfit_latrange, &
-       yn_solar_comp, yn_diagnostic_run, &
+       l2_filename, &
        yn_common_iter, common_latrange, OMSAO_refseccor_cld_filename, &
-       voc_amf_filenames, yn_refseccor
+       voc_amf_filenames, yn_refseccor, ctrvar
   USE OMSAO_omidata_module, ONLY: omi_latitude, omi_column_amount, &
        omi_cross_track_skippix, omi_radcal_itnum, omi_radcal_xflag, &
        omi_solcal_itnum, omi_solcal_xflag, &
@@ -234,7 +233,7 @@ SUBROUTINE omi_fitting (                                  &
   ! reference/calibration line.
   ! -------------------------------------------------------------------
   CALL omi_set_xtrpix_range ( &
-     nTimesRad, nXtrackRad, pixnum_lim(3:4), &
+     nTimesRad, nXtrackRad, ctrvar%pixnum_lim(3:4), &
      omi_xtrpix_range(0:nTimesRad-1,1:2), &
      first_wc_pix, last_wc_pix, errstat )
 
@@ -246,7 +245,7 @@ SUBROUTINE omi_fitting (                                  &
   ! --------------------------------------------------------------------
   IF ( TRIM(ADJUSTL(l1b_radref_filename)) /= TRIM(ADJUSTL(l1b_rad_filename)) ) THEN
     CALL omi_set_xtrpix_range ( &
-          nTimesRadRR, nXtrackRadRR, pixnum_lim(3:4), &
+          nTimesRadRR, nXtrackRadRR, ctrvar%pixnum_lim(3:4), &
            omi_xtrpix_range_rr(0:nTimesRadRR-1,1:2), &
           first_wc_pix, last_wc_pix, errstat )
      pge_error_status = MAX ( pge_error_status, errstat )
@@ -316,7 +315,7 @@ SUBROUTINE omi_fitting (                                  &
   ! -----------------------------------------------------
   omi_radcal_itnum = i2_missval ; omi_radcal_xflag = i2_missval
   CALL xtrack_radiance_wvl_calibration (                          &
-       yn_radiance_reference, yn_solar_comp,                      &
+       yn_radiance_reference, ctrvar%yn_solar_comp,                      &
        first_wc_pix, last_wc_pix, n_max_rspec, n_comm_wvl, errstat )
   pge_error_status = MAX ( pge_error_status, errstat )
   IF ( pge_error_status >= pge_errstat_error )  GO TO 666
@@ -431,7 +430,7 @@ SUBROUTINE omi_fitting (                                  &
      ! -------------------------------------------
      ! Write the just computed common mode to file
      ! -------------------------------------------
-     IF ( yn_diagnostic_run ) &
+     IF ( ctrvar%yn_diagnostic_run ) &
           CALL he5_write_common_mode ( nXtrackRad, n_comm_wvl, pge_error_status )
 
   END IF
@@ -449,20 +448,20 @@ SUBROUTINE omi_fitting (                                  &
   ! First, set the range of swath lines to process
   ! ----------------------------------------------
   first_line = 0  ;  last_line = nTimesRad-1
-  IF ( pixnum_lim(1) > 0 ) first_line = MIN(pixnum_lim(1), last_line)
-  IF ( pixnum_lim(2) > 0 ) last_line  = MAX( MIN(pixnum_lim(2), last_line), first_line )
+  IF ( ctrvar%pixnum_lim(1) > 0 ) first_line = MIN(ctrvar%pixnum_lim(1), last_line)
+  IF ( ctrvar%pixnum_lim(2) > 0 ) last_line  = MAX( MIN(ctrvar%pixnum_lim(2), last_line), first_line )
 
   yn_radfit_range = .FALSE.
   IF ( first_line         > 0           .OR. &
        last_line          < nTimesRad-1 .OR. &
-       radfit_latrange(1) > -90.0_r4    .OR. &
-       radfit_latrange(2) < +90.0_r4           ) THEN
+       ctrvar%radfit_latrange(1) > -90.0_r4    .OR. &
+       ctrvar%radfit_latrange(2) < +90.0_r4           ) THEN
 
-     IF ( radfit_latrange(1) > -90.0_r4    .OR. &
-          radfit_latrange(2) < +90.0_r4           ) THEN
+     IF ( ctrvar%radfit_latrange(1) > -90.0_r4    .OR. &
+          ctrvar%radfit_latrange(2) < +90.0_r4           ) THEN
         CALL find_swathline_range ( &
              nTimesRad, nXtrackRad, l1b_latitudes(1:nXtrackRad,0:nTimesRad-1),       &
-             radfit_latrange(1:2), yn_radfit_range(0:nTimesRad-1), errstat             )
+             ctrvar%radfit_latrange(1:2), yn_radfit_range(0:nTimesRad-1), errstat             )
      ELSE
         yn_radfit_range = .TRUE.
         IF ( first_line > 0           ) yn_radfit_range(0:first_line-1)          = .FALSE.

@@ -17,16 +17,16 @@ SUBROUTINE read_fitting_control_file ( l1b_radiance_esdt, pge_error_status )
        comm_idx, procmode_diag, solmonthave_str, wfmod_amf_str, newshift_str, &
        refseccor_str, scattweight_str
   USE OMSAO_parameters_module, ONLY: maxchlen, n_fit_winwav
-  USE OMSAO_variables_module, ONLY: fitcol_idx, n_mol_fit, max_itnum_sol, max_itnum_rad, &
-       yn_smooth, yn_doas, fitvar_sol_init, fitvar_rad_init,  fitvar_rad_saved, szamax,  &
+  USE OMSAO_variables_module, ONLY: max_itnum_sol, max_itnum_rad, &
+       fitvar_sol_init, fitvar_rad_init,  fitvar_rad_saved, szamax,  &
        zatmos, lo_sunbnd, up_sunbnd, lo_radbnd, up_radbnd, yn_use_labslitfunc, &
-       radwavcal_freq, tol, epsrel, epsabs, epsx, pm_one, phase, fit_winwav_lim, &
-       fit_winexc_lim, pixnum_lim, radfit_latrange, fitvar_rad_str, &
+       radwavcal_freq, pm_one, phase, fit_winwav_lim, &
+       fit_winexc_lim, fitvar_rad_str, &
        winwav_min, winwav_max, have_undersampling, n_fitres_loop, fitres_range, &
-       l1b_channel, yn_solar_i0, yn_solar_comp, solar_comp_typ, yn_spectrum_norm, &
+       l1b_channel, yn_solar_i0, &
        yn_common_iter, common_fitpos, common_fitvar, common_latrange, yn_o3amf_cor, &
-       yn_diagnostic_run, max_good_col, yn_solmonthave, yn_newshift, yn_refseccor, yn_sw, &
-       pcfvar
+       max_good_col, yn_solmonthave, yn_newshift, yn_refseccor, yn_sw, &
+       pcfvar, ctrvar
   USE OMSAO_prefitcol_module, ONLY: yn_bro_prefit, yn_o3_prefit, yn_lqh2o_prefit
   USE OMSAO_omidata_module, ONLY: nxtrack_max
   USE OMSAO_radiance_ref_module, ONLY: yn_radiance_reference, radref_latrange, &
@@ -107,7 +107,7 @@ SUBROUTINE read_fitting_control_file ( l1b_radiance_esdt, pge_error_status )
   IF ( pge_error_status >= pge_errstat_error ) RETURN
 
   READ (fit_ctrl_unit, '(A)') tmpchar
-  CALL get_mols_for_fitting ( tmpchar, n_mol_fit, fitcol_idx, errstat )
+  CALL get_mols_for_fitting ( tmpchar, ctrvar%n_mol_fit, ctrvar%fitcol_idx, errstat )
   CALL error_check ( &
        errstat, pge_errstat_ok, pge_errstat_fatal, OMSAO_F_GET_MOLFITNAME, &
        modulename, vb_lev_default, pge_error_status )
@@ -127,9 +127,9 @@ SUBROUTINE read_fitting_control_file ( l1b_radiance_esdt, pge_error_status )
   READ (fit_ctrl_unit, '(A)') tmpchar
   tmpchar = lower_case ( TRIM(ADJUSTL(tmpchar)) )
   IF ( TRIM(ADJUSTL(tmpchar)) == procmode_diag ) THEN
-     yn_diagnostic_run = .TRUE.
+     ctrvar%yn_diagnostic_run = .TRUE.
   ELSE
-     yn_diagnostic_run = .FALSE.
+     ctrvar%yn_diagnostic_run = .FALSE.
   END IF
 
   ! ------------------------------------------------
@@ -142,22 +142,22 @@ SUBROUTINE read_fitting_control_file ( l1b_radiance_esdt, pge_error_status )
        modulename//f_sep//genline_str, vb_lev_default, pge_error_status )
   IF ( pge_error_status >= pge_errstat_error ) RETURN
 
-  READ (fit_ctrl_unit, *) yn_smooth
-  READ (fit_ctrl_unit, *) yn_doas
-  READ (fit_ctrl_unit, *) pixnum_lim(1:2)
-  READ (fit_ctrl_unit, *) pixnum_lim(3:4)
-  READ (fit_ctrl_unit, *) radfit_latrange(1:2)
-  READ (fit_ctrl_unit, *) tol
-  READ (fit_ctrl_unit, *) epsrel
-  READ (fit_ctrl_unit, *) epsabs
-  READ (fit_ctrl_unit, *) epsx
+  READ (fit_ctrl_unit, *) ctrvar%yn_smooth
+  READ (fit_ctrl_unit, *) ctrvar%yn_doas
+  READ (fit_ctrl_unit, *) ctrvar%pixnum_lim(1:2)
+  READ (fit_ctrl_unit, *) ctrvar%pixnum_lim(3:4)
+  READ (fit_ctrl_unit, *) ctrvar%radfit_latrange(1:2)
+  READ (fit_ctrl_unit, *) ctrvar%tol
+  READ (fit_ctrl_unit, *) ctrvar%epsrel
+  READ (fit_ctrl_unit, *) ctrvar%epsabs
+  READ (fit_ctrl_unit, *) ctrvar%epsx
 
   ! ------------------------------------------------
   ! Check for consistency of pixel limits to process
   ! ------------------------------------------------
-  IF ( ANY ( pixnum_lim(3:4) < 1 ) ) pixnum_lim(3:4) = (/ 1, nxtrack_max /)
-  IF ( pixnum_lim(1) > pixnum_lim(2) ) pixnum_lim(1) = pixnum_lim(2)
-  IF ( pixnum_lim(3) > pixnum_lim(4) ) pixnum_lim(3) = pixnum_lim(4)
+  IF ( ANY ( ctrvar%pixnum_lim(3:4) < 1 ) ) ctrvar%pixnum_lim(3:4) = (/ 1, nxtrack_max /)
+  IF ( ctrvar%pixnum_lim(1) > ctrvar%pixnum_lim(2) ) ctrvar%pixnum_lim(1) = ctrvar%pixnum_lim(2)
+  IF ( ctrvar%pixnum_lim(3) > ctrvar%pixnum_lim(4) ) ctrvar%pixnum_lim(3) = ctrvar%pixnum_lim(4)
 
   ! -------------------------------------------------
   ! Position cursor to read solar composite selection
@@ -169,8 +169,8 @@ SUBROUTINE read_fitting_control_file ( l1b_radiance_esdt, pge_error_status )
        modulename//f_sep//scpline_str, vb_lev_default, pge_error_status )
   IF ( pge_error_status >= pge_errstat_error ) RETURN
 
-  READ (fit_ctrl_unit, *) yn_solar_comp
-  IF ( yn_solar_comp ) READ (fit_ctrl_unit,*) solar_comp_typ
+  READ (fit_ctrl_unit, *) ctrvar%yn_solar_comp
+  IF ( ctrvar%yn_solar_comp ) READ (fit_ctrl_unit,*) ctrvar%solar_comp_typ
 
   ! -----------------------------------------------------
   ! Position cursor to read solar monthly average section
@@ -194,7 +194,7 @@ SUBROUTINE read_fitting_control_file ( l1b_radiance_esdt, pge_error_status )
        modulename//f_sep//nrmline_str, vb_lev_default, pge_error_status )
   IF ( pge_error_status >= pge_errstat_error ) RETURN
 
-  READ (fit_ctrl_unit, *) yn_spectrum_norm
+  READ (fit_ctrl_unit, *) ctrvar%yn_spectrum_norm
 
 
   ! ---------------------------------------------------------------------
@@ -554,7 +554,7 @@ SUBROUTINE read_fitting_control_file ( l1b_radiance_esdt, pge_error_status )
 
   CALL find_radiance_fitting_variables ( errstat )
 
-  IF ( yn_doas ) THEN
+  IF ( ctrvar%yn_doas ) THEN
      pm_one     = -1.0_r8
   ELSE
      pm_one     =  1.0_r8
@@ -652,8 +652,8 @@ SUBROUTINE find_radiance_fitting_variables ( errstat )
        o3_t1_idx, o3_t3_idx, bro_idx, comm_idx
   USE OMSAO_variables_module,    ONLY: &
        n_fitvar_rad, all_radfit_idx, mask_fitvar_rad, fitvar_rad_init,         &
-       lo_radbnd, up_radbnd, n_fincol_idx, n_mol_fit, fitcol_idx, fincol_idx,  &
-       yn_common_iter, common_fitpos
+       lo_radbnd, up_radbnd, &
+       yn_common_iter, common_fitpos, ctrvar
   USE OMSAO_prefitcol_module, ONLY:                                            &
        o3_prefit_fitidx, bro_prefit_fitidx, yn_bro_prefit, yn_o3_prefit,       &
        n_prefit_vars
@@ -731,7 +731,7 @@ SUBROUTINE find_radiance_fitting_variables ( errstat )
   ! ------------------------------------
   ! Now the reference spectra parameters
   ! ------------------------------------
-  n_fincol_idx  = 0
+  ctrvar%n_fincol_idx  = 0
   n_prefit_vars = 0
   DO i = 1, max_rs_idx
      idx = max_calfit_idx + (i-1)*mxs_idx
@@ -754,11 +754,11 @@ SUBROUTINE find_radiance_fitting_variables ( errstat )
            ! remembers the reference spectrum that is associated with this molecule, so
            ! that we can easily access its normalization factor.
            ! --------------------------------------------------------------------------
-           getfincol: DO k = 1, n_mol_fit
-              IF ( fitcol_idx(k) == i ) THEN
-                 n_fincol_idx = n_fincol_idx + 1
-                 fincol_idx (1,n_fincol_idx) = n_fitvar_rad
-                 fincol_idx (2,n_fincol_idx) = i
+           getfincol: DO k = 1, ctrvar%n_mol_fit
+              IF ( ctrvar%fitcol_idx(k) == i ) THEN
+                 ctrvar%n_fincol_idx = ctrvar%n_fincol_idx + 1
+                 ctrvar%fincol_idx (1,ctrvar%n_fincol_idx) = n_fitvar_rad
+                 ctrvar%fincol_idx (2,ctrvar%n_fincol_idx) = i
                  EXIT getfincol
               END IF
            END DO getfincol

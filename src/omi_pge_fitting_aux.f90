@@ -55,7 +55,7 @@ SUBROUTINE omi_adjust_irradiance_data ( &
   USE OMSAO_precision_module, ONLY: i4, r8
   USE OMSAO_indices_module, ONLY: wvl_idx, spc_idx, sig_idx, ccd_idx
   USE OMSAO_parameters_module, ONLY: downweight, normweight, r4_missval
-  USE OMSAO_variables_module, ONLY: sol_wav_avg, yn_spectrum_norm
+  USE OMSAO_variables_module, ONLY: sol_wav_avg, ctrvar
   USE OMSAO_errstat_module, ONLY: pge_errstat_ok
 
   IMPLICIT NONE
@@ -183,7 +183,7 @@ SUBROUTINE omi_adjust_irradiance_data ( &
   ! --------------------------------------
   ! Finally, normalize the solar spectrum.
   ! --------------------------------------
-  IF ( yn_spectrum_norm ) &
+  IF ( ctrvar%yn_spectrum_norm ) &
        curr_sol_spec(spc_idx,1:n_sol_wvl) = curr_sol_spec(spc_idx,1:n_sol_wvl) / sol_spec_avg
 
   ! ---------------------------------------------
@@ -252,7 +252,7 @@ SUBROUTINE omi_adjust_radiance_data (                                   &
   USE OMSAO_precision_module, ONLY: i4, r8
   USE OMSAO_indices_module, ONLY: wvl_idx, spc_idx, sig_idx, ccd_idx
   USE OMSAO_parameters_module, ONLY: downweight, r4_missval
-  USE OMSAO_variables_module, ONLY: yn_solar_comp, yn_spectrum_norm
+  USE OMSAO_variables_module, ONLY: ctrvar
   USE OMSAO_radiance_ref_module, ONLY: yn_radiance_reference
   USE OMSAO_solcomp_module, ONLY: solarcomp_pars
   USE OMSAO_errstat_module, ONLY: pge_errstat_ok
@@ -416,8 +416,8 @@ SUBROUTINE omi_adjust_radiance_data (                                   &
      ! magnitudes, which means that the Solar Intensity parameter will be more
      ! closely associated with (but not necessarily identical to) the scene albedo.
      ! -----------------------------------------------------------------------------
-     IF ( .NOT. yn_spectrum_norm ) THEN                               ! branch for "(2)" or "(3)"
-        IF ( yn_solar_comp .AND. (.NOT. yn_radiance_reference) ) THEN ! "(2)"
+     IF ( .NOT. ctrvar%yn_spectrum_norm ) THEN                               ! branch for "(2)" or "(3)"
+        IF ( ctrvar%yn_solar_comp .AND. (.NOT. yn_radiance_reference) ) THEN ! "(2)"
            rad_spec_avg = solarcomp_pars%SolarNorm
         ELSE                                                          ! "(3)"
            rad_spec_avg = 1.0_r8
@@ -747,7 +747,7 @@ SUBROUTINE set_input_pointer_and_versions ( pge_idx )
        l1b_irradiance_lun, o3_prefit_lun, bro_prefit_lun, lqh2o_prefit_lun, &
        voc_amf_luns, voc_omicld_idx, pge_h2o_idx
   USE OMSAO_he5_module, ONLY: n_lun_inp, lun_input, input_versions
-  USE OMSAO_variables_module, ONLY: yn_solar_comp, l1b_rad_filename
+  USE OMSAO_variables_module, ONLY: l1b_rad_filename, ctrvar
   USE OMSAO_radiance_ref_module, ONLY: yn_radiance_reference, l1b_radref_filename
 
   IMPLICIT NONE
@@ -795,7 +795,7 @@ SUBROUTINE set_input_pointer_and_versions ( pge_idx )
   ! --------------------
   ! (b) Solar Irradiance
   ! --------------------
-  IF ( .NOT. yn_solar_comp ) THEN
+  IF ( .NOT. ctrvar%yn_solar_comp ) THEN
      n_lun_inp = n_lun_inp + 1
      lun_input(n_lun_inp) = l1b_irradiance_lun
   END IF
@@ -861,7 +861,7 @@ SUBROUTINE set_input_pointer_and_versions ( pge_idx )
   ! we have to compose the pieces of information from various
   ! MetaData strings.
   ! ------------------------------------------------------------
-  CALL get_input_versions ( pge_idx, yn_solar_comp, yn_radref, input_versions )
+  CALL get_input_versions ( pge_idx, ctrvar%yn_solar_comp, yn_radref, input_versions )
   input_versions = TRIM(ADJUSTL(input_versions))
 
   RETURN
@@ -1703,7 +1703,7 @@ SUBROUTINE find_swathline_range ( &
      nt, nx, l1blats, latrange, yn_in_range, errstat )
 
   USE OMSAO_precision_module, ONLY: i4, r4
-  USE OMSAO_variables_module, ONLY: pixnum_lim
+  USE OMSAO_variables_module, ONLY: ctrvar
   USE OMSAO_errstat_module, ONLY: pge_errstat_ok
 
   IMPLICIT NONE
@@ -1736,7 +1736,7 @@ SUBROUTINE find_swathline_range ( &
   ! that fall within the desired latitude interval.
   ! ----------------------------------------------------------------
   CALL omi_set_xtrpix_range ( &
-       nt, nx, pixnum_lim(3:4), &
+       nt, nx, ctrvar%pixnum_lim(3:4), &
        xtrange(0:nt-1,1:2), fpix, lpix, estat    )
 
   ! ----------------------------------------------------------------------

@@ -76,7 +76,7 @@ SUBROUTINE prepare_solar_refspec ( &
   USE OMSAO_precision_module, ONLY: i4, r8
   USE OMSAO_indices_module, ONLY: &
        max_rs_idx, solar_idx, ring_idx
-  USE OMSAO_variables_module, ONLY: yn_doas, fit_winwav_idx, yn_smooth, database
+  USE OMSAO_variables_module, ONLY: fit_winwav_idx, database, ctrvar
   USE OMSAO_errstat_module, ONLY: omsao_e_interpol, omsao_w_interpol_range, &
        pge_errstat_error, pge_errstat_ok, pge_errstat_warning, vb_lev_default, &
        vb_lev_develop, error_check
@@ -177,20 +177,20 @@ SUBROUTINE prepare_solar_refspec ( &
   ! (afterward, add solar spectrum back in order to divide by solar
   ! spectrum with altered wavelength calibration in subroutine spectrum).
   ! ---------------------------------------------------------------------
-  IF ( yn_doas ) database(ring_idx, 1:n_radpts) = &
+  IF ( ctrvar%yn_doas ) database(ring_idx, 1:n_radpts) = &
        database(ring_idx, 1:n_radpts) / spline_sun(1:n_radpts)
 
   ! ---------------------------------------------------------
   ! For the DOAS case, high-pass filter the reference spectra
   ! ---------------------------------------------------------
-  IF ( yn_doas ) THEN
+  IF ( ctrvar%yn_doas ) THEN
      ll_rad = fit_winwav_idx(2) ; lu_rad = fit_winwav_idx(3)
      CALL subtract_cubic (curr_rad_wvl, n_radpts, ll_rad, lu_rad)
      database(ring_idx, 1:n_radpts) = &
           database(ring_idx, 1:n_radpts) * spline_sun(1:n_radpts)
   END IF
 
-  IF ( yn_smooth ) database(1:max_rs_idx, 3:n_radpts-2) = &
+  IF ( ctrvar%yn_smooth ) database(1:max_rs_idx, 3:n_radpts-2) = &
        0.375_r8  * database(1:max_rs_idx, 3:n_radpts-2)  +  &
        0.25_r8   * (database(1:max_rs_idx, 4:n_radpts-1) + &
        database(1:max_rs_idx, 2:n_radpts-3)) + &

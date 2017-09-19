@@ -28,7 +28,7 @@ CONTAINS
     USE OMSAO_variables_module,  ONLY: database, curr_sol_spec, n_rad_wvl, &
          curr_rad_spec, sol_wav_avg, hw1e, e_asym, n_fitvar_rad, &
          fitvar_rad_saved, fitvar_rad_init, n_database_wvl, fitvar_rad, &
-         n_fincol_idx, fincol_idx, n_fitres_loop, fitres_range, xtrack_fitres_limit, pcfvar
+         n_fitres_loop, fitres_range, xtrack_fitres_limit, pcfvar, ctrvar
     USE OMSAO_slitfunction_module, ONLY: saved_shift, saved_squeeze
     USE OMSAO_omidata_module, ONLY: omi_nwav_irrad, omi_irradiance_wght, &
          omi_nwav_rad, n_omi_database_wvl, omi_cross_track_skippix, &
@@ -69,7 +69,7 @@ CONTAINS
     INTEGER (KIND=i4), DIMENSION (2)                 :: exclud_idx
     INTEGER (KIND=i4)                                :: n_solar_pts
     REAL    (KIND=r8), DIMENSION (1:nw)              :: solar_wgt
-    REAL    (KIND=r8), DIMENSION (n_fincol_idx,1:nx) :: target_var 
+    REAL    (KIND=r8), DIMENSION (ctrvar%n_fincol_idx,1:nx) :: target_var 
 
     ! CCM fitted spectrum now returned from radiance_fit.f90
     REAL    (KIND=r8), DIMENSION (1:nw)              :: fitspctmp
@@ -197,7 +197,7 @@ CONTAINS
                   yn_reference_fit,                                                         &
                   n_rad_wvl, curr_rad_spec(wvl_idx:ccd_idx,1:n_rad_wvl),                    &
                   fitcol, rms, dfitcol, radfit_exval, radfit_itnum, chisquav,               &
-                  o3fit_cols, o3fit_dcols, target_var(1:n_fincol_idx,ipix),                 &
+                  o3fit_cols, o3fit_dcols, target_var(1:ctrvar%n_fincol_idx,ipix),                 &
                   allfit_cols_tmp(1:n_fitvar_rad), allfit_errs_tmp(1:n_fitvar_rad),         &
                   corr_matrix_tmp(1:n_fitvar_rad), yn_bad_pixel, fitspctmp(1:n_rad_wvl) )
 
@@ -251,8 +251,8 @@ CONTAINS
        ! subroutine via MODULE use rather than through the argument list.
        ! ----------------------------------------------------------------
        CALL remove_target_from_radiance (                              &
-            fpix, lpix, n_fincol_idx, fincol_idx(1:2,1:n_fincol_idx),  &
-            target_npol, target_var(1:n_fincol_idx,fpix:lpix), omi_radref_xtrcol(fpix:lpix) )
+            fpix, lpix, ctrvar%n_fincol_idx, ctrvar%fincol_idx(1:2,1:ctrvar%n_fincol_idx),  &
+            target_npol, target_var(1:ctrvar%n_fincol_idx,fpix:lpix), omi_radref_xtrcol(fpix:lpix) )
        
     END IF
 

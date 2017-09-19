@@ -31,11 +31,45 @@ MODULE OMSAO_variables_module
   END type pcf_variables
   TYPE(pcf_variables):: pcfvar
 
+  ! ----------------------------------------------------------------------
+  ! Index for the fitting parameters carrying the fitted column value.
+  ! N_MOL_FIT:    Number of "molecules" that carry the final column; this
+  !               can be one molecule at different temperatures.
+  ! FITCOL_IDX:   The main molecule indices, corresponding to the list of
+  !               reference spectra.
+  ! FINCOL_IDX:   For the final summation of the fitted column: The total
+  !               number is the number of different molecules times the
+  !               allowed sub-indices. The second dimension is for the
+  !               reference spectrum index - this eases the final sum over
+  !               the fitted columns (see RADIANCE_FIT subroutine).
+  !                includes
+  !               the subindices, hence the dimension.
+  ! N_FINCOL_IDX: Number of final column indices.
+  ! Logicals for processing mode (diagnostic or production), smooth, doas,
+  !  normalization, solar composite
+  ! Pixel number limits:
+  !  * 1,2: First and last scan line number
+  !  * 3,4: First and last cross-track pixel
+  ! Latitude limits: Lower and upper latitude to process
+  ! Variables connected with ELSUNC numerical precision/convergence criteria
+  ! Solar composite type
+  ! ----------------------------------------------------------------------
+  TYPE ctr_variables
+     INTEGER (KIND=I4) :: n_mol_fit, n_fincol_idx
+     INTEGER (KIND=I4), DIMENSION (max_mol_fit) :: fitcol_idx
+     INTEGER (KIND=I4), DIMENSION (2,max_mol_fit*mxs_idx) :: fincol_idx
+     LOGICAL :: yn_diagnostic_run, yn_smooth, yn_doas, yn_spectrum_norm, &
+          yn_solar_comp
+     INTEGER (KIND=I4), DIMENSION (4) :: pixnum_lim
+     REAL(KIND=r4), DIMENSION (2) :: radfit_latrange
+     REAL (KIND=r8) :: tol,  epsrel,  epsabs,  epsx
+     INTEGER (KIND=i4) :: solar_comp_typ
+  END type ctr_variables
+  TYPE(ctr_variables) :: ctrvar
+
   ! -------------------------------------------------
   ! Variables defined in preamble of original program
   ! -------------------------------------------------
-  LOGICAL :: yn_smooth, yn_doas
-  LOGICAL :: yn_spectrum_norm
 
   INTEGER (KIND=I4), DIMENSION (n_max_fitpars)  :: mask_fitvar_rad, mask_fitvar_cal, all_radfit_idx
 
@@ -150,18 +184,6 @@ MODULE OMSAO_variables_module
   REAL    (KIND=r8), DIMENSION (nwavel_max)             :: fitwavs, fitweights, currspec
   REAL    (KIND=r8), DIMENSION (nwavel_max,nxtrack_max) :: rad_spec_wavcal, rad_wght_wavcal
 
-  ! ----------------------------------------
-  ! Pixel number limits:
-  !  * 1,2: First and last scan line number
-  !  * 3,4: First and last cross-track pixel
-  ! ----------------------------------------
-  INTEGER (KIND=I4), DIMENSION (4) :: pixnum_lim
-
-  ! ----------------------------------------------------
-  ! Latitude limits: Lower and upper latitude to process
-  ! ----------------------------------------------------
-  REAL (KIND=r4), DIMENSION (2) :: radfit_latrange
-
   ! ---------------------------------------------------------------------
   ! Contstraints on the fitting residual: Window and Number of Iterations
   ! ---------------------------------------------------------------------
@@ -173,35 +195,10 @@ MODULE OMSAO_variables_module
   ! --------------------------------------------
   INTEGER (KIND=I4) :: radwavcal_freq
 
-  ! ------------------------------------------------------------------------
-  ! Variables connected with ELSUNC numerical precision/convergence criteria
-  ! ------------------------------------------------------------------------
-  REAL (KIND=r8) :: tol,  epsrel,  epsabs,  epsx
-
   ! ----------------------------------------
   ! Variable for +1.0 or -1.0 multiplication
   ! ----------------------------------------
   REAL (KIND=r8) :: pm_one
-
-  ! ----------------------------------------------------------------------
-  ! Index for the fitting parameters carrying the fitted column value.
-  !
-  ! N_MOL_FIT:    Number of "molecules" that carry the final column; this
-  !               can be one molecule at different temperatures.
-  ! FITCOL_IDX:   The main molecule indices, corresponding to the list of
-  !               reference spectra.
-  ! FINCOL_IDX:   For the final summation of the fitted column: The total
-  !               number is the number of different molecules times the
-  !               allowed sub-indices. The second dimension is for the
-  !               reference spectrum index - this eases the final sum over
-  !               the fitted columns (see RADIANCE_FIT subroutine).
-  !                includes
-  !               the subindices, hence the dimension.
-  ! N_FINCOL_IDX: Number of final column indices.
-  ! ----------------------------------------------------------------------
-  INTEGER (KIND=I4)                                    :: n_mol_fit, n_fincol_idx
-  INTEGER (KIND=I4), DIMENSION (max_mol_fit)           :: fitcol_idx
-  INTEGER (KIND=I4), DIMENSION (2,max_mol_fit*mxs_idx) :: fincol_idx
 
   ! ------------------------------------
   ! Maximum number of fitting iterations
@@ -253,8 +250,6 @@ MODULE OMSAO_variables_module
   ! Filename, logical and type indices for composite Solar Spectrum
   ! ---------------------------------------------------------------
   CHARACTER (LEN=maxchlen) :: OMSAO_solcomp_filename
-  LOGICAL                  :: yn_solar_comp
-  INTEGER (KIND=i4)        :: solar_comp_typ, solar_comp_orb
 
   ! -------------------------------------------------------
   ! Filename and logical for solar monthly average spectrum
@@ -266,11 +261,6 @@ MODULE OMSAO_variables_module
   ! Logicals for Solar I0 correction
   ! -------------------------------
   LOGICAL           :: yn_solar_i0
-
-  ! ------------------------------------------------------
-  ! Logical for processing mode (diagnostic or production)
-  ! ------------------------------------------------------
-  LOGICAL           :: yn_diagnostic_run
 
   ! --------------------------------------------
   ! * Logical for Common Mode Iteration

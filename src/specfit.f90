@@ -6,7 +6,7 @@ SUBROUTINE specfit (                                       &
   USE OMSAO_indices_module,        ONLY: elsunc_userdef
   USE OMSAO_parameters_module,     ONLY: elsunc_np, elsunc_nw, forever
   USE OMSAO_variables_module,      ONLY: &
-       tol, epsrel, epsabs, epsx, num_fitfunc_calls, num_fitfunc_jacobi, max_fitfunc_calls
+       num_fitfunc_calls, num_fitfunc_jacobi, max_fitfunc_calls, ctrvar
   USE OMSAO_elsunc_fitting_module, ONLY: elsunc
 
   IMPLICIT NONE
@@ -51,7 +51,7 @@ SUBROUTINE specfit (                                       &
   exval = 0 ; itnum = 0
   
   p   = -1    ;  p(1)   = 0 ;  p(3) = max_itnum
-  w   = -1.0  ;  w(1:4) = (/ tol,  epsrel,  epsabs,  epsx /)
+  w   = -1.0  ;  w(1:4) = (/ ctrvar%tol, ctrvar%epsrel, ctrvar%epsabs, ctrvar%epsx /)
 
   blow(1:nfitvar) = lowbnd(1:nfitvar)
   bupp(1:nfitvar) = uppbnd(1:nfitvar)

@@ -10,7 +10,7 @@ SUBROUTINE xtrack_radiance_wvl_calibration (             &
   USE OMSAO_variables_module, ONLY: hw1e, e_asym, &
        n_rad_wvl, curr_rad_spec, sol_wav_avg, database, fitvar_cal, &
        fitvar_cal_saved, fitvar_rad_init, n_fitres_loop, &
-       fitres_range, yn_diagnostic_run, pcfvar
+       fitres_range, pcfvar, ctrvar
   USE OMSAO_slitfunction_module, ONLY: saved_shift, saved_squeeze
   USE OMSAO_omidata_module, ONLY: nwavel_max, nxtrack_max, &
        omi_cross_track_skippix, omi_nwav_radref, omi_radcal_itnum, &
@@ -317,7 +317,7 @@ SUBROUTINE xtrack_radiance_wvl_calibration (             &
   END DO XTrackWavCal
 
   ! CCM Write splined/convolved databases if necessary
-  IF( yn_diagnostic_run ) THEN
+  IF( ctrvar%yn_diagnostic_run ) THEN
      
      ! omi_database maybe omi_database_wvl?
      CALL he5_write_omi_database(omi_database(1:max_rs_idx,1:n_rad_wvl,1:nxtrack_max), &
@@ -345,7 +345,7 @@ SUBROUTINE xtrack_radiance_fitting_loop (                             &
   USE OMSAO_parameters_module, ONLY: i2_missval, r8_missval
   USE OMSAO_variables_module,  ONLY: database, curr_sol_spec, n_rad_wvl, &
        curr_rad_spec, sol_wav_avg, hw1e, e_asym, n_database_wvl, &
-       n_fitres_loop, fitres_range, szamax, n_fincol_idx
+       n_fitres_loop, fitres_range, szamax, ctrvar
   USE OMSAO_radiance_ref_module, ONLY: yn_reference_fit
   USE OMSAO_slitfunction_module, ONLY: saved_shift, saved_squeeze
   USE OMSAO_omidata_module, ONLY: nxtrack_max, n_comm_wvl, &
@@ -378,7 +378,7 @@ SUBROUTINE xtrack_radiance_fitting_loop (                             &
   ! ---------------------------------------------------------
   ! Optional output variable (fitted variable for target gas)
   ! ---------------------------------------------------------
-  REAL (KIND=r8), DIMENSION(n_fincol_idx,first_pix:last_pix), INTENT (OUT) :: target_var
+  REAL (KIND=r8), DIMENSION(ctrvar%n_fincol_idx,first_pix:last_pix), INTENT (OUT) :: target_var
 
   ! CCM Output fit spectra
   REAL (KIND=r8), DIMENSION(fitspc_out_dim0,nxtrack_max,4), INTENT (OUT) :: fitspc_out
@@ -495,7 +495,7 @@ SUBROUTINE xtrack_radiance_fitting_loop (                             &
              yn_reference_fit,                                                     &
              n_rad_wvl, curr_rad_spec(wvl_idx:ccd_idx,1:n_rad_wvl),                &
              fitcol, rms, dfitcol, radfit_exval, radfit_itnum, chisquav,           &
-             o3fit_cols, o3fit_dcols, target_var(1:n_fincol_idx,ipix),             &
+             o3fit_cols, o3fit_dcols, target_var(1:ctrvar%n_fincol_idx,ipix),             &
              allfit_cols(1:n_fitvar_rad,ipix), allfit_errs(1:n_fitvar_rad,ipix),   &
              corr_matrix(1:n_fitvar_rad,ipix), yn_bad_pixel, fitspc(1:n_rad_wvl) )
 

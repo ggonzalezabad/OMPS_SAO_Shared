@@ -4,8 +4,7 @@ MODULE OMSAO_destriping_module
   USE OMSAO_parameters_module, ONLY: &
        r8_missval, normweight, downweight, elsunc_less_is_noise, elsunc_infloop_eval
   USE OMSAO_omidata_module, ONLY: nxtrack_max, nlines_max
-  USE OMSAO_variables_module, ONLY: &
-       radfit_latrange, num_fitfunc_calls, num_fitfunc_jacobi, yn_diagnostic_run
+  USE OMSAO_variables_module, ONLY:  num_fitfunc_calls, num_fitfunc_jacobi, ctrvar
   USE OMSAO_median_module, ONLY: median
   USE OMSAO_he5_module
   USE OMSAO_errstat_module, ONLY: pge_errstat_ok
@@ -914,7 +913,7 @@ CONTAINS
        ! ----------------------------------------------
        ! Write X-Track pattern ("diagnostic" runs only)
        ! ----------------------------------------------
-       IF ( yn_diagnostic_run .AND. yn_output_diag(xtrcor_didx) )                 &
+       IF ( ctrvar%yn_diagnostic_run .AND. yn_output_diag(xtrcor_didx) )                 &
             locerrstat = HE5_SWwrfld ( pge_swath_id, TRIM(ADJUSTL(xtrcor_field)), &
             he5_start_2d, he5_stride_2d, he5_edge_2d, xtrack_cor(1:nxtrack,iline:iline+ntimes_loop-1) )
     END DO

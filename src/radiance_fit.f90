@@ -16,12 +16,12 @@ SUBROUTINE radiance_fit ( &
        spc_idx, sig_idx, ccd_idx, max_calfit_idx, o3_t1_idx, o3_t3_idx, &
        pge_o3_idx
   USE OMSAO_parameters_module, ONLY: r8_missval, i2_missval, downweight
-  USE OMSAO_variables_module, ONLY: n_fincol_idx, fincol_idx, pm_one, &
-       database, yn_doas, yn_smooth, rad_wav_avg, fitvar_rad, &
+  USE OMSAO_variables_module, ONLY: pm_one, &
+       database, rad_wav_avg, fitvar_rad, &
        fitvar_rad_init, fitvar_rad_saved,  n_fitvar_rad, lo_radbnd, &
        up_radbnd, lobnd, upbnd, fitweights, currspec, fitwavs, &
        fit_winwav_idx, mask_fitvar_rad, max_itnum_rad, refspecs_original, &
-       xtrack_fitres_limit, all_radfit_idx, yn_o3amf_cor
+       xtrack_fitres_limit, all_radfit_idx, yn_o3amf_cor, ctrvar
   USE OMSAO_omidata_module
 
   IMPLICIT NONE
@@ -51,7 +51,7 @@ SUBROUTINE radiance_fit ( &
   INTEGER (KIND=i4),                           INTENT (OUT) :: radfit_exval, radfit_itnum
   REAL    (KIND=r8),                           INTENT (OUT) :: fitcol, rms, dfitcol, chisquav
   REAL    (KIND=r8), DIMENSION (n_fitvar_rad), INTENT (OUT) :: allfit, allerr, corrmat
-  REAL    (KIND=r8), DIMENSION (n_fincol_idx), INTENT (OUT) :: target_var
+  REAL    (KIND=r8), DIMENSION (ctrvar%n_fincol_idx), INTENT (OUT) :: target_var
 
   ! CCM Also return fitted spectrum
   REAL    (KIND=r8), DIMENSION (n_rad_wvl),    INTENT (OUT) :: fitspc_out 
@@ -100,7 +100,7 @@ SUBROUTINE radiance_fit ( &
   ! are ignoring the small extra wavelength calibration change, as
   ! for Ring effect, above.
   ! ---------------------------------------------------------------
-  IF ( yn_doas ) THEN
+  IF ( ctrvar%yn_doas ) THEN
      currspec(1:n_rad_wvl) = LOG ( currspec(1:n_rad_wvl) / database(solar_idx,1:n_rad_wvl) )
      CALL subtract_cubic_meas (fitwavs(1:n_rad_wvl), n_rad_wvl, currspec(1:n_rad_wvl), ll_rad, lu_rad)
      currspec(1:n_rad_wvl) = currspec(1:n_rad_wvl) + LOG ( database(solar_idx,1:n_rad_wvl) )
@@ -109,7 +109,7 @@ SUBROUTINE radiance_fit ( &
   ! --------------------------------------------------------------------
   ! Apply smoothing (1/16,1/4,3/8,1/4,1/16); 2/98 uhe/ife recommendation
   ! --------------------------------------------------------------------
-  IF ( yn_smooth ) THEN
+  IF ( ctrvar%yn_smooth ) THEN
      tmp(1:n_rad_wvl) = currspec(1:n_rad_wvl)
      currspec (3:n_rad_wvl-2) = 0.375_r8 * tmp (3:n_rad_wvl-2) +  &
           0.25_r8   * (tmp (4:n_rad_wvl-1) + tmp (2:n_rad_wvl-3)) +  &
@@ -282,7 +282,7 @@ SUBROUTINE radiance_fit ( &
   ! ith the other variables is kept
   ! ---------------------------------------------------------------------
   corrmat = r8_missval
-  index   = fincol_idx(1,1)
+  index   = ctrvar%fincol_idx(1,1)
   DO i = 1, n_fitvar_rad
      IF (covar_matrix (i,i) .EQ. 0.0 .OR. covar_matrix(index,index) .EQ. 0.0) CYCLE
      corrmat(i) =       covar_matrix ( index, i               ) / &
@@ -332,13 +332,13 @@ SUBROUTINE radiance_fit ( &
      !
      !   FITCOL:       Fitted column
      !   DFITCOL:      Uncertainty of fitted column
-     !   N_FINCOL_IDX: Number of fitting variables that make up the final FITCOL
+     !   CTRVAR%N_FINCOL_IDX: Number of fitting variables that make up the final FITCOL
      !                 (e.g., O3 at more than one temperature).
-     !   FINCOL_IDX:   Array of dimension (2,N_FINCOL_IDX*MXS_IDX), where MXS_IDX
+     !   CTRVAR%FINCOL_IDX:   Array of dimension (2,CTRVAR%N_FINCOL_IDX*MXS_IDX), where MXS_IDX
      !                 is the maximum fitting sub-index (e.g., AD1_IDX, LBE_IDX).
-     !                 FINCOL_IDX(1,*) carries the relative indices of the varied
+     !                 CTRVAR%FINCOL_IDX(1,*) carries the relative indices of the varied
      !                 final column variables in the array that was passed to
-     !                 the fitting routine. FINCOL_IDX(2,*) contains the index
+     !                 the fitting routine. CTRVAR%FINCOL_IDX(2,*) contains the index
      !                 for the associated reference spectrum; this we need for
      !                 access to the normalization factor. See subroutine
      !                 READ_CONTROL_FILE for assignment of these indices.
@@ -347,11 +347,11 @@ SUBROUTINE radiance_fit ( &
      !                 target gas from radiance reference
      ! --------------------------------------------------------------------------
      fitcol = 0.0_r8  ;  dfitcol = 0.0_r8 ; target_var = 1.0_r8
-     DO i = 1, n_fincol_idx
+     DO i = 1, ctrvar%n_fincol_idx
         ! --------------------------------------------------
         ! First add the contribution of the diagonal element
         ! --------------------------------------------------
-        j1 = fincol_idx(1, i) ; k1 = fincol_idx(2,i)
+        j1 = ctrvar%fincol_idx(1, i) ; k1 = ctrvar%fincol_idx(2,i)
 
         fitcol  = fitcol  + pm_one * fitvar(j1) / refspecs_original(k1)%NormFactor
         dfitcol = dfitcol + covar_matrix(j1,j1) / refspecs_original(k1)%NormFactor**2
@@ -376,8 +376,8 @@ SUBROUTINE radiance_fit ( &
         ! -------------------------------------------------------------------------
         ! Then add the contributions from off-diagonal elements (correlations)
         ! -------------------------------------------------------------------------
-        DO l = i+1, n_fincol_idx
-           j2 = fincol_idx(1,l) ; k2 = fincol_idx(2,l)
+        DO l = i+1, ctrvar%n_fincol_idx
+           j2 = ctrvar%fincol_idx(1,l) ; k2 = ctrvar%fincol_idx(2,l)
            dfitcol = dfitcol + 2.0_r8 * covar_matrix(j1,j2) / &
                 (refspecs_original(k1)%NormFactor*refspecs_original(k2)%NormFactor)
         END DO
