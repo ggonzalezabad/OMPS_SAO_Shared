@@ -22,7 +22,7 @@ SUBROUTINE read_pcf_file ( pge_error_status )
   USE OMSAO_variables_module, ONLY: &
        l1b_rad_filename, l1b_irrad_filename, l2_filename,  &
        have_amftable, &
-       OMBRO_amf_filename, OMSAO_solcomp_filename, voc_amf_filenames,      &
+       OMBRO_amf_filename, voc_amf_filenames,      &
        refspecs_original, OMSAO_solmonthave_filename,                      &
        OMSAO_refseccor_filename, OMSAO_OMLER_filename,                     &
        OMSAO_refseccor_cld_filename, pcfvar
@@ -392,7 +392,7 @@ SUBROUTINE read_pcf_file ( pge_error_status )
           modulename//f_sep//"PGE_STATIC_INPUT_LUN "//TRIM(ADJUSTL(lunstr)), &
           vb_lev_default, pge_error_status )
   ELSE
-     OMSAO_solcomp_filename = TRIM(ADJUSTL(tmpchar))
+     pcfvar%solcomp_filename = TRIM(ADJUSTL(tmpchar))
   END IF
 
   ! -------------------------------------------------------------------------

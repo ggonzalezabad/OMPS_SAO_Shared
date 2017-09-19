@@ -17,6 +17,7 @@ MODULE OMSAO_variables_module
   ! * Verbosity threshold
   ! * Orbit number, Version ID, L1B radiance OPF version
   ! * Name of the tabulated OMI slit function data
+  ! * Filename, logical and type indices for composite Solar Spectrum
   ! --------------------------------------------
 
   INTEGER (KIND=I4) :: l1br_opf_version
@@ -27,32 +28,31 @@ MODULE OMSAO_variables_module
      INTEGER (KIND=I4) :: verb_thresh_lev
      INTEGER (KIND=I4) :: orbit_number, ecs_version_id
      CHARACTER (LEN=maxchlen), DIMENSION (icf_idx:max_rs_idx) :: static_input_fnames
-     CHARACTER (LEN=maxchlen) :: slitfunc_fname
+     CHARACTER (LEN=maxchlen) :: slitfunc_fname, solcomp_filename
   END type pcf_variables
   TYPE(pcf_variables):: pcfvar
 
   ! ----------------------------------------------------------------------
-  ! Index for the fitting parameters carrying the fitted column value.
-  ! N_MOL_FIT:    Number of "molecules" that carry the final column; this
+  ! * Index for the fitting parameters carrying the fitted column value.
+  !  N_MOL_FIT:   Number of "molecules" that carry the final column; this
   !               can be one molecule at different temperatures.
-  ! FITCOL_IDX:   The main molecule indices, corresponding to the list of
+  !  FITCOL_IDX:  The main molecule indices, corresponding to the list of
   !               reference spectra.
-  ! FINCOL_IDX:   For the final summation of the fitted column: The total
+  !  FINCOL_IDX:  For the final summation of the fitted column: The total
   !               number is the number of different molecules times the
   !               allowed sub-indices. The second dimension is for the
   !               reference spectrum index - this eases the final sum over
-  !               the fitted columns (see RADIANCE_FIT subroutine).
-  !                includes
-  !               the subindices, hence the dimension.
+  !               he fitted columns (see RADIANCE_FIT subroutine).
+  !               includes the subindices, hence the dimension.
   ! N_FINCOL_IDX: Number of final column indices.
-  ! Logicals for processing mode (diagnostic or production), smooth, doas,
-  !  normalization, solar composite
-  ! Pixel number limits:
-  !  * 1,2: First and last scan line number
-  !  * 3,4: First and last cross-track pixel
-  ! Latitude limits: Lower and upper latitude to process
-  ! Variables connected with ELSUNC numerical precision/convergence criteria
-  ! Solar composite type
+  ! * Logicals for processing mode (diagnostic or production), smooth, doas,
+  !   normalization, solar composite
+  ! * Pixel number limits:
+  !    1,2: First and last scan line number
+  !    3,4: First and last cross-track pixel
+  ! * Latitude limits: Lower and upper latitude to process
+  ! * Variables connected with ELSUNC numerical precision/convergence criteria
+  ! * Solar composite type
   ! ----------------------------------------------------------------------
   TYPE ctr_variables
      INTEGER (KIND=I4) :: n_mol_fit, n_fincol_idx
@@ -245,11 +245,6 @@ MODULE OMSAO_variables_module
   ! ---------------------------------------------------------
   CHARACTER (LEN=maxchlen)                               :: OMBRO_amf_filename
   CHARACTER (LEN=maxchlen), DIMENSION (n_voc_amf_luns)   :: voc_amf_filenames
-
-  ! ---------------------------------------------------------------
-  ! Filename, logical and type indices for composite Solar Spectrum
-  ! ---------------------------------------------------------------
-  CHARACTER (LEN=maxchlen) :: OMSAO_solcomp_filename
 
   ! -------------------------------------------------------
   ! Filename and logical for solar monthly average spectrum
