@@ -13,8 +13,6 @@ MODULE OMSAO_radiance_ref_module
   LOGICAL                          :: yn_reference_fit
   INTEGER (KIND=i4), DIMENSION (2) :: radiance_reference_lnums
 
-  CHARACTER (LEN=maxchlen) :: l1b_radref_filename
-
 CONTAINS
 
   SUBROUTINE xtrack_radiance_reference_loop (     &

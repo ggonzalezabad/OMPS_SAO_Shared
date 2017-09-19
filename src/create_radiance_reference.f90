@@ -8,7 +8,7 @@ SUBROUTINE create_radiance_reference (nt, nx, nw, locerrstat)
        omi_ccdpix_selection, omi_nwav_radref, omi_radref_spec, omi_radref_wavl,     &
        omi_radref_qflg, omi_radref_sza, omi_radref_vza, omi_radref_wght,            &
        omi_ccdpix_exclusion, omi_sol_wav_avg 
-  USE OMSAO_variables_module, ONLY : fit_winwav_lim, fit_winexc_lim, ctrvar
+  USE OMSAO_variables_module, ONLY : fit_winwav_lim, fit_winexc_lim, ctrvar, pcfvar
   USe OMSAO_parameters_module
 
   IMPLICIT NONE
@@ -52,7 +52,7 @@ SUBROUTINE create_radiance_reference (nt, nx, nw, locerrstat)
   ! Read OMPS radiance reference granule
   ! ------------------------------------
   omps_reader_status_reference = TC_SDR_OMPS_READER(OMPS_data_radiance_reference, &
-                                                    l1b_radref_filename)
+                                                    pcfvar%l1b_radref_filename)
 
   latr4(1:nx,0:nt-1)                  = OMPS_data_radiance_reference%Latitude(1:nx,1:nt)
   tmp_szenith(1:nx,0:nt-1)            = OMPS_data_radiance_reference%SolarZenithAngle(1:nx,1:nt)

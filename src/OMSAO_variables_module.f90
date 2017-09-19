@@ -17,7 +17,8 @@ MODULE OMSAO_variables_module
   ! * Verbosity threshold
   ! * Orbit number, Version ID, L1B radiance OPF version
   ! * Filenames: Slit function, Composite Solar Spectrum, 
-  !              Monthly average Solar Spectrum
+  !              Monthly average Solar Spectrum, 
+  !              radiance reference
   ! -----------------------------------------------------
 
   INTEGER (KIND=I4) :: l1br_opf_version
@@ -28,7 +29,8 @@ MODULE OMSAO_variables_module
      INTEGER (KIND=I4) :: verb_thresh_lev
      INTEGER (KIND=I4) :: orbit_number, ecs_version_id
      CHARACTER (LEN=maxchlen), DIMENSION (icf_idx:max_rs_idx) :: static_input_fnames
-     CHARACTER (LEN=maxchlen) :: slitfunc_fname, solcomp_filename, solmonthave_filename
+     CHARACTER (LEN=maxchlen) :: slitfunc_fname, solcomp_filename, solmonthave_filename, &
+          l1b_radref_filename
   END type pcf_variables
   TYPE(pcf_variables):: pcfvar
 

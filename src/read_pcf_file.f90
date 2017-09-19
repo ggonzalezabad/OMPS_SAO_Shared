@@ -28,7 +28,6 @@ SUBROUTINE read_pcf_file ( pge_error_status )
        OMSAO_refseccor_cld_filename, pcfvar
   USE OMSAO_prefitcol_module, ONLY: o3_prefit_fname, bro_prefit_fname, &
        lqh2o_prefit_fname
-  USE OMSAO_radiance_ref_module, ONLY: l1b_radref_filename
   USE OMSAO_wfamf_module, ONLY: wfamf_table_lun, climatology_lun,  &
        OMSAO_wfamf_table_filename, OMSAO_climatology_filename
 
@@ -261,13 +260,13 @@ SUBROUTINE read_pcf_file ( pge_error_status )
   ! Read Radiance Reference L1B file name
   ! -------------------------------------
   version = 1
-  errstat = PGS_PC_GetReference (l1b_radianceref_lun, version, l1b_radref_filename)
+  errstat = PGS_PC_GetReference (l1b_radianceref_lun, version, pcfvar%l1b_radref_filename)
   errstat = PGS_SMF_TestStatusLevel(errstat)
   CALL error_check ( errstat, PGS_SMF_MASK_LEV_S, pge_errstat_fatal, OMSAO_F_GETLUN, &
        modulename//f_sep//"L1B_RADIANCEREF_LUN", vb_lev_default, pge_error_status )
   IF ( pge_error_status >= pge_errstat_error ) RETURN
 
-  l1b_radref_filename = TRIM(ADJUSTL(l1b_radref_filename))
+  pcfvar%l1b_radref_filename = TRIM(ADJUSTL(pcfvar%l1b_radref_filename))
 
 
   ! -------------------------------------------------------------------------
