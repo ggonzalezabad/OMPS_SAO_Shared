@@ -25,8 +25,8 @@ CONTAINS
     ! tra for each day makes that option no too charming
     ! ---------------------------------------------------------------------
 
-    USE OMSAO_variables_module, ONLY: OMSAO_solmonthave_filename, l1b_channel, &
-         fit_winwav_lim, fit_winexc_lim
+    USE OMSAO_variables_module, ONLY: l1b_channel, &
+         fit_winwav_lim, fit_winexc_lim, pcfvar
     USE OMSAO_omidata_module, ONLY: &
          nwavel_max, nxtrack_max, omi_irradiance_spec,        &
          omi_irradiance_qflg, omi_irradiance_prec, omi_irradiance_wavl, omi_nwav_irrad, &
@@ -99,7 +99,7 @@ CONTAINS
     locerrstat = PGS_SMF_TESTSTATUSLEVEL(locerrstat)
     CALL error_check ( &
          locerrstat, pgs_smf_mask_lev_s, pge_errstat_error, OMSAO_E_OPEN_SOLMONAVE_FILE, &
-         modulename//f_sep//TRIM(ADJUSTL(OMSAO_solmonthave_filename)), vb_lev_default, errstat )
+         modulename//f_sep//TRIM(ADJUSTL(pcfvar%solmonthave_filename)), vb_lev_default, errstat )
     IF (  errstat /= pge_errstat_ok ) RETURN
 
     ! --------------------------------
@@ -111,7 +111,7 @@ CONTAINS
     IF ( ios /= 0 ) THEN
        CALL error_check ( &
             ios, file_read_ok, pge_errstat_error, OMSAO_E_READ_SOLMONAVE_FILE, &
-            modulename//f_sep//TRIM(ADJUSTL(OMSAO_solmonthave_filename)), vb_lev_default, errstat )
+            modulename//f_sep//TRIM(ADJUSTL(pcfvar%solmonthave_filename)), vb_lev_default, errstat )
        IF (  errstat /= pge_errstat_ok ) RETURN
     END IF
 
@@ -124,7 +124,7 @@ CONTAINS
        IF ( ios /= 0 ) THEN
           CALL error_check ( &
                ios, file_read_ok, pge_errstat_error, OMSAO_E_READ_SOLMONAVE_FILE, &
-               modulename//f_sep//TRIM(ADJUSTL(OMSAO_solmonthave_filename)), vb_lev_default, errstat )
+               modulename//f_sep//TRIM(ADJUSTL(pcfvar%solmonthave_filename)), vb_lev_default, errstat )
           IF (  errstat /= pge_errstat_ok ) RETURN
        END IF
 
@@ -135,7 +135,7 @@ CONTAINS
           IF ( ios /= 0 ) THEN
              CALL error_check ( &
                   ios, file_read_ok, pge_errstat_error, OMSAO_E_READ_SOLMONAVE_FILE, &
-                  modulename//f_sep//TRIM(ADJUSTL(OMSAO_solmonthave_filename)),      &
+                  modulename//f_sep//TRIM(ADJUSTL(pcfvar%solmonthave_filename)),      &
                   vb_lev_default, errstat )
              IF (  errstat /= pge_errstat_ok ) RETURN
           END IF
@@ -151,7 +151,7 @@ CONTAINS
     IF ( ios /= 0 ) THEN
        CALL error_check ( &
             ios, file_read_ok, pge_errstat_error, OMSAO_E_READ_SOLMONAVE_FILE, &
-            modulename//f_sep//TRIM(ADJUSTL(OMSAO_solmonthave_filename)), vb_lev_default, errstat )
+            modulename//f_sep//TRIM(ADJUSTL(pcfvar%solmonthave_filename)), vb_lev_default, errstat )
        IF (  errstat /= pge_errstat_ok ) RETURN
     END IF
 
@@ -164,7 +164,7 @@ CONTAINS
        IF ( ios /= 0 ) THEN
           CALL error_check ( &
                ios, file_read_ok, pge_errstat_error, OMSAO_E_READ_SOLMONAVE_FILE, &
-               modulename//f_sep//TRIM(ADJUSTL(OMSAO_solmonthave_filename)), vb_lev_default, errstat )
+               modulename//f_sep//TRIM(ADJUSTL(pcfvar%solmonthave_filename)), vb_lev_default, errstat )
           IF (  errstat /= pge_errstat_ok ) RETURN
        END IF
 
@@ -175,7 +175,7 @@ CONTAINS
           IF ( ios /= 0 ) THEN
              CALL error_check ( &
                   ios, file_read_ok, pge_errstat_error, OMSAO_E_READ_SOLMONAVE_FILE, &
-                  modulename//f_sep//TRIM(ADJUSTL(OMSAO_solmonthave_filename)),      &
+                  modulename//f_sep//TRIM(ADJUSTL(pcfvar%solmonthave_filename)),      &
                   vb_lev_default, errstat )
              IF (  errstat /= pge_errstat_ok ) RETURN
           END IF
@@ -191,7 +191,7 @@ CONTAINS
     IF ( ios /= 0 ) THEN
        CALL error_check ( &
             ios, file_read_ok, pge_errstat_error, OMSAO_E_READ_SOLMONAVE_FILE, &
-            modulename//f_sep//TRIM(ADJUSTL(OMSAO_solmonthave_filename)), vb_lev_default, errstat )
+            modulename//f_sep//TRIM(ADJUSTL(pcfvar%solmonthave_filename)), vb_lev_default, errstat )
        IF (  errstat /= pge_errstat_ok ) RETURN
     END IF
 
@@ -204,7 +204,7 @@ CONTAINS
        IF ( ios /= 0 ) THEN
           CALL error_check ( &
                ios, file_read_ok, pge_errstat_error, OMSAO_E_READ_SOLMONAVE_FILE, &
-               modulename//f_sep//TRIM(ADJUSTL(OMSAO_solmonthave_filename)), vb_lev_default, errstat )
+               modulename//f_sep//TRIM(ADJUSTL(pcfvar%solmonthave_filename)), vb_lev_default, errstat )
           IF (  errstat /= pge_errstat_ok ) RETURN
        END IF
 
@@ -215,7 +215,7 @@ CONTAINS
           IF ( ios /= 0 ) THEN
              CALL error_check ( &
                   ios, file_read_ok, pge_errstat_error, OMSAO_E_READ_SOLMONAVE_FILE, &
-                  modulename//f_sep//TRIM(ADJUSTL(OMSAO_solmonthave_filename)),      &
+                  modulename//f_sep//TRIM(ADJUSTL(pcfvar%solmonthave_filename)),      &
                   vb_lev_default, errstat )
              IF (  errstat /= pge_errstat_ok ) RETURN
           END IF
@@ -231,7 +231,7 @@ CONTAINS
     locerrstat = PGS_SMF_TESTSTATUSLEVEL(locerrstat)
     CALL error_check ( &
          locerrstat, pgs_smf_mask_lev_s, pge_errstat_warning, OMSAO_W_CLOSE_SOLMONAVE_FILE, &
-         modulename//f_sep//TRIM(ADJUSTL(OMSAO_solmonthave_filename)), vb_lev_default, errstat )
+         modulename//f_sep//TRIM(ADJUSTL(pcfvar%solmonthave_filename)), vb_lev_default, errstat )
 
     IF ( errstat >= pge_errstat_error ) RETURN
 
