@@ -11,7 +11,7 @@ MODULE OMSAO_solar_wavcal_module
        hw1e, e_asym, curr_sol_spec, sol_wav_avg, fitvar_cal, fitvar_cal_saved,  &
        n_fitres_loop, fitres_range, mask_fitvar_cal, n_fitvar_cal, lobnd, upbnd,&
        fitwavs, fitweights, currspec, refspecs_original,    &
-       winwav_min, winwav_max, pcfvar, ctrvar
+       pcfvar, ctrvar
   USE OMSAO_omidata_module
   USE OMSAO_errstat_module
   USE OMSAO_he5_module

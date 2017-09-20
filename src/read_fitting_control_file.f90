@@ -1,4 +1,4 @@
-SUBROUTINE read_fitting_control_file ( l1b_radiance_esdt, pge_error_status )
+SUBROUTINE read_fitting_control_file ( pge_error_status )
 
   ! ***********************************************************
   !
@@ -17,9 +17,8 @@ SUBROUTINE read_fitting_control_file ( l1b_radiance_esdt, pge_error_status )
        comm_idx, procmode_diag, solmonthave_str, wfmod_amf_str, newshift_str, &
        refseccor_str, scattweight_str
   USE OMSAO_parameters_module, ONLY: maxchlen, n_fit_winwav
-  USE OMSAO_variables_module, ONLY: pm_one, fit_winwav_lim, &
-       fit_winexc_lim, &
-       winwav_min, winwav_max, n_fitres_loop, fitres_range, &
+  USE OMSAO_variables_module, ONLY: pm_one, &
+       n_fitres_loop, fitres_range, &
        max_good_col, yn_newshift, yn_refseccor, yn_sw, &
        pcfvar, ctrvar
   USE OMSAO_omidata_module, ONLY: nxtrack_max
@@ -34,7 +33,6 @@ SUBROUTINE read_fitting_control_file ( l1b_radiance_esdt, pge_error_status )
   ! ---------------
   ! Output variable
   ! ---------------
-  CHARACTER (LEN=maxchlen), INTENT (OUT)   :: l1b_radiance_esdt
   INTEGER   (KIND=i4),      INTENT (INOUT) :: pge_error_status
 
   ! ---------------
@@ -306,7 +304,6 @@ SUBROUTINE read_fitting_control_file ( l1b_radiance_esdt, pge_error_status )
      END IF
   END DO radpars
 
-  stop
   ! ---------------------------------------------------------------------
   ! Check the latitude for the radiance reference, a.k.a. wavelength
   ! calibration spectrum. 
@@ -339,8 +336,6 @@ SUBROUTINE read_fitting_control_file ( l1b_radiance_esdt, pge_error_status )
        modulename//f_sep//o3amf_str, vb_lev_default, pge_error_status )
   IF ( pge_error_status >= pge_errstat_error ) RETURN
   READ (fit_ctrl_unit, *) ctrvar%yn_o3amf_cor
-
-
 
   ! ---------------------------------------------------------
   ! Position cursor to read radiance fitting input parameters
@@ -421,7 +416,7 @@ SUBROUTINE read_fitting_control_file ( l1b_radiance_esdt, pge_error_status )
        file_read_stat, file_read_ok, pge_errstat_fatal, OMSAO_F_READ_FITCTRL_FILE, &
        modulename//f_sep//wavwindow_str, vb_lev_default, pge_error_status )
   IF ( pge_error_status >= pge_errstat_error ) RETURN
-  READ (fit_ctrl_unit, *) fit_winwav_lim(1:n_fit_winwav), fit_winexc_lim(1:2)
+  READ (fit_ctrl_unit, *) ctrvar%fit_winwav_lim(1:n_fit_winwav), ctrvar%fit_winexc_lim(1:2)
 
   ! ------------------------------------------------------------------
   ! Acceptable window for the fitting residual in multiples of its
@@ -518,8 +513,8 @@ SUBROUTINE read_fitting_control_file ( l1b_radiance_esdt, pge_error_status )
   ! -------------------------------------------------------------------------
   ! Determine minimum and maximum wavelength in selected read/fitting windows
   ! -------------------------------------------------------------------------
-  winwav_min = MINVAL((/ fit_winwav_lim(1:n_fit_winwav) /))
-  winwav_max = MAXVAL((/ fit_winwav_lim(1:n_fit_winwav) /))
+  ctrvar%winwav_min = MINVAL((/ ctrvar%fit_winwav_lim(1:n_fit_winwav) /))
+  ctrvar%winwav_max = MAXVAL((/ ctrvar%fit_winwav_lim(1:n_fit_winwav) /))
 
   errstat = pge_errstat_ok
 

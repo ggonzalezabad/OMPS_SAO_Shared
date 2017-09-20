@@ -9,7 +9,7 @@ SUBROUTINE omps_data_to_omi_variables (OMPS_data,nt,nx,nw)
   USE OMSAO_omidata_module
   USE OMSAO_OMPS_READER
   USE OMSAO_he5_module, ONLY: granule_month
-  USE OMSAO_variables_module, ONLY: fit_winwav_lim, fit_winexc_lim
+  USE OMSAO_variables_module, ONLY: ctrvar
 
   IMPLICIT NONE
   
@@ -68,10 +68,10 @@ SUBROUTINE omps_data_to_omi_variables (OMPS_data,nt,nx,nw)
   DO ix = 1, nx
      DO j = 1, 3, 2
         CALL array_locate_r8 ( &
-             nw, tmp_wvl_irra(1:nw,ix), REAL(fit_winwav_lim(j  ),KIND=r8), 'LE', &
+             nw, tmp_wvl_irra(1:nw,ix), REAL(ctrvar%fit_winwav_lim(j  ),KIND=r8), 'LE', &
              omi_ccdpix_selection(ix,j  ) )
         CALL array_locate_r8 ( &
-             nw, tmp_wvl_irra(1:nw,ix), REAL(fit_winwav_lim(j+1),KIND=r8), 'GE', &
+             nw, tmp_wvl_irra(1:nw,ix), REAL(ctrvar%fit_winwav_lim(j+1),KIND=r8), 'GE', &
              omi_ccdpix_selection(ix,j+1) )
      END DO
 
@@ -86,12 +86,12 @@ SUBROUTINE omps_data_to_omi_variables (OMPS_data,nt,nx,nw)
      
 
      omi_ccdpix_exclusion(ix,1:2) = -1
-     IF ( MINVAL(fit_winexc_lim(1:2)) > 0.0_r8 ) THEN
+     IF ( MINVAL(ctrvar%fit_winexc_lim(1:2)) > 0.0_r8 ) THEN
         CALL array_locate_r8 ( &
-             nw, omi_irradiance_wavl(1:nw,ix), REAL(fit_winexc_lim(1),KIND=r8), 'GE', &
+             nw, omi_irradiance_wavl(1:nw,ix), REAL(ctrvar%fit_winexc_lim(1),KIND=r8), 'GE', &
              omi_ccdpix_exclusion(ix,1) )
         CALL array_locate_r8 ( &
-             nw, omi_irradiance_wavl(1:nw,ix), REAL(fit_winexc_lim(2),KIND=r8), 'LE', &
+             nw, omi_irradiance_wavl(1:nw,ix), REAL(ctrvar%fit_winexc_lim(2),KIND=r8), 'LE', &
              omi_ccdpix_exclusion(ix,2) )
      END IF
   END DO

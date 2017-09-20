@@ -1235,7 +1235,7 @@ FUNCTION he5_write_global_attributes ( ) RESULT ( he5stat )
   USE OMSAO_parameters_module, ONLY: maxchlen, n_fit_winwav
   USE OMSAO_indices_module, ONLY: &
        n_config_luns, yn_config_lun_autocopy, config_lun_strings, config_lun_values
-  USE OMSAO_variables_module,  ONLY: fit_winwav_lim, fit_winexc_lim
+  USE OMSAO_variables_module, ONLY: ctrvar
 
   IMPLICIT NONE
 
@@ -1320,8 +1320,8 @@ FUNCTION he5_write_global_attributes ( ) RESULT ( he5stat )
   ! Now the Global Attributes that are set by the PGE: PGE statistics mostly
   ! ------------------------------------------------------------------------
   parname = "FittingWindowLimits"
-  fitwinlim(1:n_fit_winwav) = REAL( fit_winwav_lim(1:n_fit_winwav), KIND=r4 )
-  fitwinlim(5:6)            = REAL( fit_winexc_lim(1:2),            KIND=r4 )
+  fitwinlim(1:n_fit_winwav) = REAL( ctrvar%fit_winwav_lim(1:n_fit_winwav), KIND=r4 )
+  fitwinlim(5:6)            = REAL( ctrvar%fit_winexc_lim(1:2),            KIND=r4 )
   locerr = HE5_EHwrglatt ( pge_swath_file_id, TRIM(ADJUSTL(parname)), &
        HE5T_NATIVE_FLOAT, INT( n_fit_winwav+2, KIND=r8), fitwinlim(1:n_fit_winwav+2) )
   CALL error_check ( &

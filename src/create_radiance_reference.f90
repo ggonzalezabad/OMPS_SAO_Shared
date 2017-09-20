@@ -8,7 +8,7 @@ SUBROUTINE create_radiance_reference (nt, nx, nw, locerrstat)
        omi_ccdpix_selection, omi_nwav_radref, omi_radref_spec, omi_radref_wavl,     &
        omi_radref_qflg, omi_radref_sza, omi_radref_vza, omi_radref_wght,            &
        omi_ccdpix_exclusion, omi_sol_wav_avg 
-  USE OMSAO_variables_module, ONLY : fit_winwav_lim, fit_winexc_lim, ctrvar, pcfvar
+  USE OMSAO_variables_module, ONLY : ctrvar, pcfvar
   USe OMSAO_parameters_module
 
   IMPLICIT NONE
@@ -187,10 +187,10 @@ SUBROUTINE create_radiance_reference (nt, nx, nw, locerrstat)
      radref_wavl_ix = radref_wavl(ix,1:nw)
      DO j1 = 1, 3, 2
         CALL array_locate_r8 ( &
-             nw, radref_wavl_ix, REAL(fit_winwav_lim(j1  ),KIND=r8), 'LE', &
+             nw, radref_wavl_ix, REAL(ctrvar%fit_winwav_lim(j1  ),KIND=r8), 'LE', &
              omi_ccdpix_selection(ix,j1  ) )
         CALL array_locate_r8 ( &
-             nw, radref_wavl_ix, REAL(fit_winwav_lim(j1+1),KIND=r8), 'GE', &
+             nw, radref_wavl_ix, REAL(ctrvar%fit_winwav_lim(j1+1),KIND=r8), 'GE', &
              omi_ccdpix_selection(ix,j1+1) )
      END DO
 
@@ -225,12 +225,12 @@ SUBROUTINE create_radiance_reference (nt, nx, nw, locerrstat)
      ! exclude from the final arrays, not the complete ones read from the HE4 file.
      ! ------------------------------------------------------------------------------
      omi_ccdpix_exclusion(ix,1:2) = -1
-     IF ( MINVAL(fit_winexc_lim(1:2)) > 0.0_r8 ) THEN
+     IF ( MINVAL(ctrvar%fit_winexc_lim(1:2)) > 0.0_r8 ) THEN
         CALL array_locate_r8 ( &
-             nw, radref_wavl_ix, REAL(fit_winexc_lim(1),KIND=r8), 'GE', &
+             nw, radref_wavl_ix, REAL(ctrvar%fit_winexc_lim(1),KIND=r8), 'GE', &
              omi_ccdpix_exclusion(ix,1) )
         CALL array_locate_r8 ( &
-             nw, radref_wavl_ix, REAL(fit_winexc_lim(2),KIND=r8), 'LE', &
+             nw, radref_wavl_ix, REAL(ctrvar%fit_winexc_lim(2),KIND=r8), 'LE', &
              omi_ccdpix_exclusion(ix,2) )
      END IF
      

@@ -4,7 +4,7 @@ SUBROUTINE read_reference_spectra ( pge_idx, n_max_rspec, pge_error_status )
   USE OMSAO_indices_module,    ONLY: max_rs_idx, pge_static_input_luns, &
        pge_o3_idx, o3_t1_idx, o3_t2_idx, o3_t3_idx, comm_idx
   USE OMSAO_parameters_module, ONLY: zerospec_string, r8_missval
-  USE OMSAO_variables_module,  ONLY: winwav_min, winwav_max, ReferenceSpectrum,&
+  USE OMSAO_variables_module,  ONLY: ReferenceSpectrum,&
        refspecs_original, common_mode_spec, ctrvar, pcfvar
   USE OMSAO_he5_datafields_module, ONLY: o3_prefit_he5fields
   USE OMSAO_solcomp_module
@@ -63,7 +63,7 @@ SUBROUTINE read_reference_spectra ( pge_idx, n_max_rspec, pge_error_status )
               ! --------------------------------------------------------------
               CALL read_commonmode_spec ( &
                    pge_static_input_luns(i), refspecs_original(i)%FileName, &
-                   winwav_min, winwav_max, common_mode_spec, errstat )
+                   ctrvar%winwav_min, ctrvar%winwav_max, common_mode_spec, errstat )
               
               ! ----------------------------------------------------------------
               ! REFSPECs_ORIGINAL must know the number of spectral points, since
@@ -82,7 +82,7 @@ SUBROUTINE read_reference_spectra ( pge_idx, n_max_rspec, pge_error_status )
         CASE DEFAULT
            CALL read_one_refspec ( &
                 i, pge_static_input_luns(i), refspecs_original(i)%FileName, &
-                winwav_min, winwav_max, refspecs_original(i), npts, errstat )
+                ctrvar%winwav_min, ctrvar%winwav_max, refspecs_original(i), npts, errstat )
         END SELECT
 
         ! --------------------------------------------
@@ -109,7 +109,7 @@ SUBROUTINE read_reference_spectra ( pge_idx, n_max_rspec, pge_error_status )
      errstat = pge_errstat_ok
      CALL soco_pars_read ( &
           pcfvar%solcomp_filename, ctrvar%solar_comp_typ, 'UV1', &
-          winwav_min, winwav_max, errstat )
+          ctrvar%winwav_min, ctrvar%winwav_max, errstat )
      CALL error_check ( &
           errstat, pge_errstat_ok, pge_errstat_error, OMSAO_E_READ_REFSPEC_FILE, &
           modulename//f_sep//'Composite Solar Spectrum Parameters',       &

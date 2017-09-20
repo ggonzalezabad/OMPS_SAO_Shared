@@ -689,8 +689,7 @@ CONTAINS
     ! the orbit to processed. Then it interpolates the values for each
     ! one of the pixels of the orbit to be analyzed
     ! ==================================================================
-    USE OMSAO_variables_module, ONLY: OMSAO_OMLER_filename, &
-                                      winwav_min, winwav_max
+    USE OMSAO_variables_module, ONLY: OMSAO_OMLER_filename, ctrvar
 
     IMPLICIT NONE
 
@@ -807,8 +806,8 @@ CONTAINS
     ! Select the wavelenghts; finding array positions
     ! -----------------------------------------------
     midwvl = (ctrvar%amf_wvl + ctrvar%amf_wvl2) / 2.0_r8
-    minwvl = MINLOC(OMLER_wvl, OMLER_wvl .GE. REAL(winwav_min,KIND=r4))
-    maxwvl = MAXLOC(OMLER_wvl, OMLER_wvl .LE. REAL(winwav_max,KIND=r4))
+    minwvl = MINLOC(OMLER_wvl, OMLER_wvl .GE. REAL(ctrvar%winwav_min,KIND=r4))
+    maxwvl = MAXLOC(OMLER_wvl, OMLER_wvl .LE. REAL(ctrvar%winwav_max,KIND=r4))
     OMnwvl = maxwvl(1)-minwvl(1)+1
 
     ! ---------------------------

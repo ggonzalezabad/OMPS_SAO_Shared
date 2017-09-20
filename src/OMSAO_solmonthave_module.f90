@@ -25,8 +25,7 @@ CONTAINS
     ! tra for each day makes that option no too charming
     ! ---------------------------------------------------------------------
 
-    USE OMSAO_variables_module, ONLY: &
-         fit_winwav_lim, fit_winexc_lim, pcfvar
+    USE OMSAO_variables_module, ONLY: pcfvar, ctrvar
     USE OMSAO_omidata_module, ONLY: &
          nwavel_max, nxtrack_max, omi_irradiance_spec,        &
          omi_irradiance_qflg, omi_irradiance_prec, omi_irradiance_wavl, omi_nwav_irrad, &
@@ -186,10 +185,10 @@ CONTAINS
        ! -------------------------------------------------------------------------------
        DO j = 1, 3, 2
           CALL array_locate_r4 ( &
-               nwavel, tmp_wvl(1:nwavel,ix), REAL(fit_winwav_lim(j  ),KIND=r4), 'LE', &
+               nwavel, tmp_wvl(1:nwavel,ix), REAL(ctrvar%fit_winwav_lim(j  ),KIND=r4), 'LE', &
                omi_ccdpix_selection(ix,j  ) )
           CALL array_locate_r4 ( &
-               nwavel, tmp_wvl(1:nwavel,ix), REAL(fit_winwav_lim(j+1),KIND=r4), 'GE', &
+               nwavel, tmp_wvl(1:nwavel,ix), REAL(ctrvar%fit_winwav_lim(j+1),KIND=r4), 'GE', &
                omi_ccdpix_selection(ix,j+1) )
        END DO
 
@@ -211,11 +210,11 @@ CONTAINS
        ! exclude from the final arrays, not the complete ones read from the HE4 file.
        ! ------------------------------------------------------------------------------
        omi_ccdpix_exclusion(ix,1:2) = -1
-       IF ( MINVAL(fit_winexc_lim(1:2)) > 0.0_r8 ) THEN
+       IF ( MINVAL(ctrvar%fit_winexc_lim(1:2)) > 0.0_r8 ) THEN
           CALL array_locate_r4 ( &
-               nwavel, tmp_wvl(1:nwavel,ix), REAL(fit_winexc_lim(1),KIND=r4), 'GE', omi_ccdpix_exclusion(ix,1) )
+               nwavel, tmp_wvl(1:nwavel,ix), REAL(ctrvar%fit_winexc_lim(1),KIND=r4), 'GE', omi_ccdpix_exclusion(ix,1) )
           CALL array_locate_r4 ( &
-               nwavel, tmp_wvl(1:nwavel,ix), REAL(fit_winexc_lim(2),KIND=r4), 'LE', omi_ccdpix_exclusion(ix,2) )
+               nwavel, tmp_wvl(1:nwavel,ix), REAL(ctrvar%fit_winexc_lim(2),KIND=r4), 'LE', omi_ccdpix_exclusion(ix,2) )
        END IF
 
     END DO
