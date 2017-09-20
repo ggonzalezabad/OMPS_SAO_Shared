@@ -19,7 +19,7 @@ SUBROUTINE read_fitting_control_file ( l1b_radiance_esdt, pge_error_status )
   USE OMSAO_parameters_module, ONLY: maxchlen, n_fit_winwav
   USE OMSAO_variables_module, ONLY: pm_one, fit_winwav_lim, &
        fit_winexc_lim, &
-       winwav_min, winwav_max, have_undersampling, n_fitres_loop, fitres_range, &
+       winwav_min, winwav_max, n_fitres_loop, fitres_range, &
        l1b_channel, &
        max_good_col, yn_newshift, yn_refseccor, yn_sw, &
        pcfvar, ctrvar
@@ -353,13 +353,12 @@ SUBROUTINE read_fitting_control_file ( l1b_radiance_esdt, pge_error_status )
        modulename//f_sep//rafline_str, vb_lev_default, pge_error_status )
   IF ( pge_error_status >= pge_errstat_error ) RETURN
 
-
   ! ------------------------------------------------------------------------
   ! By default we set the undersampling spectrum to FALSE. Only if we select
   ! it to be included in the fitting does it become trues. This way we save
   ! computation time for cases where we don't include the undersampling.
   ! ------------------------------------------------------------------------
-  have_undersampling = .FALSE.
+  ctrvar%have_undersampling = .FALSE.
   getpars: DO j = 1, max_rs_idx
      READ (UNIT=fit_ctrl_unit, FMT='(A)', IOSTAT=errstat) tmpchar
      CALL error_check ( &
@@ -399,7 +398,7 @@ SUBROUTINE read_fitting_control_file ( l1b_radiance_esdt, pge_error_status )
            ctrvar%fitvar_rad_str (i) = TRIM(ADJUSTL(tmpchar))
            ctrvar%lo_radbnd (i) = lotmp ; ctrvar%up_radbnd (i) = uptmp
            IF ( (ridx == us1_idx .OR. ridx == us2_idx) .AND. &
-                ANY ( (/ vartmp,lotmp,uptmp /) /= 0.0_r8 ) ) have_undersampling(ridx) = .TRUE.
+                ANY ( (/ vartmp,lotmp,uptmp /) /= 0.0_r8 ) ) ctrvar%have_undersampling(ridx) = .TRUE.
 
            ! --------------------------------------------------
            ! Check for on-line Common Mode spectrum computation

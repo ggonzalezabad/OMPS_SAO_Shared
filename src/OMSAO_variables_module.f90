@@ -67,6 +67,7 @@ MODULE OMSAO_variables_module
   ! * Logicals for prefitted columns
   ! * Undersampling spectra phase, maximum solar zenith angle to process
   ! * Top of Atmosphere [km]
+  ! * Undersampling
   ! ---------------------------------------------------------------------------
   TYPE ctr_variables
      INTEGER (KIND=I4) :: n_mol_fit, n_fincol_idx
@@ -90,6 +91,7 @@ MODULE OMSAO_variables_module
      REAL (KIND=r4) :: zatmos
      REAL (KIND=r8), DIMENSION (n_max_fitpars)  :: fitvar_rad_init, lo_radbnd, up_radbnd
      CHARACTER (LEN=6), DIMENSION (n_max_fitpars)  :: fitvar_rad_str
+     LOGICAL, DIMENSION (us1_idx:us2_idx) :: have_undersampling
   END type ctr_variables
   TYPE(ctr_variables) :: ctrvar
 
@@ -164,10 +166,6 @@ MODULE OMSAO_variables_module
   TYPE (ReferenceSpectrum),  DIMENSION (max_rs_idx) :: refspecs_original
   TYPE (CommonModeSpectrum)                         :: common_mode_spec
 
-  ! -------------------------------------------
-  ! A special beast: The undersampling spectrum
-  ! -------------------------------------------
-  LOGICAL, DIMENSION (us1_idx:us2_idx) :: have_undersampling
 
   REAL (KIND=r8), DIMENSION (max_spec_pts) :: cubic_x, cubic_y, cubic_w
 

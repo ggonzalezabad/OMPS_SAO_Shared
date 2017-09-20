@@ -10,7 +10,7 @@ SUBROUTINE undersample ( xtrack_pix, n_sensor_pts, curr_wvl, hw1e, e_asym, phase
   USE OMSAO_indices_module,    ONLY: solar_idx, us1_idx, us2_idx
   USE OMSAO_parameters_module, ONLY: max_spec_pts
   USE OMSAO_variables_module,  ONLY: &
-       refspecs_original, database, have_undersampling, ctrvar
+       refspecs_original, database, ctrvar
   USE OMSAO_slitfunction_module
   USE OMSAO_errstat_module
 
@@ -142,7 +142,7 @@ SUBROUTINE undersample ( xtrack_pix, n_sensor_pts, curr_wvl, hw1e, e_asym, phase
   ! ---------------------------------------------------------
   ! If we haven't selected Undersampling 2 then we return now
   ! ---------------------------------------------------------
-  IF ( .NOT. have_undersampling(us2_idx) ) RETURN
+  IF ( .NOT. ctrvar%have_undersampling(us2_idx) ) RETURN
 
   ! --------------------------------------------------------------------------------------
   ! Phase2 calculation: Calculate solar spectrum at OMI positions, original and resampled.
