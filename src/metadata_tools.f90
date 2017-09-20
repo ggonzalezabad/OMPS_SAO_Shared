@@ -13,8 +13,7 @@ SUBROUTINE init_metadata ( errstat )
        pge_errstat_ok, pge_errstat_warning, pgs_s_success, vb_lev_default, &
        error_check, PGSTD_E_NO_LEAP_SECS
   USE OMSAO_parameters_module, ONLY: str_missval, int16_missval, r8_missval
-  USE OMSAO_variables_module,  ONLY: pcfvar, l1br_opf_version
-  USE OMSAO_prefitcol_module,  ONLY: yn_o3_prefit, yn_bro_prefit
+  USE OMSAO_variables_module,  ONLY: pcfvar, ctrvar, l1br_opf_version
   USE OMSAO_he5_module, ONLY: granule_day, granule_month, granule_year, &
        TAI93At0zOfGranule, l1b_orbitdata
   IMPLICIT NONE
@@ -199,7 +198,7 @@ SUBROUTINE init_metadata ( errstat )
 
         SELECT CASE ( mdata_loc )
         CASE ( "BRO" )
-           IF ( yn_bro_prefit(1) ) THEN
+           IF ( ctrvar%yn_bro_prefit(1) ) THEN
               md_stat = PGS_MET_getPCAttr_s( &
                    bro_prefit_lun, version, cmd_str, &
                    TRIM(ADJUSTL(upper_case(mdata_omhcho_fields(1,imd)))), &
@@ -209,7 +208,7 @@ SUBROUTINE init_metadata ( errstat )
                    vb_lev_default, errstat )
            END IF
         CASE ( "OOO" )
-           IF ( yn_o3_prefit(1) ) THEN
+           IF ( ctrvar%yn_o3_prefit(1) ) THEN
               md_stat = PGS_MET_getPCAttr_s( &
                    o3_prefit_lun, version, cmd_str, &
                    TRIM(ADJUSTL(upper_case(mdata_omhcho_fields(1,imd)))), &

@@ -14,16 +14,9 @@ MODULE OMSAO_wfamf_module
        omsao_w_he5gdclose, f_sep, error_check
   USE OMSAO_he5_module
   USE OMSAO_indices_module, ONLY: n_voc_amf_luns
+  USE OMSAO_variables_module, ONLY: ctrvar
 
   IMPLICIT NONE
-
-  ! ====================================================================
-  ! Wavelength dependent AMF factor specific variables
-  ! ====================================================================
-  LOGICAL :: yn_amf_wfmod
-  INTEGER :: amf_wfmod_idx
-  REAL(KIND=r8) :: amf_alb_lnd, amf_alb_sno, amf_wvl, &
-       amf_wvl2, amf_alb_cld, amf_max_sza
 
   ! ---------------------------------------
   ! Data obtained from the climatology file
@@ -195,7 +188,7 @@ CONTAINS
     ! reported and AMFs equal to 1 with scattw, 
     ! akernels and climatology set to missval
     ! -----------------------------------------
-    IF (amf_wvl .LT. 0.0) THEN
+    IF (ctrvar%amf_wvl .LT. 0.0) THEN
 
        DO itt = 0, nt-1
           spixx = xtrange(itt,1) ; epixx = xtrange(itt,2)
@@ -813,7 +806,7 @@ CONTAINS
     ! -----------------------------------------------
     ! Select the wavelenghts; finding array positions
     ! -----------------------------------------------
-    midwvl = (amf_wvl + amf_wvl2) / 2.0_r8
+    midwvl = (ctrvar%amf_wvl + ctrvar%amf_wvl2) / 2.0_r8
     minwvl = MINLOC(OMLER_wvl, OMLER_wvl .GE. REAL(winwav_min,KIND=r4))
     maxwvl = MAXLOC(OMLER_wvl, OMLER_wvl .LE. REAL(winwav_max,KIND=r4))
     OMnwvl = maxwvl(1)-minwvl(1)+1
@@ -1688,8 +1681,8 @@ CONTAINS
     ! suplied scattering weights file.
     ! ----------------------------------------------------------
     IF ( &
-         (amf_wvl  .LT. MINVAL(vl_wav) ) .OR. &
-         (amf_wvl2 .GT. MAXVAL(vl_wav) ) ) THEN
+         (ctrvar%amf_wvl  .LT. MINVAL(vl_wav) ) .OR. &
+         (ctrvar%amf_wvl2 .GT. MAXVAL(vl_wav) ) ) THEN
        RETURN
     END IF
 
@@ -1762,7 +1755,7 @@ CONTAINS
        ! are calculated "using this maximum value".
        ! --------------------------------------------------
        WHERE ( &
-            ( sza(spix:epix,it)     .GE. amf_max_sza       ) .AND. &
+            ( sza(spix:epix,it)     .GE. ctrvar%amf_max_sza) .AND. &
             ( amfdiag(spix:epix,it) .GT. omi_oobview_amf ) )
               amfdiag(spix:epix,it) = omi_bigsza_amf + amfdiag(spix:epix,it)
        END WHERE
@@ -1819,8 +1812,8 @@ CONTAINS
     ! is selected.
     ! -----------------------------------
     one = 1_i4
-    iwavs = MINLOC(ABS(vl_wav - REAL(amf_wvl,  KIND = r4) ))
-    iwavf = MINLOC(ABS(vl_wav - REAL(amf_wvl2, KIND = r4) ))
+    iwavs = MINLOC(ABS(vl_wav - REAL(ctrvar%amf_wvl,  KIND = r4) ))
+    iwavf = MINLOC(ABS(vl_wav - REAL(ctrvar%amf_wvl2, KIND = r4) ))
     nwavs = REAL(iwavf(1), KIND=r8) - REAL(iwavs(1), KIND=r8) + 1.0_r8
 
     ! --------------------------------------------------------
@@ -1865,7 +1858,7 @@ CONTAINS
           ! amf_max_sza
           ! ----------------------------------------------
           local_sza = REAL(sza(ixtrack,itime), KIND = r8)
-          IF (local_sza .GT. amf_max_sza) local_sza = amf_max_sza
+          IF (local_sza .GT. ctrvar%amf_max_sza) local_sza = ctrvar%amf_max_sza
 
           ! ---------------------
           ! Albedo for this pixel
@@ -1935,9 +1928,9 @@ CONTAINS
                               REAL(vl_I0(isozo,ispre,issza,isvza,iswav), KIND = r8)      + &
                               REAL(vl_I1(isozo,ispre,issza,isvza,iswav), KIND = r8)      + &
                               REAL(vl_I2(isozo,ispre,issza,isvza,iswav), KIND = r8)      + &
-                              ( (amf_alb_cld                                             * &
+                              ( (ctrvar%amf_alb_cld                                             * &
                               REAL(vl_Ir(isozo,ispre,issza,isvza,iswav), KIND = r8) ) / &
-                              (1.0_r8 - (amf_alb_cld                                  * &
+                              (1.0_r8 - (ctrvar%amf_alb_cld                                  * &
                               REAL(vl_Sb(isozo,ispre,iswav), KIND = r8))) )
                          
                          DO isalt = 1, vl_nalt
@@ -1966,9 +1959,9 @@ CONTAINS
                                  REAL(vl_dI0(isozo,ispre,issza,isvza,iswav,isalt), KIND = r8)  + &
                                  REAL(vl_dI1(isozo,ispre,issza,isvza,iswav,isalt), KIND = r8)  + &
                                  REAL(vl_dI2(isozo,ispre,issza,isvza,iswav,isalt), KIND = r8)  + &
-                                 ( (amf_alb_cld                                                * &
+                                 ( (ctrvar%amf_alb_cld                                                * &
                                  REAL(vl_dIr(isozo,ispre,issza,isvza,iswav,isalt), KIND = r8)) / &
-                                 (1.0_r8 - (amf_alb_cld                                        * &
+                                 (1.0_r8 - (ctrvar%amf_alb_cld                                 * &
                                  REAL(vl_Sb(isozo,ispre,iswav), KIND = r8))) )  )                &
                                  / REAL(vl_Factor, KIND = r8)
 

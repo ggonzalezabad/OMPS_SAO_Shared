@@ -18,10 +18,10 @@ SUBROUTINE radiance_fit ( &
   USE OMSAO_parameters_module, ONLY: r8_missval, i2_missval, downweight
   USE OMSAO_variables_module, ONLY: pm_one, &
        database, rad_wav_avg, fitvar_rad, &
-       fitvar_rad_init, fitvar_rad_saved,  n_fitvar_rad, lo_radbnd, &
-       up_radbnd, lobnd, upbnd, fitweights, currspec, fitwavs, &
-       fit_winwav_idx, mask_fitvar_rad, max_itnum_rad, refspecs_original, &
-       xtrack_fitres_limit, all_radfit_idx, yn_o3amf_cor, ctrvar
+       fitvar_rad_saved,  n_fitvar_rad, &
+       lobnd, upbnd, fitweights, currspec, fitwavs, &
+       fit_winwav_idx, mask_fitvar_rad, refspecs_original, &
+       xtrack_fitres_limit, all_radfit_idx, ctrvar
   USE OMSAO_omidata_module
 
   IMPLICIT NONE
@@ -150,8 +150,8 @@ SUBROUTINE radiance_fit ( &
   DO i = 1, n_fitvar_rad
      idx       = mask_fitvar_rad(i)
      fitvar(i) = fitvar_rad(idx)
-     lobnd (i) = lo_radbnd(idx)
-     upbnd (i) = up_radbnd(idx)
+     lobnd (i) = ctrvar%lo_radbnd(idx)
+     upbnd (i) = ctrvar%up_radbnd(idx)
   END DO
   ! ----------------------------------------------------------------------
   ! Check whether we have enough spectral points to carry out the fitting.
@@ -171,16 +171,16 @@ SUBROUTINE radiance_fit ( &
   ! with a quadratic polynomial in wavelength, to account for the fact that O3
   ! absorption can vary greatly in magnitude over the fitting window (HH bands).
   ! ------------------------------------------------------------------------------
-  IF ( yn_o3amf_cor ) THEN
+  IF ( ctrvar%yn_o3amf_cor ) THEN
      CALL specfit (                                                    &
           n_fitvar_rad, fitvar(1:n_fitvar_rad), n_rad_wvl,             &
-          lobnd(1:n_fitvar_rad), upbnd(1:n_fitvar_rad), max_itnum_rad, &
+          lobnd(1:n_fitvar_rad), upbnd(1:n_fitvar_rad), ctrvar%max_itnum_rad, &
           covar(1:n_fitvar_rad, 1:n_fitvar_rad), fitspec(1:n_rad_wvl), &
           fitres(1:n_rad_wvl), radfit_exval, locitnum, specfit_func_o3exp )
   ELSE
      CALL specfit (                                                    &
           n_fitvar_rad, fitvar(1:n_fitvar_rad), n_rad_wvl,             &
-          lobnd(1:n_fitvar_rad), upbnd(1:n_fitvar_rad), max_itnum_rad, &
+          lobnd(1:n_fitvar_rad), upbnd(1:n_fitvar_rad), ctrvar%max_itnum_rad, &
           covar(1:n_fitvar_rad, 1:n_fitvar_rad), fitspec(1:n_rad_wvl), &
           fitres(1:n_rad_wvl), radfit_exval, locitnum, specfit_func      )
   END IF
@@ -223,16 +223,16 @@ SUBROUTINE radiance_fit ( &
            fitweights(1:n_rad_wvl) = downweight
         END WHERE
         
-        IF ( yn_o3amf_cor ) THEN 
+        IF ( ctrvar%yn_o3amf_cor ) THEN 
            CALL specfit (                                                     &
                 n_fitvar_rad, fitvar(1:n_fitvar_rad), n_rad_wvl,              &
-                lobnd(1:n_fitvar_rad), upbnd(1:n_fitvar_rad), max_itnum_rad,  &
+                lobnd(1:n_fitvar_rad), upbnd(1:n_fitvar_rad), ctrvar%max_itnum_rad,  &
                 covar(1:n_fitvar_rad, 1:n_fitvar_rad), fitspec(1:n_rad_wvl),  &
                 fitres(1:n_rad_wvl), radfit_exval, locitnum, specfit_func_o3exp )
         ELSE
            CALL specfit (                                                     &
                 n_fitvar_rad, fitvar(1:n_fitvar_rad), n_rad_wvl,              &
-                lobnd(1:n_fitvar_rad), upbnd(1:n_fitvar_rad), max_itnum_rad,  &
+                lobnd(1:n_fitvar_rad), upbnd(1:n_fitvar_rad), ctrvar%max_itnum_rad,  &
                 covar(1:n_fitvar_rad, 1:n_fitvar_rad), fitspec(1:n_rad_wvl),  &
                 fitres(1:n_rad_wvl), radfit_exval, locitnum, specfit_func       )
         END IF
@@ -446,7 +446,7 @@ SUBROUTINE radiance_fit ( &
      !     ( .NOT. yn_reference_fit )                                  )  THEN
      !   fitvar_rad_saved(1:n_max_fitpars) = fitvar_rad(1:n_max_fitpars)
      !ELSE
-        fitvar_rad_saved(1:n_max_fitpars) = fitvar_rad_init(1:n_max_fitpars)
+        fitvar_rad_saved(1:n_max_fitpars) = ctrvar%fitvar_rad_init(1:n_max_fitpars)
      !END IF
      ! ======================================================
      ! Anything but EXVAL > 0 means that trouble has occurred, 

@@ -8,7 +8,7 @@ SUBROUTINE omi_pge_swathline_loop ( &
   USE OMSAO_parameters_module, ONLY: i2_missval, r8_missval, maxchlen
   USE OMSAO_indices_module,    ONLY: n_max_fitpars
   USE OMSAO_variables_module,  ONLY:  &
-       n_fitvar_rad, fitvar_rad_init, fitvar_rad_saved, &
+       n_fitvar_rad, fitvar_rad_saved, &
        pcfvar, ctrvar
   USE OMSAO_omidata_module,    ONLY:  &
        nlines_max, nUTCdim, omi_scanline_no, &
@@ -100,7 +100,7 @@ SUBROUTINE omi_pge_swathline_loop ( &
      ! -------------------------------------
      ! Re-initialize saved fitting variables
      ! -------------------------------------
-     fitvar_rad_saved(1:n_max_fitpars ) = fitvar_rad_init(1:n_max_fitpars)
+     fitvar_rad_saved(1:n_max_fitpars ) = ctrvar%fitvar_rad_init(1:n_max_fitpars)
 
      ! --------------------------------------------------------------------
      ! Further down, in deeper layers of the algorithm, we require both the

@@ -17,24 +17,18 @@ SUBROUTINE read_fitting_control_file ( l1b_radiance_esdt, pge_error_status )
        comm_idx, procmode_diag, solmonthave_str, wfmod_amf_str, newshift_str, &
        refseccor_str, scattweight_str
   USE OMSAO_parameters_module, ONLY: maxchlen, n_fit_winwav
-  USE OMSAO_variables_module, ONLY: max_itnum_sol, max_itnum_rad, &
-       fitvar_sol_init, fitvar_rad_init,  fitvar_rad_saved, szamax,  &
-       zatmos, lo_sunbnd, up_sunbnd, lo_radbnd, up_radbnd, yn_use_labslitfunc, &
-       radwavcal_freq, pm_one, phase, fit_winwav_lim, &
-       fit_winexc_lim, fitvar_rad_str, &
+  USE OMSAO_variables_module, ONLY: pm_one, fit_winwav_lim, &
+       fit_winexc_lim, &
        winwav_min, winwav_max, have_undersampling, n_fitres_loop, fitres_range, &
-       l1b_channel, yn_solar_i0, yn_o3amf_cor, &
+       l1b_channel, &
        max_good_col, yn_newshift, yn_refseccor, yn_sw, &
        pcfvar, ctrvar
-  USE OMSAO_prefitcol_module, ONLY: yn_bro_prefit, yn_o3_prefit, yn_lqh2o_prefit
   USE OMSAO_omidata_module, ONLY: nxtrack_max
   USE OMSAO_destriping_module, ONLY: ctr_pol_base, ctr_pol_scal, ctr_pol_patt, &
        ctr_nloop, ctrdst_latrange, ctr_nblocks, ctr_fitfunc_calls, ctr_maxcol, &
        yn_remove_ctrbias, ctr_bias_pol, yn_run_destriping
   USE OMSAO_casestring_module, ONLY: lower_case
   USE OMSAO_errstat_module
-  USE OMSAO_wfamf_module, ONLY: yn_amf_wfmod, amf_wfmod_idx, amf_alb_lnd, &
-       amf_alb_sno, amf_wvl, amf_wvl2, amf_alb_cld, amf_max_sza
 
   IMPLICIT NONE
 
@@ -232,9 +226,9 @@ SUBROUTINE read_fitting_control_file ( l1b_radiance_esdt, pge_error_status )
        modulename//f_sep//socline_str, vb_lev_default, pge_error_status )
   IF ( pge_error_status >= pge_errstat_error ) RETURN
 
-  READ (fit_ctrl_unit, *) max_itnum_sol
-  stop
-  yn_use_labslitfunc = .TRUE.
+  READ (fit_ctrl_unit, *) ctrvar%max_itnum_sol
+  
+  ctrvar%yn_use_labslitfunc = .TRUE.
   solpars: DO i = 1, max_calfit_idx
 
      READ (fit_ctrl_unit, *) idxchar, vartmp, lotmp, uptmp
@@ -252,12 +246,14 @@ SUBROUTINE read_fitting_control_file ( l1b_radiance_esdt, pge_error_status )
 
      CALL string2index ( calfit_strings, max_calfit_idx, idxchar, sidx )
      IF ( sidx > 0 ) THEN
-        fitvar_sol_init(sidx) = vartmp
-        lo_sunbnd(sidx) = lotmp ; up_sunbnd(sidx) = uptmp
+        ctrvar%fitvar_sol_init(sidx) = vartmp
+        ctrvar%fitvar_sol_str(sidx) = TRIM(ADJUSTL(idxchar))
+        ctrvar%lo_sunbnd(sidx) = lotmp ; ctrvar%up_sunbnd(sidx) = uptmp
         ! ----------------------------------------------------
         ! Check whether we will be doing slit function fitting
         ! ----------------------------------------------------
-        IF ( sidx == hwe_idx .AND. fitvar_sol_init(sidx) > 0.0_r8 ) yn_use_labslitfunc = .FALSE.
+        IF ( sidx == hwe_idx .AND. ctrvar%fitvar_sol_init(sidx) > 0.0_r8 ) &
+             ctrvar%yn_use_labslitfunc = .FALSE.
      END IF
   END DO solpars
 
@@ -280,17 +276,16 @@ SUBROUTINE read_fitting_control_file ( l1b_radiance_esdt, pge_error_status )
   ! (1) Use Liquid Water prefitted columns?
   ! (2) Vary those prefitted columns within their fitting uncertainties?
   ! --------------------------------------------------------------------
-  READ (fit_ctrl_unit, *) yn_o3_prefit (1:2)
-  READ (fit_ctrl_unit, *) yn_bro_prefit(1:2)
-  READ (fit_ctrl_unit, *) yn_lqh2o_prefit (1:2)
-
-  READ (fit_ctrl_unit, *) yn_solar_i0
-  READ (fit_ctrl_unit, *) max_itnum_rad
-  READ (fit_ctrl_unit, *) radwavcal_freq
-  READ (fit_ctrl_unit, *) szamax
-  READ (fit_ctrl_unit, *) zatmos
-  READ (fit_ctrl_unit, *) phase
-  fitvar_rad_init = 0.0_r8
+  READ (fit_ctrl_unit, *) ctrvar%yn_o3_prefit (1:2)
+  READ (fit_ctrl_unit, *) ctrvar%yn_bro_prefit(1:2)
+  READ (fit_ctrl_unit, *) ctrvar%yn_lqh2o_prefit (1:2)
+  READ (fit_ctrl_unit, *) ctrvar%yn_solar_i0
+  READ (fit_ctrl_unit, *) ctrvar%max_itnum_rad
+  READ (fit_ctrl_unit, *) ctrvar%radwavcal_freq
+  READ (fit_ctrl_unit, *) ctrvar%szamax
+  READ (fit_ctrl_unit, *) ctrvar%zatmos
+  READ (fit_ctrl_unit, *) ctrvar%phase
+  ctrvar%fitvar_rad_init = 0.0_r8
   radpars: DO i = 1, max_calfit_idx
      READ (fit_ctrl_unit, *) idxchar, vartmp, lotmp, uptmp
      ! ---------------------------------------------------------
@@ -306,13 +301,13 @@ SUBROUTINE read_fitting_control_file ( l1b_radiance_esdt, pge_error_status )
      IF ( idxchar == eoi3str ) EXIT radpars
      CALL string2index ( calfit_strings, max_calfit_idx, idxchar, sidx )
      IF ( sidx > 0 ) THEN
-        fitvar_rad_init(sidx) = vartmp
-        fitvar_rad_str (sidx) = TRIM(ADJUSTL(idxchar))
-        lo_radbnd(sidx) = lotmp ; up_radbnd(sidx) = uptmp
+        ctrvar%fitvar_rad_init(sidx) = vartmp
+        ctrvar%fitvar_rad_str (sidx) = TRIM(ADJUSTL(idxchar))
+        ctrvar%lo_radbnd(sidx) = lotmp ; ctrvar%up_radbnd(sidx) = uptmp
      END IF
   END DO radpars
-  fitvar_rad_saved = fitvar_rad_init
 
+  stop
   ! ---------------------------------------------------------------------
   ! Check the latitude for the radiance reference, a.k.a. wavelength
   ! calibration spectrum. 
@@ -331,9 +326,9 @@ SUBROUTINE read_fitting_control_file ( l1b_radiance_esdt, pge_error_status )
        file_read_stat, file_read_ok, pge_errstat_fatal, OMSAO_F_READ_FITCTRL_FILE, &
        modulename//f_sep//wfmod_amf_str, vb_lev_default, pge_error_status )
   IF ( pge_error_status >= pge_errstat_error ) RETURN
-  READ (fit_ctrl_unit, *) yn_amf_wfmod, amf_wfmod_idx
-  READ (fit_ctrl_unit, *) amf_alb_lnd, amf_alb_sno, amf_alb_cld
-  IF ( .NOT. yn_amf_wfmod ) READ (fit_ctrl_unit, *) amf_wvl, amf_wvl2, amf_max_sza
+  READ (fit_ctrl_unit, *) ctrvar%yn_amf_wfmod, ctrvar%amf_wfmod_idx
+  READ (fit_ctrl_unit, *) ctrvar%amf_alb_lnd, ctrvar%amf_alb_sno, ctrvar%amf_alb_cld
+  IF ( .NOT. ctrvar%yn_amf_wfmod ) READ (fit_ctrl_unit, *) ctrvar%amf_wvl, ctrvar%amf_wvl2, ctrvar%amf_max_sza
 
   ! ---------------------------------------------------------
   ! Position cursor to read O3 AMF correction logical
@@ -344,7 +339,7 @@ SUBROUTINE read_fitting_control_file ( l1b_radiance_esdt, pge_error_status )
        file_read_stat, file_read_ok, pge_errstat_fatal, OMSAO_F_READ_FITCTRL_FILE, &
        modulename//f_sep//o3amf_str, vb_lev_default, pge_error_status )
   IF ( pge_error_status >= pge_errstat_error ) RETURN
-  READ (fit_ctrl_unit, *) yn_o3amf_cor
+  READ (fit_ctrl_unit, *) ctrvar%yn_o3amf_cor
 
 
 
@@ -400,9 +395,9 @@ SUBROUTINE read_fitting_control_file ( l1b_radiance_esdt, pge_error_status )
 
         IF ( sidx > 0 .AND. ridx > 0 ) THEN
            i = max_calfit_idx + (ridx-1)*mxs_idx + sidx
-           fitvar_rad_init(i) = vartmp
-           fitvar_rad_str (i) = TRIM(ADJUSTL(tmpchar))
-           lo_radbnd (i) = lotmp ; up_radbnd (i) = uptmp
+           ctrvar%fitvar_rad_init(i) = vartmp
+           ctrvar%fitvar_rad_str (i) = TRIM(ADJUSTL(tmpchar))
+           ctrvar%lo_radbnd (i) = lotmp ; ctrvar%up_radbnd (i) = uptmp
            IF ( (ridx == us1_idx .OR. ridx == us2_idx) .AND. &
                 ANY ( (/ vartmp,lotmp,uptmp /) /= 0.0_r8 ) ) have_undersampling(ridx) = .TRUE.
 
@@ -646,10 +641,10 @@ SUBROUTINE find_radiance_fitting_variables ( errstat )
        calfit_strings, radfit_strings, refspec_strings,    &
        o3_t1_idx, o3_t3_idx, bro_idx, comm_idx
   USE OMSAO_variables_module,    ONLY: &
-       n_fitvar_rad, all_radfit_idx, mask_fitvar_rad, fitvar_rad_init,         &
-       lo_radbnd, up_radbnd, ctrvar
-  USE OMSAO_prefitcol_module, ONLY:                                            &
-       o3_prefit_fitidx, bro_prefit_fitidx, yn_bro_prefit, yn_o3_prefit,       &
+       n_fitvar_rad, all_radfit_idx, mask_fitvar_rad, &
+       ctrvar
+  USE OMSAO_prefitcol_module, ONLY:         &
+       o3_prefit_fitidx, bro_prefit_fitidx, &
        n_prefit_vars
   USE OMSAO_omidata_module,      ONLY: &
        correlation_names, correlation_names_concat, nclenfit
@@ -712,7 +707,7 @@ SUBROUTINE find_radiance_fitting_variables ( errstat )
   ! --------------------------------
   DO i = 1, max_calfit_idx
      
-     IF ( lo_radbnd(i) < up_radbnd(i) ) THEN
+     IF ( ctrvar%lo_radbnd(i) < ctrvar%up_radbnd(i) ) THEN
         n_fitvar_rad = n_fitvar_rad + 1
         mask_fitvar_rad(n_fitvar_rad) = i
         all_radfit_idx (n_fitvar_rad) = i
@@ -733,7 +728,7 @@ SUBROUTINE find_radiance_fitting_variables ( errstat )
         ! ----------------------------------------------
         ! Assign only entries that are varied in the fit
         ! ----------------------------------------------
-        IF ( lo_radbnd(idx+j) < up_radbnd(idx+j) ) THEN
+        IF ( ctrvar%lo_radbnd(idx+j) < ctrvar%up_radbnd(idx+j) ) THEN
            n_fitvar_rad = n_fitvar_rad + 1
            mask_fitvar_rad(n_fitvar_rad) = idx+j
            all_radfit_idx (n_fitvar_rad) = max_calfit_idx + i
@@ -764,13 +759,13 @@ SUBROUTINE find_radiance_fitting_variables ( errstat )
         ! -------------------------------------------------------------------------
         SELECT CASE ( i )
         CASE ( bro_idx )
-           IF ( yn_bro_prefit(1) .AND. &
-                (fitvar_rad_init(idx+j) /= 0.0_r8 .OR. &
-                (lo_radbnd(idx+j)       < up_radbnd(idx+j))) ) bro_prefit_fitidx   = idx+j
+           IF ( ctrvar%yn_bro_prefit(1) .AND. &
+                (ctrvar%fitvar_rad_init(idx+j) /= 0.0_r8 .OR. &
+                (ctrvar%lo_radbnd(idx+j) < ctrvar%up_radbnd(idx+j))) ) bro_prefit_fitidx   = idx+j
         CASE ( o3_t1_idx:o3_t3_idx )
-           IF ( yn_o3_prefit(1) .AND. &
-                (fitvar_rad_init(idx+j) /= 0.0_r8 .OR. &
-                (lo_radbnd(idx+j)       < up_radbnd(idx+j))) ) o3_prefit_fitidx(i) = idx+j
+           IF ( ctrvar%yn_o3_prefit(1) .AND. &
+                (ctrvar%fitvar_rad_init(idx+j) /= 0.0_r8 .OR. &
+                (ctrvar%lo_radbnd(idx+j) < ctrvar%up_radbnd(idx+j))) ) o3_prefit_fitidx(i) = idx+j
         CASE DEFAULT
         END SELECT
 
@@ -801,9 +796,9 @@ SUBROUTINE find_radiance_fitting_variables ( errstat )
         !     TRIM(ADJUSTL(refspec_strings(i)))//' - '//TRIM(ADJUSTL(radfit_strings(j)))//&
         !     ": "//TRIM(ADJUSTL(refspec_titles(i)))//" "//TRIM(ADJUSTL(radfit_titles(j)))
 
-        lo_radbnd      (idx) = 0.0_r8
-        up_radbnd      (idx) = 0.0_r8
-        fitvar_rad_init(idx) = 0.0_r8
+        ctrvar%lo_radbnd      (idx) = 0.0_r8
+        ctrvar%up_radbnd      (idx) = 0.0_r8
+        ctrvar%fitvar_rad_init(idx) = 0.0_r8
      END IF
 
   END DO

@@ -9,9 +9,9 @@ SUBROUTINE radiance_wavcal (                              &
   USE OMSAO_indices_module, ONLY: max_calfit_idx, shi_idx, squ_idx, wvl_idx, &
        spc_idx, sig_idx, ccd_idx, hwe_idx, asy_idx
   USE OMSAO_variables_module, ONLY: fitwavs, fitweights, currspec, &
-       fitvar_cal, fitvar_rad_init, fitvar_sol_init, fitvar_cal_saved, &
-       mask_fitvar_cal, n_fitvar_cal, lo_radbnd, up_radbnd, lobnd, upbnd, &
-       max_itnum_sol, hw1e, e_asym, yn_newshift, sol_wav_avg
+       fitvar_cal, fitvar_cal_saved, &
+       mask_fitvar_cal, n_fitvar_cal, lobnd, upbnd, &
+       hw1e, e_asym, yn_newshift, sol_wav_avg, ctrvar
   USE OMSAO_errstat_module
 
   IMPLICIT NONE
@@ -79,7 +79,7 @@ SUBROUTINE radiance_wavcal (                              &
   ! -------------------------------------------------------------
   !fitvar_cal(1:max_calfit_idx) = fitvar_cal_saved(1:max_calfit_idx)
   !fitvar_cal(1:max_calfit_idx) = fitvar_rad_init(1:max_calfit_idx)
-  fitvar_cal(1:max_calfit_idx) = fitvar_sol_init(1:max_calfit_idx)
+  fitvar_cal(1:max_calfit_idx) = ctrvar%fitvar_sol_init(1:max_calfit_idx)
 
   ! -------------------------------------------------------------------------
   ! Keep the slit function variables from solar fit fixed. Remember to reduce
@@ -90,19 +90,19 @@ SUBROUTINE radiance_wavcal (                              &
      SELECT CASE ( i )
      CASE ( hwe_idx )
         fitvar_cal(hwe_idx) = hw1e
-        lo_radbnd (hwe_idx) = hw1e
-        up_radbnd (hwe_idx) = hw1e
+        ctrvar%lo_radbnd (hwe_idx) = hw1e
+        ctrvar%up_radbnd (hwe_idx) = hw1e
      CASE ( asy_idx )
         fitvar_cal(asy_idx) = e_asym
-        lo_radbnd (asy_idx) = e_asym
-        up_radbnd (asy_idx) = e_asym
+        ctrvar%lo_radbnd (asy_idx) = e_asym
+        ctrvar%up_radbnd (asy_idx) = e_asym
      CASE DEFAULT
-        IF (lo_radbnd(i) < up_radbnd(i) ) THEN
+        IF (ctrvar%lo_radbnd(i) < ctrvar%up_radbnd(i) ) THEN
            n_fitvar_cal  = n_fitvar_cal + 1
            mask_fitvar_cal(n_fitvar_cal) = i
            fitvar(n_fitvar_cal) = fitvar_cal(i)
-           lobnd (n_fitvar_cal) = lo_radbnd(i)
-           upbnd (n_fitvar_cal) = up_radbnd(i)
+           lobnd (n_fitvar_cal) = ctrvar%lo_radbnd(i)
+           upbnd (n_fitvar_cal) = ctrvar%up_radbnd(i)
         END IF
      END SELECT
   END DO
@@ -122,7 +122,7 @@ SUBROUTINE radiance_wavcal (                              &
 
   CALL specfit (                                                    &
        n_fitvar_cal, fitvar(1:n_fitvar_cal), n_rad_wvl,             &
-       lobnd(1:n_fitvar_cal), upbnd(1:n_fitvar_cal), max_itnum_sol, &
+       lobnd(1:n_fitvar_cal), upbnd(1:n_fitvar_cal), ctrvar%max_itnum_sol, &
        covar(1:n_fitvar_cal,1:n_fitvar_cal), fitspec(1:n_rad_wvl),  &
        fitres(1:n_rad_wvl), radcal_exval, locitnum, specfit_func_sol )
 
@@ -166,7 +166,7 @@ SUBROUTINE radiance_wavcal (                              &
 
         CALL specfit (                                                    &
              n_fitvar_cal, fitvar(1:n_fitvar_cal), n_rad_wvl,             &
-             lobnd(1:n_fitvar_cal), upbnd(1:n_fitvar_cal), max_itnum_sol, &
+             lobnd(1:n_fitvar_cal), upbnd(1:n_fitvar_cal), ctrvar%max_itnum_sol, &
              covar(1:n_fitvar_cal,1:n_fitvar_cal), fitspec(1:n_rad_wvl),  &
              fitres(1:n_rad_wvl), radcal_exval, locitnum, specfit_func_sol )
 
@@ -203,7 +203,7 @@ SUBROUTINE radiance_wavcal (                              &
   IF ( radcal_exval >= INT(elsunc_less_is_noise, KIND=i4) ) THEN
      fitvar_cal_saved(1:max_calfit_idx) = fitvar_cal(1:max_calfit_idx)
   ELSE
-     fitvar_cal_saved(1:max_calfit_idx) = fitvar_rad_init(1:max_calfit_idx)
+     fitvar_cal_saved(1:max_calfit_idx) = ctrvar%fitvar_rad_init(1:max_calfit_idx)
   END IF
 
   ! -----------------------------------------------------------

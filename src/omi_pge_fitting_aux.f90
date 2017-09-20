@@ -739,8 +739,6 @@ END SUBROUTINE compute_fitting_statistics
 SUBROUTINE set_input_pointer_and_versions ( pge_idx )
 
   USE OMSAO_precision_module, ONLY: i4
-  USE OMSAO_prefitcol_module, ONLY : yn_o3_prefit, yn_bro_prefit, &
-       yn_lqh2o_prefit
   USE OMSAO_indices_module, ONLY: pge_oclo_idx, pge_bro_idx, pge_hcho_idx, &
        pge_o3_idx, pge_gly_idx, l1b_radiance_lun, l1b_radianceref_lun, &
        l1b_irradiance_lun, o3_prefit_lun, bro_prefit_lun, lqh2o_prefit_lun, &
@@ -819,11 +817,11 @@ SUBROUTINE set_input_pointer_and_versions ( pge_idx )
      ! ----------------------------------------------------------
      ! Add possibly pre-fitted OMSAO3 and OMBRO
      ! ----------------------------------------------------------
-     IF ( yn_o3_prefit(1) ) THEN
+     IF ( ctrvar%yn_o3_prefit(1) ) THEN
         n_lun_inp            = n_lun_inp + 1
         lun_input(n_lun_inp) = o3_prefit_lun
      END IF
-     IF ( yn_bro_prefit(1) ) THEN
+     IF ( ctrvar%yn_bro_prefit(1) ) THEN
         n_lun_inp            = n_lun_inp + 1
         lun_input(n_lun_inp) = bro_prefit_lun
      END IF
@@ -837,7 +835,7 @@ SUBROUTINE set_input_pointer_and_versions ( pge_idx )
      ! --------------------
      ! Pre-fitted lqH2O CCM
      ! --------------------
-     IF ( yn_lqh2o_prefit(1) ) THEN
+     IF ( ctrvar%yn_lqh2o_prefit(1) ) THEN
         n_lun_inp            = n_lun_inp + 1
         lun_input(n_lun_inp) = lqh2o_prefit_lun
      END IF
@@ -869,11 +867,11 @@ SUBROUTINE get_input_versions (pge_idx, yn_solar_comp, yn_radref, input_versions
 
   USE OMSAO_precision_module, ONLY: i4
   USE OMSAO_indices_module,  ONLY: pge_hcho_idx, pge_gly_idx, pge_h2o_idx
-  USE OMSAO_prefitcol_module, ONLY: yn_o3_prefit, yn_bro_prefit, yn_lqh2o_prefit
   USE OMSAO_metadata_module, ONLY: n_mdata_omchocho, n_mdata_omhcho, n_mdata_str, &
        n_mdata_voc, mdata_string_values, mdata_string_fields, mdata_voc_values, &
        mdata_voc_fields, mdata_omchocho_values, mdata_omchocho_fields, &
        mdata_omhcho_values, mdata_omhcho_fields, PGSd_MET_NAME_L
+  USE OMSAO_variables_module, ONLY: ctrvar
 
   IMPLICIT NONE
 
@@ -976,7 +974,7 @@ SUBROUTINE get_input_versions (pge_idx, yn_solar_comp, yn_radref, input_versions
      ! ----------------------------------------------------------
      ! Add possibly pre-fitted OMSAO3 and OMBRO, and OMCLDO2 ESDT
      ! ----------------------------------------------------------
-     IF ( yn_o3_prefit(1) ) THEN
+     IF ( ctrvar%yn_o3_prefit(1) ) THEN
         DO i = 1, n_mdata_omhcho
            IF ( TRIM(ADJUSTL(mdata_omhcho_fields(3,i))) ==  'OOO' ) THEN
               IF ( TRIM(ADJUSTL(mdata_omhcho_fields(1,i))) == 'PGEVERSION' ) &
@@ -991,7 +989,7 @@ SUBROUTINE get_input_versions (pge_idx, yn_solar_comp, yn_radref, input_versions
         input_versions = TRIM(ADJUSTL(input_versions))            // ' ' // &
              TRIM(ADJUSTL(ooo_name))//':'//TRIM(ADJUSTL(ooo_version))
      END IF
-     IF ( yn_bro_prefit(1) ) THEN
+     IF ( ctrvar%yn_bro_prefit(1) ) THEN
         DO i = 1, n_mdata_omhcho
            IF ( TRIM(ADJUSTL(mdata_omhcho_fields(3,i))) == 'BRO' ) THEN
               IF ( TRIM(ADJUSTL(mdata_omhcho_fields(1,i))) == 'PGEVERSION' ) &
@@ -1027,7 +1025,7 @@ SUBROUTINE get_input_versions (pge_idx, yn_solar_comp, yn_radref, input_versions
           TRIM(ADJUSTL(cld_name))//':'//TRIM(ADJUSTL(cld_version))
 		 
      ! lqH2O prefit
-     IF ( yn_lqh2o_prefit(1) ) THEN
+     IF ( ctrvar%yn_lqh2o_prefit(1) ) THEN
         DO i = 1, n_mdata_omchocho
            IF ( TRIM(ADJUSTL(mdata_omchocho_fields(3,i))) == 'LQH2O' ) THEN
               IF ( TRIM(ADJUSTL(mdata_omchocho_fields(1,i))) == 'PGEVERSION' ) &
@@ -1558,7 +1556,7 @@ SUBROUTINE compute_common_mode ( &
   USE OMSAO_precision_module, ONLY: i2, i4, r8
   USE OMSAO_indices_module,   ONLY: max_calfit_idx, comm_idx, mxs_idx
   USE OMSAO_variables_module, ONLY:                                           &
-       common_mode_spec, fitvar_rad_init, lo_radbnd, up_radbnd,               &
+       common_mode_spec,                &
        refspecs_original, ctrvar
   USE OMSAO_omidata_module,   ONLY:                                           &
        common_spc, common_wvl, common_cnt, n_omi_database_wvl, omi_database,  &
@@ -1585,9 +1583,9 @@ SUBROUTINE compute_common_mode ( &
      ! assign values to the fitting parameter arrays
      ! ---------------------------------------------------
      i = max_calfit_idx + (comm_idx-1)*mxs_idx + ctrvar%common_fitpos
-     fitvar_rad_init(i) = ctrvar%common_fitvar(1)
-     lo_radbnd      (i) = ctrvar%common_fitvar(2)
-     up_radbnd      (i) = ctrvar%common_fitvar(3)
+     ctrvar%fitvar_rad_init(i) = ctrvar%common_fitvar(1)
+     ctrvar%lo_radbnd      (i) = ctrvar%common_fitvar(2)
+     ctrvar%up_radbnd      (i) = ctrvar%common_fitvar(3)
      DO i = 1, xti  ! NOTE: "xti == nxtrack" for this call
         j = n_omi_database_wvl(i)
 
@@ -1644,9 +1642,9 @@ SUBROUTINE compute_common_mode ( &
      ! assign values to the fitting parameter arrays
      ! ---------------------------------------------------
      i = max_calfit_idx + (comm_idx-1)*mxs_idx + ctrvar%common_fitpos
-     fitvar_rad_init(i) = 0.0_r8
-     lo_radbnd      (i) = 0.0_r8
-     up_radbnd      (i) = 0.0_r8
+     ctrvar%fitvar_rad_init(i) = 0.0_r8
+     ctrvar%lo_radbnd      (i) = 0.0_r8
+     ctrvar%up_radbnd      (i) = 0.0_r8
 
      ! -------------------------------------------------------------
      ! Note that we set COMMON_CNT and COMMON_SPC to 0 for _all_

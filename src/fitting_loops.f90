@@ -9,7 +9,7 @@ SUBROUTINE xtrack_radiance_wvl_calibration (             &
   USE OMSAO_parameters_module, ONLY: maxchlen, downweight, normweight
   USE OMSAO_variables_module, ONLY: hw1e, e_asym, &
        n_rad_wvl, curr_rad_spec, sol_wav_avg, database, fitvar_cal, &
-       fitvar_cal_saved, fitvar_rad_init, n_fitres_loop, &
+       fitvar_cal_saved, n_fitres_loop, &
        fitres_range, pcfvar, ctrvar
   USE OMSAO_slitfunction_module, ONLY: saved_shift, saved_squeeze
   USE OMSAO_omidata_module, ONLY: nwavel_max, nxtrack_max, &
@@ -71,7 +71,7 @@ SUBROUTINE xtrack_radiance_wvl_calibration (             &
 
   locerrstat = pge_errstat_ok
 
-  fitvar_cal_saved(1:max_calfit_idx) = fitvar_rad_init(1:max_calfit_idx)
+  fitvar_cal_saved(1:max_calfit_idx) = ctrvar%fitvar_rad_init(1:max_calfit_idx)
 
   ! -------------------------------------------------
   ! Set the number of wavelengths for the common mode
@@ -345,7 +345,7 @@ SUBROUTINE xtrack_radiance_fitting_loop (                             &
   USE OMSAO_parameters_module, ONLY: i2_missval, r8_missval
   USE OMSAO_variables_module,  ONLY: database, curr_sol_spec, n_rad_wvl, &
        curr_rad_spec, sol_wav_avg, hw1e, e_asym, n_database_wvl, &
-       n_fitres_loop, fitres_range, szamax, ctrvar
+       n_fitres_loop, fitres_range, ctrvar
   USE OMSAO_radiance_ref_module, ONLY: yn_reference_fit
   USE OMSAO_slitfunction_module, ONLY: saved_shift, saved_squeeze
   USE OMSAO_omidata_module, ONLY: nxtrack_max, n_comm_wvl, &
@@ -409,7 +409,7 @@ SUBROUTINE xtrack_radiance_fitting_loop (                             &
      ! If we already determined that this cross track pixel position carries
      ! an error, we don't even have to start processing.
      ! ---------------------------------------------------------------------
-     IF ( omi_cross_track_skippix(ipix) .OR. szamax < omi_szenith(ipix,iloop) ) CYCLE
+     IF ( omi_cross_track_skippix(ipix) .OR. ctrvar%szamax < omi_szenith(ipix,iloop) ) CYCLE
     
      locerrstat = pge_errstat_ok
 

@@ -49,28 +49,47 @@ MODULE OMSAO_variables_module
   ! N_FINCOL_IDX: Number of final column indices.
   ! * Logicals for processing mode (diagnostic or production), smooth, doas,
   !   normalization, solar composite, common mode, solar_monthly_average, 
-  !   radiance reference, radiance reference remove target
+  !   radiance reference, radiance reference remove target, use laboratory 
+  !   slit function, i0 correction, wavelength dependent AMF, correct O3 AMF
+  !   wavelength dependence
   ! * Pixel number limits:
   !    1,2: First and last scan line number
   !    3,4: First and last cross-track pixel
   ! * Latitude limits: Orbit processing, common mode, radiance reference
   ! * Variables connected with ELSUNC numerical precision/convergence criteria
   ! * Solar composite type, Index position of Common Mode add-on, radiance
-  !    reference polynomial order
+  !    reference polynomial order, solar fit maximum iteration number, radiance
+  !    fit maximum iteration number, radiance wavelength calibration frequency,
+  !    wavelength dependent AMF type index
   ! * Array for common mode initial fitting variables
-  ! ----------------------------------------------------------------------
+  ! * Solar calibration fitting variables initial value, lower and upped limits
+  ! * Solar calibration fitting variables strings
+  ! * Logicals for prefitted columns
+  ! * Undersampling spectra phase, maximum solar zenith angle to process
+  ! * Top of Atmosphere [km]
+  ! ---------------------------------------------------------------------------
   TYPE ctr_variables
      INTEGER (KIND=I4) :: n_mol_fit, n_fincol_idx
      INTEGER (KIND=I4), DIMENSION (max_mol_fit) :: fitcol_idx
      INTEGER (KIND=I4), DIMENSION (2,max_mol_fit*mxs_idx) :: fincol_idx
      LOGICAL :: yn_diagnostic_run, yn_smooth, yn_doas, yn_spectrum_norm, &
           yn_solar_comp, yn_common_iter, yn_solmonthave, yn_radiance_reference, &
-          yn_remove_target
+          yn_remove_target, yn_use_labslitfunc, yn_solar_i0, yn_amf_wfmod, &
+          yn_o3amf_cor
      INTEGER (KIND=I4), DIMENSION (4) :: pixnum_lim
      REAL(KIND=r4), DIMENSION (2) :: radfit_latrange, common_latrange, radref_latrange
      REAL (KIND=r8) :: tol,  epsrel,  epsabs,  epsx
-     INTEGER (KIND=i4) :: solar_comp_typ, common_fitpos, target_npol
+     INTEGER (KIND=i4) :: solar_comp_typ, common_fitpos, target_npol, max_itnum_sol, &
+          max_itnum_rad, radwavcal_freq, amf_wfmod_idx
      REAL (KIND=r8), DIMENSION (3) :: common_fitvar
+     REAL (KIND=r8), DIMENSION (max_calfit_idx) :: fitvar_sol_init, lo_sunbnd, up_sunbnd
+     CHARACTER (LEN=6), DIMENSION (max_calfit_idx) :: fitvar_sol_str
+     LOGICAL, DIMENSION (2) :: yn_bro_prefit, yn_o3_prefit, yn_lqh2o_prefit
+     REAL (KIND=r8) :: phase, szamax, amf_alb_lnd, amf_alb_sno, amf_wvl, amf_wvl2, amf_alb_cld, &
+          amf_max_sza
+     REAL (KIND=r4) :: zatmos
+     REAL (KIND=r8), DIMENSION (n_max_fitpars)  :: fitvar_rad_init, lo_radbnd, up_radbnd
+     CHARACTER (LEN=6), DIMENSION (n_max_fitpars)  :: fitvar_rad_str
   END type ctr_variables
   TYPE(ctr_variables) :: ctrvar
 
@@ -82,39 +101,21 @@ MODULE OMSAO_variables_module
 
   INTEGER (KIND=I4)                             :: n_fitvar_rad, n_fitvar_cal
 
-  REAL    (KIND=r8), DIMENSION (max_calfit_idx) :: &
-       fitvar_cal, fitvar_cal_saved, fitvar_sol_init, lo_sunbnd, up_sunbnd
-
-  REAL    (KIND=r8), DIMENSION (n_max_fitpars)  :: fitvar_rad, fitvar_rad_init
-  REAL    (KIND=r8), DIMENSION (n_max_fitpars)  :: fitvar_rad_saved
-  REAL    (KIND=r8), DIMENSION (n_max_fitpars)  :: lo_radbnd, up_radbnd, lobnd, upbnd
-  CHARACTER (LEN=6), DIMENSION (n_max_fitpars)  :: fitvar_rad_str, fitvar_sol_str
+  REAL    (KIND=r8), DIMENSION (max_calfit_idx) :: fitvar_cal, fitvar_cal_saved
+  REAL    (KIND=r8), DIMENSION (n_max_fitpars)  :: fitvar_rad, fitvar_rad_saved, lobnd, upbnd
 
   REAL    (KIND=r8), DIMENSION (max_rs_idx, nwavel_max) :: database
 
   ! -------------------------------------
   ! Variables related to Air Mass Factors
   ! -------------------------------------
-  !INTEGER (KIND=I4)  :: n_amftab_dim, n_amftab_ang
-  LOGICAL            :: have_amftable, yn_o3amf_cor
-  !!REAL    (KIND=r8)  :: amf_esza_min, amf_esza_max
-  !REAL    (KIND=r8)  :: amf_tab_wvl, amf_tab_alb
-  !REAL    (KIND=r8), DIMENSION (n_amftab_ang_max, n_amftab_dim_max) :: amf_table_bro
-
-  !! ---------------------------------------------------------------
-  !! Some BrO specific AMF variables: Fitted polynomial coefficients
-  !! that are used in lieu of interpolation.
-  !! ---------------------------------------------------------------
-  !INTEGER (KIND=i4)                                  :: n_amftab_coef
-  !REAL    (KIND=r8)                                  :: amftab_coef_norm
-  !REAL    (KIND=r8), DIMENSION (0:n_amftab_coef_max) :: amftab_coef
+  LOGICAL            :: have_amftable
 
   ! -----------------------------
   ! Previously IMPLICIT variables
   ! -----------------------------
-  REAL (KIND=r8) :: phase, szamax, chisq, sol_wav_avg, rad_wav_avg
+  REAL (KIND=r8) :: chisq, sol_wav_avg, rad_wav_avg
   REAL (KIND=r8) :: hw1e, e_asym
-  REAL (KIND=r4) :: zatmos
 
   ! -----------------------------------------------------------
   ! Variables related to reference spectra
@@ -197,21 +198,10 @@ MODULE OMSAO_variables_module
   INTEGER (KIND=i4), DIMENSION (radfit_idx)  :: n_fitres_loop, fitres_range
   REAL    (KIND=r8), DIMENSION (nxtrack_max) :: xtrack_fitres_limit
 
-  ! --------------------------------------------
-  ! Frequency of radiance wavelength calibration
-  ! --------------------------------------------
-  INTEGER (KIND=I4) :: radwavcal_freq
-
   ! ----------------------------------------
   ! Variable for +1.0 or -1.0 multiplication
   ! ----------------------------------------
   REAL (KIND=r8) :: pm_one
-
-  ! ------------------------------------
-  ! Maximum number of fitting iterations
-  ! ------------------------------------
-  INTEGER (KIND=I4) :: max_itnum_sol, max_itnum_rad
-  
 
   ! ------------------------------------
   ! Maximum good column amount
@@ -235,11 +225,6 @@ MODULE OMSAO_variables_module
   ! -----------------------------------------------------------------
   INTEGER (KIND=I4) :: n_sol_wvl, n_rad_wvl, n_database_wvl
 
-  ! --------------------------------------------
-  ! Name of the tabulated OMI slit function data
-  ! --------------------------------------------
-  LOGICAL                  :: yn_use_labslitfunc
-
   ! ---------------------------------------------------------------------------
   ! And this is the convolved solar spectrum. It is (re)initialized in the
   ! solar fit routines only if the above shift&squeeze parameters have changed.
@@ -252,11 +237,6 @@ MODULE OMSAO_variables_module
   ! ---------------------------------------------------------
   CHARACTER (LEN=maxchlen)                               :: OMBRO_amf_filename
   CHARACTER (LEN=maxchlen), DIMENSION (n_voc_amf_luns)   :: voc_amf_filenames
-
-  ! -------------------------------
-  ! Logicals for Solar I0 correction
-  ! -------------------------------
-  LOGICAL           :: yn_solar_i0
 
   ! ---------------------------------------------------------------------
   ! 3-letter string to identify the OMI channel (UV2 or VIS) we are using

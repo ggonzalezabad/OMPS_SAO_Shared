@@ -9,9 +9,9 @@ MODULE OMSAO_solar_wavcal_module
        i2_missval, i4_missval, r8_missval, normweight, downweight, maxchlen, max_spec_pts
   USE OMSAO_variables_module,  ONLY: &
        hw1e, e_asym, curr_sol_spec, sol_wav_avg, fitvar_cal, fitvar_cal_saved,  &
-       fitvar_sol_init, n_fitres_loop, fitres_range, mask_fitvar_cal, n_fitvar_cal, lobnd, upbnd,&
-       fitwavs, fitweights, currspec, lo_sunbnd, up_sunbnd, max_itnum_sol, refspecs_original,    &
-       winwav_min, winwav_max, pcfvar
+       n_fitres_loop, fitres_range, mask_fitvar_cal, n_fitvar_cal, lobnd, upbnd,&
+       fitwavs, fitweights, currspec, refspecs_original,    &
+       winwav_min, winwav_max, pcfvar, ctrvar
   USE OMSAO_omidata_module
   USE OMSAO_errstat_module
   USE OMSAO_he5_module
@@ -54,7 +54,7 @@ CONTAINS
 
     omi_solcal_chisq = r8_missval
 
-    fitvar_cal_saved(1:max_calfit_idx) = fitvar_sol_init(1:max_calfit_idx)
+    fitvar_cal_saved(1:max_calfit_idx) = ctrvar%fitvar_sol_init(1:max_calfit_idx)
 
     ! ---------------------------------------------------------------
     ! Loop for solar wavelength calibration and slit function fitting
@@ -232,12 +232,12 @@ CONTAINS
     fitvar = 0.0_r8 ; lobnd = 0.0_r8 ; upbnd = 0.0_r8
     n_fitvar_cal = 0
     DO i = 1, max_calfit_idx
-       IF (lo_sunbnd(i) < up_sunbnd(i) ) THEN
+       IF (ctrvar%lo_sunbnd(i) < ctrvar%up_sunbnd(i) ) THEN
           n_fitvar_cal  = n_fitvar_cal + 1
           mask_fitvar_cal(n_fitvar_cal) = i
           fitvar(n_fitvar_cal) = fitvar_cal(i)
-          lobnd (n_fitvar_cal) = lo_sunbnd(i)
-          upbnd (n_fitvar_cal) = up_sunbnd(i)
+          lobnd (n_fitvar_cal) = ctrvar%lo_sunbnd(i)
+          upbnd (n_fitvar_cal) = ctrvar%up_sunbnd(i)
        END IF
     END DO
 
@@ -252,7 +252,7 @@ CONTAINS
     ALLOCATE ( covar(1:n_fitvar_cal,1:n_fitvar_cal) )
     CALL specfit (                                                    &
          n_fitvar_cal, fitvar(1:n_fitvar_cal), n_sol_wvl,             &
-         lobnd(1:n_fitvar_cal), upbnd(1:n_fitvar_cal), max_itnum_sol, &
+         lobnd(1:n_fitvar_cal), upbnd(1:n_fitvar_cal), ctrvar%max_itnum_sol, &
          covar(1:n_fitvar_cal,1:n_fitvar_cal), fitspec(1:n_sol_wvl),  &
          fitres(1:n_sol_wvl), solcal_exval, locitnum, specfit_func_sol )
     IF ( ALLOCATED (covar) ) DEALLOCATE (covar)
@@ -306,7 +306,7 @@ CONTAINS
           ALLOCATE ( covar(1:n_fitvar_cal,1:n_fitvar_cal) )
           CALL specfit ( &
                n_fitvar_cal, fitvar(1:n_fitvar_cal), n_sol_wvl, &
-               lobnd(1:n_fitvar_cal), upbnd(1:n_fitvar_cal), max_itnum_sol, &
+               lobnd(1:n_fitvar_cal), upbnd(1:n_fitvar_cal), ctrvar%max_itnum_sol, &
                covar(1:n_fitvar_cal,1:n_fitvar_cal), fitspec(1:n_sol_wvl), &
                fitres(1:n_sol_wvl), solcal_exval, locitnum, specfit_func_sol )
           IF ( ALLOCATED (covar) ) DEALLOCATE (covar)
@@ -314,7 +314,7 @@ CONTAINS
           IF ( solcal_exval > 0 ) THEN
              fitvar_cal_saved(1:max_calfit_idx) = fitvar_cal(1:max_calfit_idx)
           ELSE
-             fitvar_cal_saved(1:max_calfit_idx) = fitvar_sol_init(1:max_calfit_idx)
+             fitvar_cal_saved(1:max_calfit_idx) = ctrvar%fitvar_sol_init(1:max_calfit_idx)
           END IF
 
           ! ----------------------
@@ -352,7 +352,7 @@ CONTAINS
     IF ( solcal_exval >= INT(elsunc_less_is_noise, KIND=i4) ) THEN
        fitvar_cal_saved(1:max_calfit_idx) = fitvar_cal(1:max_calfit_idx)
     ELSE
-       fitvar_cal_saved(1:max_calfit_idx) = fitvar_sol_init(1:max_calfit_idx)
+       fitvar_cal_saved(1:max_calfit_idx) = ctrvar%fitvar_sol_init(1:max_calfit_idx)
     END IF
 
     ! ---------------------------------------------------------------

@@ -10,7 +10,7 @@ SUBROUTINE undersample ( xtrack_pix, n_sensor_pts, curr_wvl, hw1e, e_asym, phase
   USE OMSAO_indices_module,    ONLY: solar_idx, us1_idx, us2_idx
   USE OMSAO_parameters_module, ONLY: max_spec_pts
   USE OMSAO_variables_module,  ONLY: &
-       refspecs_original, database, have_undersampling, yn_use_labslitfunc
+       refspecs_original, database, have_undersampling, ctrvar
   USE OMSAO_slitfunction_module
   USE OMSAO_errstat_module
 
@@ -53,7 +53,7 @@ SUBROUTINE undersample ( xtrack_pix, n_sensor_pts, curr_wvl, hw1e, e_asym, phase
   locspec(1:npts) = refspecs_original(solar_idx)%RefSpecData(1:npts)
 
 
-  IF ( yn_use_labslitfunc ) THEN
+  IF ( ctrvar%yn_use_labslitfunc ) THEN
      CALL omi_slitfunc_convolve ( &
           xtrack_pix, npts, locwvl(1:npts), locspec(1:npts), specmod(1:npts), locerrstat )
   ELSE
@@ -213,7 +213,7 @@ SUBROUTINE undersample_new ( xtrack_pix, n_sensor_pts, curr_wvl, n_solar_pts, so
   USE OMSAO_indices_module,    ONLY: solar_idx, us1_idx, us2_idx
   USE OMSAO_parameters_module, ONLY: max_spec_pts
   USE OMSAO_variables_module,  ONLY: &
-       refspecs_original, database, yn_use_labslitfunc
+       refspecs_original, database, ctrvar
   USE OMSAO_slitfunction_module
   USE OMSAO_errstat_module
 
@@ -266,7 +266,7 @@ SUBROUTINE undersample_new ( xtrack_pix, n_sensor_pts, curr_wvl, n_solar_pts, so
 
 
 
-  IF ( yn_use_labslitfunc ) THEN
+  IF ( ctrvar%yn_use_labslitfunc ) THEN
      CALL omi_slitfunc_convolve ( &
           xtrack_pix, npts, locwvl(1:npts), locspec(1:npts), specmod(1:npts), locerrstat )
   ELSE

@@ -17,8 +17,7 @@ SUBROUTINE dataspline ( xtrack_pix, n_radwvl, curr_rad_wvl, n_max_rspec, errstat
   USE OMSAO_parameters_module, ONLY: zerospec_string, &
        solar_i0_scd, yn_i0_spc
   USE OMSAO_variables_module, ONLY: refspecs_original, common_mode_spec, &
-       database, fitvar_rad_init, lo_radbnd, up_radbnd, yn_use_labslitfunc, &
-       yn_solar_i0
+       database, ctrvar
   USE OMSAO_omidata_module, ONLY : omi_solcal_pars
   USE OMSAO_errstat_module, ONLY: pge_errstat_ok, pge_errstat_warning, &
        pge_errstat_error, omsao_w_interpol_range, omsao_e_interpol_refspec, &
@@ -62,14 +61,14 @@ SUBROUTINE dataspline ( xtrack_pix, n_radwvl, curr_rad_wvl, n_max_rspec, errstat
   ! --------------------------------------
   ! Compute correction for Solar I0 effect
   ! --------------------------------------
-  IF ( yn_solar_i0 ) THEN
+  IF ( ctrvar%yn_solar_i0 ) THEN
      idx  = solar_idx
      iii  = max_calfit_idx + (idx-1)*mxs_idx
 
      solar_wvl(1:nsol) = refspecs_original(idx)%RefSpecWavs(1:nsol)
      solar_spc(1:nsol) = refspecs_original(idx)%RefSpecData(1:nsol)
      CALL convolve_data (                                                              &
-          xtrack_pix, nsol,  solar_wvl(1:nsol), solar_spc(1:nsol), yn_use_labslitfunc, &
+          xtrack_pix, nsol,  solar_wvl(1:nsol), solar_spc(1:nsol), ctrvar%yn_use_labslitfunc, &
           omi_solcal_pars(hwe_idx,xtrack_pix), omi_solcal_pars(asy_idx,xtrack_pix),    &
           solar_conv(1:nsol), errstat )
   END IF
@@ -106,9 +105,9 @@ SUBROUTINE dataspline ( xtrack_pix, n_radwvl, curr_rad_wvl, n_max_rspec, errstat
 
      IF ( refspecs_original(idx)%nPoints /= 0                                          .AND. &
           INDEX (TRIM(ADJUSTL(refspecs_original(idx)%FileName)), zerospec_string) == 0 .AND. &
-          ( ANY (fitvar_rad_init(iii+1:iii+mxs_idx) /= 0) .OR. &
-            ANY (lo_radbnd      (iii+1:iii+mxs_idx) /= 0) .OR. &
-            ANY (up_radbnd      (iii+1:iii+mxs_idx) /= 0)        ) ) THEN
+          ( ANY (ctrvar%fitvar_rad_init(iii+1:iii+mxs_idx) /= 0) .OR. &
+            ANY (ctrvar%lo_radbnd      (iii+1:iii+mxs_idx) /= 0) .OR. &
+            ANY (ctrvar%up_radbnd      (iii+1:iii+mxs_idx) /= 0)        ) ) THEN
 
         ! -----------------------------------------------
         ! Define short-hand for number of spectral points
@@ -121,7 +120,7 @@ SUBROUTINE dataspline ( xtrack_pix, n_radwvl, curr_rad_wvl, n_max_rspec, errstat
         ! Solar I0 correction, Yes or No?
         ! Check if it is a corrected species (set in params module) CCM
         ! -------------------------------------------------------------
-        IF ( yn_solar_i0 .AND. yn_i0_spc(idx)) THEN
+        IF ( ctrvar%yn_solar_i0 .AND. yn_i0_spc(idx)) THEN
 				
            DU_load = solar_i0_scd(idx)
            
@@ -144,7 +143,7 @@ SUBROUTINE dataspline ( xtrack_pix, n_radwvl, curr_rad_wvl, n_max_rspec, errstat
            ! 4: Convolve with slit function
            ! ------------------------------
            CALL convolve_data (                                                            &
-                xtrack_pix, nsol, solar_wvl(1:nsol), tmp_spec(1:nsol), yn_use_labslitfunc, &
+                xtrack_pix, nsol, solar_wvl(1:nsol), tmp_spec(1:nsol), ctrvar%yn_use_labslitfunc, &
                 omi_solcal_pars(hwe_idx,xtrack_pix), omi_solcal_pars(asy_idx,xtrack_pix),  &
                 xsec_i0_spc(1:nsol), errstat )
            ! -----------------------------------
@@ -173,7 +172,7 @@ SUBROUTINE dataspline ( xtrack_pix, n_radwvl, curr_rad_wvl, n_max_rspec, errstat
               tmp_spec(1:npts) = common_mode_spec%RefSpecData(xtrack_pix,1:npts)
            ELSE
               CALL convolve_data (                                                           &
-                   xtrack_pix, npts, tmp_wavl(1:npts), tmp_spec(1:npts), yn_use_labslitfunc, &
+                   xtrack_pix, npts, tmp_wavl(1:npts), tmp_spec(1:npts), ctrvar%yn_use_labslitfunc, &
                    omi_solcal_pars(hwe_idx,xtrack_pix), omi_solcal_pars(asy_idx,xtrack_pix), &
                    tmp_spec(1:npts), errstat )
            END IF

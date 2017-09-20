@@ -13,14 +13,10 @@ MODULE OMSAO_prefitcol_module
   USE OMSAO_indices_module,    ONLY: &
        o3_t1_idx, o3_t2_idx, o3_t3_idx, bro_idx, lqh2o_idx, &
        pge_hcho_idx, pge_gly_idx
+  USE OMSAO_variables_module, ONLY: ctrvar
   
   IMPLICIT NONE
-  
-  ! -------------------------------------
-  ! Logicals for use of prefitted columns
-  ! -------------------------------------
-  LOGICAL, DIMENSION (2) :: yn_bro_prefit, yn_o3_prefit, yn_lqh2o_prefit
-  
+
   ! ------------------------------------------
   ! Total number of prefitted column variables
   ! ------------------------------------------
@@ -96,7 +92,7 @@ CONTAINS
     ! --------------------
     ! Return if no prefits
     ! --------------------
-    IF ( .NOT. ANY((/yn_o3_prefit, yn_bro_prefit,yn_lqh2o_prefit/)) ) RETURN
+    IF ( .NOT. ANY((/ctrvar%yn_o3_prefit(1), ctrvar%yn_bro_prefit(1),ctrvar%yn_lqh2o_prefit(1)/)) ) RETURN
 		
     ! ----------------------------------
     ! Add prefits for specific retrieval
@@ -108,7 +104,7 @@ CONTAINS
        ! O3 prefits
        ! ----------
        locerrstat = pge_errstat_ok
-       IF ( yn_o3_prefit(1) ) THEN
+       IF ( ctrvar%yn_o3_prefit(1) ) THEN
           CALL he5_init_input_file ( &
                o3_prefit_fname, o3fit_swath_name, o3fit_swath_id, o3fit_swath_file_id, &
                ntimes_o3, nxtrack_o3, errstat )
@@ -116,7 +112,7 @@ CONTAINS
              locerrstat = pge_errstat_error
              CALL error_check ( locerrstat, OMI_S_SUCCESS, pge_errstat_fatal, OMSAO_E_PREFITDIM, &
                   modulename//f_sep//"O3 access failed.", vb_lev_default, errstat )
-             yn_o3_prefit = .FALSE.
+             ctrvar%yn_o3_prefit = .FALSE.
           END IF
        END IF
        
@@ -124,7 +120,7 @@ CONTAINS
        ! BrO prefits
        ! -----------
        locerrstat = pge_errstat_ok
-       IF ( yn_bro_prefit(1) ) THEN
+       IF ( ctrvar%yn_bro_prefit(1) ) THEN
           CALL he5_init_input_file ( &
                bro_prefit_fname, brofit_swath_name, brofit_swath_id, &
                brofit_swath_file_id, ntimes_bro, nxtrack_bro, locerrstat )
@@ -132,7 +128,7 @@ CONTAINS
              locerrstat = pge_errstat_error
              CALL error_check ( locerrstat, OMI_S_SUCCESS, pge_errstat_fatal, OMSAO_E_PREFITDIM, &
                   modulename//f_sep//"BrO access failed.", vb_lev_default, errstat )
-             yn_bro_prefit = .FALSE.
+             ctrvar%yn_bro_prefit = .FALSE.
           END IF
        END IF
        
@@ -143,7 +139,7 @@ CONTAINS
        ! -------------
        
        locerrstat = pge_errstat_ok
-       IF ( yn_lqh2o_prefit(1) ) THEN
+       IF ( ctrvar%yn_lqh2o_prefit(1) ) THEN
           CALL he5_init_input_file ( &
                lqh2o_prefit_fname, lqh2ofit_swath_name, lqh2ofit_swath_id, &
                lqh2ofit_swath_file_id, ntimes_lqh2o, nxtrack_lqh2o, locerrstat )
@@ -151,7 +147,7 @@ CONTAINS
              locerrstat = pge_errstat_error
              CALL error_check ( locerrstat, OMI_S_SUCCESS, pge_errstat_fatal, OMSAO_E_PREFITDIM, &
                   modulename//f_sep//"lqH2O access failed.", vb_lev_default, errstat )
-             yn_lqh2o_prefit = .FALSE.
+             ctrvar%yn_lqh2o_prefit = .FALSE.
           END IF
        END IF
        
@@ -202,7 +198,7 @@ CONTAINS
        ! O3 prefitted columns and column uncertainties
        ! ---------------------------------------------
        yn_read_amf = .FALSE. ; locerrstat = pge_errstat_ok
-       IF ( yn_o3_prefit(1) ) THEN
+       IF ( ctrvar%yn_o3_prefit(1) ) THEN
           o3_prefit_col = 0.0_r8  ;  o3_prefit_dcol = 0.0_r8
           DO i = o3_t1_idx, o3_t3_idx
              CALL he5_read_prefit_columns (                                                       &
@@ -231,7 +227,7 @@ CONTAINS
        ! BrO prefitted columns and column uncertainties
        ! -----------------------------------------------
        yn_read_amf = .TRUE. ; locerrstat = pge_errstat_ok
-       IF ( yn_bro_prefit(1) ) THEN
+       IF ( ctrvar%yn_bro_prefit(1) ) THEN
           CALL he5_read_prefit_columns (                                 &
                brofit_swath_id, nloop, nxtrack, iline,                   &
                lcolstr,   col_str, bro_prefit_col (1:nxtrack,0:nloop-1), &
@@ -257,7 +253,7 @@ CONTAINS
        ! ------------------------------------------------
        ! ccm - Retrieved "Slant Columns"
        yn_read_amf = .FALSE. ; locerrstat = pge_errstat_ok
-       IF ( yn_lqh2o_prefit(1) ) THEN
+       IF ( ctrvar%yn_lqh2o_prefit(1) ) THEN
           CALL he5_read_prefit_columns (                                 &
                lqh2ofit_swath_id, nloop, nxtrack, iline,                   &
                lcolstr,   col_str, lqh2o_prefit_col (1:nxtrack,0:nloop-1), &
@@ -293,7 +289,7 @@ CONTAINS
        ! ----------------
        ! Shift BrO arrays
        ! ----------------
-       IF ( yn_bro_prefit(1) ) THEN
+       IF ( ctrvar%yn_bro_prefit(1) ) THEN
           bro_prefit_col (1:nxtloc,iloop) = bro_prefit_col (1:nxtloc,iloop)
           bro_prefit_dcol(1:nxtloc,iloop) = bro_prefit_dcol(1:nxtloc,iloop)
        END IF
@@ -301,7 +297,7 @@ CONTAINS
 			 ! ------------------
        ! Shift lqH2O arrays
        ! ------------------
-       IF ( yn_lqh2o_prefit(1) ) THEN
+       IF ( ctrvar%yn_lqh2o_prefit(1) ) THEN
           lqh2o_prefit_col (1:nxtloc,iloop) = lqh2o_prefit_col (1:nxtloc,iloop)
           lqh2o_prefit_dcol(1:nxtloc,iloop) = lqh2o_prefit_dcol(1:nxtloc,iloop)
        END IF
@@ -309,7 +305,7 @@ CONTAINS
        ! ---------------
        ! Shift O3 arrays
        ! ---------------
-       IF ( yn_o3_prefit(1) ) THEN
+       IF ( ctrvar%yn_o3_prefit(1) ) THEN
           o3_prefit_col (o3_t1_idx:o3_t3_idx,1:nxtloc,iloop) = &
                o3_prefit_col (o3_t1_idx:o3_t3_idx,1:nxtloc,iloop)
           o3_prefit_dcol(o3_t1_idx:o3_t3_idx,1:nxtloc,iloop) = &

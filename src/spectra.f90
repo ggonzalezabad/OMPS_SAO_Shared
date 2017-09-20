@@ -7,7 +7,7 @@ SUBROUTINE spectrum_solar ( &
        sc2_idx, sc3_idx, sc4_idx, sc5_idx, sin_idx, hwe_idx, asy_idx, shi_idx, &
        squ_idx
   USE OMSAO_variables_module,  ONLY: &
-       refspecs_original, solar_spec_convolved, yn_use_labslitfunc, &
+       refspecs_original, solar_spec_convolved, &
        fitvar_cal, mask_fitvar_cal, yn_newshift, ctrvar
   USE OMSAO_omidata_module,  ONLY: curr_xtrack_pixnum
   USE OMSAO_slitfunction_module
@@ -84,7 +84,7 @@ SUBROUTINE spectrum_solar ( &
   ! Convolve only if we don't do a solar composite
   ! ----------------------------------------------
 
-  IF ( yn_use_labslitfunc ) THEN
+  IF ( ctrvar%yn_use_labslitfunc ) THEN
      ! ------------------------------------------------------------------------
      ! Only if either SHIFT or SQUEEZE have changed from the last iteration do
      ! we need to reconvolve the solar spectrum (its convolved value is saved
@@ -485,8 +485,8 @@ SUBROUTINE spectrum_earthshine_o3exp ( &
        n_database_wvl, curr_sol_spec, fitvar_rad, mask_fitvar_rad, fitweights, &
        yn_newshift, ctrvar
   USE OMSAO_prefitcol_module,  ONLY:                                           &
-       bro_prefit_fitidx, o3_prefit_fitidx, yn_bro_prefit, bro_prefit_var,     &
-       yn_o3_prefit, o3_prefit_var
+       bro_prefit_fitidx, o3_prefit_fitidx, bro_prefit_var,     &
+       o3_prefit_var
   USE OMSAO_omidata_module,      ONLY: curr_xtrack_pixnum, omi_solcal_pars
   USE OMSAO_slitfunction_module, ONLY: saved_shift, saved_squeeze
   USE OMSAO_radiance_ref_module, ONLY: yn_reference_fit
@@ -578,9 +578,9 @@ SUBROUTINE spectrum_earthshine_o3exp ( &
   shift   = fitvar_rad(shi_idx)
   squeeze = fitvar_rad(squ_idx)
 
-  IF ( yn_bro_prefit(1) .AND. (.NOT. yn_bro_prefit(2)) .AND. bro_prefit_var /= 0.0_r8 ) &
+  IF ( ctrvar%yn_bro_prefit(1) .AND. (.NOT. ctrvar%yn_bro_prefit(2)) .AND. bro_prefit_var /= 0.0_r8 ) &
        fitvar_rad(bro_prefit_fitidx) = bro_prefit_var
-  IF ( yn_o3_prefit(1)  .AND. (.NOT. yn_o3_prefit(2))  ) THEN
+  IF ( ctrvar%yn_o3_prefit(1)  .AND. (.NOT. ctrvar%yn_o3_prefit(2))  ) THEN
      DO j = o3_t1_idx, o3_t3_idx
         IF ( o3_prefit_var(j) /= 0.0_r8 ) fitvar_rad(o3_prefit_fitidx(j)) = o3_prefit_var(j)
      END DO

@@ -23,7 +23,7 @@ CONTAINS
          ccd_idx, radref_idx
     USE OMSAO_variables_module,  ONLY: database, curr_sol_spec, n_rad_wvl, &
          curr_rad_spec, sol_wav_avg, hw1e, e_asym, n_fitvar_rad, &
-         fitvar_rad_saved, fitvar_rad_init, n_database_wvl, fitvar_rad, &
+         fitvar_rad_saved, n_database_wvl, fitvar_rad, &
          n_fitres_loop, fitres_range, xtrack_fitres_limit, pcfvar, ctrvar
     USE OMSAO_slitfunction_module, ONLY: saved_shift, saved_squeeze
     USE OMSAO_omidata_module, ONLY: omi_nwav_irrad, omi_irradiance_wght, &
@@ -76,7 +76,7 @@ CONTAINS
     locerrstat          = pge_errstat_ok
     xtrack_fitres_limit = 0.0_r8
     target_var          = r8_missval
-    fitvar_rad_saved    = fitvar_rad_init
+    fitvar_rad_saved    = ctrvar%fitvar_rad_init
 
 
     ! ---------------------------------------------------
