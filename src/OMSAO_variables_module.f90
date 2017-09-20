@@ -236,11 +236,6 @@ MODULE OMSAO_variables_module
   CHARACTER (LEN=maxchlen)                               :: OMBRO_amf_filename
   CHARACTER (LEN=maxchlen), DIMENSION (n_voc_amf_luns)   :: voc_amf_filenames
 
-  ! ---------------------------------------------------------------------
-  ! 3-letter string to identify the OMI channel (UV2 or VIS) we are using
-  ! ---------------------------------------------------------------------
-  CHARACTER (LEN=3) :: l1b_channel
-
   ! -------------------------------------------------
   ! Logical for newshift following Xiong comments gga
   ! -------------------------------------------------

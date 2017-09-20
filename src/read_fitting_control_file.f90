@@ -20,7 +20,6 @@ SUBROUTINE read_fitting_control_file ( l1b_radiance_esdt, pge_error_status )
   USE OMSAO_variables_module, ONLY: pm_one, fit_winwav_lim, &
        fit_winexc_lim, &
        winwav_min, winwav_max, n_fitres_loop, fitres_range, &
-       l1b_channel, &
        max_good_col, yn_newshift, yn_refseccor, yn_sw, &
        pcfvar, ctrvar
   USE OMSAO_omidata_module, ONLY: nxtrack_max
@@ -369,7 +368,6 @@ SUBROUTINE read_fitting_control_file ( l1b_radiance_esdt, pge_error_status )
      CALL check_for_endofinput ( TRIM(ADJUSTL(tmpchar)), yn_eoi )
      IF ( yn_eoi ) EXIT getpars
      CALL string2index ( refspec_strings, max_rs_idx, tmpchar, ridx )
-
      ! ------------------------------------------------------------------------
      ! The loop goes over MXS_IDX+1 to catch any "eoi" that may have been added
      ! after a three-element block initialization (O3 for polynomial-dependent
@@ -423,7 +421,6 @@ SUBROUTINE read_fitting_control_file ( l1b_radiance_esdt, pge_error_status )
        file_read_stat, file_read_ok, pge_errstat_fatal, OMSAO_F_READ_FITCTRL_FILE, &
        modulename//f_sep//wavwindow_str, vb_lev_default, pge_error_status )
   IF ( pge_error_status >= pge_errstat_error ) RETURN
-  READ (fit_ctrl_unit, *) l1b_channel
   READ (fit_ctrl_unit, *) fit_winwav_lim(1:n_fit_winwav), fit_winexc_lim(1:2)
 
   ! ------------------------------------------------------------------
@@ -532,14 +529,7 @@ SUBROUTINE read_fitting_control_file ( l1b_radiance_esdt, pge_error_status )
   ! wavelengths of the fitting window. Of course, the PCF must contain the
   ! corresponding file under the LUN associated with the radiance file.
   ! ----------------------------------------------------------------------
-  SELECT CASE ( l1b_channel )
-  CASE ( 'UV1' )
-     l1b_radiance_esdt  = 'OML1BRUG'
-  CASE ( 'UV2' )
-     l1b_radiance_esdt  = 'OML1BRUG'
-  CASE ( 'VIS' )
-     l1b_radiance_esdt  = 'OML1BRVG'
-  END SELECT
+  l1b_radiance_esdt  = 'OML1BRUG'
 
   CALL find_radiance_fitting_variables ( errstat )
 

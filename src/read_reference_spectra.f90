@@ -5,8 +5,7 @@ SUBROUTINE read_reference_spectra ( pge_idx, n_max_rspec, pge_error_status )
        pge_o3_idx, o3_t1_idx, o3_t2_idx, o3_t3_idx, comm_idx
   USE OMSAO_parameters_module, ONLY: zerospec_string, r8_missval
   USE OMSAO_variables_module,  ONLY: winwav_min, winwav_max, ReferenceSpectrum,&
-       refspecs_original, common_mode_spec, &
-       l1b_channel, ctrvar, pcfvar
+       refspecs_original, common_mode_spec, ctrvar, pcfvar
   USE OMSAO_he5_datafields_module, ONLY: o3_prefit_he5fields
   USE OMSAO_solcomp_module
   USE OMSAO_errstat_module
@@ -109,7 +108,7 @@ SUBROUTINE read_reference_spectra ( pge_idx, n_max_rspec, pge_error_status )
   IF ( ctrvar%yn_solar_comp ) THEN
      errstat = pge_errstat_ok
      CALL soco_pars_read ( &
-          pcfvar%solcomp_filename, ctrvar%solar_comp_typ, l1b_channel, &
+          pcfvar%solcomp_filename, ctrvar%solar_comp_typ, 'UV1', &
           winwav_min, winwav_max, errstat )
      CALL error_check ( &
           errstat, pge_errstat_ok, pge_errstat_error, OMSAO_E_READ_REFSPEC_FILE, &
@@ -132,7 +131,7 @@ SUBROUTINE read_one_refspec ( &
   USE OMSAO_precision_module,   ONLY: r8
   USE OMSAO_indices_module,     ONLY: ring_idx
   USE OMSAO_parameters_module,  ONLY: maxchlen, max_spec_pts
-  USE OMSAO_variables_module,   ONLY: ReferenceSpectrum, l1b_channel
+  USE OMSAO_variables_module,   ONLY: ReferenceSpectrum
   USE OMSAO_errstat_module
   
   IMPLICIT NONE
@@ -278,14 +277,7 @@ SUBROUTINE read_one_refspec ( &
   END DO
   DO i = j1, j2
      IF ( rs_idx == ring_idx ) THEN
-        SELECT CASE ( l1b_channel )
-        CASE ( 'UV1')
-           READ (UNIT=funit, FMT=*, IOSTAT=ios) x(i-j1+1), y(i-j1+1)
-        CASE ( 'UV2')
-           READ (UNIT=funit, FMT=*, IOSTAT=ios) x(i-j1+1), ddum, y(i-j1+1)
-        CASE ( 'VIS')
-           READ (UNIT=funit, FMT=*, IOSTAT=ios) x(i-j1+1), ddum, ddum, y(i-j1+1)
-        END SELECT
+        READ (UNIT=funit, FMT=*, IOSTAT=ios) x(i-j1+1), ddum, y(i-j1+1)
      ELSE
         READ (UNIT=funit, FMT=*, IOSTAT=ios) x(i-j1+1), y(i-j1+1)
      END IF
