@@ -523,14 +523,6 @@ SUBROUTINE read_fitting_control_file ( l1b_radiance_esdt, pge_error_status )
 
   errstat = pge_errstat_ok
 
-  ! ----------------------------------------------------------------------
-  ! At this point we check whether we have to read from UV2 or VIS file.
-  ! This is set throught the 3-letter string preceeding the start and end
-  ! wavelengths of the fitting window. Of course, the PCF must contain the
-  ! corresponding file under the LUN associated with the radiance file.
-  ! ----------------------------------------------------------------------
-  l1b_radiance_esdt  = 'OML1BRUG'
-
   CALL find_radiance_fitting_variables ( errstat )
 
   IF ( ctrvar%yn_doas ) THEN

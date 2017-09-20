@@ -18,7 +18,6 @@ SUBROUTINE read_pcf_file ( pge_error_status )
   USE OMSAO_parameters_module, ONLY: zerospec_string, str_missval
   USE OMSAO_he5_module, ONLY: pge_swath_name, process_level, &
        instrument_name, pge_version
-  USE OMSAO_omidata_module, ONLY: l1b_radiance_esdt
   USE OMSAO_variables_module, ONLY: &
        l1b_rad_filename, l1b_irrad_filename, l2_filename,  &
        have_amftable, &
@@ -221,12 +220,10 @@ SUBROUTINE read_pcf_file ( pge_error_status )
   refspecs_original(1:max_rs_idx)%FileName = pcfvar%static_input_fnames(1:max_rs_idx)
 
   ! ----------------------------------------------------
-  ! Read fitting conrol parameters from input file; this
-  ! returns L1B_RADIANCE_ESDT, which determines the
-  ! ingestion of the L1b radiance file.
+  ! Read fitting conrol parameters from input file
   ! ----------------------------------------------------
   errstat = pge_errstat_ok
-  CALL read_fitting_control_file ( l1b_radiance_esdt, errstat )
+  CALL read_fitting_control_file ( errstat )
   CALL error_check ( errstat, pge_errstat_ok, pge_errstat_warning, OMSAO_W_SUBROUTINE, &
        modulename//f_sep//"READ_FITTING_CONTROL_FILE.", vb_lev_default, pge_error_status )
   IF ( pge_error_status >= pge_errstat_fatal ) RETURN
