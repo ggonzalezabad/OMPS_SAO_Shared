@@ -38,14 +38,6 @@ SUBROUTINE omi_pge_fitting_process ( pge_idx, n_max_rspec,             &
   pge_error_status = pge_errstat_ok
 
   ! ----------------------------------------------------------------------------------
-  ! Set the swath name of various ESDTs
-  ! ----------------------------------------------------------------------------------
-  CALL omi_set_fitting_parameters ( pge_idx, errstat )
-  ! ----------------------------------------------------------------------------------
-  pge_error_status = MAX ( pge_error_status, errstat )
-  IF ( pge_error_status >= pge_errstat_error ) GO TO 666
-
-  ! ----------------------------------------------------------------------------------
   ! Since the OMPS TC files are not that big I'm going to read here the whole file and
   ! assign the values needed to the significant variables. After this no more reading
   ! will be needed.

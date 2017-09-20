@@ -175,7 +175,6 @@ MODULE OMSAO_omidata_module
   ! ---------------
   ! OMI swath names
   ! ---------------
-  CHARACTER (LEN=maxchlen) :: omi_radiance_swathname, omi_irradiance_swathname
   CHARACTER (LEN=maxchlen) :: l1b_radiance_esdt
 
   ! ------------------------------

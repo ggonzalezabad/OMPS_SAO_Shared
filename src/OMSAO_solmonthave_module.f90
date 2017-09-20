@@ -25,7 +25,7 @@ CONTAINS
     ! tra for each day makes that option no too charming
     ! ---------------------------------------------------------------------
 
-    USE OMSAO_variables_module, ONLY: l1b_channel, &
+    USE OMSAO_variables_module, ONLY: &
          fit_winwav_lim, fit_winexc_lim, pcfvar
     USE OMSAO_omidata_module, ONLY: &
          nwavel_max, nxtrack_max, omi_irradiance_spec,        &
@@ -58,18 +58,10 @@ CONTAINS
     ! --------------------------------------------------------------------
     ! Variable that holds the solar monthly averaged spectra
     ! --------------------------------------------------------------------
-    INTEGER   (KIND = i4)     :: nxUV1
-    INTEGER   (KIND = i4)     :: nxUV2
-    INTEGER   (KIND = i4)     :: nxVIS
-    INTEGER   (KIND = i4)     :: nwUV1
-    INTEGER   (KIND = i4)     :: nwUV2
-    INTEGER   (KIND = i4)     :: nwVIS
-    REAL      (KIND = r4), DIMENSION(:,:,:), ALLOCATABLE :: comUV1
-    REAL      (KIND = r4), DIMENSION(:,:,:), ALLOCATABLE :: comUV2
-    REAL      (KIND = r4), DIMENSION(:,:,:), ALLOCATABLE :: comVIS
-    INTEGER   (KIND = i4), DIMENSION(:,:),   ALLOCATABLE :: ncomUV1
-    INTEGER   (KIND = i4), DIMENSION(:,:),   ALLOCATABLE :: ncomUV2
-    INTEGER   (KIND = i4), DIMENSION(:,:),   ALLOCATABLE :: ncomVIS
+    INTEGER   (KIND = i4)     :: nx
+    INTEGER   (KIND = i4)     :: nw
+    REAL      (KIND = r4), DIMENSION(:,:,:), ALLOCATABLE :: com
+    INTEGER   (KIND = i4), DIMENSION(:,:),   ALLOCATABLE :: ncom
 
     ! ------------------------
     ! Error handling variables
@@ -107,7 +99,7 @@ CONTAINS
     ! --------------------------------
     ! UV1 channel
     ! -----------
-    READ(UNIT=funit, FMT=*, IOSTAT=ios) nxUV1, nwUV1
+    READ(UNIT=funit, FMT=*, IOSTAT=ios) nx, nw
     IF ( ios /= 0 ) THEN
        CALL error_check ( &
             ios, file_read_ok, pge_errstat_error, OMSAO_E_READ_SOLMONAVE_FILE, &
@@ -115,11 +107,10 @@ CONTAINS
        IF (  errstat /= pge_errstat_ok ) RETURN
     END IF
 
-    ALLOCATE (comUV1(nwUV1,3,nxUV1))
-    ALLOCATE (ncomUV1(nwUV1,nxUV1))
+    ALLOCATE (com(nw,3,nx))
+    ALLOCATE (ncom(nw,nx))
 
-    DO ix = 1, nxUV1
-
+    DO ix = 1, nx
        READ(UNIT=funit, FMT=*, IOSTAT=ios) dummy
        IF ( ios /= 0 ) THEN
           CALL error_check ( &
@@ -127,11 +118,9 @@ CONTAINS
                modulename//f_sep//TRIM(ADJUSTL(pcfvar%solmonthave_filename)), vb_lev_default, errstat )
           IF (  errstat /= pge_errstat_ok ) RETURN
        END IF
-
-       DO jw = 1, nwUV1
-
-          READ(UNIT=funit, FMT=*, IOSTAT=ios) comUV1(jw,1,ix), &
-               comUV1(jw,2,ix), comUV1(jw,3,ix), dummy, ncomUV1(jw,ix)
+       DO jw = 1, nw
+          READ(UNIT=funit, FMT=*, IOSTAT=ios) com(jw,1,ix), &
+               com(jw,2,ix), com(jw,3,ix), dummy, ncom(jw,ix)
           IF ( ios /= 0 ) THEN
              CALL error_check ( &
                   ios, file_read_ok, pge_errstat_error, OMSAO_E_READ_SOLMONAVE_FILE, &
@@ -139,91 +128,9 @@ CONTAINS
                   vb_lev_default, errstat )
              IF (  errstat /= pge_errstat_ok ) RETURN
           END IF
-
        END DO
-
      END DO
 
-    ! -----------
-    ! UV2 channel
-    ! -----------
-    READ(UNIT=funit, FMT=*, IOSTAT=ios) nxUV2, nwUV2
-    IF ( ios /= 0 ) THEN
-       CALL error_check ( &
-            ios, file_read_ok, pge_errstat_error, OMSAO_E_READ_SOLMONAVE_FILE, &
-            modulename//f_sep//TRIM(ADJUSTL(pcfvar%solmonthave_filename)), vb_lev_default, errstat )
-       IF (  errstat /= pge_errstat_ok ) RETURN
-    END IF
-
-    ALLOCATE (comUV2(nwUV2,3,nxUV2))
-    ALLOCATE (ncomUV2(nwUV2,nxUV2))
-
-    DO ix = 1, nxUV2
-
-       READ(UNIT=funit, FMT=*, IOSTAT=ios) dummy
-       IF ( ios /= 0 ) THEN
-          CALL error_check ( &
-               ios, file_read_ok, pge_errstat_error, OMSAO_E_READ_SOLMONAVE_FILE, &
-               modulename//f_sep//TRIM(ADJUSTL(pcfvar%solmonthave_filename)), vb_lev_default, errstat )
-          IF (  errstat /= pge_errstat_ok ) RETURN
-       END IF
-
-       DO jw = 1, nwUV2
-
-          READ(UNIT=funit, FMT=*, IOSTAT=ios) comUV2(jw,1,ix), comUV2(jw,2,ix), comUV2(jw,3,ix), &
-               dummy, ncomUV2(jw,ix)
-          IF ( ios /= 0 ) THEN
-             CALL error_check ( &
-                  ios, file_read_ok, pge_errstat_error, OMSAO_E_READ_SOLMONAVE_FILE, &
-                  modulename//f_sep//TRIM(ADJUSTL(pcfvar%solmonthave_filename)),      &
-                  vb_lev_default, errstat )
-             IF (  errstat /= pge_errstat_ok ) RETURN
-          END IF
-
-       END DO
-
-     END DO
-
-    ! -----------
-    ! VIS channel
-    ! -----------
-    READ(UNIT=funit, FMT=*, IOSTAT=ios) nxVIS, nwVIS
-    IF ( ios /= 0 ) THEN
-       CALL error_check ( &
-            ios, file_read_ok, pge_errstat_error, OMSAO_E_READ_SOLMONAVE_FILE, &
-            modulename//f_sep//TRIM(ADJUSTL(pcfvar%solmonthave_filename)), vb_lev_default, errstat )
-       IF (  errstat /= pge_errstat_ok ) RETURN
-    END IF
-
-    ALLOCATE (comVIS(nwVIS,3,nxVIS))
-    ALLOCATE (ncomVIS(nwVIS,nxVIS))
-
-    DO ix = 1, nxVIS
-
-       READ(UNIT=funit, FMT=*, IOSTAT=ios) dummy
-       IF ( ios /= 0 ) THEN
-          CALL error_check ( &
-               ios, file_read_ok, pge_errstat_error, OMSAO_E_READ_SOLMONAVE_FILE, &
-               modulename//f_sep//TRIM(ADJUSTL(pcfvar%solmonthave_filename)), vb_lev_default, errstat )
-          IF (  errstat /= pge_errstat_ok ) RETURN
-       END IF
-
-       DO jw = 1, nwVIS
-
-          READ(UNIT=funit, FMT=*, IOSTAT=ios) comVIS(jw,1,ix), comVIS(jw,2,ix), comVIS(jw,3,ix), &
-               dummy, ncomVIS(jw,ix)
-          IF ( ios /= 0 ) THEN
-             CALL error_check ( &
-                  ios, file_read_ok, pge_errstat_error, OMSAO_E_READ_SOLMONAVE_FILE, &
-                  modulename//f_sep//TRIM(ADJUSTL(pcfvar%solmonthave_filename)),      &
-                  vb_lev_default, errstat )
-             IF (  errstat /= pge_errstat_ok ) RETURN
-          END IF
-
-       END DO
-
-    END DO
-    
     ! -----------------------------------------------
     ! Close monthly average file, report SUCCESS read
     ! -----------------------------------------------
@@ -243,50 +150,19 @@ CONTAINS
     ! ---------------------------------------------
     sun_earth_distance = EarthSunDistance / AU_m
 
-    ! ---------------------------------------------------------------
-    ! Work out which channel we are interested on, UV1, UV2 or VIS
-    ! Find out number of wavelengths and number of cross track pixels
-    ! ---------------------------------------------------------------
-    SELECT CASE (l1b_channel)
-    CASE ('UV1')
-       nwavel = nwUV1 ; nxtrack = nxUV1
-       tmp_wvl(1:nwavel,1:nxtrack) = comUV1(1:nwavel,1,1:nxtrack)
-       tmp_spc(1:nwavel,1:nxtrack) = comUV1(1:nwavel,2,1:nxtrack) / sun_earth_distance / sun_earth_distance
-       DO iw = 1, nwavel
-          DO ix = 1, nxtrack
-             tmp_prc(iw,ix) = comUV1(iw,3,ix) / SQRT(REAL(ncomUV1(iw,ix), KIND=r8))
-          END DO
+    nwavel = nw ; nxtrack = nx
+    tmp_wvl(1:nwavel,1:nxtrack) = com(1:nwavel,1,1:nxtrack)
+    tmp_spc(1:nwavel,1:nxtrack) = com(1:nwavel,2,1:nxtrack) / sun_earth_distance / sun_earth_distance
+    DO iw = 1, nwavel
+       DO ix = 1, nxtrack
+          tmp_prc(iw,ix) = com(iw,3,ix) / SQRT(REAL(ncom(iw,ix), KIND=r8))
        END DO
-       tmp_flg(1:nwavel,1:nxtrack) = 128_i2 ! No problem with the pixel set for all of them
-       tmp_n(1:nwavel, 1:nxtrack)  = ncomUV1(1:nwavel,1:nxtrack) !Number of irradiance averaged
-    CASE ('UV2')
-       nwavel = nwUV2 ; nxtrack = nxUV2
-       tmp_wvl(1:nwavel,1:nxtrack) = comUV2(1:nwavel,1,1:nxtrack)
-       tmp_spc(1:nwavel,1:nxtrack) = comUV2(1:nwavel,2,1:nxtrack) / sun_earth_distance / sun_earth_distance
-       DO iw = 1, nwavel
-          DO ix = 1, nxtrack
-             tmp_prc(iw,ix) = comUV2(iw,3,ix) / SQRT(REAL(ncomUV2(iw,ix), KIND=r8))
-          END DO
-       END DO
-       tmp_flg(1:nwavel,1:nxtrack) = 128_i2 ! No problem with the pixel set for all of them
-       tmp_n(1:nwavel, 1:nxtrack)  = ncomUV2(1:nwavel,1:nxtrack) !Number of irradiance averaged
-    CASE ('VIS')
-       nwavel = nwVIS ; nxtrack = nxVIS
-       tmp_wvl(1:nwavel,1:nxtrack) = comVIS(1:nwavel,1,1:nxtrack)
-       tmp_spc(1:nwavel,1:nxtrack) = comVIS(1:nwavel,2,1:nxtrack) / sun_earth_distance / sun_earth_distance
-       DO iw = 1, nwavel
-          DO ix = 1, nxtrack
-             tmp_prc(iw,ix) = comVIS(iw,3,ix) / SQRT(REAL(ncomVIS(iw,ix), KIND=r8))
-          END DO
-       END DO
-       tmp_flg(1:nwavel,1:nxtrack) = 128_i2 ! No problem with the pixel set for all of them
-       tmp_n(1:nwavel, 1:nxtrack)  = ncomVIS(1:nwavel,1:nxtrack) !Number of irradiance averaged
-    CASE DEFAULT
-       !Nothing to do here except to fold
-    END SELECT
+    END DO
+    tmp_flg(1:nwavel,1:nxtrack) = 128_i2 ! No problem with the pixel set for all of them
+    tmp_n(1:nwavel, 1:nxtrack)  = ncom(1:nwavel,1:nxtrack) !Number of irradiance averaged
 
-    DEALLOCATE(comUV1) ; DEALLOCATE(comUV2) ; DEALLOCATE(comVIS)
-    DEALLOCATE(ncomUV1) ;  DEALLOCATE(ncomUV2) ; DEALLOCATE(ncomVIS) 
+    DEALLOCATE(com)
+    DEALLOCATE(ncom)
 
     ! -----------------------------------------------------------------------------------------
     ! Writing the readed spectra to the irradiance as if they where comming from an OMI L1 file
