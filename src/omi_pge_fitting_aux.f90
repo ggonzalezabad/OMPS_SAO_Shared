@@ -489,7 +489,7 @@ SUBROUTINE compute_fitting_statistics ( &
        PercentBadOutputSamples, &
        AbsolutePercentMissingSamples
   USE OMSAO_errstat_module,   ONLY: vb_lev_screen, pge_errstat_ok
-  USE OMSAO_variables_module, ONLY: max_good_col, pcfvar
+  USE OMSAO_variables_module, ONLY: pcfvar, ctrvar
 
 
   IMPLICIT NONE
@@ -563,7 +563,7 @@ SUBROUTINE compute_fitting_statistics ( &
         ! ------------------------------------------------------
         IF ( (saofcf(ix,it)      >= INT(elsunc_less_is_noise,KIND=i4)) .AND. &
              (saocol(ix,it)      >  r8_missval                       ) .AND. &
-             (ABS(saocol(ix,it)) <= max_good_col                     ) ) THEN 
+             (ABS(saocol(ix,it)) <= ctrvar%max_good_col            ) ) THEN 
 
            saomqf(ix,it) = main_qa_good
 
@@ -604,7 +604,7 @@ SUBROUTINE compute_fitting_statistics ( &
         IF ( saocol(ix,it) > r8_missval ) THEN
 
            IF ( (saofcf(ix,it) >= 0_i2 .AND. saofcf(ix,it) < elsunc_less_is_noise) .OR. &
-                (ABS(saocol(ix,it)) > max_good_col                               ))  THEN
+                (ABS(saocol(ix,it)) > ctrvar%max_good_col                       ))  THEN
 
               saomqf(ix,it) = main_qa_suspect
 

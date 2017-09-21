@@ -68,7 +68,7 @@ MODULE OMSAO_variables_module
   ! * Undersampling spectra phase, maximum solar zenith angle, fix land albedo,
   !    fix snow albedo, AMF wavlength, AMF end wavelength, fix cloud albedo,
   !    AMF maximum solar zenith angle, minimum fitting wavelength, maximum
-  !    fitting wavelength
+  !    fitting wavelength, maximum good column amount
   ! * Top of Atmosphere [km]
   ! * Undersampling
   ! * Fitting window limits
@@ -76,31 +76,33 @@ MODULE OMSAO_variables_module
   ! * Contstraints on the fitting residual: Window and Number of Iterations
   ! ---------------------------------------------------------------------------
   TYPE ctr_variables
-     INTEGER (KIND=I4) :: n_mol_fit, n_fincol_idx
-     INTEGER (KIND=I4), DIMENSION (max_mol_fit) :: fitcol_idx
-     INTEGER (KIND=I4), DIMENSION (2,max_mol_fit*mxs_idx) :: fincol_idx
      LOGICAL :: yn_diagnostic_run, yn_smooth, yn_doas, yn_spectrum_norm, &
           yn_solar_comp, yn_common_iter, yn_solmonthave, yn_radiance_reference, &
           yn_remove_target, yn_use_labslitfunc, yn_solar_i0, yn_amf_wfmod, &
           yn_o3amf_cor
+     LOGICAL, DIMENSION (2) :: yn_bro_prefit, yn_o3_prefit, yn_lqh2o_prefit
+     LOGICAL, DIMENSION (us1_idx:us2_idx) :: have_undersampling
+
+     INTEGER (KIND=I4) :: n_mol_fit, n_fincol_idx, solar_comp_typ, common_fitpos, &
+          target_npol, max_itnum_sol, max_itnum_rad, radwavcal_freq, amf_wfmod_idx
+     INTEGER (KIND=I4), DIMENSION (max_mol_fit) :: fitcol_idx
+     INTEGER (KIND=I4), DIMENSION (2,max_mol_fit*mxs_idx) :: fincol_idx
      INTEGER (KIND=I4), DIMENSION (4) :: pixnum_lim
-     REAL(KIND=r4), DIMENSION (2) :: radfit_latrange, common_latrange, radref_latrange
-     REAL (KIND=r8) :: tol,  epsrel,  epsabs,  epsx
-     INTEGER (KIND=i4) :: solar_comp_typ, common_fitpos, target_npol, max_itnum_sol, &
-          max_itnum_rad, radwavcal_freq, amf_wfmod_idx
+     INTEGER (KIND=i4), DIMENSION (radfit_idx)  :: n_fitres_loop, fitres_range
+
+     REAL (KIND=r4) :: zatmos
+
+     REAL (KIND=r8) :: phase, szamax, amf_alb_lnd, amf_alb_sno, amf_wvl, amf_wvl2, amf_alb_cld, &
+          amf_max_sza, winwav_min, winwav_max, max_good_col, tol,  epsrel,  epsabs,  epsx
+     REAL (KIND=r4), DIMENSION (2) :: radfit_latrange, common_latrange, radref_latrange, &
+          fit_winexc_lim
      REAL (KIND=r8), DIMENSION (3) :: common_fitvar
      REAL (KIND=r8), DIMENSION (max_calfit_idx) :: fitvar_sol_init, lo_sunbnd, up_sunbnd
-     CHARACTER (LEN=6), DIMENSION (max_calfit_idx) :: fitvar_sol_str
-     LOGICAL, DIMENSION (2) :: yn_bro_prefit, yn_o3_prefit, yn_lqh2o_prefit
-     REAL (KIND=r8) :: phase, szamax, amf_alb_lnd, amf_alb_sno, amf_wvl, amf_wvl2, amf_alb_cld, &
-          amf_max_sza, winwav_min, winwav_max
-     REAL (KIND=r4) :: zatmos
      REAL (KIND=r8), DIMENSION (n_max_fitpars)  :: fitvar_rad_init, lo_radbnd, up_radbnd
-     CHARACTER (LEN=6), DIMENSION (n_max_fitpars)  :: fitvar_rad_str
-     LOGICAL, DIMENSION (us1_idx:us2_idx) :: have_undersampling
      REAL (KIND=r8), DIMENSION (n_fit_winwav) :: fit_winwav_lim
-     REAL (KIND=r8), DIMENSION (2)            :: fit_winexc_lim
-     INTEGER (KIND=i4), DIMENSION (radfit_idx)  :: n_fitres_loop, fitres_range
+
+     CHARACTER (LEN=6), DIMENSION (max_calfit_idx) :: fitvar_sol_str
+     CHARACTER (LEN=6), DIMENSION (n_max_fitpars)  :: fitvar_rad_str
   END type ctr_variables
   TYPE(ctr_variables) :: ctrvar
 
@@ -196,11 +198,6 @@ MODULE OMSAO_variables_module
   ! Variable for +1.0 or -1.0 multiplication
   ! ----------------------------------------
   REAL (KIND=r8) :: pm_one
-
-  ! ------------------------------------
-  ! Maximum good column amount
-  ! ------------------------------------
-  REAL (KIND=r8) :: max_good_col
   
   ! ----------------------------------------------------------------------------
   ! Number of calls to fitting function. This is counted in the fitting function

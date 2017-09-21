@@ -18,7 +18,7 @@ SUBROUTINE read_fitting_control_file ( pge_error_status )
        refseccor_str, scattweight_str
   USE OMSAO_parameters_module, ONLY: maxchlen, n_fit_winwav
   USE OMSAO_variables_module, ONLY: pm_one, &
-       max_good_col, yn_newshift, yn_refseccor, yn_sw, &
+       yn_newshift, yn_refseccor, yn_sw, &
        pcfvar, ctrvar
   USE OMSAO_omidata_module, ONLY: nxtrack_max
   USE OMSAO_destriping_module, ONLY: ctr_pol_base, ctr_pol_scal, ctr_pol_patt, &
@@ -437,7 +437,6 @@ SUBROUTINE read_fitting_control_file ( pge_error_status )
   READ (fit_ctrl_unit, *) ctrvar%fitres_range(radref_idx), ctrvar%n_fitres_loop(radref_idx)
   READ (fit_ctrl_unit, *) ctrvar%fitres_range(radfit_idx), ctrvar%n_fitres_loop(radfit_idx)
 
-  stop
   ! ---------------------------------------------------------------------------
   ! Position cursor to read maximum good column amount
   ! ---------------------------------------------------------------------------
@@ -447,7 +446,7 @@ SUBROUTINE read_fitting_control_file ( pge_error_status )
        file_read_stat, file_read_ok, pge_errstat_fatal, OMSAO_F_READ_FITCTRL_FILE, &
        modulename//f_sep//maxgoodcol_str, vb_lev_default, pge_error_status )
   IF ( pge_error_status >= pge_errstat_error ) RETURN
-  READ (fit_ctrl_unit, *) max_good_col
+  READ (fit_ctrl_unit, *) ctrvar%max_good_col
 
   ! ---------------------------------------------------------------------------
   ! Position cursor to read destriping parameters:
@@ -507,7 +506,7 @@ SUBROUTINE read_fitting_control_file ( pge_error_status )
   ! Unless we come up with a reason against it, the maximum good column
   ! also applies to the destriping procedure.
   ! -------------------------------------------------------------------
-  ctr_maxcol = max_good_col
+  ctr_maxcol = ctrvar%max_good_col
 
   ! -------------------------------------------------------------------------
   ! Determine minimum and maximum wavelength in selected read/fitting windows
