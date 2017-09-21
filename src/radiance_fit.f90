@@ -21,7 +21,7 @@ SUBROUTINE radiance_fit ( &
        fitvar_rad_saved,  n_fitvar_rad, &
        lobnd, upbnd, fitweights, currspec, fitwavs, &
        fit_winwav_idx, mask_fitvar_rad, refspecs_original, &
-       xtrack_fitres_limit, all_radfit_idx, ctrvar
+       all_radfit_idx, ctrvar
   USE OMSAO_omidata_module
 
   IMPLICIT NONE
@@ -209,8 +209,6 @@ SUBROUTINE radiance_fit ( &
      rms      = r8_missval
      chisquav = r8_missval
   END IF
-
-  IF ( yn_reference_fit ) xtrack_fitres_limit(ipix) = loclim
 
   IF ( ( n_fitres_loop                    >  0             ) .AND. &
        ( loclim                           >  0.0_r8        ) .AND. &

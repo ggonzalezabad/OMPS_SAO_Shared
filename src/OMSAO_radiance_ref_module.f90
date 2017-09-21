@@ -24,7 +24,7 @@ CONTAINS
     USE OMSAO_variables_module,  ONLY: database, curr_sol_spec, n_rad_wvl, &
          curr_rad_spec, sol_wav_avg, hw1e, e_asym, n_fitvar_rad, &
          fitvar_rad_saved, n_database_wvl, fitvar_rad, &
-         n_fitres_loop, fitres_range, xtrack_fitres_limit, pcfvar, ctrvar
+         pcfvar, ctrvar
     USE OMSAO_slitfunction_module, ONLY: saved_shift, saved_squeeze
     USE OMSAO_omidata_module, ONLY: omi_nwav_irrad, omi_irradiance_wght, &
          omi_nwav_rad, n_omi_database_wvl, omi_cross_track_skippix, &
@@ -74,7 +74,6 @@ CONTAINS
     ! Initialize some variables
     ! -------------------------
     locerrstat          = pge_errstat_ok
-    xtrack_fitres_limit = 0.0_r8
     target_var          = r8_missval
     fitvar_rad_saved    = ctrvar%fitvar_rad_init
 
@@ -189,7 +188,7 @@ CONTAINS
                n_rad_wvl > n_fitvar_rad .AND. (.NOT. yn_skip_pix)              ) THEN
              yn_bad_pixel     = .FALSE.
              CALL radiance_fit ( &
-                  pge_idx, ipix, n_fitres_loop(radref_idx), fitres_range(radref_idx),       &
+                  pge_idx, ipix, ctrvar%n_fitres_loop(radref_idx), ctrvar%fitres_range(radref_idx), &
                   yn_reference_fit,                                                         &
                   n_rad_wvl, curr_rad_spec(wvl_idx:ccd_idx,1:n_rad_wvl),                    &
                   fitcol, rms, dfitcol, radfit_exval, radfit_itnum, chisquav,               &

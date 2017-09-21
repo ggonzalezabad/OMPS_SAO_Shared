@@ -73,6 +73,7 @@ MODULE OMSAO_variables_module
   ! * Undersampling
   ! * Fitting window limits
   ! * Excluded within the fitting window
+  ! * Contstraints on the fitting residual: Window and Number of Iterations
   ! ---------------------------------------------------------------------------
   TYPE ctr_variables
      INTEGER (KIND=I4) :: n_mol_fit, n_fincol_idx
@@ -99,6 +100,7 @@ MODULE OMSAO_variables_module
      LOGICAL, DIMENSION (us1_idx:us2_idx) :: have_undersampling
      REAL (KIND=r8), DIMENSION (n_fit_winwav) :: fit_winwav_lim
      REAL (KIND=r8), DIMENSION (2)            :: fit_winexc_lim
+     INTEGER (KIND=i4), DIMENSION (radfit_idx)  :: n_fitres_loop, fitres_range
   END type ctr_variables
   TYPE(ctr_variables) :: ctrvar
 
@@ -189,12 +191,6 @@ MODULE OMSAO_variables_module
   REAL    (KIND=r8), DIMENSION (ccd_idx, nwavel_max)    :: curr_sol_spec
   REAL    (KIND=r8), DIMENSION (nwavel_max)             :: fitwavs, fitweights, currspec
   REAL    (KIND=r8), DIMENSION (nwavel_max,nxtrack_max) :: rad_spec_wavcal, rad_wght_wavcal
-
-  ! ---------------------------------------------------------------------
-  ! Contstraints on the fitting residual: Window and Number of Iterations
-  ! ---------------------------------------------------------------------
-  INTEGER (KIND=i4), DIMENSION (radfit_idx)  :: n_fitres_loop, fitres_range
-  REAL    (KIND=r8), DIMENSION (nxtrack_max) :: xtrack_fitres_limit
 
   ! ----------------------------------------
   ! Variable for +1.0 or -1.0 multiplication

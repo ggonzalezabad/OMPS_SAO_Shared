@@ -9,7 +9,7 @@ MODULE OMSAO_solar_wavcal_module
        i2_missval, i4_missval, r8_missval, normweight, downweight, maxchlen, max_spec_pts
   USE OMSAO_variables_module,  ONLY: &
        hw1e, e_asym, curr_sol_spec, sol_wav_avg, fitvar_cal, fitvar_cal_saved,  &
-       n_fitres_loop, fitres_range, mask_fitvar_cal, n_fitvar_cal, lobnd, upbnd,&
+       mask_fitvar_cal, n_fitvar_cal, lobnd, upbnd,&
        fitwavs, fitweights, currspec, refspecs_original,    &
        pcfvar, ctrvar
   USE OMSAO_omidata_module
@@ -97,7 +97,7 @@ CONTAINS
 
        yn_bad_pixel   = .FALSE.
        CALL solar_fit ( &                              ! Solar wavelength calibration
-            n_fitres_loop(solcal_idx), fitres_range(solcal_idx), n_sol_wvl,                       &
+            ctrvar%n_fitres_loop(solcal_idx), ctrvar%fitres_range(solcal_idx), n_sol_wvl,                       &
             curr_sol_spec(wvl_idx:ccd_idx,1:n_sol_wvl), hw1e, e_asym, solcal_exval, solcal_itnum, &
             chisquav, yn_bad_pixel, fitres_out(1:n_sol_wvl), locerrstat )
        ! ------------------------------------------------------------------------------------------

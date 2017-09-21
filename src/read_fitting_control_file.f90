@@ -18,7 +18,6 @@ SUBROUTINE read_fitting_control_file ( pge_error_status )
        refseccor_str, scattweight_str
   USE OMSAO_parameters_module, ONLY: maxchlen, n_fit_winwav
   USE OMSAO_variables_module, ONLY: pm_one, &
-       n_fitres_loop, fitres_range, &
        max_good_col, yn_newshift, yn_refseccor, yn_sw, &
        pcfvar, ctrvar
   USE OMSAO_omidata_module, ONLY: nxtrack_max
@@ -433,12 +432,12 @@ SUBROUTINE read_fitting_control_file ( pge_error_status )
        file_read_stat, file_read_ok, pge_errstat_fatal, OMSAO_F_READ_FITCTRL_FILE, &
        modulename//f_sep//fitresconst_str, vb_lev_default, pge_error_status )
   IF ( pge_error_status >= pge_errstat_error ) RETURN
-  READ (fit_ctrl_unit, *) fitres_range(solcal_idx), n_fitres_loop(solcal_idx)
-  READ (fit_ctrl_unit, *) fitres_range(radcal_idx), n_fitres_loop(radcal_idx)
-  READ (fit_ctrl_unit, *) fitres_range(radref_idx), n_fitres_loop(radref_idx)
-  READ (fit_ctrl_unit, *) fitres_range(radfit_idx), n_fitres_loop(radfit_idx)
+  READ (fit_ctrl_unit, *) ctrvar%fitres_range(solcal_idx), ctrvar%n_fitres_loop(solcal_idx)
+  READ (fit_ctrl_unit, *) ctrvar%fitres_range(radcal_idx), ctrvar%n_fitres_loop(radcal_idx)
+  READ (fit_ctrl_unit, *) ctrvar%fitres_range(radref_idx), ctrvar%n_fitres_loop(radref_idx)
+  READ (fit_ctrl_unit, *) ctrvar%fitres_range(radfit_idx), ctrvar%n_fitres_loop(radfit_idx)
 
-
+  stop
   ! ---------------------------------------------------------------------------
   ! Position cursor to read maximum good column amount
   ! ---------------------------------------------------------------------------

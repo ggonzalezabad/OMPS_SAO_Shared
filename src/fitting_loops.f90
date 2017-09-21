@@ -9,8 +9,7 @@ SUBROUTINE xtrack_radiance_wvl_calibration (             &
   USE OMSAO_parameters_module, ONLY: maxchlen, downweight, normweight
   USE OMSAO_variables_module, ONLY: hw1e, e_asym, &
        n_rad_wvl, curr_rad_spec, sol_wav_avg, database, fitvar_cal, &
-       fitvar_cal_saved, n_fitres_loop, &
-       fitres_range, pcfvar, ctrvar
+       fitvar_cal_saved, pcfvar, ctrvar
   USE OMSAO_slitfunction_module, ONLY: saved_shift, saved_squeeze
   USE OMSAO_omidata_module, ONLY: nwavel_max, nxtrack_max, &
        omi_cross_track_skippix, omi_nwav_radref, omi_radcal_itnum, &
@@ -199,7 +198,7 @@ SUBROUTINE xtrack_radiance_wvl_calibration (             &
           SUM ( curr_rad_spec(wvl_idx,1:n_omi_radwvl) ) / REAL(n_omi_radwvl,KIND=r8)
      yn_bad_pixel = .FALSE.
      CALL radiance_wavcal ( &                       ! Radiance wavelength calibration
-          ipix, n_fitres_loop(radcal_idx), fitres_range(radcal_idx),       &
+          ipix, ctrvar%n_fitres_loop(radcal_idx), ctrvar%fitres_range(radcal_idx),       &
           n_rad_wvl, curr_rad_spec(wvl_idx:ccd_idx,1:n_rad_wvl),           &
           radcal_exval, radcal_itnum, chisquav, yn_bad_pixel, fitres_out(1:n_rad_wvl), locerrstat )
 
@@ -344,8 +343,7 @@ SUBROUTINE xtrack_radiance_fitting_loop (                             &
        pge_o3_idx, solar_idx, ccd_idx, radfit_idx
   USE OMSAO_parameters_module, ONLY: i2_missval, r8_missval
   USE OMSAO_variables_module,  ONLY: database, curr_sol_spec, n_rad_wvl, &
-       curr_rad_spec, sol_wav_avg, hw1e, e_asym, n_database_wvl, &
-       n_fitres_loop, fitres_range, ctrvar
+       curr_rad_spec, sol_wav_avg, hw1e, e_asym, n_database_wvl, ctrvar
   USE OMSAO_radiance_ref_module, ONLY: yn_reference_fit
   USE OMSAO_slitfunction_module, ONLY: saved_shift, saved_squeeze
   USE OMSAO_omidata_module, ONLY: nxtrack_max, n_comm_wvl, &
@@ -491,7 +489,7 @@ SUBROUTINE xtrack_radiance_fitting_loop (                             &
         yn_bad_pixel = .FALSE.
 
         CALL radiance_fit ( &
-             pge_idx, ipix, n_fitres_loop(radfit_idx), fitres_range(radfit_idx),   &
+             pge_idx, ipix, ctrvar%n_fitres_loop(radfit_idx), ctrvar%fitres_range(radfit_idx),   &
              yn_reference_fit,                                                     &
              n_rad_wvl, curr_rad_spec(wvl_idx:ccd_idx,1:n_rad_wvl),                &
              fitcol, rms, dfitcol, radfit_exval, radfit_itnum, chisquav,           &
