@@ -16,7 +16,7 @@ SUBROUTINE radiance_fit ( &
        spc_idx, sig_idx, ccd_idx, max_calfit_idx, o3_t1_idx, o3_t3_idx, &
        pge_o3_idx
   USE OMSAO_parameters_module, ONLY: r8_missval, i2_missval, downweight
-  USE OMSAO_variables_module, ONLY: pm_one, &
+  USE OMSAO_variables_module, ONLY: &
        database, rad_wav_avg, fitvar_rad, &
        fitvar_rad_saved,  n_fitvar_rad, &
        lobnd, upbnd, fitweights, currspec, fitwavs, &
@@ -351,7 +351,7 @@ SUBROUTINE radiance_fit ( &
         ! --------------------------------------------------
         j1 = ctrvar%fincol_idx(1, i) ; k1 = ctrvar%fincol_idx(2,i)
 
-        fitcol  = fitcol  + pm_one * fitvar(j1) / refspecs_original(k1)%NormFactor
+        fitcol  = fitcol  + ctrvar%pm_one * fitvar(j1) / refspecs_original(k1)%NormFactor
         dfitcol = dfitcol + covar_matrix(j1,j1) / refspecs_original(k1)%NormFactor**2
 
         IF ( pge_idx == pge_o3_idx ) THEN

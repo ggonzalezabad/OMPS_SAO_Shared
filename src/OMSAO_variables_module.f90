@@ -99,7 +99,9 @@ MODULE OMSAO_variables_module
      REAL (KIND=r4) :: zatmos
 
      REAL (KIND=r8) :: phase, szamax, amf_alb_lnd, amf_alb_sno, amf_wvl, amf_wvl2, amf_alb_cld, &
-          amf_max_sza, winwav_min, winwav_max, max_good_col, tol,  epsrel,  epsabs,  epsx, ctr_maxcol
+          amf_max_sza, winwav_min, winwav_max, max_good_col, tol,  epsrel,  epsabs,  epsx, ctr_maxcol, &
+          pm_one
+
      REAL (KIND=r4), DIMENSION (2) :: radfit_latrange, common_latrange, radref_latrange, &
           fit_winexc_lim, ctrdst_latrange
      REAL (KIND=r8), DIMENSION (3) :: common_fitvar
@@ -199,11 +201,6 @@ MODULE OMSAO_variables_module
   REAL    (KIND=r8), DIMENSION (ccd_idx, nwavel_max)    :: curr_sol_spec
   REAL    (KIND=r8), DIMENSION (nwavel_max)             :: fitwavs, fitweights, currspec
   REAL    (KIND=r8), DIMENSION (nwavel_max,nxtrack_max) :: rad_spec_wavcal, rad_wght_wavcal
-
-  ! ----------------------------------------
-  ! Variable for +1.0 or -1.0 multiplication
-  ! ----------------------------------------
-  REAL (KIND=r8) :: pm_one
   
   ! ----------------------------------------------------------------------------
   ! Number of calls to fitting function. This is counted in the fitting function

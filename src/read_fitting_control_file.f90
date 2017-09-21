@@ -17,8 +17,7 @@ SUBROUTINE read_fitting_control_file ( pge_error_status )
        comm_idx, procmode_diag, solmonthave_str, wfmod_amf_str, newshift_str, &
        refseccor_str, scattweight_str
   USE OMSAO_parameters_module, ONLY: maxchlen, n_fit_winwav
-  USE OMSAO_variables_module, ONLY: pm_one, &
-       pcfvar, ctrvar
+  USE OMSAO_variables_module, ONLY: pcfvar, ctrvar
   USE OMSAO_omidata_module, ONLY: nxtrack_max
   USE OMSAO_casestring_module, ONLY: lower_case
   USE OMSAO_errstat_module
@@ -126,6 +125,12 @@ SUBROUTINE read_fitting_control_file ( pge_error_status )
   READ (fit_ctrl_unit, *) ctrvar%epsrel
   READ (fit_ctrl_unit, *) ctrvar%epsabs
   READ (fit_ctrl_unit, *) ctrvar%epsx
+
+  IF ( ctrvar%yn_doas ) THEN
+     ctrvar%pm_one  = -1.0_r8
+  ELSE
+     ctrvar%pm_one  =  1.0_r8
+  END IF
 
   ! ------------------------------------------------
   ! Check for consistency of pixel limits to process
@@ -405,6 +410,12 @@ SUBROUTINE read_fitting_control_file ( pge_error_status )
   IF ( pge_error_status >= pge_errstat_error ) RETURN
   READ (fit_ctrl_unit, *) ctrvar%fit_winwav_lim(1:n_fit_winwav), ctrvar%fit_winexc_lim(1:2)
 
+  ! -------------------------------------------------------------------------
+  ! Determine minimum and maximum wavelength in selected read/fitting windows
+  ! -------------------------------------------------------------------------
+  ctrvar%winwav_min = MINVAL((/ ctrvar%fit_winwav_lim(1:n_fit_winwav) /))
+  ctrvar%winwav_max = MAXVAL((/ ctrvar%fit_winwav_lim(1:n_fit_winwav) /))
+
   ! ------------------------------------------------------------------
   ! Acceptable window for the fitting residual in multiples of its
   ! standard deviation, and the number of iterations  we will perform 
@@ -484,21 +495,10 @@ SUBROUTINE read_fitting_control_file ( pge_error_status )
   IF ( pge_error_status >= pge_errstat_error ) RETURN
   READ (fit_ctrl_unit, *) ctrvar%yn_refseccor
 
-  ! -------------------------------------------------------------------------
-  ! Determine minimum and maximum wavelength in selected read/fitting windows
-  ! -------------------------------------------------------------------------
-  ctrvar%winwav_min = MINVAL((/ ctrvar%fit_winwav_lim(1:n_fit_winwav) /))
-  ctrvar%winwav_max = MAXVAL((/ ctrvar%fit_winwav_lim(1:n_fit_winwav) /))
-
   errstat = pge_errstat_ok
 
   CALL find_radiance_fitting_variables ( errstat )
 
-  IF ( ctrvar%yn_doas ) THEN
-     pm_one     = -1.0_r8
-  ELSE
-     pm_one     =  1.0_r8
-  END IF
   stop
   ! -----------------------------------------------
   ! Close fitting control file, report SUCCESS read
