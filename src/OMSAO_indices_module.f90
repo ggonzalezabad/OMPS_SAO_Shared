@@ -415,36 +415,42 @@ MODULE OMSAO_indices_module
   ! -------------------------------------------------------
   ! Strings to search for in the fitting control input file
   ! -------------------------------------------------------
-  CHARACTER (LEN=21), PARAMETER :: comline_str     = 'Common mode iteration'
-  CHARACTER (LEN=22), PARAMETER :: destriping_str  = 'Cross-Track Smoothing'
-  CHARACTER (LEN=28), PARAMETER :: fitresconst_str = 'Fitting Residual Constraints'
-  CHARACTER (LEN=26), PARAMETER :: genline_str     = 'General fitting parameters'
-  CHARACTER (LEN=24), PARAMETER :: iofline_str     = 'Input/output data files'
-  CHARACTER (LEN=18), PARAMETER :: molline_str     = 'Molecule(s) to fit'
-  CHARACTER (LEN=26), PARAMETER :: maxgoodcol_str  = 'Maximum Good Column Amount'
-  CHARACTER (LEN=22), PARAMETER :: nrmline_str     = 'Spectrum normalization'
-  CHARACTER (LEN=37), PARAMETER :: o3amf_str       = 'Correct O3 AMF Wavelength Dependence?'
-  CHARACTER (LEN=37), PARAMETER :: wfmod_amf_str   = 'Use weighting-function modified AMFs?'
-  CHARACTER (LEN=15), PARAMETER :: procline_str    = 'Processing mode'
-  CHARACTER (LEN=31), PARAMETER :: racline_str     = 'Radiance calibration parameters'
-  CHARACTER (LEN=27), PARAMETER :: rafline_str     = 'Radiance fitting parameters'
-  CHARACTER (LEN=26), PARAMETER :: rrsline_str     = 'Radiance reference setting'
-  CHARACTER (LEN=24), PARAMETER :: rspline_str     = 'Input reference spectra'
-  CHARACTER (LEN=24), PARAMETER :: scpline_str     = 'Solar composite spectrum'
-  CHARACTER (LEN=28), PARAMETER :: socline_str     = 'Solar calibration parameters'
-  CHARACTER (LEN=23), PARAMETER :: wavwindow_str   = 'Fitting window settings'
-  CHARACTER (LEN=21), PARAMETER :: solmonthave_str = 'Solar monthly average'
-  CHARACTER (LEN=21), PARAMETER :: newshift_str    = 'New shift and squeeze'
-  CHARACTER (LEN=27), PARAMETER :: refseccor_str   = 'Reference sector correction'
-  CHARACTER (LEN=25), PARAMETER :: scattweight_str = 'Scattering weights output'
-  CHARACTER (LEN=20), PARAMETER :: insowavcal_str  = 'Solar inverse wavcal'
+  TYPE ctr_strings
+  ! ---------------------------------
+  ! Processing mode selection strings
+  ! ---------------------------------
+     CHARACTER (LEN=10) :: procmode_diag = 'diagnostic'
+     CHARACTER (LEN=21) :: comline_str     = 'Common mode iteration'
+     CHARACTER (LEN=22) :: destriping_str  = 'Cross-Track Smoothing'
+     CHARACTER (LEN=28) :: fitresconst_str = 'Fitting Residual Constraints'
+     CHARACTER (LEN=26) :: genline_str     = 'General fitting parameters'
+     CHARACTER (LEN=24) :: iofline_str     = 'Input/output data files'
+     CHARACTER (LEN=18) :: molline_str     = 'Molecule(s) to fit'
+     CHARACTER (LEN=26) :: maxgoodcol_str  = 'Maximum Good Column Amount'
+     CHARACTER (LEN=22) :: nrmline_str     = 'Spectrum normalization'
+     CHARACTER (LEN=37) :: o3amf_str       = 'Correct O3 AMF Wavelength Dependence?'
+     CHARACTER (LEN=37) :: wfmod_amf_str   = 'Use weighting-function modified AMFs?'
+     CHARACTER (LEN=15) :: procline_str    = 'Processing mode'
+     CHARACTER (LEN=31) :: racline_str     = 'Radiance calibration parameters'
+     CHARACTER (LEN=27) :: rafline_str     = 'Radiance fitting parameters'
+     CHARACTER (LEN=26) :: rrsline_str     = 'Radiance reference setting'
+     CHARACTER (LEN=24) :: rspline_str     = 'Input reference spectra'
+     CHARACTER (LEN=24) :: scpline_str     = 'Solar composite spectrum'
+     CHARACTER (LEN=28) :: socline_str     = 'Solar calibration parameters'
+     CHARACTER (LEN=23) :: wavwindow_str   = 'Fitting window settings'
+     CHARACTER (LEN=21) :: solmonthave_str = 'Solar monthly average'
+     CHARACTER (LEN=21) :: newshift_str    = 'New shift and squeeze'
+     CHARACTER (LEN=27) :: refseccor_str   = 'Reference sector correction'
+     CHARACTER (LEN=20) :: insowavcal_str  = 'Solar inverse wavcal'
+     CHARACTER (LEN= 3) :: eoi3str = 'eoi'
+  END type ctr_strings
+  TYPE(ctr_strings) :: ctrstr
 
-  ! --------------------------------------------------------------
-  ! End-Of-Input string; used to terminate a list of string inputs
-  ! --------------------------------------------------------------
-  CHARACTER (LEN=12), PARAMETER :: eoi_str = 'end_of_input'
-  CHARACTER (LEN= 3), PARAMETER :: eoi3str = 'eoi'
-  
+  ! -------------------
+  ! End of input string
+  ! -------------------
+  CHARACTER (LEN=12) :: eoi_str = 'end_of_input'
+
   ! ----------------
   ! Metadata indices
   ! ----------------
@@ -491,12 +497,6 @@ MODULE OMSAO_indices_module
   ! connected with which LUN.
   CHARACTER (LEN=7), DIMENSION (n_voc_amf_luns), PARAMETER :: &
        voc_amf_lun_str = (/ 'AMF    ', 'ISCCP  ', 'OMCLDO2' /)
-
-  ! ---------------------------------
-  ! Processing mode selection strings
-  ! ---------------------------------
-  CHARACTER (LEN=10), PARAMETER :: &
-       procmode_diag = 'diagnostic', procmode_prod = 'production'
 
   ! -----------------------------------------
   ! Indices for diagnostic output control CCM
