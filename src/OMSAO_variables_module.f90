@@ -51,7 +51,8 @@ MODULE OMSAO_variables_module
   !   normalization, solar composite, common mode, solar_monthly_average, 
   !   radiance reference, radiance reference remove target, use laboratory 
   !   slit function, i0 correction, wavelength dependent AMF, correct O3 AMF
-  !   wavelength dependence, run destriping, remove bias
+  !   wavelength dependence, run destriping, remove bias, reference sector
+  !   correction
   ! * Pixel number limits:
   !    1,2: First and last scan line number
   !    3,4: First and last cross-track pixel
@@ -79,7 +80,9 @@ MODULE OMSAO_variables_module
      LOGICAL :: yn_diagnostic_run, yn_smooth, yn_doas, yn_spectrum_norm, &
           yn_solar_comp, yn_common_iter, yn_solmonthave, yn_radiance_reference, &
           yn_remove_target, yn_use_labslitfunc, yn_solar_i0, yn_amf_wfmod, &
-          yn_o3amf_cor, yn_run_destriping, yn_remove_ctrbias, yn_newshift
+          yn_o3amf_cor, yn_run_destriping, yn_remove_ctrbias, yn_newshift, &
+          yn_refseccor
+
      LOGICAL, DIMENSION (2) :: yn_bro_prefit, yn_o3_prefit, yn_lqh2o_prefit
      LOGICAL, DIMENSION (us1_idx:us2_idx) :: have_undersampling
 
@@ -237,7 +240,6 @@ MODULE OMSAO_variables_module
   ! --------------------------------------------------------
   CHARACTER (LEN=maxchlen) :: OMSAO_refseccor_filename
   CHARACTER (LEN=maxchlen) :: OMSAO_refseccor_cld_filename
-  LOGICAL :: yn_refseccor
 
   ! -----------------------------------------------------------------
   ! Logical for Scattering Weights, Gas Profile and Averaging Kernels

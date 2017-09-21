@@ -115,7 +115,7 @@ SUBROUTINE omi_fitting (                                  &
   USE OMSAO_variables_module, ONLY: l1b_rad_filename, &
        l2_filename, &
        OMSAO_refseccor_cld_filename, &
-       voc_amf_filenames, yn_refseccor, ctrvar, pcfvar
+       voc_amf_filenames, ctrvar, pcfvar
   USE OMSAO_omidata_module, ONLY: omi_latitude, omi_column_amount, &
        omi_cross_track_skippix, omi_radcal_itnum, omi_radcal_xflag, &
        omi_solcal_itnum, omi_solcal_xflag, &
@@ -518,7 +518,7 @@ SUBROUTINE omi_fitting (                                  &
   ! 2. AMF calculation over the Ocean
   ! 3. Work out reference sector correction
   ! -----------------------------------------------------
-  IF ( yn_refseccor) THEN
+  IF ( ctrvar%yn_refseccor) THEN
      CALL omps_data_to_omi_variables ( OMPS_data_radiance_reference, &
           nTimesRadRR, nXtrackRadRR, nWvlCCDrr)
      
