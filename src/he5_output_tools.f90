@@ -122,7 +122,7 @@ FUNCTION he5_define_fields ( pge_idx, swath_name, nTimes, nXtrack, nSwLevels ) R
 
   USE OMSAO_indices_module, ONLY: sao_molecule_names
   USE OMSAO_parameters_module, ONLY: maxchlen
-  USE OMSAO_variables_module,  ONLY: yn_sw, ctrvar
+  USE OMSAO_variables_module, ONLY: ctrvar
   USE OMSAO_omidata_module, ONLY: n_field_maxdim
   USE OMSAO_he5_module
   USE OMSAO_he5_datafields_module, ONLY: geo_he5fields, sol_calfit_he5fields, &
@@ -380,36 +380,34 @@ FUNCTION he5_define_fields ( pge_idx, swath_name, nTimes, nXtrack, nSwLevels ) R
   ! (4) Scattering weights, gas profile averaging kernels
   ! and albedo gga
   ! -------------------------------------------------
-  IF (yn_sw) THEN
-     DO i = 1, n_sw_fields
-        CALL he5_check_for_compressibility ( &
-             nTimes, nXtrack, nSwLevels, TRIM(ADJUSTL(sw_he5fields(i)%Dimensions)), &
-             yn_compress_field, n_chunk_dim, chunk_dim )
-        IF ( yn_compress_field ) THEN
-           errstat = HE5_SWdefcomch ( &
-                pge_swath_id, he5_comp_type, he5_comp_par, n_chunk_dim, &
-                chunk_dim(1:n_chunk_dim) )
-        ELSE
-           errstat = HE5_SWdefchunk( pge_swath_id, n_chunk_dim, &
-                chunk_dim(1:n_chunk_dim) )
-           errstat = HE5_SWdefcomp ( pge_swath_id, he5_nocomp_type, &
-                he5_nocomp_par )! comp_par )
-        END IF
+  DO i = 1, n_sw_fields
+     CALL he5_check_for_compressibility ( &
+          nTimes, nXtrack, nSwLevels, TRIM(ADJUSTL(sw_he5fields(i)%Dimensions)), &
+          yn_compress_field, n_chunk_dim, chunk_dim )
+     IF ( yn_compress_field ) THEN
+        errstat = HE5_SWdefcomch ( &
+             pge_swath_id, he5_comp_type, he5_comp_par, n_chunk_dim, &
+             chunk_dim(1:n_chunk_dim) )
+     ELSE
+        errstat = HE5_SWdefchunk( pge_swath_id, n_chunk_dim, &
+             chunk_dim(1:n_chunk_dim) )
+        errstat = HE5_SWdefcomp ( pge_swath_id, he5_nocomp_type, &
+             he5_nocomp_par )! comp_par )
+     END IF
         
-        ! -------------
-        ! Set FillValue
-        ! -------------
-        CALL he5_set_fill_value ( sw_he5fields(i), errstat )
-        
-        errstat = HE5_SWdefdfld (                           &
-             sw_he5fields(i)%Swath_ID,                      &
-             TRIM(ADJUSTL(sw_he5fields(i)%Name)),           &
-             TRIM(ADJUSTL(sw_he5fields(i)%Dimensions)),     &
-             " ",                                           &
-             sw_he5fields(i)%HE5_DataType, he5_hdfe_nomerge )
-     END DO
-  END IF
-    
+     ! -------------
+     ! Set FillValue
+     ! -------------
+     CALL he5_set_fill_value ( sw_he5fields(i), errstat )
+     
+     errstat = HE5_SWdefdfld (                           &
+          sw_he5fields(i)%Swath_ID,                      &
+          TRIM(ADJUSTL(sw_he5fields(i)%Name)),           &
+          TRIM(ADJUSTL(sw_he5fields(i)%Dimensions)),     &
+          " ",                                           &
+          sw_he5fields(i)%HE5_DataType, he5_hdfe_nomerge )
+  END DO
+
   ! ------------------------------------------
   ! Check error status of swath initialization
   ! ------------------------------------------
@@ -1088,7 +1086,7 @@ FUNCTION he5_set_field_attributes ( pge_idx ) RESULT ( he5stat )
   !------------------------------------------------------------------------------
 
   USE OMSAO_indices_module, ONLY: sao_molecule_names
-  USE OMSAO_variables_module, ONLY: ctrvar, yn_sw
+  USE OMSAO_variables_module, ONLY: ctrvar
   USE OMSAO_he5_module
   USE OMSAO_he5_datafields_module, ONLY: sw_he5fields, voc_he5fields, &
        diagnostic_he5fields, comdata_he5fields, rad_reffit_he5fields, &
@@ -1187,11 +1185,9 @@ FUNCTION he5_set_field_attributes ( pge_idx ) RESULT ( he5stat )
   ! Scattering weights, gas profile, averaging kernels
   ! and albedo attributes. gga
   ! --------------------------------------------------
-  IF (yn_sw) THEN
-     DO i = 1, n_sw_fields
-        CALL he5_write_local_attributes ( "", sw_he5fields(i), locerrstat )
-     END DO
-  ENDIF
+  DO i = 1, n_sw_fields
+     CALL he5_write_local_attributes ( "", sw_he5fields(i), locerrstat )
+  END DO
 
 
   ! -----------------------------------------------------------------------

@@ -18,7 +18,6 @@ SUBROUTINE read_fitting_control_file ( pge_error_status )
        refseccor_str, scattweight_str
   USE OMSAO_parameters_module, ONLY: maxchlen, n_fit_winwav
   USE OMSAO_variables_module, ONLY: pm_one, &
-       yn_sw, &
        pcfvar, ctrvar
   USE OMSAO_omidata_module, ONLY: nxtrack_max
   USE OMSAO_casestring_module, ONLY: lower_case
@@ -485,17 +484,6 @@ SUBROUTINE read_fitting_control_file ( pge_error_status )
   IF ( pge_error_status >= pge_errstat_error ) RETURN
   READ (fit_ctrl_unit, *) ctrvar%yn_refseccor
 
-  ! ------------------------------------------------------------------
-  ! Position cursor to read logical for Scattering Weights and ... gga
-  ! ------------------------------------------------------------------
-  REWIND (fit_ctrl_unit)
-  CALL skip_to_filemark ( fit_ctrl_unit, scattweight_str, tmpchar, file_read_stat )
-  CALL error_check ( &
-       file_read_stat, file_read_ok, pge_errstat_fatal, OMSAO_F_READ_FITCTRL_FILE, &
-       modulename//f_sep//destriping_str, vb_lev_default, pge_error_status )
-  IF ( pge_error_status >= pge_errstat_error ) RETURN
-  READ (fit_ctrl_unit, *) yn_sw
-
   ! -------------------------------------------------------------------------
   ! Determine minimum and maximum wavelength in selected read/fitting windows
   ! -------------------------------------------------------------------------
@@ -511,7 +499,7 @@ SUBROUTINE read_fitting_control_file ( pge_error_status )
   ELSE
      pm_one     =  1.0_r8
   END IF
-
+  stop
   ! -----------------------------------------------
   ! Close fitting control file, report SUCCESS read
   ! -----------------------------------------------

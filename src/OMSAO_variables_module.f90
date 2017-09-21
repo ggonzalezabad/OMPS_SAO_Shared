@@ -245,7 +245,6 @@ MODULE OMSAO_variables_module
   ! Logical for Scattering Weights, Gas Profile and Averaging Kernels
   ! Also filename
   ! -----------------------------------------------------------------
-  LOGICAL                  :: yn_sw
   CHARACTER (LEN=maxchlen) :: OMSAO_OMLER_filename
 
 END MODULE OMSAO_variables_module
