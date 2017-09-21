@@ -11,7 +11,7 @@ SUBROUTINE radiance_wavcal (                              &
   USE OMSAO_variables_module, ONLY: fitwavs, fitweights, currspec, &
        fitvar_cal, fitvar_cal_saved, &
        mask_fitvar_cal, n_fitvar_cal, lobnd, upbnd, &
-       hw1e, e_asym, yn_newshift, sol_wav_avg, ctrvar
+       hw1e, e_asym, sol_wav_avg, ctrvar
   USE OMSAO_errstat_module
 
   IMPLICIT NONE
@@ -216,7 +216,7 @@ SUBROUTINE radiance_wavcal (                              &
   ! ---------------------
   ! gga to include Xiong comments
 !  write(*,*) curr_rad_spec(wvl_idx,1:n_rad_wvl), fitvar_cal(shi_idx), fitvar_cal(squ_idx)
-  IF (yn_newshift .EQV. .true.) THEN
+  IF (ctrvar%yn_newshift .EQV. .true.) THEN
      curr_rad_spec(wvl_idx,1:n_rad_wvl) = ( &
           curr_rad_spec(wvl_idx,1:n_rad_wvl) - fitvar_cal(shi_idx) + sol_wav_avg * fitvar_cal(squ_idx)) / &
           (1.0_r8 + fitvar_cal(squ_idx))

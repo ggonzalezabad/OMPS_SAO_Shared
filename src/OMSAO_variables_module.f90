@@ -79,7 +79,7 @@ MODULE OMSAO_variables_module
      LOGICAL :: yn_diagnostic_run, yn_smooth, yn_doas, yn_spectrum_norm, &
           yn_solar_comp, yn_common_iter, yn_solmonthave, yn_radiance_reference, &
           yn_remove_target, yn_use_labslitfunc, yn_solar_i0, yn_amf_wfmod, &
-          yn_o3amf_cor, yn_run_destriping, yn_remove_ctrbias
+          yn_o3amf_cor, yn_run_destriping, yn_remove_ctrbias, yn_newshift
      LOGICAL, DIMENSION (2) :: yn_bro_prefit, yn_o3_prefit, yn_lqh2o_prefit
      LOGICAL, DIMENSION (us1_idx:us2_idx) :: have_undersampling
 
@@ -231,11 +231,6 @@ MODULE OMSAO_variables_module
   ! ---------------------------------------------------------
   CHARACTER (LEN=maxchlen)                               :: OMBRO_amf_filename
   CHARACTER (LEN=maxchlen), DIMENSION (n_voc_amf_luns)   :: voc_amf_filenames
-
-  ! -------------------------------------------------
-  ! Logical for newshift following Xiong comments gga
-  ! -------------------------------------------------
-  LOGICAL :: yn_newshift
 
   ! --------------------------------------------------------
   ! Filename and logical for Reference Sector Correction gga

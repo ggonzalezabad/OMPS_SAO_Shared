@@ -162,7 +162,7 @@ CONTAINS
     !
     ! ***************************************************************
     USE OMSAO_parameters_module, ONLY: elsunc_less_is_noise, r8_missval
-    USE OMSAO_variables_module,  ONLY: yn_newshift
+    USE OMSAO_variables_module,  ONLY: ctrvar
     IMPLICIT NONE
 
     ! ---------------
@@ -358,7 +358,7 @@ CONTAINS
     ! ---------------------------------------------------------------
     ! Save shifted&squeezed wavelength array, and the fitting weights
     ! ---------------------------------------------------------------
-    IF (yn_newshift .EQV. .true.) THEN !gga
+    IF (ctrvar%yn_newshift .EQV. .true.) THEN !gga
        curr_sol_spec(wvl_idx,1:n_sol_wvl) = &
             (fitwavs (1:n_sol_wvl) - fitvar_cal_saved(shi_idx) + &
              sol_wav_avg * fitvar_cal_saved(squ_idx)) /          &

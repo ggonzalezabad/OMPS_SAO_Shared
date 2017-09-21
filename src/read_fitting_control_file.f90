@@ -18,7 +18,7 @@ SUBROUTINE read_fitting_control_file ( pge_error_status )
        refseccor_str, scattweight_str
   USE OMSAO_parameters_module, ONLY: maxchlen, n_fit_winwav
   USE OMSAO_variables_module, ONLY: pm_one, &
-       yn_newshift, yn_refseccor, yn_sw, &
+       yn_refseccor, yn_sw, &
        pcfvar, ctrvar
   USE OMSAO_omidata_module, ONLY: nxtrack_max
   USE OMSAO_casestring_module, ONLY: lower_case
@@ -463,7 +463,6 @@ SUBROUTINE read_fitting_control_file ( pge_error_status )
   ! -------------------------------------------------------------------
   ctrvar%ctr_maxcol = ctrvar%max_good_col
 
-  stop
   ! --------------------------------------------------------
   ! Position cursor to read new shift and squeeze option gga
   ! --------------------------------------------------------
@@ -473,7 +472,7 @@ SUBROUTINE read_fitting_control_file ( pge_error_status )
        file_read_stat, file_read_ok, pge_errstat_fatal, OMSAO_F_READ_FITCTRL_FILE, &
        modulename//f_sep//destriping_str, vb_lev_default, pge_error_status )
   IF ( pge_error_status >= pge_errstat_error ) RETURN
-  READ (fit_ctrl_unit, *) yn_newshift
+  READ (fit_ctrl_unit, *) ctrvar%yn_newshift
 
   ! -------------------------------------------------------------------
   ! Position cursor to read logical for Reference Sector Correction gga

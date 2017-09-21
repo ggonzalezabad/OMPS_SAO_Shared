@@ -8,7 +8,7 @@ SUBROUTINE spectrum_solar ( &
        squ_idx
   USE OMSAO_variables_module,  ONLY: &
        refspecs_original, solar_spec_convolved, &
-       fitvar_cal, mask_fitvar_cal, yn_newshift, ctrvar
+       fitvar_cal, mask_fitvar_cal, ctrvar
   USE OMSAO_omidata_module,  ONLY: curr_xtrack_pixnum
   USE OMSAO_slitfunction_module
   USE OMSAO_errstat_module
@@ -72,7 +72,7 @@ SUBROUTINE spectrum_solar ( &
   !     Lambda = Lambda * (1 + squeeze) + shift - sol_wav_avg * squeeze
 
 
-  IF (yn_newshift .EQV. .true.) THEN ! gga
+  IF (ctrvar%yn_newshift .EQV. .true.) THEN ! gga
      solar_pos(1:npts) = solar_pos(1:npts) * (1.0_r8 + fitvar_cal(squ_idx)) &
        + fitvar_cal(shi_idx) - sol_wav_avg * fitvar_cal(squ_idx)
   ELSE ! gga
@@ -183,8 +183,7 @@ SUBROUTINE spectrum_earthshine ( &
        squ_idx
   USE OMSAO_parameters_module, ONLY: max_spec_pts, downweight
   USE OMSAO_variables_module, ONLY: n_database_wvl, curr_sol_spec, &
-       fitvar_rad, mask_fitvar_rad, fitweights, &
-       yn_newshift, ctrvar
+       fitvar_rad, mask_fitvar_rad, fitweights, ctrvar
   USE OMSAO_omidata_module,      ONLY: curr_xtrack_pixnum, omi_solcal_pars
   USE OMSAO_slitfunction_module, ONLY: saved_shift, saved_squeeze
   USE OMSAO_radiance_ref_module, ONLY: yn_reference_fit
@@ -301,7 +300,7 @@ SUBROUTINE spectrum_earthshine ( &
      locwvl_shift(1:npts) = locwvl(1:npts) - shift
      CALL array_locate_r8 ( npts, locwvl(1:npts), locwvl_shift(   1), 'GE', j1 )
      CALL array_locate_r8 ( npts, locwvl(1:npts), locwvl_shift(npts), 'LE', j2 )
-  ELSE IF (yn_newshift) THEN !gga
+  ELSE IF (ctrvar%yn_newshift) THEN !gga
      sunpos_ss(1:n_sunpos) = sunpos_ss(1:n_sunpos) * (1.0_r8 + squeeze) +       &
                              shift - rad_wav_avg * squeeze
      CALL array_locate_r8 ( npts, locwvl(1:npts), sunpos_ss(       1), 'GE', j1 )
@@ -483,7 +482,7 @@ SUBROUTINE spectrum_earthshine_o3exp ( &
   USE OMSAO_parameters_module, ONLY: max_spec_pts, downweight
   USE OMSAO_variables_module,  ONLY: &
        n_database_wvl, curr_sol_spec, fitvar_rad, mask_fitvar_rad, fitweights, &
-       yn_newshift, ctrvar
+       ctrvar
   USE OMSAO_prefitcol_module,  ONLY:                                           &
        bro_prefit_fitidx, o3_prefit_fitidx, bro_prefit_var,     &
        o3_prefit_var
@@ -612,7 +611,7 @@ SUBROUTINE spectrum_earthshine_o3exp ( &
      locwvl_shift(1:npts) = locwvl(1:npts) - shift
      CALL array_locate_r8 ( npts, locwvl(1:npts), locwvl_shift(   1), 'GE', j1 )
      CALL array_locate_r8 ( npts, locwvl(1:npts), locwvl_shift(npts), 'LE', j2 )
-  ELSE IF (yn_newshift .EQV. .true.) THEN !gga
+  ELSE IF (ctrvar%yn_newshift .EQV. .true.) THEN !gga
      sunpos_ss(1:n_sunpos) = sunpos_ss(1:n_sunpos) * (1.0_r8 + squeeze) +       &
                              shift - rad_wav_avg * squeeze
      CALL array_locate_r8 ( npts, locwvl(1:npts), sunpos_ss(       1), 'GE', j1 )
