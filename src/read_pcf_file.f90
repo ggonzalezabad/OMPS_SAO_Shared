@@ -29,6 +29,7 @@ SUBROUTINE read_pcf_file ( pge_error_status )
        lqh2o_prefit_fname
   USE OMSAO_wfamf_module, ONLY: wfamf_table_lun, climatology_lun,  &
        OMSAO_wfamf_table_filename, OMSAO_climatology_filename
+  USE OMSAO_control_file_module
 
   IMPLICIT NONE
 

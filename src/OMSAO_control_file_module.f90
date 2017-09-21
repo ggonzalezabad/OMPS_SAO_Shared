@@ -1,16 +1,10 @@
-SUBROUTINE read_fitting_control_file ( pge_error_status )
-
-  ! ***********************************************************
-  !
-  !   Read fitting control parameters from input control file
-  !
-  ! ***********************************************************
+MODULE OMSAO_control_file_module
 
   USE OMSAO_precision_module, ONLY: i4, r4, r8
+  USE OMSAO_parameters_module, ONLY: maxchlen, n_fit_winwav, max_mol_fit
   USE OMSAO_indices_module, ONLY: max_rs_idx, calfit_strings, max_calfit_idx, &
        radfit_strings, mxs_idx, hwe_idx, refspec_strings, icf_idx, pge_static_input_luns, &
        us1_idx, us2_idx, solcal_idx, radcal_idx, radref_idx, radfit_idx, comm_idx, ctrstr
-  USE OMSAO_parameters_module, ONLY: maxchlen, n_fit_winwav
   USE OMSAO_variables_module, ONLY: pcfvar, ctrvar
   USE OMSAO_omidata_module, ONLY: nxtrack_max
   USE OMSAO_casestring_module, ONLY: lower_case
@@ -18,6 +12,21 @@ SUBROUTINE read_fitting_control_file ( pge_error_status )
        pge_errstat_warning, pge_errstat_ok, pge_errstat_fatal, pge_errstat_error, &
        omsao_w_close_fitctrl_file, omsao_s_read_fitctrl_file, omsao_f_read_fitctrl_file, &
        omsao_f_open_fitctrl_file, omsao_f_get_molfitname, file_read_ok, f_sep, error_check
+
+  IMPLICIT NONE
+
+  PRIVATE
+  PUBLIC :: read_fitting_control_file
+
+  CONTAINS
+
+SUBROUTINE read_fitting_control_file ( pge_error_status )
+
+  ! ***********************************************************
+  !
+  !   Read fitting control parameters from input control file
+  !
+  ! ***********************************************************
 
   IMPLICIT NONE
 
@@ -516,11 +525,6 @@ END SUBROUTINE read_fitting_control_file
 
 SUBROUTINE get_mols_for_fitting ( tmpchar, n_mol_fit, fitcol_idx, errstat )
 
-  USE OMSAO_precision_module,  ONLY: i4
-  USE OMSAO_indices_module,    ONLY: refspec_strings, max_rs_idx
-  USE OMSAO_parameters_module, ONLY: max_mol_fit
-  USE OMSAO_errstat_module,    ONLY: pge_errstat_error, pge_errstat_ok
-
   IMPLICIT NONE
 
   ! ===============
@@ -580,19 +584,20 @@ END SUBROUTINE get_mols_for_fitting
 
 SUBROUTINE find_radiance_fitting_variables ( errstat )
 
-  USE OMSAO_precision_module
-  USE OMSAO_errstat_module
+  USE OMSAO_errstat_module, ONLY: pge_errstat_ok
+  USE OMSAO_precision_module, ONLY: i4, r8
   USE OMSAO_indices_module, ONLY: max_rs_idx, max_calfit_idx, mns_idx, mxs_idx,       &
        calfit_titles,  radfit_titles,  refspec_titles,     &
        calfit_strings, radfit_strings, refspec_strings,    &
        o3_t1_idx, o3_t3_idx, bro_idx, comm_idx
-  USE OMSAO_variables_module,    ONLY: &
+  USE OMSAO_variables_module, ONLY: &
        n_fitvar_rad, all_radfit_idx, mask_fitvar_rad, &
        ctrvar
+  USE OMSAO_parameters_module, ONLY: maxchlen
   USE OMSAO_prefitcol_module, ONLY:         &
        o3_prefit_fitidx, bro_prefit_fitidx, &
        n_prefit_vars
-  USE OMSAO_omidata_module,      ONLY: &
+  USE OMSAO_omidata_module, ONLY: &
        correlation_names, correlation_names_concat, nclenfit
 
   IMPLICIT NONE
@@ -765,3 +770,5 @@ SUBROUTINE find_radiance_fitting_variables ( errstat )
 
   RETURN
 END SUBROUTINE find_radiance_fitting_variables
+
+END MODULE OMSAO_control_file_module
