@@ -4,7 +4,7 @@ MODULE OMSAO_destriping_module
   USE OMSAO_parameters_module, ONLY: &
        r8_missval, normweight, downweight, elsunc_less_is_noise, elsunc_infloop_eval
   USE OMSAO_omidata_module, ONLY: nxtrack_max, nlines_max
-  USE OMSAO_variables_module, ONLY:  num_fitfunc_calls, num_fitfunc_jacobi, ctrvar
+  USE OMSAO_variables_module, ONLY: num_fitfunc_calls, num_fitfunc_jacobi, ctrvar
   USE OMSAO_median_module, ONLY: median
   USE OMSAO_he5_module
   USE OMSAO_errstat_module, ONLY: pge_errstat_ok
@@ -22,29 +22,6 @@ MODULE OMSAO_destriping_module
   REAL (KIND=r8), DIMENSION (nxtrack_max) :: &
        xtrack_striping_pos, xtrack_striping_col, xtrack_striping_wgt, xtrack_striping_pat, &
        xtrack_poly_pos, xtrack_poly_val, xtrack_poly_wgt
-
-  ! -----------------------------------------
-  ! Variables related to cross-track bias
-  ! -----------------------------------------
-  LOGICAL           :: yn_run_destriping
-  LOGICAL           :: yn_remove_ctrbias
-  INTEGER (KIND=i4) :: ctr_bias_pol
-
-  ! -----------------------------------------
-  ! Order of Baseline and Scaling Polynomials
-  ! -----------------------------------------
-  INTEGER (KIND=i4) :: ctr_pol_base, ctr_pol_scal, ctr_pol_patt
-  INTEGER (KIND=i4) :: ctr_nloop, ctr_nblocks, ctr_fitfunc_calls
-
-  ! --------------------------------------------------------------
-  ! Latitude limits for the computation of the cross-track average
-  ! --------------------------------------------------------------
-  REAL (KIND=r4), DIMENSION (2) :: ctrdst_latrange
-
-  ! --------------------------------------------------------------
-  ! Absolute maximum column amount to include in averaging
-  ! --------------------------------------------------------------
-  REAL (KIND=r8) :: ctr_maxcol
 
 CONTAINS
 
@@ -97,9 +74,9 @@ CONTAINS
     ! number of iteratrions means that we can not/should not perform any
     ! destriping.
     ! -------------------------------------------------------------------
-    IF ( ( .NOT. yn_run_destriping               ) .OR. &
-         ( MAX( ctr_pol_base, ctr_pol_scal ) < 0 ) .OR. &
-         ( ctr_nloop < 0                         ) ) THEN
+    IF ( ( .NOT. ctrvar%yn_run_destriping               ) .OR. &
+         ( MAX( ctrvar%ctr_pol_base, ctrvar%ctr_pol_scal ) < 0 ) .OR. &
+         ( ctrvar%ctr_nloop < 0                        ) ) THEN
        xtrack_cor(1:nxtrack,0:nTimes-1) = r8_missval
        xtrack_fit(0:nTimes-1)           = r8_missval
        GOTO 666
@@ -110,7 +87,7 @@ CONTAINS
     ! ------------------------------------------------------
     yn_dst_range(0:ntimes-1) = .FALSE.
     CALL find_swathrange_by_latitude (                               &
-         ntimes, nxtrack, ctrdst_latrange(1), ctrdst_latrange(2),    &
+         ntimes, nxtrack, ctrvar%ctrdst_latrange(1), ctrvar%ctrdst_latrange(2), &
          lat(1:nxtrack,0:ntimes-1), xtrange(0:ntimes-1,1:2), midlat, &
          midnum, yn_dst_range(0:ntimes-1)                              )
    
@@ -129,7 +106,7 @@ CONTAINS
     ! ======
     ! FUDGE:
     ! ======
-    IF ( ctr_nblocks >= 0 ) ctr_nblocks = -999
+    IF ( ctrvar%ctr_nblocks >= 0 ) ctrvar%ctr_nblocks = -999
     k1 = -1 ; k2 = -2
 
     !k1 = avg_limits(1) ; k2 = avg_limits(2)
@@ -137,7 +114,7 @@ CONTAINS
     ! ----------------------------------------
     ! Short-hand for half the number of blocks
     ! ----------------------------------------
-    nbd2 = ctr_nblocks / 2
+    nbd2 = ctrvar%ctr_nblocks / 2
 
     ! ------------------------------------
     ! Set some variables to initial values
@@ -147,7 +124,7 @@ CONTAINS
     ! -----------------------------------
     ! Loop over scan lines for destriping
     ! -----------------------------------
-    stripeloop: DO iii = 1, ctr_nloop
+    stripeloop: DO iii = 1, ctrvar%ctr_nloop
        ! --------------------------------------------------------------
        ! Copy the freshly destriped columns back on the original array.
        ! The initial "SAODST = SAOCOL" above assures that SAODST has
@@ -160,7 +137,7 @@ CONTAINS
        ! have to compute the average for each and every scan line. Once
        ! before entering the line loop is sufficient.
        ! --------------------------------------------------------------
-       IF ( ctr_nblocks < 0 ) THEN
+       IF ( ctrvar%ctr_nblocks < 0 ) THEN
        
           ! -------------------------------------------------------------
           ! For each cross-track position, compute the along-track median
@@ -189,7 +166,7 @@ CONTAINS
                xtr_weight(1:nxtrack)) /SUM(xtr_weight(1:nxtrack) )
           xtrack_striping_pat = xtrack_avg_norm / tmp_norm
                     
-          CALL xtrack_pattern_polyfit ( nxtrack, ctr_pol_patt, &
+          CALL xtrack_pattern_polyfit ( nxtrack, ctrvar%ctr_pol_patt, &
                xtrack_avg_norm(1:nxtrack), xtrack_striping_pos(1:nxtrack), &
                xtr_weight(1:nxtrack), xtrack_striping_pat(1:nxtrack),      &
                xtrack_pfit(1:nxtrack)    )
@@ -228,7 +205,7 @@ CONTAINS
              ! --------------------------------------------------------------------------
              num_fitfunc_calls = 0 ; num_fitfunc_jacobi = 0
              CALL xtrack_striping_fit (                                &
-                  nxtrack, ctr_pol_base, ctr_pol_scal, xtrack_norm, &
+                  nxtrack, ctrvar%ctr_pol_base, ctrvar%ctr_pol_scal, xtrack_norm, &
                   a_stripe, xtrack_cor(1:nxtrack,it) )
           
              ! ----------------
@@ -260,7 +237,7 @@ CONTAINS
     ! This is done either via a fitted cross-track polynomial or simply
     ! a median correction.
     ! -----------------------------------------------------------
-    IF ( yn_remove_ctrbias ) THEN
+    IF ( ctrvar%yn_remove_ctrbias ) THEN
 
        ! ----------------------------------------------------------
        ! First condense the selected part for computation of median
@@ -274,7 +251,7 @@ CONTAINS
             xtr_median(1:nxtrack), xtr_median_med, xtr_weight(1:nxtrack) )
        IF ( xtr_median_med /= 0.0_r8 ) xtr_median = xtr_median / xtr_median_med
        
-       IF ( ctr_bias_pol < 1 ) THEN
+       IF ( ctrvar%ctr_bias_pol < 1 ) THEN
 
           WHERE ( xtr_median /= 0.0_r8 )
              xtr_median = 1.0_r8 / xtr_median
@@ -299,7 +276,7 @@ CONTAINS
 
           xtrack_striping_pat = xtr_median / tmp_norm
 
-          CALL xtrack_pattern_polyfit ( nxtrack, ctr_bias_pol, &
+          CALL xtrack_pattern_polyfit ( nxtrack, ctrvar%ctr_bias_pol, &
                xtr_median(1:nxtrack), xtrack_striping_pos(1:nxtrack), &
                xtr_weight(1:nxtrack), xtrack_striping_pat(1:nxtrack), &
                xtrack_pfit(1:nxtrack)    )          
@@ -511,9 +488,9 @@ CONTAINS
     IF ( nblocks < 0 ) THEN
        GetAvgLines: DO j = nth+1, ntimes-2
           k = ntimes-1 - j
-          IF ( ALL(lat(nxh,k-1:k) < MINVAL(ctrdst_latrange)) .AND. &
+          IF ( ALL(lat(nxh,k-1:k) < MINVAL(ctrvar%ctrdst_latrange)) .AND. &
                avg_limits(1) == -1 ) avg_limits(1) = k + 1
-          IF ( ALL(lat(nxh,j:j+1) > MAXVAL(ctrdst_latrange)) .AND. &
+          IF ( ALL(lat(nxh,j:j+1) > MAXVAL(ctrvar%ctrdst_latrange)) .AND. &
                avg_limits(2) == -1 ) avg_limits(2) = j - 1
           IF ( MINVAL(avg_limits) > -1 ) EXIT GetAvgLines
        END DO GetAvgLines
@@ -623,7 +600,7 @@ CONTAINS
     !        1 = all variables have same lower bound
     !        else: lower and upper bounds must be supplied
     ! -------------------------------------------------------------
-    elbnd = 2  ;  exval = 0 ; p = -1 ; p(1) = 0 ; p(3) = ctr_fitfunc_calls
+    elbnd = 2  ;  exval = 0 ; p = -1 ; p(1) = 0 ; p(3) = ctrvar%ctr_fitfunc_calls
     w = -1.0
     blow(1:nfit) = 0.0_r8  ;  bupp(1:nfit) = 0.0_r8
 
@@ -767,7 +744,7 @@ CONTAINS
     ! --------------------------------
     ipar = ipar + 1
     blpol(1:m) = a(ipar)
-    DO i = 1, ctr_pol_base
+    DO i = 1, ctrvar%ctr_pol_base
        ipar = ipar + 1
        blpol(1:m) = blpol(1:m) + a(ipar)*x(1:m)**i
     END DO
@@ -781,7 +758,7 @@ CONTAINS
     ! ----------------------------------------------
     ipar = ipar + 1
     scpol(1:m) = a(ipar)
-    DO i = 1, ctr_pol_scal
+    DO i = 1, ctrvar%ctr_pol_scal
        ipar = ipar + 1
        scpol(1:m) = scpol(1:m) + a(ipar)*x(1:m)**i
     END DO
@@ -794,7 +771,7 @@ CONTAINS
        ! and terminate if we exceed the allowed maximum.
        ! -------------------------------------------------
        num_fitfunc_calls = num_fitfunc_calls + 1
-       IF ( num_fitfunc_calls > ctr_fitfunc_calls ) THEN
+       IF ( num_fitfunc_calls > ctrvar%ctr_fitfunc_calls ) THEN
           ctrl = INT(elsunc_infloop_eval, KIND=i4)
           RETURN
        END IF
@@ -810,7 +787,7 @@ CONTAINS
        ! exceed the allowed maximum (just to be safe!).
        ! -------------------------------------------------
        num_fitfunc_jacobi = num_fitfunc_jacobi + 1
-       IF ( num_fitfunc_jacobi > ctr_fitfunc_calls ) THEN
+       IF ( num_fitfunc_jacobi > ctrvar%ctr_fitfunc_calls ) THEN
           ctrl = INT(elsunc_infloop_eval, KIND=i4)
           RETURN
        END IF
@@ -831,7 +808,7 @@ CONTAINS
        ! ------------------------------
        ipar = ipar + 1
        dyda(1:m,ipar) = a(ipar) * scpol(1:m)
-       DO i = 1, ctr_pol_base
+       DO i = 1, ctrvar%ctr_pol_base
           ipar = ipar + 1
           dyda(1:m,ipar) = (a(ipar)*x(1:m)**i)*scpol(1:m)
        END DO
@@ -842,7 +819,7 @@ CONTAINS
        blpol(1:m) = blpol(1:m) + xtr(1:m)
        ipar = ipar + 1
        dyda(1:m,ipar) = blpol(1:m) * a(ipar)
-       DO i = 1, ctr_pol_scal
+       DO i = 1, ctrvar%ctr_pol_scal
           ipar = ipar + 1
           dyda(1:m,ipar) = blpol(1:m) * (a(ipar)*x(1:m)**i)
        END DO

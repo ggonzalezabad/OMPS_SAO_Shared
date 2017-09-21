@@ -51,7 +51,7 @@ MODULE OMSAO_variables_module
   !   normalization, solar composite, common mode, solar_monthly_average, 
   !   radiance reference, radiance reference remove target, use laboratory 
   !   slit function, i0 correction, wavelength dependent AMF, correct O3 AMF
-  !   wavelength dependence
+  !   wavelength dependence, run destriping, remove bias
   ! * Pixel number limits:
   !    1,2: First and last scan line number
   !    3,4: First and last cross-track pixel
@@ -79,12 +79,15 @@ MODULE OMSAO_variables_module
      LOGICAL :: yn_diagnostic_run, yn_smooth, yn_doas, yn_spectrum_norm, &
           yn_solar_comp, yn_common_iter, yn_solmonthave, yn_radiance_reference, &
           yn_remove_target, yn_use_labslitfunc, yn_solar_i0, yn_amf_wfmod, &
-          yn_o3amf_cor
+          yn_o3amf_cor, yn_run_destriping, yn_remove_ctrbias
      LOGICAL, DIMENSION (2) :: yn_bro_prefit, yn_o3_prefit, yn_lqh2o_prefit
      LOGICAL, DIMENSION (us1_idx:us2_idx) :: have_undersampling
 
      INTEGER (KIND=I4) :: n_mol_fit, n_fincol_idx, solar_comp_typ, common_fitpos, &
-          target_npol, max_itnum_sol, max_itnum_rad, radwavcal_freq, amf_wfmod_idx
+          target_npol, max_itnum_sol, max_itnum_rad, radwavcal_freq, amf_wfmod_idx, &
+          ctr_bias_pol, ctr_pol_base, ctr_pol_scal, ctr_pol_patt, ctr_nloop, ctr_nblocks, &
+          ctr_fitfunc_calls
+
      INTEGER (KIND=I4), DIMENSION (max_mol_fit) :: fitcol_idx
      INTEGER (KIND=I4), DIMENSION (2,max_mol_fit*mxs_idx) :: fincol_idx
      INTEGER (KIND=I4), DIMENSION (4) :: pixnum_lim
@@ -93,9 +96,9 @@ MODULE OMSAO_variables_module
      REAL (KIND=r4) :: zatmos
 
      REAL (KIND=r8) :: phase, szamax, amf_alb_lnd, amf_alb_sno, amf_wvl, amf_wvl2, amf_alb_cld, &
-          amf_max_sza, winwav_min, winwav_max, max_good_col, tol,  epsrel,  epsabs,  epsx
+          amf_max_sza, winwav_min, winwav_max, max_good_col, tol,  epsrel,  epsabs,  epsx, ctr_maxcol
      REAL (KIND=r4), DIMENSION (2) :: radfit_latrange, common_latrange, radref_latrange, &
-          fit_winexc_lim
+          fit_winexc_lim, ctrdst_latrange
      REAL (KIND=r8), DIMENSION (3) :: common_fitvar
      REAL (KIND=r8), DIMENSION (max_calfit_idx) :: fitvar_sol_init, lo_sunbnd, up_sunbnd
      REAL (KIND=r8), DIMENSION (n_max_fitpars)  :: fitvar_rad_init, lo_radbnd, up_radbnd

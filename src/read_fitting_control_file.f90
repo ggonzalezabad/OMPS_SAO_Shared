@@ -21,9 +21,6 @@ SUBROUTINE read_fitting_control_file ( pge_error_status )
        yn_newshift, yn_refseccor, yn_sw, &
        pcfvar, ctrvar
   USE OMSAO_omidata_module, ONLY: nxtrack_max
-  USE OMSAO_destriping_module, ONLY: ctr_pol_base, ctr_pol_scal, ctr_pol_patt, &
-       ctr_nloop, ctrdst_latrange, ctr_nblocks, ctr_fitfunc_calls, ctr_maxcol, &
-       yn_remove_ctrbias, ctr_bias_pol, yn_run_destriping
   USE OMSAO_casestring_module, ONLY: lower_case
   USE OMSAO_errstat_module
 
@@ -60,14 +57,6 @@ SUBROUTINE read_fitting_control_file ( pge_error_status )
   INTEGER (KIND=i4) :: pgs_smf_teststatuslevel, pgs_io_gen_openf, pgs_io_gen_closef
 
   errstat = pge_errstat_ok
-
-  ! ---------------------------
-  ! Initialize output variables
-  ! ---------------------------
-  ctr_pol_base    = 0      ; ctr_pol_scal = 0 ; ctr_pol_patt      = 0
-  ctr_nloop       = 0      ; ctr_nloop    = 0 ; ctr_fitfunc_calls = 0
-  ctrdst_latrange = 0.0_r4 ; ctr_maxcol   = 0.0_r8
-  ctr_bias_pol    = 0      ; yn_remove_ctrbias = .FALSE.
 
   ! -------------------------
   ! Open fitting control file
@@ -462,13 +451,19 @@ SUBROUTINE read_fitting_control_file ( pge_error_status )
        file_read_stat, file_read_ok, pge_errstat_fatal, OMSAO_F_READ_FITCTRL_FILE, &
        modulename//f_sep//destriping_str, vb_lev_default, pge_error_status )
   IF ( pge_error_status >= pge_errstat_error ) RETURN
-  READ (fit_ctrl_unit, *) yn_run_destriping
-  READ (fit_ctrl_unit, *) yn_remove_ctrbias, ctr_bias_pol
-  READ (fit_ctrl_unit, *) ctr_pol_base, ctr_pol_scal, ctr_pol_patt
-  READ (fit_ctrl_unit, *) ctr_nblocks, ctrdst_latrange
-  READ (fit_ctrl_unit, *) ctr_fitfunc_calls
-  READ (fit_ctrl_unit, *) ctr_nloop
+  READ (fit_ctrl_unit, *) ctrvar%yn_run_destriping
+  READ (fit_ctrl_unit, *) ctrvar%yn_remove_ctrbias, ctrvar%ctr_bias_pol
+  READ (fit_ctrl_unit, *) ctrvar%ctr_pol_base, ctrvar%ctr_pol_scal, ctrvar%ctr_pol_patt
+  READ (fit_ctrl_unit, *) ctrvar%ctr_nblocks, ctrvar%ctrdst_latrange
+  READ (fit_ctrl_unit, *) ctrvar%ctr_fitfunc_calls
+  READ (fit_ctrl_unit, *) ctrvar%ctr_nloop
+  ! -------------------------------------------------------------------
+  ! Unless we come up with a reason against it, the maximum good column
+  ! also applies to the destriping procedure.
+  ! -------------------------------------------------------------------
+  ctrvar%ctr_maxcol = ctrvar%max_good_col
 
+  stop
   ! --------------------------------------------------------
   ! Position cursor to read new shift and squeeze option gga
   ! --------------------------------------------------------
@@ -501,12 +496,6 @@ SUBROUTINE read_fitting_control_file ( pge_error_status )
        modulename//f_sep//destriping_str, vb_lev_default, pge_error_status )
   IF ( pge_error_status >= pge_errstat_error ) RETURN
   READ (fit_ctrl_unit, *) yn_sw
-
-  ! -------------------------------------------------------------------
-  ! Unless we come up with a reason against it, the maximum good column
-  ! also applies to the destriping procedure.
-  ! -------------------------------------------------------------------
-  ctr_maxcol = ctrvar%max_good_col
 
   ! -------------------------------------------------------------------------
   ! Determine minimum and maximum wavelength in selected read/fitting windows
