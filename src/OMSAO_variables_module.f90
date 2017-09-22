@@ -30,7 +30,8 @@ MODULE OMSAO_variables_module
      INTEGER (KIND=I4) :: orbit_number, ecs_version_id
      CHARACTER (LEN=maxchlen), DIMENSION (icf_idx:max_rs_idx) :: static_input_fnames
      CHARACTER (LEN=maxchlen) :: slitfunc_fname, solcomp_filename, solmonthave_filename, &
-          l1b_radref_filename, l1b_rad_filename, l1b_irrad_filename, l2_filename
+          l1b_radref_filename, l1b_rad_filename, l1b_irrad_filename, l2_filename, &
+          amf_table_filename
   END type pcf_variables
   TYPE(pcf_variables):: pcfvar
 

@@ -67,7 +67,7 @@ MODULE OMSAO_wfamf_module
   ! PCF stuff
   ! ---------
   INTEGER(KIND=i4), PARAMETER :: climatology_lun = 700270
-  CHARACTER(LEN=maxchlen) :: OMSAO_wfamf_table_filename
+  CHARACTER(LEN=maxchlen) :: amf_table_filename
   CHARACTER(LEN=maxchlen) :: OMSAO_climatology_filename
 
   ! -----------------------------
@@ -1372,10 +1372,10 @@ CONTAINS
     ! -------------------
     ! Opening input TABLE
     ! -------------------
-    CALL h5fopen_f(TRIM(ADJUSTL(OMSAO_wfamf_table_filename)), H5F_ACC_RDONLY_F, &
+    CALL h5fopen_f(TRIM(ADJUSTL(amf_table_filename)), H5F_ACC_RDONLY_F, &
                    input_file_id, hdferr)
     IF (hdferr .eq. -1) THEN
-       WRITE(*,100) 'ERROR: Opening '//TRIM(ADJUSTL(OMSAO_wfamf_table_filename))
+       WRITE(*,100) 'ERROR: Opening '//TRIM(ADJUSTL(amf_table_filename))
     END IF
 
     ! --------------------------------------------------------------------------

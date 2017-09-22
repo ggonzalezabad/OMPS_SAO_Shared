@@ -30,7 +30,7 @@ SUBROUTINE read_pcf_file ( pge_error_status )
   USE OMSAO_prefitcol_module, ONLY: o3_prefit_fname, bro_prefit_fname, &
        lqh2o_prefit_fname
   USE OMSAO_wfamf_module, ONLY: climatology_lun,  &
-       OMSAO_wfamf_table_filename, OMSAO_climatology_filename
+       OMSAO_climatology_filename
   USE OMSAO_control_file_module, ONLY: read_fitting_control_file
 
   IMPLICIT NONE
@@ -282,7 +282,7 @@ SUBROUTINE read_pcf_file ( pge_error_status )
           modulename//f_sep//"PGE_STATIC_INPUT_LUN "//TRIM(ADJUSTL(lunstr)),&
           vb_lev_default, pge_error_status )
   ELSE
-     OMSAO_wfamf_table_filename = TRIM ( ADJUSTL (tmpchar))
+     pcfvar%amf_table_filename = TRIM ( ADJUSTL (tmpchar))
   END IF
   stop
   ! ----------------
