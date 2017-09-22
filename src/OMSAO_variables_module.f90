@@ -215,7 +215,6 @@ MODULE OMSAO_variables_module
   ! ---------------------------------------------------------
   ! Filenames specific for the AMF scheme in OMBRO and OMHCHO
   ! ---------------------------------------------------------
-  CHARACTER (LEN=maxchlen)                               :: OMBRO_amf_filename
   CHARACTER (LEN=maxchlen), DIMENSION (n_voc_amf_luns)   :: voc_amf_filenames
 
   ! --------------------------------------------------------

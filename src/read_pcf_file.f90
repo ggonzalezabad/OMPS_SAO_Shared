@@ -23,7 +23,7 @@ SUBROUTINE read_pcf_file ( pge_error_status )
   USE OMSAO_he5_module, ONLY: pge_swath_name, process_level, &
        instrument_name, pge_version
   USE OMSAO_variables_module, ONLY: &
-       OMBRO_amf_filename, voc_amf_filenames,      &
+       voc_amf_filenames,      &
        refspecs_original, &
        OMSAO_refseccor_filename, OMSAO_OMLER_filename,                     &
        OMSAO_refseccor_cld_filename, pcfvar
@@ -268,78 +268,10 @@ SUBROUTINE read_pcf_file ( pge_error_status )
 
 
   ! -------------------------------------------------------------------------
-  ! Read name of AMF table file(s). Remember that a missing AMF table is
+  ! Read name of AMF table file. Remember that a missing AMF table is
   ! not a fatal problem, since in that case the slant columns will be written
   ! to the output file.
   ! -------------------------------------------------------------------------
-  SELECT CASE ( pcfvar%pge_idx )
-  CASE ( pge_bro_idx )
-     version = 1
-     errstat = PGS_PC_GetReference ( amf_table_lun, version, tmpchar)
-     tmpchar = TRIM(ADJUSTL(tmpchar)) ; strlen = LEN(TRIM(ADJUSTL(tmpchar)))
-     errstat = PGS_SMF_TestStatusLevel(errstat)
-     IF ( (errstat /= pgs_smf_mask_lev_s) .OR. (strlen == 0)  ) THEN
-        lunstr = int2string ( amf_table_lun, 1 )
-        CALL error_check ( 0, 1, pge_errstat_warning, OMSAO_W_GETLUN, &
-             modulename//f_sep//"PGE_STATIC_INPUT_LUN "//TRIM(ADJUSTL(lunstr)), &
-             vb_lev_default, pge_error_status )
-     ELSE
-        OMBRO_amf_filename = TRIM(ADJUSTL(tmpchar))
-     END IF
-  CASE ( pge_hcho_idx )
-     DO i = 1, n_voc_amf_luns
-        version = 1
-        errstat = PGS_PC_GetReference ( voc_amf_luns(i), version, tmpchar)
-        tmpchar = TRIM(ADJUSTL(tmpchar)) ; strlen = LEN(TRIM(ADJUSTL(tmpchar)))
-        errstat = PGS_SMF_TestStatusLevel(errstat)
-        IF ( (errstat /= pgs_smf_mask_lev_s) .OR. (strlen == 0)  ) THEN
-           lunstr = int2string ( voc_amf_luns(i), 1 )
-           CALL error_check ( 0, 1, pge_errstat_warning, OMSAO_W_GETLUN, &
-                modulename//f_sep//"PGE_STATIC_INPUT_LUN "//TRIM(ADJUSTL(lunstr)), &
-                vb_lev_default, pge_error_status )
-        ELSE
-           voc_amf_filenames(i) = TRIM(ADJUSTL(tmpchar))
-        END IF
-     END DO
-  CASE ( pge_gly_idx )
-     DO i = 1, n_voc_amf_luns
-        version = 1
-        errstat = PGS_PC_GetReference ( voc_amf_luns(i), version, tmpchar)
-        tmpchar = TRIM(ADJUSTL(tmpchar)) ; strlen = LEN(TRIM(ADJUSTL(tmpchar)))
-        errstat = PGS_SMF_TestStatusLevel(errstat)
-        IF ( (errstat /= pgs_smf_mask_lev_s) .OR. (strlen == 0)  ) THEN
-           lunstr = int2string ( voc_amf_luns(i), 1 )
-           CALL error_check ( 0, 1, pge_errstat_warning, OMSAO_W_GETLUN, &
-                modulename//f_sep//"PGE_STATIC_INPUT_LUN "//TRIM(ADJUSTL(lunstr)), &
-                vb_lev_default, pge_error_status )
-        ELSE
-           voc_amf_filenames(i) = TRIM(ADJUSTL(tmpchar))
-        END IF
-     END DO
-  CASE ( pge_h2o_idx )
-     DO i = 1, n_voc_amf_luns
-        version = 1
-        errstat = PGS_PC_GetReference ( voc_amf_luns(i), version, tmpchar)
-        tmpchar = TRIM(ADJUSTL(tmpchar)) ; strlen = LEN(TRIM(ADJUSTL(tmpchar)))
-        errstat = PGS_SMF_TestStatusLevel(errstat)
-        IF ( (errstat /= pgs_smf_mask_lev_s) .OR. (strlen == 0)  ) THEN
-           lunstr = int2string ( voc_amf_luns(i), 1 )
-           CALL error_check ( 0, 1, pge_errstat_warning, OMSAO_W_GETLUN, &
-                modulename//f_sep//"PGE_STATIC_INPUT_LUN "//TRIM(ADJUSTL(lunstr)), &
-                vb_lev_default, pge_error_status )
-        ELSE
-           voc_amf_filenames(i) = TRIM(ADJUSTL(tmpchar))
-        END IF
-     END DO
-
-  END SELECT
-
-  ! -------------------------------------------------------------------------
-  ! gga. The new implementation of the wf amf is intended to be molecule inde
-  ! pendent. Therfore I read the file names outside the CASE stament.
-  ! -------------------------------------------------------------------------
-  ! wavelength dependent AMF table file
-  ! -----------------------------------
   version = 1
   errstat = PGS_PC_GetReference ( amf_table_lun, version, tmpchar )
   tmpchar = TRIM(ADJUSTL(tmpchar)) ; strlen = LEN(TRIM(ADJUSTL(tmpchar)))
