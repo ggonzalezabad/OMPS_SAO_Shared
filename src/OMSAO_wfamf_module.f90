@@ -66,7 +66,6 @@ MODULE OMSAO_wfamf_module
   ! ---------
   ! PCF stuff
   ! ---------
-  INTEGER(KIND=i4), PARAMETER :: wfamf_table_lun = 700250
   INTEGER(KIND=i4), PARAMETER :: climatology_lun = 700270
   CHARACTER(LEN=maxchlen) :: OMSAO_wfamf_table_filename
   CHARACTER(LEN=maxchlen) :: OMSAO_climatology_filename

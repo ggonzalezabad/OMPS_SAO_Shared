@@ -9,9 +9,9 @@ SUBROUTINE read_pcf_file ( pge_error_status )
        l1b_irradiance_lun, icf_idx, pge_gly_idx, voc_amf_luns, &
        lqh2o_prefit_lun, n_voc_amf_luns, pge_hcho_idx, o3_prefit_lun, &
        bro_prefit_lun, pge_h2o_idx, pge_bro_idx, pge_molid_lun, &
-       versionid_lun, ombro_amf_lun, swathname_lun, instrument_name_lun, &
+       versionid_lun, swathname_lun, instrument_name_lun, &
        pge_version_lun, proclevel_lun, granule_e_lun, granule_s_lun, &
-       orbitnumber_lun, verbosity_lun
+       orbitnumber_lun, verbosity_lun, amf_table_lun
   USE OMSAO_errstat_module, ONLY: pge_errstat_ok, f_sep, omsao_e_getlun, &
        omsao_f_get_molindex, omsao_f_getlun, omsao_s_get_molindex, omsao_w_getlun, &
        omsao_w_subroutine, pge_errstat_error, pge_errstat_fatal, pge_errstat_warning, &
@@ -29,7 +29,7 @@ SUBROUTINE read_pcf_file ( pge_error_status )
        OMSAO_refseccor_cld_filename, pcfvar
   USE OMSAO_prefitcol_module, ONLY: o3_prefit_fname, bro_prefit_fname, &
        lqh2o_prefit_fname
-  USE OMSAO_wfamf_module, ONLY: wfamf_table_lun, climatology_lun,  &
+  USE OMSAO_wfamf_module, ONLY: climatology_lun,  &
        OMSAO_wfamf_table_filename, OMSAO_climatology_filename
   USE OMSAO_control_file_module, ONLY: read_fitting_control_file
 
@@ -275,11 +275,11 @@ SUBROUTINE read_pcf_file ( pge_error_status )
   SELECT CASE ( pcfvar%pge_idx )
   CASE ( pge_bro_idx )
      version = 1
-     errstat = PGS_PC_GetReference ( OMBRO_amf_lun, version, tmpchar)
+     errstat = PGS_PC_GetReference ( amf_table_lun, version, tmpchar)
      tmpchar = TRIM(ADJUSTL(tmpchar)) ; strlen = LEN(TRIM(ADJUSTL(tmpchar)))
      errstat = PGS_SMF_TestStatusLevel(errstat)
      IF ( (errstat /= pgs_smf_mask_lev_s) .OR. (strlen == 0)  ) THEN
-        lunstr = int2string ( OMBRO_amf_lun, 1 )
+        lunstr = int2string ( amf_table_lun, 1 )
         CALL error_check ( 0, 1, pge_errstat_warning, OMSAO_W_GETLUN, &
              modulename//f_sep//"PGE_STATIC_INPUT_LUN "//TRIM(ADJUSTL(lunstr)), &
              vb_lev_default, pge_error_status )
@@ -341,18 +341,18 @@ SUBROUTINE read_pcf_file ( pge_error_status )
   ! wavelength dependent AMF table file
   ! -----------------------------------
   version = 1
-  errstat = PGS_PC_GetReference ( wfamf_table_lun, version, tmpchar )
+  errstat = PGS_PC_GetReference ( amf_table_lun, version, tmpchar )
   tmpchar = TRIM(ADJUSTL(tmpchar)) ; strlen = LEN(TRIM(ADJUSTL(tmpchar)))
   errstat = PGS_SMF_TestStatusLevel ( errstat )
   IF ( ( errstat /= pgs_smf_mask_lev_s ) .OR. ( strlen == 0 ) ) THEN
-     lunstr = int2string ( wfamf_table_lun, 1 )
+     lunstr = int2string ( amf_table_lun, 1 )
      CALL error_check ( 0, 1, pge_errstat_warning, OMSAO_W_GETLUN, &
           modulename//f_sep//"PGE_STATIC_INPUT_LUN "//TRIM(ADJUSTL(lunstr)),&
           vb_lev_default, pge_error_status )
   ELSE
      OMSAO_wfamf_table_filename = TRIM ( ADJUSTL (tmpchar))
   END IF
-
+  stop
   ! ----------------
   ! Climatology
   ! ----------------

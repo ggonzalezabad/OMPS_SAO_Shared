@@ -462,10 +462,10 @@ MODULE OMSAO_indices_module
   !  * OMHCHO   requires several files associated with the AMF computation
   !  * OMCHOCHO requires several files associated with the AMF computation
   ! ----------------------------------------------------------------------------------------
-  INTEGER (KIND=i4), PARAMETER :: OMBRO_amf_lun = 700210
-  INTEGER (KIND=i4),                             PARAMETER :: omi_cloud_lun    = 700240
-  INTEGER (KIND=i4),                             PARAMETER :: voc_amf_idx = 1, voc_isccp_idx = 2, voc_omicld_idx = 3
-  INTEGER (KIND=i4),                             PARAMETER :: n_voc_amf_luns = voc_omicld_idx
+  INTEGER (KIND=i4), PARAMETER :: amf_table_lun = 700210
+  INTEGER (KIND=i4), PARAMETER :: omi_cloud_lun = 700240
+  INTEGER (KIND=i4), PARAMETER :: voc_amf_idx = 1, voc_isccp_idx = 2, voc_omicld_idx = 3
+  INTEGER (KIND=i4), PARAMETER :: n_voc_amf_luns = voc_omicld_idx
   INTEGER (KIND=i4), DIMENSION (n_voc_amf_luns), PARAMETER :: voc_amf_luns = (/ 700210, 700230, omi_cloud_lun /)
 
   ! --------------------------------
