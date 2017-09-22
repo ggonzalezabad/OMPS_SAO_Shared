@@ -143,7 +143,6 @@ MODULE OMSAO_Reference_sector_module
 
     SUBROUTINE Read_reference_sector_concentration(errstat)
 
-      USE OMSAO_variables_module, ONLY: OMSAO_refseccor_filename
       USE OMSAO_indices_module,   ONLY: OMSAO_refseccor_lun
       
       IMPLICIT NONE
@@ -189,7 +188,7 @@ MODULE OMSAO_Reference_sector_module
       locerrstat = PGS_SMF_TESTSTATUSLEVEL(locerrstat)
       CALL error_check ( &
            locerrstat, pgs_smf_mask_lev_s, pge_errstat_error, OMSAO_E_OPEN_REFSECCOR_FILE, &
-           modulename//f_sep//TRIM(ADJUSTL(OMSAO_refseccor_filename)), vb_lev_default, errstat )
+           modulename//f_sep//TRIM(ADJUSTL(pcfvar%refsec_filename)), vb_lev_default, errstat )
       IF (  errstat /= pge_errstat_ok ) RETURN
 
       ! ------------
@@ -203,7 +202,7 @@ MODULE OMSAO_Reference_sector_module
          IF ( ios /= 0 ) THEN
             CALL error_check ( &
                  ios, file_read_ok, pge_errstat_error, OMSAO_E_READ_REFSECCOR_FILE, &
-                 modulename//f_sep//TRIM(ADJUSTL(OMSAO_refseccor_filename)), vb_lev_default, errstat )
+                 modulename//f_sep//TRIM(ADJUSTL(pcfvar%refsec_filename)), vb_lev_default, errstat )
             IF (  errstat /= pge_errstat_ok ) RETURN
          END IF
          IF (header_line(1:1) /= hstr) THEN
@@ -218,7 +217,7 @@ MODULE OMSAO_Reference_sector_module
       IF ( ios /= 0 ) THEN
          CALL error_check ( &
               ios, file_read_ok, pge_errstat_error, OMSAO_E_READ_REFSECCOR_FILE, &
-              modulename//f_sep//TRIM(ADJUSTL(OMSAO_refseccor_filename)), vb_lev_default, errstat )
+              modulename//f_sep//TRIM(ADJUSTL(pcfvar%refsec_filename)), vb_lev_default, errstat )
          IF (  errstat /= pge_errstat_ok ) RETURN
       END IF
 
@@ -231,7 +230,7 @@ MODULE OMSAO_Reference_sector_module
          IF ( ios /= 0 ) THEN
             CALL error_check ( &
                  ios, file_read_ok, pge_errstat_error, OMSAO_E_READ_REFSECCOR_FILE, &
-                 modulename//f_sep//TRIM(ADJUSTL(OMSAO_refseccor_filename)), vb_lev_default, errstat )
+                 modulename//f_sep//TRIM(ADJUSTL(pcfvar%refsec_filename)), vb_lev_default, errstat )
             IF (  errstat /= pge_errstat_ok ) RETURN
          END IF
       END DO
@@ -243,7 +242,7 @@ MODULE OMSAO_Reference_sector_module
       locerrstat = PGS_SMF_TESTSTATUSLEVEL(locerrstat)
       CALL error_check ( &
            locerrstat, pgs_smf_mask_lev_s, pge_errstat_warning, OMSAO_W_CLOSE_REFSECCOR_FILE, &
-           modulename//f_sep//TRIM(ADJUSTL(OMSAO_refseccor_filename)), vb_lev_default, errstat )
+           modulename//f_sep//TRIM(ADJUSTL(pcfvar%refsec_filename)), vb_lev_default, errstat )
       IF ( errstat >= pge_errstat_error ) RETURN
 
       Ref_column_month(1:maxngrid) = Reference_sector_concentration(1:maxngrid,granule_month)

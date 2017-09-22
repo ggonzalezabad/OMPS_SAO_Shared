@@ -25,7 +25,7 @@ SUBROUTINE read_pcf_file ( pge_error_status )
   USE OMSAO_variables_module, ONLY: &
        voc_amf_filenames,      &
        refspecs_original, &
-       OMSAO_refseccor_filename, OMSAO_OMLER_filename,                     &
+       OMSAO_OMLER_filename,                     &
        OMSAO_refseccor_cld_filename, pcfvar
   USE OMSAO_prefitcol_module, ONLY: o3_prefit_fname, bro_prefit_fname, &
        lqh2o_prefit_fname
@@ -230,7 +230,6 @@ SUBROUTINE read_pcf_file ( pge_error_status )
        modulename//f_sep//"READ_FITTING_CONTROL_FILE.", vb_lev_default, pge_error_status )
   IF ( pge_error_status >= pge_errstat_fatal ) RETURN
 
-  stop
   ! -----------------------------
   ! Read Irradiance L1B file name
   ! -----------------------------
@@ -241,7 +240,6 @@ SUBROUTINE read_pcf_file ( pge_error_status )
        modulename//f_sep//"L1B_IRRADIANCE_LUN", vb_lev_default, pge_error_status )
   IF ( pge_error_status >= pge_errstat_error ) RETURN
 
-
   ! ---------------------------
   ! Read Radiance L1B file name
   ! ---------------------------
@@ -251,7 +249,6 @@ SUBROUTINE read_pcf_file ( pge_error_status )
   CALL error_check ( errstat, PGS_SMF_MASK_LEV_S, pge_errstat_fatal, OMSAO_F_GETLUN, &
        modulename//f_sep//"L1B_RADIANCE_LUN", vb_lev_default, pge_error_status )
   IF ( pge_error_status >= pge_errstat_error ) RETURN
-
 
   ! -------------------------------------
   ! Read Radiance Reference L1B file name
@@ -272,8 +269,9 @@ SUBROUTINE read_pcf_file ( pge_error_status )
   errstat = PGS_PC_GetReference ( amf_table_lun, version, pcfvar%amf_table_filename)
   errstat = PGS_SMF_TestStatusLevel ( errstat )
   CALL error_check ( errstat, PGS_SMF_MASK_LEV_S, pge_errstat_fatal, OMSAO_F_GETLUN, &
-       modulename//f_sep//"AMF_TABLE_FILENAME", vb_lev_default, pge_error_status )
-  
+       modulename//f_sep//"AMF_TABLE_FILENAME_LUN", vb_lev_default, pge_error_status )
+  IF ( pge_error_status >= pge_errstat_error ) RETURN
+
   ! ----------------
   ! Climatology
   ! ----------------
@@ -281,7 +279,8 @@ SUBROUTINE read_pcf_file ( pge_error_status )
   errstat = PGS_PC_GetReference ( climatology_lun, version, pcfvar%climatology_filename )
   errstat = PGS_SMF_TestStatusLevel ( errstat )
   CALL error_check ( errstat, PGS_SMF_MASK_LEV_S, pge_errstat_fatal, OMSAO_F_GETLUN, &
-       modulename//f_sep//"CLIMATOLOGY_FILENAME", vb_lev_default, pge_error_status )
+       modulename//f_sep//"CLIMATOLOGY_FILENAME_LUN", vb_lev_default, pge_error_status )
+  IF ( pge_error_status >= pge_errstat_error ) RETURN
 
   ! -------------------------------------------------------------------------
   ! Read name of file with Solar Spectrum Composite 
@@ -289,17 +288,11 @@ SUBROUTINE read_pcf_file ( pge_error_status )
   !  fitting control file)
   ! -------------------------------------------------------------------------
   version = 1
-  errstat = PGS_PC_GetReference ( OMSAO_solcomp_lun, version, tmpchar)
-  tmpchar = TRIM(ADJUSTL(tmpchar)) ; strlen = LEN(TRIM(ADJUSTL(tmpchar)))
+  errstat = PGS_PC_GetReference ( OMSAO_solcomp_lun, version, pcfvar%solcomp_filename)
   errstat = PGS_SMF_TestStatusLevel(errstat)
-  IF ( (errstat /= pgs_smf_mask_lev_s) .OR. (strlen == 0)  ) THEN
-     lunstr = int2string ( OMSAO_solcomp_lun, 1 )
-     CALL error_check ( 0, 1, pge_errstat_warning, OMSAO_W_GETLUN, &
-          modulename//f_sep//"PGE_STATIC_INPUT_LUN "//TRIM(ADJUSTL(lunstr)), &
-          vb_lev_default, pge_error_status )
-  ELSE
-     pcfvar%solcomp_filename = TRIM(ADJUSTL(tmpchar))
-  END IF
+  CALL error_check ( errstat, PGS_SMF_MASK_LEV_S, pge_errstat_fatal, OMSAO_F_GETLUN, &
+       modulename//f_sep//"SOLCOMP_FILENAME_LUN ", vb_lev_default, pge_error_status )
+  IF ( pge_error_status >= pge_errstat_error ) RETURN
 
   ! -------------------------------------------------------------------------
   ! Read name of file with Monthly Average Irradiace !gga 
@@ -307,34 +300,22 @@ SUBROUTINE read_pcf_file ( pge_error_status )
   !  fitting control file) !gga
   ! -------------------------------------------------------------------------
   version = 1
-  errstat = PGS_PC_GetReference ( OMSAO_solmonthave_lun, version, tmpchar)
-  tmpchar = TRIM(ADJUSTL(tmpchar)) ; strlen = LEN(TRIM(ADJUSTL(tmpchar)))
+  errstat = PGS_PC_GetReference ( OMSAO_solmonthave_lun, version, pcfvar%solmonthave_filename)
   errstat = PGS_SMF_TestStatusLevel(errstat)
-  IF ( (errstat /= pgs_smf_mask_lev_s) .OR. (strlen == 0)  ) THEN
-     lunstr = int2string ( OMSAO_solmonthave_lun, 1 )
-     CALL error_check ( 0, 1, pge_errstat_warning, OMSAO_W_GETLUN, &
-          modulename//f_sep//"PGE_STATIC_INPUT_LUN "//TRIM(ADJUSTL(lunstr)), &
-          vb_lev_default, pge_error_status )
-  ELSE
-     pcfvar%solmonthave_filename = TRIM(ADJUSTL(tmpchar))
-  END IF
+  CALL error_check ( errstat, PGS_SMF_MASK_LEV_S, pge_errstat_fatal, OMSAO_F_GETLUN, &
+       modulename//f_sep//"SOLMONTHAVE_FILENAME_LUN ", vb_lev_default, pge_error_status )
+  IF ( pge_error_status >= pge_errstat_error ) RETURN
 
   ! ------------------------------------------------------------
   ! Read name of file with GEOS-Chem background Reference Sector
   ! concentrations !gga 
   ! ------------------------------------------------------------
   version = 1
-  errstat = PGS_PC_GetReference ( OMSAO_refseccor_lun, version, tmpchar)
-  tmpchar = TRIM(ADJUSTL(tmpchar)) ; strlen = LEN(TRIM(ADJUSTL(tmpchar)))
+  errstat = PGS_PC_GetReference ( OMSAO_refseccor_lun, version, pcfvar%refsec_filename)
   errstat = PGS_SMF_TestStatusLevel(errstat)
-  IF ( (errstat /= pgs_smf_mask_lev_s) .OR. (strlen == 0)  ) THEN
-     lunstr = int2string ( OMSAO_refseccor_lun, 1 )
-     CALL error_check ( 0, 1, pge_errstat_warning, OMSAO_W_GETLUN, &
-          modulename//f_sep//"PGE_STATIC_INPUT_LUN "//TRIM(ADJUSTL(lunstr)), &
-          vb_lev_default, pge_error_status )
-  ELSE
-     OMSAO_refseccor_filename = TRIM(ADJUSTL(tmpchar))
-  END IF
+  CALL error_check ( errstat, PGS_SMF_MASK_LEV_S, pge_errstat_fatal, OMSAO_F_GETLUN, &
+          modulename//f_sep//"REFSEC_FILENAME_LUN ", vb_lev_default, pge_error_status )
+  IF ( pge_error_status >= pge_errstat_error ) RETURN
 
   ! ---------------------------------------------------------
   ! Read name of file with the radiance reference clouds !gga 
