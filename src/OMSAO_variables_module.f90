@@ -127,11 +127,6 @@ MODULE OMSAO_variables_module
 
   REAL    (KIND=r8), DIMENSION (max_rs_idx, nwavel_max) :: database
 
-  ! -------------------------------------
-  ! Variables related to Air Mass Factors
-  ! -------------------------------------
-  LOGICAL            :: have_amftable
-
   ! -----------------------------
   ! Previously IMPLICIT variables
   ! -----------------------------

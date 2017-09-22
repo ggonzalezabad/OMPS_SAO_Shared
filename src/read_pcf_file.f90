@@ -19,8 +19,7 @@ SUBROUTINE read_pcf_file ( pge_error_status )
   USE OMSAO_he5_module, ONLY: pge_swath_name, process_level, &
        instrument_name, pge_version
   USE OMSAO_variables_module, ONLY: &
-       l1b_rad_filename, l1b_irrad_filename, l2_filename,  &
-       have_amftable, &
+       l1b_rad_filename, l1b_irrad_filename, l2_filename, &
        OMBRO_amf_filename, voc_amf_filenames,      &
        refspecs_original, &
        OMSAO_refseccor_filename, OMSAO_OMLER_filename,                     &
@@ -272,7 +271,6 @@ SUBROUTINE read_pcf_file ( pge_error_status )
   ! not a fatal problem, since in that case the slant columns will be written
   ! to the output file.
   ! -------------------------------------------------------------------------
-  have_amftable = .TRUE.
   SELECT CASE ( pcfvar%pge_idx )
   CASE ( pge_bro_idx )
      version = 1
@@ -284,7 +282,6 @@ SUBROUTINE read_pcf_file ( pge_error_status )
         CALL error_check ( 0, 1, pge_errstat_warning, OMSAO_W_GETLUN, &
              modulename//f_sep//"PGE_STATIC_INPUT_LUN "//TRIM(ADJUSTL(lunstr)), &
              vb_lev_default, pge_error_status )
-        have_amftable = .FALSE.
      ELSE
         OMBRO_amf_filename = TRIM(ADJUSTL(tmpchar))
      END IF
@@ -299,7 +296,6 @@ SUBROUTINE read_pcf_file ( pge_error_status )
            CALL error_check ( 0, 1, pge_errstat_warning, OMSAO_W_GETLUN, &
                 modulename//f_sep//"PGE_STATIC_INPUT_LUN "//TRIM(ADJUSTL(lunstr)), &
                 vb_lev_default, pge_error_status )
-          have_amftable = .FALSE.
         ELSE
            voc_amf_filenames(i) = TRIM(ADJUSTL(tmpchar))
         END IF
@@ -315,7 +311,6 @@ SUBROUTINE read_pcf_file ( pge_error_status )
            CALL error_check ( 0, 1, pge_errstat_warning, OMSAO_W_GETLUN, &
                 modulename//f_sep//"PGE_STATIC_INPUT_LUN "//TRIM(ADJUSTL(lunstr)), &
                 vb_lev_default, pge_error_status )
-          have_amftable = .FALSE.
         ELSE
            voc_amf_filenames(i) = TRIM(ADJUSTL(tmpchar))
         END IF
@@ -331,7 +326,6 @@ SUBROUTINE read_pcf_file ( pge_error_status )
            CALL error_check ( 0, 1, pge_errstat_warning, OMSAO_W_GETLUN, &
                 modulename//f_sep//"PGE_STATIC_INPUT_LUN "//TRIM(ADJUSTL(lunstr)), &
                 vb_lev_default, pge_error_status )
-          have_amftable = .FALSE.
         ELSE
            voc_amf_filenames(i) = TRIM(ADJUSTL(tmpchar))
         END IF
