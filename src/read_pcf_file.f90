@@ -4,7 +4,7 @@ SUBROUTINE read_pcf_file ( pge_error_status )
   USE OMSAO_indices_module, ONLY: config_lun_array, config_lun_values, &
        config_lun_strings, pge_static_input_luns, pge_l2_output_lun, &
        omsao_solmonthave_lun, omsao_solcomp_lun, omsao_refseccor_lun, &
-       omsao_refseccor_cld_lun, omsao_omler_lun, omi_slitfunc_lun, &
+       omsao_refseccor_cld_lun, albedo_lun, omi_slitfunc_lun, &
        n_config_luns, max_rs_idx, l1b_radiance_lun, l1b_radianceref_lun, &
        l1b_irradiance_lun, icf_idx, pge_gly_idx, voc_amf_luns, &
        lqh2o_prefit_lun, n_voc_amf_luns, pge_hcho_idx, o3_prefit_lun, &
@@ -24,8 +24,7 @@ SUBROUTINE read_pcf_file ( pge_error_status )
        instrument_name, pge_version
   USE OMSAO_variables_module, ONLY: &
        voc_amf_filenames,      &
-       refspecs_original, &
-       OMSAO_OMLER_filename, pcfvar
+       refspecs_original, pcfvar
   USE OMSAO_prefitcol_module, ONLY: o3_prefit_fname, bro_prefit_fname, &
        lqh2o_prefit_fname
   USE OMSAO_wfamf_module, ONLY: climatology_lun
@@ -316,9 +315,9 @@ SUBROUTINE read_pcf_file ( pge_error_status )
           modulename//f_sep//"REFSEC_FILENAME_LUN ", vb_lev_default, pge_error_status )
   IF ( pge_error_status >= pge_errstat_error ) RETURN
 
-  ! ---------------------------------------------------------
-  ! Read name of file with the radiance reference clouds !gga 
-  ! ---------------------------------------------------------
+  ! ----------------------------------------------------
+  ! Read name of file with the radiance reference clouds
+  ! ----------------------------------------------------
   version = 1
   errstat = PGS_PC_GetReference ( OMSAO_refseccor_cld_lun, version, pcfvar%refsec_cld_filename)
   errstat = PGS_SMF_TestStatusLevel(errstat)
@@ -330,17 +329,11 @@ SUBROUTINE read_pcf_file ( pge_error_status )
   ! Read name of OMLER albedo file gga
   ! ----------------------------------
   version = 1
-  errstat = PGS_PC_GetReference (OMSAO_OMLER_lun, version, tmpchar)
-  tmpchar = TRIM(ADJUSTL(tmpchar)) ; strlen = LEN(TRIM(ADJUSTL(tmpchar)))
+  errstat = PGS_PC_GetReference (albedo_lun, version, pcfvar%albedo_filename)
   errstat = PGS_SMF_TestStatusLevel(errstat)
-  IF ( (errstat /= pgs_smf_mask_lev_s) .OR. (strlen == 0)  ) THEN
-     lunstr = int2string ( OMSAO_OMLER_lun, 1 )
-     CALL error_check ( 0, 1, pge_errstat_warning, OMSAO_W_GETLUN, &
-          modulename//f_sep//"PGE_STATIC_INPUT_LUN "//TRIM(ADJUSTL(lunstr)), &
-          vb_lev_default, pge_error_status )
-  ELSE
-     OMSAO_OMLER_filename = TRIM(ADJUSTL(tmpchar))
-  END IF
+  CALL error_check ( errstat, PGS_SMF_MASK_LEV_S, pge_errstat_fatal, OMSAO_F_GETLUN, &
+          modulename//f_sep//"ALBEDO_filename", vb_lev_default, pge_error_status )
+  IF ( pge_error_status >= pge_errstat_error ) RETURN
 
   ! ---------------------------
   ! Read name of L2 output file

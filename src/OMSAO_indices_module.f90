@@ -487,7 +487,7 @@ MODULE OMSAO_indices_module
   ! --------------------------------
   ! LUN for OMLER albedo climatology
   ! --------------------------------
-  INTEGER (KIND=r4), PARAMETER :: OMSAO_OMLER_lun = 700280
+  INTEGER (KIND=r4), PARAMETER :: albedo_lun = 700280
 
   ! The following array is a bit of an oddity, and ultimately it may not be used
   ! at all. It defines some strings that are part of the file names associated

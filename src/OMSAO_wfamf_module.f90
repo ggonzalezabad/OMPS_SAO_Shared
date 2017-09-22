@@ -685,8 +685,6 @@ CONTAINS
     ! the orbit to processed. Then it interpolates the values for each
     ! one of the pixels of the orbit to be analyzed
     ! ==================================================================
-    USE OMSAO_variables_module, ONLY: OMSAO_OMLER_filename, ctrvar
-
     IMPLICIT NONE
 
     ! ---------------
@@ -748,7 +746,7 @@ CONTAINS
     ! ----------------------
     locerrstat = pge_errstat_ok
 
-    grid_file = TRIM(ADJUSTL(OMSAO_OMLER_filename))
+    grid_file = TRIM(ADJUSTL(pcfvar%albedo_filename))
 
     ! -------------------------------------------------------------------------------
     ! Open he5 OMI OMLER grid file and check GRID_FILE_ID (-1 if error)
