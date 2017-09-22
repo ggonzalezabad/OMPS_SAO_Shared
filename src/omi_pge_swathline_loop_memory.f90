@@ -11,7 +11,7 @@ SUBROUTINE omi_pge_swathline_loop_memory (                               &
        maxchlen, r4_missval
   USE OMSAO_indices_module,    ONLY: pge_hcho_idx, n_max_fitpars, solar_idx
   USE OMSAO_variables_module,  ONLY:  &
-       n_fitvar_rad, fitvar_rad_init, fitvar_rad_saved, l1b_rad_filename, &
+       n_fitvar_rad, fitvar_rad_init, fitvar_rad_saved, &
        n_fincol_idx, fincol_idx, n_rad_wvl, pcfvar
   USE OMSAO_omidata_module,    ONLY:  &
        nlines_max, nUTCdim, omi_scanline_no, omi_blockline_no,                  &
@@ -119,7 +119,7 @@ SUBROUTINE omi_pge_swathline_loop_memory (                               &
      ! Get NBLOCK radiance lines
      ! ------------------------------
      CALL omi_read_radiance_lines (                   &
-          l1b_rad_filename, iline, nx, nblock, nccd, locerrstat )
+          pcfvar%l1b_rad_filename, iline, nx, nblock, nccd, locerrstat )
      ! -----------------------------------------------------------------------------------
 
      ! ------------------------------------------

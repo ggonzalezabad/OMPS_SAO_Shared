@@ -694,7 +694,7 @@ SUBROUTINE set_input_pointer_and_versions ( pge_idx )
        l1b_irradiance_lun, o3_prefit_lun, bro_prefit_lun, lqh2o_prefit_lun, &
        voc_amf_luns, voc_omicld_idx, pge_h2o_idx
   USE OMSAO_he5_module, ONLY: n_lun_inp, lun_input, input_versions
-  USE OMSAO_variables_module, ONLY: l1b_rad_filename, ctrvar, pcfvar
+  USE OMSAO_variables_module, ONLY: ctrvar, pcfvar
 
   IMPLICIT NONE
 
@@ -731,7 +731,7 @@ SUBROUTINE set_input_pointer_and_versions ( pge_idx )
   ! (a) Earthshine reference granule
   ! --------------------------------
   IF ( ctrvar%yn_radiance_reference .AND. &
-       ( TRIM(ADJUSTL(l1b_rad_filename)) /= TRIM(ADJUSTL(pcfvar%l1b_radref_filename))) ) THEN
+       ( TRIM(ADJUSTL(pcfvar%l1b_rad_filename)) /= TRIM(ADJUSTL(pcfvar%l1b_radref_filename))) ) THEN
      n_lun_inp = n_lun_inp + 1
      lun_input(n_lun_inp) = l1b_radianceref_lun
      yn_radref = .TRUE.

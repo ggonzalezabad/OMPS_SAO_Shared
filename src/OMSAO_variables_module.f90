@@ -30,7 +30,7 @@ MODULE OMSAO_variables_module
      INTEGER (KIND=I4) :: orbit_number, ecs_version_id
      CHARACTER (LEN=maxchlen), DIMENSION (icf_idx:max_rs_idx) :: static_input_fnames
      CHARACTER (LEN=maxchlen) :: slitfunc_fname, solcomp_filename, solmonthave_filename, &
-          l1b_radref_filename
+          l1b_radref_filename, l1b_rad_filename
   END type pcf_variables
   TYPE(pcf_variables):: pcfvar
 
@@ -117,14 +117,10 @@ MODULE OMSAO_variables_module
   ! -------------------------------------------------
   ! Variables defined in preamble of original program
   ! -------------------------------------------------
-
   INTEGER (KIND=I4), DIMENSION (n_max_fitpars)  :: mask_fitvar_rad, mask_fitvar_cal, all_radfit_idx
-
   INTEGER (KIND=I4)                             :: n_fitvar_rad, n_fitvar_cal
-
   REAL    (KIND=r8), DIMENSION (max_calfit_idx) :: fitvar_cal, fitvar_cal_saved
   REAL    (KIND=r8), DIMENSION (n_max_fitpars)  :: fitvar_rad, fitvar_rad_saved, lobnd, upbnd
-
   REAL    (KIND=r8), DIMENSION (max_rs_idx, nwavel_max) :: database
 
   ! -----------------------------
@@ -207,7 +203,7 @@ MODULE OMSAO_variables_module
   ! ---------------------
   ! L1B and L2 file names
   ! ---------------------
-  CHARACTER (LEN=maxchlen) :: l1b_rad_filename, l1b_irrad_filename, l2_filename
+  CHARACTER (LEN=maxchlen) :: l1b_irrad_filename, l2_filename
 
   ! -----------------------------------------------------------------
   ! Generic dimension variables (initialized from either GOME or OMI)

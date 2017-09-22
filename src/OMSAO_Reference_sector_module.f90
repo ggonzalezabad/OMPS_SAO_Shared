@@ -10,7 +10,7 @@ MODULE OMSAO_Reference_sector_module
   USE OMSAO_errstat_module
   USE OMSAO_parameters_module,   ONLY: maxchlen, r8_missval, r4_missval, &
        i4_missval, i2_missval, i1_missval
-  USE OMSAO_variables_module,    ONLY: l1b_rad_filename, pcfvar
+  USE OMSAO_variables_module, ONLY: pcfvar
   USE OMSAO_omidata_module,      ONLY: omi_column_amount, &
        omi_column_uncert, omi_latitude, omi_longitude
   USE OMSAO_he5_module,          ONLY: granule_month, lat_field

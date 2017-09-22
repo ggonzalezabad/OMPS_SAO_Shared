@@ -5,7 +5,7 @@ SUBROUTINE omi_pge_fitting_process ( pge_idx, n_max_rspec,             &
   USE OMSAO_errstat_module, ONLY: pge_errstat_ok, pge_errstat_error, &
        pge_errstat_fatal
   USE OMSAO_he5_module, ONLY: NrofScanLines, NrofCrossTrackPixels
-  USE OMSAO_variables_module, ONLY: l1b_rad_filename, pcfvar
+  USE OMSAO_variables_module, ONLY: pcfvar
   USE OMSAO_solcomp_module, ONLY: soco_pars_deallocate
   USE OMSAO_OMPS_READER
 
@@ -42,11 +42,11 @@ SUBROUTINE omi_pge_fitting_process ( pge_idx, n_max_rspec,             &
   ! assign the values needed to the significant variables. After this no more reading
   ! will be needed.
   ! ----------------------------------------------------------------------------------
-  omps_reader_status = TC_SDR_OMPS_READER(OMPS_data,l1b_rad_filename)
+  omps_reader_status = TC_SDR_OMPS_READER(OMPS_data,TRIM(ADJUSTL(pcfvar%l1b_rad_filename)))
   pge_error_status = ABS(MIN(pge_error_status, INT(omps_reader_status,KIND=4)))
   IF (pge_error_status >= pge_errstat_error ) GO TO 666
 
-  omps_reader_status = TC_SDR_OMPS_READER(OMPS_data_radiance_reference,pcfvar%l1b_radref_filename)
+  omps_reader_status = TC_SDR_OMPS_READER(OMPS_data_radiance_reference,TRIM(ADJUSTL(pcfvar%l1b_radref_filename)))
   pge_error_status = ABS(MIN(pge_error_status, INT(omps_reader_status,KIND=4)))
   IF (pge_error_status >= pge_errstat_error ) GO TO 666
   
@@ -112,8 +112,7 @@ SUBROUTINE omi_fitting (                                  &
        omsao_w_subroutine, vb_lev_default, error_check
   USE OMSAO_indices_module, ONLY: sao_molecule_names, voc_omicld_idx
   USE OMSAO_parameters_module, ONLY: i2_missval
-  USE OMSAO_variables_module, ONLY: l1b_rad_filename, &
-       l2_filename, &
+  USE OMSAO_variables_module, ONLY: l2_filename, &
        OMSAO_refseccor_cld_filename, &
        voc_amf_filenames, ctrvar, pcfvar
   USE OMSAO_omidata_module, ONLY: omi_latitude, omi_column_amount, &
@@ -233,7 +232,7 @@ SUBROUTINE omi_fitting (                                  &
   ! "rr" ones (in this case, the dimensions are the same). Otherwise we
   ! have to read them from the radiance reference granule.
   ! --------------------------------------------------------------------
-  IF ( TRIM(ADJUSTL(pcfvar%l1b_radref_filename)) /= TRIM(ADJUSTL(l1b_rad_filename)) ) THEN
+  IF ( TRIM(ADJUSTL(pcfvar%l1b_radref_filename)) /= TRIM(ADJUSTL(pcfvar%l1b_rad_filename)) ) THEN
     CALL omi_set_xtrpix_range ( &
           nTimesRadRR, nXtrackRadRR, ctrvar%pixnum_lim(3:4), &
            omi_xtrpix_range_rr(0:nTimesRadRR-1,1:2), &

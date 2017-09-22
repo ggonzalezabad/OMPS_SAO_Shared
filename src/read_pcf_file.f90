@@ -1,6 +1,6 @@
 SUBROUTINE read_pcf_file ( pge_error_status )
 
-  USE OMSAO_precision_module
+  USE OMSAO_precision_module, ONLY: i4
   USE OMSAO_indices_module, ONLY: config_lun_array, config_lun_values, &
        config_lun_strings, pge_static_input_luns, pge_l2_output_lun, &
        omsao_solmonthave_lun, omsao_solcomp_lun, omsao_refseccor_lun, &
@@ -12,14 +12,18 @@ SUBROUTINE read_pcf_file ( pge_error_status )
        versionid_lun, ombro_amf_lun, swathname_lun, instrument_name_lun, &
        pge_version_lun, proclevel_lun, granule_e_lun, granule_s_lun, &
        orbitnumber_lun, verbosity_lun
-  USE OMSAO_errstat_module
+  USE OMSAO_errstat_module, ONLY: pge_errstat_ok, f_sep, omsao_e_getlun, &
+       omsao_f_get_molindex, omsao_f_getlun, omsao_s_get_molindex, omsao_w_getlun, &
+       omsao_w_subroutine, pge_errstat_error, pge_errstat_fatal, pge_errstat_warning, &
+       pgs_smf_mask_lev_s, vb_lev_default, vb_lev_stmdebug, PGSd_PC_VALUE_LENGTH_MAX, &
+       error_check
   USE OMSAO_metadata_module, ONLY: pcf_granule_s_time,  pcf_granule_e_time, &
        n_mdata_int, mdata_integer_fields, mdata_integer_values
-  USE OMSAO_parameters_module, ONLY: zerospec_string, str_missval
+  USE OMSAO_parameters_module, ONLY: zerospec_string, str_missval, maxchlen
   USE OMSAO_he5_module, ONLY: pge_swath_name, process_level, &
        instrument_name, pge_version
   USE OMSAO_variables_module, ONLY: &
-       l1b_rad_filename, l1b_irrad_filename, l2_filename, &
+       l1b_irrad_filename, l2_filename, &
        OMBRO_amf_filename, voc_amf_filenames,      &
        refspecs_original, &
        OMSAO_refseccor_filename, OMSAO_OMLER_filename,                     &
@@ -28,7 +32,7 @@ SUBROUTINE read_pcf_file ( pge_error_status )
        lqh2o_prefit_fname
   USE OMSAO_wfamf_module, ONLY: wfamf_table_lun, climatology_lun,  &
        OMSAO_wfamf_table_filename, OMSAO_climatology_filename
-  USE OMSAO_control_file_module
+  USE OMSAO_control_file_module, ONLY: read_fitting_control_file
 
   IMPLICIT NONE
 
@@ -244,13 +248,11 @@ SUBROUTINE read_pcf_file ( pge_error_status )
   ! Read Radiance L1B file name
   ! ---------------------------
   version = 1
-  errstat = PGS_PC_GetReference (l1b_radiance_lun, version, l1b_rad_filename)
+  errstat = PGS_PC_GetReference (l1b_radiance_lun, version, pcfvar%l1b_rad_filename)
   errstat = PGS_SMF_TestStatusLevel(errstat)
   CALL error_check ( errstat, PGS_SMF_MASK_LEV_S, pge_errstat_fatal, OMSAO_F_GETLUN, &
        modulename//f_sep//"L1B_RADIANCE_LUN", vb_lev_default, pge_error_status )
   IF ( pge_error_status >= pge_errstat_error ) RETURN
-
-  l1b_rad_filename = TRIM(ADJUSTL(l1b_rad_filename))
 
 
   ! -------------------------------------
