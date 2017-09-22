@@ -30,7 +30,7 @@ MODULE OMSAO_variables_module
      INTEGER (KIND=I4) :: orbit_number, ecs_version_id
      CHARACTER (LEN=maxchlen), DIMENSION (icf_idx:max_rs_idx) :: static_input_fnames
      CHARACTER (LEN=maxchlen) :: slitfunc_fname, solcomp_filename, solmonthave_filename, &
-          l1b_radref_filename, l1b_rad_filename
+          l1b_radref_filename, l1b_rad_filename, l1b_irrad_filename, l2_filename
   END type pcf_variables
   TYPE(pcf_variables):: pcfvar
 
@@ -199,11 +199,6 @@ MODULE OMSAO_variables_module
   ! occur on occasion for reasons not yet known.
   ! ----------------------------------------------------------------------------
   INTEGER (KIND=i4) :: num_fitfunc_calls, num_fitfunc_jacobi, max_fitfunc_calls
-
-  ! ---------------------
-  ! L1B and L2 file names
-  ! ---------------------
-  CHARACTER (LEN=maxchlen) :: l1b_irrad_filename, l2_filename
 
   ! -----------------------------------------------------------------
   ! Generic dimension variables (initialized from either GOME or OMI)

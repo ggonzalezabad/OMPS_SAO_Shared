@@ -23,7 +23,6 @@ SUBROUTINE read_pcf_file ( pge_error_status )
   USE OMSAO_he5_module, ONLY: pge_swath_name, process_level, &
        instrument_name, pge_version
   USE OMSAO_variables_module, ONLY: &
-       l1b_irrad_filename, l2_filename, &
        OMBRO_amf_filename, voc_amf_filenames,      &
        refspecs_original, &
        OMSAO_refseccor_filename, OMSAO_OMLER_filename,                     &
@@ -237,7 +236,7 @@ SUBROUTINE read_pcf_file ( pge_error_status )
   ! Read Irradiance L1B file name
   ! -----------------------------
   version = 1
-  errstat = PGS_PC_GetReference (l1b_irradiance_lun, version, l1b_irrad_filename)
+  errstat = PGS_PC_GetReference (l1b_irradiance_lun, version, pcfvar%l1b_irrad_filename)
   errstat = PGS_SMF_TestStatusLevel(errstat)
   CALL error_check ( errstat, PGS_SMF_MASK_LEV_S, pge_errstat_fatal, OMSAO_F_GETLUN, &
        modulename//f_sep//"L1B_IRRADIANCE_LUN", vb_lev_default, pge_error_status )
@@ -459,7 +458,7 @@ SUBROUTINE read_pcf_file ( pge_error_status )
   ! Read name of L2 output file
   ! ---------------------------
   version = 1
-  errstat = PGS_PC_GetReference (pge_l2_output_lun, version, l2_filename)
+  errstat = PGS_PC_GetReference (pge_l2_output_lun, version, pcfvar%l2_filename)
   errstat = PGS_SMF_TestStatusLevel(errstat)
 
   lunstr = int2string ( pge_l2_output_lun, 1 )

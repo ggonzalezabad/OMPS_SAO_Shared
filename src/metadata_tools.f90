@@ -579,7 +579,7 @@ SUBROUTINE set_l2_metadata ( errstat )
        omsao_e_mdl2inv, omsao_w_amdwrt, omsao_w_cmdwrt, pge_errstat_error, pge_errstat_ok, &
        pge_errstat_warning, pgs_s_success, vb_lev_default, error_check, PGS_SMF_MAX_MSG_SIZE
   USE OMSAO_parameters_module, ONLY: maxchlen
-  USE OMSAO_variables_module,  ONLY: l2_filename
+  USE OMSAO_variables_module, ONLY: pcfvar
 
   IMPLICIT NONE
 
@@ -691,8 +691,8 @@ SUBROUTINE set_l2_metadata ( errstat )
   ! * Obtain L2 output filename
   !   (replicate what's being done in the READ_PCF_FILE subroutine)
   version = 1
-  md_stat = PGS_PC_GetReference (pge_l2_output_lun, version, l2_filename)
-  IF ( md_stat /= PGS_S_SUCCESS .OR. LEN(TRIM(ADJUSTL(l2_filename))) == 0 ) THEN
+  md_stat = PGS_PC_GetReference (pge_l2_output_lun, version, pcfvar%l2_filename)
+  IF ( md_stat /= PGS_S_SUCCESS .OR. LEN(TRIM(ADJUSTL(pcfvar%l2_filename))) == 0 ) THEN
      CALL error_check ( &
           1, 0, pge_errstat_error, OMSAO_E_GETLUN, &
           modulename//f_sep//"L2 Output LUN", vb_lev_default, errstat )
@@ -701,7 +701,7 @@ SUBROUTINE set_l2_metadata ( errstat )
   ! ----------------------------------
   ! Initiate file for writing Metadata
   ! ----------------------------------
-  md_stat = PGS_MET_sfstart ( TRIM(ADJUSTL(l2_filename)), HDF5_ACC_RDWR, he5_met_id )
+  md_stat = PGS_MET_sfstart ( TRIM(ADJUSTL(pcfvar%l2_filename)), HDF5_ACC_RDWR, he5_met_id )
   CALL error_check ( &
        md_stat, PGS_S_SUCCESS, pge_errstat_error, OMSAO_E_MDINIT, &
        modulename, vb_lev_default, errstat )

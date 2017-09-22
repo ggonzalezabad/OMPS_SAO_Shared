@@ -112,7 +112,7 @@ SUBROUTINE omi_fitting (                                  &
        omsao_w_subroutine, vb_lev_default, error_check
   USE OMSAO_indices_module, ONLY: sao_molecule_names, voc_omicld_idx
   USE OMSAO_parameters_module, ONLY: i2_missval
-  USE OMSAO_variables_module, ONLY: l2_filename, &
+  USE OMSAO_variables_module, ONLY: &
        OMSAO_refseccor_cld_filename, &
        voc_amf_filenames, ctrvar, pcfvar
   USE OMSAO_omidata_module, ONLY: omi_latitude, omi_column_amount, &
@@ -259,7 +259,7 @@ SUBROUTINE omi_fitting (                                  &
   ! ----------------------------------------
   ! Initialization of HE5 output data fields
   ! ----------------------------------------
-  errstat = HE5_Init_Swath ( l2_filename, pge_swath_name, nTimesRad, nXtrackRad, CmETA )
+  errstat = HE5_Init_Swath ( TRIM(ADJUSTL(pcfvar%l2_filename)), pge_swath_name, nTimesRad, nXtrackRad, CmETA )
   CALL he5_initialize_datafields ( )
 
   errstat = HE5_Define_Fields ( pge_idx, pge_swath_name, nTimesRad, nXtrackRad, CmETA )
