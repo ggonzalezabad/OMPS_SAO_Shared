@@ -691,7 +691,7 @@ SUBROUTINE set_input_pointer_and_versions ( pge_idx )
   USE OMSAO_indices_module, ONLY: pge_oclo_idx, pge_bro_idx, pge_hcho_idx, &
        pge_o3_idx, pge_gly_idx, l1b_radiance_lun, l1b_radianceref_lun, &
        l1b_irradiance_lun, o3_prefit_lun, bro_prefit_lun, lqh2o_prefit_lun, &
-       pge_h2o_idx, cloud_lun
+       pge_h2o_idx, cld_lun
   USE OMSAO_he5_module, ONLY: n_lun_inp, lun_input, input_versions
   USE OMSAO_variables_module, ONLY: ctrvar, pcfvar
 
@@ -762,7 +762,7 @@ SUBROUTINE set_input_pointer_and_versions ( pge_idx )
      ! Add the Cloud LUN
      ! -----------------
      n_lun_inp            = n_lun_inp + 1
-     lun_input(n_lun_inp) = cloud_lun
+     lun_input(n_lun_inp) = cld_lun
      ! ----------------------------------------------------------
      ! Add possibly pre-fitted OMSAO3 and OMBRO
      ! ----------------------------------------------------------
@@ -779,7 +779,7 @@ SUBROUTINE set_input_pointer_and_versions ( pge_idx )
      ! Add the Cloud LUN
      ! -----------------
      n_lun_inp            = n_lun_inp + 1
-     lun_input(n_lun_inp) = cloud_lun
+     lun_input(n_lun_inp) = cld_lun
      
      ! --------------------
      ! Pre-fitted lqH2O CCM
@@ -793,7 +793,7 @@ SUBROUTINE set_input_pointer_and_versions ( pge_idx )
      ! Add the Cloud LUN
      ! -----------------
      n_lun_inp            = n_lun_inp + 1
-     lun_input(n_lun_inp) = cloud_lun
+     lun_input(n_lun_inp) = cld_lun
 
   CASE (pge_o3_idx)
      ! -----------------------

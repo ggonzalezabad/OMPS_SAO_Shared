@@ -3,15 +3,14 @@ SUBROUTINE read_pcf_file ( pge_error_status )
   USE OMSAO_precision_module, ONLY: i4
   USE OMSAO_indices_module, ONLY: config_lun_array, config_lun_values, &
        config_lun_strings, pge_static_input_luns, pge_l2_output_lun, &
-       solmonthave_lun, solcomp_lun, refsec_lun, &
-       refsec_cld_lun, albedo_lun, slitfunc_lun, &
-       n_config_luns, max_rs_idx, l1b_radiance_lun, l1b_radianceref_lun, &
-       l1b_irradiance_lun, icf_idx, pge_gly_idx, &
-       lqh2o_prefit_lun, pge_hcho_idx, o3_prefit_lun, &
-       bro_prefit_lun, pge_molid_lun, &
+       solmonthave_lun, solcomp_lun, refsec_lun, refsec_cld_lun, &
+       albedo_lun, slitfunc_lun, n_config_luns, max_rs_idx, &
+       l1b_radiance_lun, l1b_radianceref_lun, l1b_irradiance_lun, &
+       icf_idx, pge_gly_idx, lqh2o_prefit_lun, pge_hcho_idx, &
+       o3_prefit_lun, bro_prefit_lun, pge_molid_lun, &
        versionid_lun, swathname_lun, instrument_name_lun, &
        pge_version_lun, proclevel_lun, granule_e_lun, granule_s_lun, &
-       orbitnumber_lun, verbosity_lun, amf_table_lun
+       orbitnumber_lun, verbosity_lun, amf_table_lun, cld_lun, cld_climatology_lun
   USE OMSAO_errstat_module, ONLY: pge_errstat_ok, f_sep, omsao_e_getlun, &
        omsao_f_get_molindex, omsao_f_getlun, omsao_s_get_molindex, omsao_w_getlun, &
        omsao_w_subroutine, pge_errstat_error, pge_errstat_fatal, pge_errstat_warning, &
@@ -256,6 +255,16 @@ SUBROUTINE read_pcf_file ( pge_error_status )
        modulename//f_sep//"L1B_RADIANCEREF_LUN", vb_lev_default, pge_error_status )
   IF ( pge_error_status >= pge_errstat_error ) RETURN
 
+  ! ------------------------------------------
+  ! Read name of file with the radiance clouds
+  ! ------------------------------------------
+  version = 1
+  errstat = PGS_PC_GetReference ( cld_lun, version, pcfvar%cld_filename)
+  errstat = PGS_SMF_TestStatusLevel(errstat)
+  CALL error_check ( errstat, PGS_SMF_MASK_LEV_S, pge_errstat_fatal, OMSAO_F_GETLUN, &
+       modulename//f_sep//"CLD_FILENAME_LUN ", vb_lev_default, pge_error_status )
+  IF ( pge_error_status >= pge_errstat_error ) RETURN
+
   ! -------------------------------------------------------------------------
   ! Read name of AMF table file. Remember that a missing AMF table is
   ! not a fatal problem, since in that case the slant columns will be written
@@ -268,9 +277,20 @@ SUBROUTINE read_pcf_file ( pge_error_status )
        modulename//f_sep//"AMF_TABLE_FILENAME_LUN", vb_lev_default, pge_error_status )
   IF ( pge_error_status >= pge_errstat_error ) RETURN
 
-  ! ----------------
-  ! Climatology
-  ! ----------------
+  ! -------------------------------
+  ! Read cloud climatology filename
+  ! -------------------------------
+  version = 1
+  errstat = PGS_PC_GetReference ( cld_climatology_lun, version, pcfvar%cld_climatology_filename )
+  errstat = PGS_SMF_TestStatusLevel ( errstat )
+  CALL error_check ( errstat, PGS_SMF_MASK_LEV_S, pge_errstat_fatal, OMSAO_F_GETLUN, &
+       modulename//f_sep//"CLIMATOLOGY_FILENAME_LUN", vb_lev_default, pge_error_status )
+  IF ( pge_error_status >= pge_errstat_error ) RETURN
+
+
+  ! -------------------------
+  ! Read climatology filename
+  ! -------------------------
   version = 1
   errstat = PGS_PC_GetReference ( climatology_lun, version, pcfvar%climatology_filename )
   errstat = PGS_SMF_TestStatusLevel ( errstat )
@@ -291,7 +311,7 @@ SUBROUTINE read_pcf_file ( pge_error_status )
   IF ( pge_error_status >= pge_errstat_error ) RETURN
 
   ! -------------------------------------------------------------------------
-  ! Read name of file with Monthly Average Irradiace !gga 
+  ! Read name of file with Monthly Average Irradiace
   ! (whether we use it or not, since we find that out only after we read the
   !  fitting control file) !gga
   ! -------------------------------------------------------------------------

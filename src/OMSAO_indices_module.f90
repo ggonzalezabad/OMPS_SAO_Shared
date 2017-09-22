@@ -293,7 +293,7 @@ MODULE OMSAO_indices_module
        slitfunc_lun        = 700050, & ! LUN for slit function data tile
        amf_table_lun       = 700210, & ! LUN AMF LUT file
        cld_climatology_lun = 700230, & ! LUN cloud climatology file
-       cloud_lun           = 700240, & ! LUN L2 cloud file
+       cld_lun             = 700240, & ! LUN L2 cloud file
        albedo_lun          = 700280, & ! LUN for albedo file
        solcomp_lun         = 700400, & ! LUN for solar composite spectrum file
        solmonthave_lun     = 700500, & ! LUN for solar monthly mean spectrum file
