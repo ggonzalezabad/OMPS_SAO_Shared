@@ -1,7 +1,6 @@
 SUBROUTINE omi_adjust_irradiance_data ( &
      omi_ccdpix_idx, omi_ccdpix_exc, n_omi_irradwvl, omi_irrad_wvl, omi_irrad_spc, &
      omi_irrad_ccd, n_sol_wvl, curr_sol_spec, yn_skip_pix, errstat )
-
   USE OMSAO_precision_module, ONLY: i4, r8
   USE OMSAO_indices_module, ONLY: wvl_idx, spc_idx, sig_idx, ccd_idx
   USE OMSAO_parameters_module, ONLY: downweight, normweight, r4_missval
@@ -692,7 +691,7 @@ SUBROUTINE set_input_pointer_and_versions ( pge_idx )
   USE OMSAO_indices_module, ONLY: pge_oclo_idx, pge_bro_idx, pge_hcho_idx, &
        pge_o3_idx, pge_gly_idx, l1b_radiance_lun, l1b_radianceref_lun, &
        l1b_irradiance_lun, o3_prefit_lun, bro_prefit_lun, lqh2o_prefit_lun, &
-       voc_amf_luns, voc_omicld_idx, pge_h2o_idx
+       pge_h2o_idx, cloud_lun
   USE OMSAO_he5_module, ONLY: n_lun_inp, lun_input, input_versions
   USE OMSAO_variables_module, ONLY: ctrvar, pcfvar
 
@@ -763,7 +762,7 @@ SUBROUTINE set_input_pointer_and_versions ( pge_idx )
      ! Add the Cloud LUN
      ! -----------------
      n_lun_inp            = n_lun_inp + 1
-     lun_input(n_lun_inp) = voc_amf_luns(voc_omicld_idx)
+     lun_input(n_lun_inp) = cloud_lun
      ! ----------------------------------------------------------
      ! Add possibly pre-fitted OMSAO3 and OMBRO
      ! ----------------------------------------------------------
@@ -780,7 +779,7 @@ SUBROUTINE set_input_pointer_and_versions ( pge_idx )
      ! Add the Cloud LUN
      ! -----------------
      n_lun_inp            = n_lun_inp + 1
-     lun_input(n_lun_inp) = voc_amf_luns(voc_omicld_idx)
+     lun_input(n_lun_inp) = cloud_lun
      
      ! --------------------
      ! Pre-fitted lqH2O CCM
@@ -794,7 +793,7 @@ SUBROUTINE set_input_pointer_and_versions ( pge_idx )
      ! Add the Cloud LUN
      ! -----------------
      n_lun_inp            = n_lun_inp + 1
-     lun_input(n_lun_inp) = voc_amf_luns(voc_omicld_idx)
+     lun_input(n_lun_inp) = cloud_lun
 
   CASE (pge_o3_idx)
      ! -----------------------

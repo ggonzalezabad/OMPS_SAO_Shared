@@ -31,8 +31,7 @@ CONTAINS
          omi_irradiance_qflg, omi_irradiance_prec, omi_irradiance_wavl, omi_nwav_irrad, &
          omi_ccdpix_selection, omi_ccdpix_exclusion,             &
          omi_sol_wav_avg, EarthSunDistance
-    USE OMSAO_indices_module, ONLY: &
-         OMSAO_solmonthave_lun
+    USE OMSAO_indices_module, ONLY: solmonthave_lun
 
     IMPLICIT NONE
 
@@ -86,7 +85,7 @@ CONTAINS
     ! Open monthly average file
     ! -------------------------
     version = 1
-    locerrstat = PGS_IO_GEN_OPENF ( OMSAO_solmonthave_lun, PGSd_IO_Gen_RSeqFrm, 0, funit, version )
+    locerrstat = PGS_IO_GEN_OPENF ( solmonthave_lun, PGSd_IO_Gen_RSeqFrm, 0, funit, version )
     locerrstat = PGS_SMF_TESTSTATUSLEVEL(locerrstat)
     CALL error_check ( &
          locerrstat, pgs_smf_mask_lev_s, pge_errstat_error, OMSAO_E_OPEN_SOLMONAVE_FILE, &

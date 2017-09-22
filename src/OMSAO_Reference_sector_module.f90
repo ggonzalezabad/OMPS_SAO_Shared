@@ -143,7 +143,7 @@ MODULE OMSAO_Reference_sector_module
 
     SUBROUTINE Read_reference_sector_concentration(errstat)
 
-      USE OMSAO_indices_module,   ONLY: OMSAO_refseccor_lun
+      USE OMSAO_indices_module, ONLY: refsec_lun
       
       IMPLICIT NONE
       ! ------------------
@@ -184,7 +184,7 @@ MODULE OMSAO_Reference_sector_module
       ! Open Reference Sector concentrations file
       ! -----------------------------------------
       version = 1
-      locerrstat = PGS_IO_GEN_OPENF ( OMSAO_refseccor_lun, PGSd_IO_Gen_RSeqFrm, 0, funit, version )
+      locerrstat = PGS_IO_GEN_OPENF ( refsec_lun, PGSd_IO_Gen_RSeqFrm, 0, funit, version )
       locerrstat = PGS_SMF_TESTSTATUSLEVEL(locerrstat)
       CALL error_check ( &
            locerrstat, pgs_smf_mask_lev_s, pge_errstat_error, OMSAO_E_OPEN_REFSECCOR_FILE, &

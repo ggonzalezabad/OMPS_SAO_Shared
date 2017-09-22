@@ -4,7 +4,7 @@ MODULE OMSAO_variables_module
   USE OMSAO_indices_module, ONLY: &
        max_rs_idx, max_calfit_idx, n_max_fitpars, mxs_idx, sig_idx, icf_idx, &
        o3_t1_idx, o3_t2_idx, o3_t3_idx,                                      &
-       us1_idx, us2_idx, n_voc_amf_luns, ccd_idx, radfit_idx
+       us1_idx, us2_idx, ccd_idx, radfit_idx
   USE OMSAO_parameters_module, ONLY: maxchlen, max_spec_pts, n_fit_winwav, max_mol_fit
   USE OMSAO_omidata_module, ONLY: nwavel_max, nxtrack_max, nlines_max
 
@@ -32,8 +32,7 @@ MODULE OMSAO_variables_module
      CHARACTER (LEN=maxchlen) :: slitfunc_fname, solcomp_filename, solmonthave_filename, &
           l1b_radref_filename, l1b_rad_filename, l1b_irrad_filename, l2_filename, &
           amf_table_filename, climatology_filename, refsec_filename, refsec_cld_filename, &
-          albedo_filename
-
+          albedo_filename, cld_climatology_filename, cld_filename
   END type pcf_variables
   TYPE(pcf_variables):: pcfvar
 
@@ -214,10 +213,5 @@ MODULE OMSAO_variables_module
   ! ---------------------------------------------------------------------------
   REAL (KIND=r8), DIMENSION (max_spec_pts) :: solar_spec_convolved
 
-
-  ! ---------------------------------------------------------
-  ! Filenames specific for the AMF scheme in OMBRO and OMHCHO
-  ! ---------------------------------------------------------
-  CHARACTER (LEN=maxchlen), DIMENSION (n_voc_amf_luns)   :: voc_amf_filenames
 
 END MODULE OMSAO_variables_module

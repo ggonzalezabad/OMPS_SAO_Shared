@@ -110,10 +110,9 @@ SUBROUTINE omi_fitting (                                  &
   USE OMSAO_errstat_module, ONLY: pge_errstat_ok, pge_errstat_fatal, &
        pge_errstat_warning, pge_errstat_error, f_sep, omsao_w_nopixel, &
        omsao_w_subroutine, vb_lev_default, error_check
-  USE OMSAO_indices_module, ONLY: sao_molecule_names, voc_omicld_idx
+  USE OMSAO_indices_module, ONLY: sao_molecule_names
   USE OMSAO_parameters_module, ONLY: i2_missval
-  USE OMSAO_variables_module, ONLY: &
-       voc_amf_filenames, ctrvar, pcfvar
+  USE OMSAO_variables_module, ONLY: ctrvar, pcfvar
   USE OMSAO_omidata_module, ONLY: omi_latitude, omi_column_amount, &
        omi_cross_track_skippix, omi_radcal_itnum, omi_radcal_xflag, &
        omi_solcal_itnum, omi_solcal_xflag, &
@@ -466,7 +465,7 @@ SUBROUTINE omi_fitting (                                  &
   ! ---------------------------
   ! SCD to VCD (AMF calculation
   ! ---------------------------
-  CALL amf_calculation_bis ( pge_idx, voc_amf_filenames(voc_omicld_idx), &
+  CALL amf_calculation_bis ( pge_idx, pcfvar%cld_filename, &
        nTimesRad, nXtrackRad,                                &
        omi_latitude(1:nXtrackRad,0:nTimesRad-1),             &
        omi_longitude(1:nXtrackRad,0:nTimesRad-1),            &

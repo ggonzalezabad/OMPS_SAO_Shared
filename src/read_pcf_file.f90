@@ -3,12 +3,12 @@ SUBROUTINE read_pcf_file ( pge_error_status )
   USE OMSAO_precision_module, ONLY: i4
   USE OMSAO_indices_module, ONLY: config_lun_array, config_lun_values, &
        config_lun_strings, pge_static_input_luns, pge_l2_output_lun, &
-       omsao_solmonthave_lun, omsao_solcomp_lun, omsao_refseccor_lun, &
-       omsao_refseccor_cld_lun, albedo_lun, omi_slitfunc_lun, &
+       solmonthave_lun, solcomp_lun, refsec_lun, &
+       refsec_cld_lun, albedo_lun, slitfunc_lun, &
        n_config_luns, max_rs_idx, l1b_radiance_lun, l1b_radianceref_lun, &
-       l1b_irradiance_lun, icf_idx, pge_gly_idx, voc_amf_luns, &
-       lqh2o_prefit_lun, n_voc_amf_luns, pge_hcho_idx, o3_prefit_lun, &
-       bro_prefit_lun, pge_h2o_idx, pge_bro_idx, pge_molid_lun, &
+       l1b_irradiance_lun, icf_idx, pge_gly_idx, &
+       lqh2o_prefit_lun, pge_hcho_idx, o3_prefit_lun, &
+       bro_prefit_lun, pge_molid_lun, &
        versionid_lun, swathname_lun, instrument_name_lun, &
        pge_version_lun, proclevel_lun, granule_e_lun, granule_s_lun, &
        orbitnumber_lun, verbosity_lun, amf_table_lun
@@ -22,9 +22,7 @@ SUBROUTINE read_pcf_file ( pge_error_status )
   USE OMSAO_parameters_module, ONLY: zerospec_string, str_missval, maxchlen
   USE OMSAO_he5_module, ONLY: pge_swath_name, process_level, &
        instrument_name, pge_version
-  USE OMSAO_variables_module, ONLY: &
-       voc_amf_filenames,      &
-       refspecs_original, pcfvar
+  USE OMSAO_variables_module, ONLY: refspecs_original, pcfvar
   USE OMSAO_prefitcol_module, ONLY: o3_prefit_fname, bro_prefit_fname, &
        lqh2o_prefit_fname
   USE OMSAO_wfamf_module, ONLY: climatology_lun
@@ -186,10 +184,10 @@ SUBROUTINE read_pcf_file ( pge_error_status )
   ! Static input file with tabulated OMI slit function values
   ! ---------------------------------------------------------
   version = 1
-  errstat = PGS_PC_GetReference (omi_slitfunc_lun, version, pcfvar%slitfunc_fname)
+  errstat = PGS_PC_GetReference (slitfunc_lun, version, pcfvar%slitfunc_fname)
   errstat = PGS_SMF_TestStatusLevel(errstat)
   CALL error_check ( errstat, PGS_SMF_MASK_LEV_S, pge_errstat_fatal, OMSAO_F_GETLUN, &
-       modulename//f_sep//"OMI_SLITFUNC_LUN", vb_lev_default, pge_error_status )
+       modulename//f_sep//"SLITFUNC_LUN", vb_lev_default, pge_error_status )
   IF ( pge_error_status >= pge_errstat_error ) RETURN
 
   ! ------------------------------------------------------------------
@@ -286,7 +284,7 @@ SUBROUTINE read_pcf_file ( pge_error_status )
   !  fitting control file)
   ! -------------------------------------------------------------------------
   version = 1
-  errstat = PGS_PC_GetReference ( OMSAO_solcomp_lun, version, pcfvar%solcomp_filename)
+  errstat = PGS_PC_GetReference ( solcomp_lun, version, pcfvar%solcomp_filename)
   errstat = PGS_SMF_TestStatusLevel(errstat)
   CALL error_check ( errstat, PGS_SMF_MASK_LEV_S, pge_errstat_fatal, OMSAO_F_GETLUN, &
        modulename//f_sep//"SOLCOMP_FILENAME_LUN ", vb_lev_default, pge_error_status )
@@ -298,7 +296,7 @@ SUBROUTINE read_pcf_file ( pge_error_status )
   !  fitting control file) !gga
   ! -------------------------------------------------------------------------
   version = 1
-  errstat = PGS_PC_GetReference ( OMSAO_solmonthave_lun, version, pcfvar%solmonthave_filename)
+  errstat = PGS_PC_GetReference ( solmonthave_lun, version, pcfvar%solmonthave_filename)
   errstat = PGS_SMF_TestStatusLevel(errstat)
   CALL error_check ( errstat, PGS_SMF_MASK_LEV_S, pge_errstat_fatal, OMSAO_F_GETLUN, &
        modulename//f_sep//"SOLMONTHAVE_FILENAME_LUN ", vb_lev_default, pge_error_status )
@@ -309,7 +307,7 @@ SUBROUTINE read_pcf_file ( pge_error_status )
   ! concentrations !gga 
   ! ------------------------------------------------------------
   version = 1
-  errstat = PGS_PC_GetReference ( OMSAO_refseccor_lun, version, pcfvar%refsec_filename)
+  errstat = PGS_PC_GetReference ( refsec_lun, version, pcfvar%refsec_filename)
   errstat = PGS_SMF_TestStatusLevel(errstat)
   CALL error_check ( errstat, PGS_SMF_MASK_LEV_S, pge_errstat_fatal, OMSAO_F_GETLUN, &
           modulename//f_sep//"REFSEC_FILENAME_LUN ", vb_lev_default, pge_error_status )
@@ -319,7 +317,7 @@ SUBROUTINE read_pcf_file ( pge_error_status )
   ! Read name of file with the radiance reference clouds
   ! ----------------------------------------------------
   version = 1
-  errstat = PGS_PC_GetReference ( OMSAO_refseccor_cld_lun, version, pcfvar%refsec_cld_filename)
+  errstat = PGS_PC_GetReference ( refsec_cld_lun, version, pcfvar%refsec_cld_filename)
   errstat = PGS_SMF_TestStatusLevel(errstat)
   CALL error_check ( errstat, PGS_SMF_MASK_LEV_S, pge_errstat_fatal, OMSAO_F_GETLUN, &
        modulename//f_sep//"REFSEC_CLD_FILENAME_LUN ", vb_lev_default, pge_error_status )
@@ -341,13 +339,19 @@ SUBROUTINE read_pcf_file ( pge_error_status )
   version = 1
   errstat = PGS_PC_GetReference (pge_l2_output_lun, version, pcfvar%l2_filename)
   errstat = PGS_SMF_TestStatusLevel(errstat)
-
-  lunstr = int2string ( pge_l2_output_lun, 1 )
   CALL error_check ( errstat, PGS_SMF_MASK_LEV_S, pge_errstat_fatal, OMSAO_F_GETLUN, &
-       modulename//f_sep//"PGE_L2_OUTPUT_LUN "//TRIM(ADJUSTL(lunstr)), &
-       vb_lev_default, pge_error_status )
+       modulename//f_sep//"PGE_L2_OUTPUT_LUN ", vb_lev_default, pge_error_status )
   IF ( pge_error_status >= pge_errstat_error ) RETURN
-  stop
+
+  ! ---------------------------------------
+  ! Read name of cloud climatology filename
+  ! ---------------------------------------
+  version = 1
+  errstat = PGS_PC_GetReference (pge_l2_output_lun, version, pcfvar%l2_filename)
+  errstat = PGS_SMF_TestStatusLevel(errstat)
+  CALL error_check ( errstat, PGS_SMF_MASK_LEV_S, pge_errstat_fatal, OMSAO_F_GETLUN, &
+       modulename//f_sep//"PGE_L2_OUTPUT_LUN ", vb_lev_default, pge_error_status )
+  IF ( pge_error_status >= pge_errstat_error ) RETURN
 
   ! ---------------------------------------------------------
   ! For OMHCHO read HE5 file names with pre-fitted O3 and BrO

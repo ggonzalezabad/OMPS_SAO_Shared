@@ -1473,13 +1473,10 @@ FUNCTION he5_close_output_file ( pge_idx ) RESULT ( he5stat )
   !------------------------------------------------------------------------------
 
   USE OMSAO_indices_module, ONLY: &
-       pge_bro_idx, pge_hcho_idx, pge_oclo_idx, pge_gly_idx, &
-       voc_isccp_idx, voc_isccp_idx, n_voc_amf_luns, n_voc_amf_luns
+       pge_bro_idx, pge_hcho_idx, pge_oclo_idx, pge_gly_idx
   USE OMSAO_he5_module
   USE OMSAO_errstat_module, ONLY: pge_errstat_ok, pge_errstat_warning, &
        error_check, omsao_w_he5swclose, he5_stat_ok, vb_lev_default
-  USE OMSAO_wfamf_module,  ONLY: &
-       amf_swath_names, amf_swath_ids, amf_swath_file_ids
 
   IMPLICIT NONE
 
@@ -1501,7 +1498,7 @@ FUNCTION he5_close_output_file ( pge_idx ) RESULT ( he5stat )
   ! --------------
   ! Local variable
   ! --------------
-  INTEGER (KIND=i4) :: locerr, i
+  INTEGER (KIND=i4) :: locerr
 
   he5stat = pge_errstat_ok
   ! -----------------------------------------------
@@ -1520,19 +1517,6 @@ FUNCTION he5_close_output_file ( pge_idx ) RESULT ( he5stat )
   SELECT CASE ( pge_idx )
   CASE ( pge_bro_idx )
   CASE ( pge_hcho_idx )
-     ! --------------------------------------------------------------------
-     ! AMF table files; make sure we skip the ISCCP swath, because that one
-     ! gets closed immediately after all the data are read from it.
-     ! --------------------------------------------------------------------
-     DO i = 1, n_voc_amf_luns
-        IF ( i                                 /=  voc_isccp_idx .AND. &
-             TRIM(ADJUSTL(amf_swath_names(i))) /= 'undefined'       .AND. &
-             amf_swath_ids     (i)             /= -1                .AND. &
-             amf_swath_file_ids(i)             /= -1                       ) THEN
-           locerr = HE5_SWDETACH ( amf_swath_ids(i) )
-           locerr = HE5_SWCLOSE  ( amf_swath_file_ids(i) )
-        END IF
-     END DO
      ! ------------------
      ! O3 and BrO prefits
      ! ------------------
@@ -1549,19 +1533,6 @@ FUNCTION he5_close_output_file ( pge_idx ) RESULT ( he5stat )
         locerr = HE5_SWCLOSE  ( brofit_swath_file_id )
      END IF
   CASE ( pge_gly_idx )
-     ! --------------------------------------------------------------------
-     ! AMF table files; make sure we skip the ISCCP swath, because that one
-     ! gets closed immediately after all the data are read from it.
-     ! --------------------------------------------------------------------
-     DO i = 1, n_voc_amf_luns
-        IF ( i                                 /=  voc_isccp_idx .AND. &
-             TRIM(ADJUSTL(amf_swath_names(i))) /= 'undefined'       .AND. &
-             amf_swath_ids     (i)             /= -1                .AND. &
-             amf_swath_file_ids(i)             /= -1                       ) THEN
-           locerr = HE5_SWDETACH ( amf_swath_ids(i) )
-           locerr = HE5_SWCLOSE  ( amf_swath_file_ids(i) )
-        END IF
-     END DO
      ! --------------------
      ! Liquid Water prefits
      ! --------------------

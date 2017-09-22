@@ -5,8 +5,7 @@ SUBROUTINE init_metadata ( errstat )
        l1b_irradiance_lun, l1b_radiance_lun, l1b_radianceref_lun, &
        mcf_lun, md_inventory_idx, md_archive_idx,                 &
        pge_hcho_idx, pge_gly_idx, pge_h2o_idx,                    &
-       voc_amf_luns, voc_omicld_idx, o3_prefit_lun, bro_prefit_lun
-       
+       o3_prefit_lun, bro_prefit_lun, cloud_lun       
   USE OMSAO_metadata_module
   USE OMSAO_errstat_module, ONLY: f_sep, omsao_e_getattr, omsao_f_metinit, &
        omsao_w_getattr, omsao_w_tai93, pge_errstat_error, pge_errstat_fatal, &
@@ -238,7 +237,7 @@ SUBROUTINE init_metadata ( errstat )
         SELECT CASE ( mdata_loc )
         CASE ( "CLD" )
            md_stat = PGS_MET_getPCAttr_s( &
-                voc_amf_luns(voc_omicld_idx), version, TRIM(ADJUSTL(cmd_str))//'.0', &
+                cloud_lun, version, TRIM(ADJUSTL(cmd_str))//'.0', &
                 TRIM(ADJUSTL(upper_case(mdata_voc_fields(1,imd)))), &
                 mdata_voc_values(imd) )
            CALL error_check ( md_stat, PGS_S_SUCCESS, pge_errstat_warning, OMSAO_W_GETATTR, &
@@ -269,7 +268,7 @@ SUBROUTINE init_metadata ( errstat )
         SELECT CASE ( mdata_loc )
         CASE ( "CLD" )
            md_stat = PGS_MET_getPCAttr_s( &
-                voc_amf_luns(voc_omicld_idx), version, TRIM(ADJUSTL(cmd_str))//'.0', &
+                cloud_lun, version, TRIM(ADJUSTL(cmd_str))//'.0', &
                 TRIM(ADJUSTL(upper_case(mdata_voc_fields(1,imd)))), &
                 mdata_voc_values(imd) )
            CALL error_check ( md_stat, PGS_S_SUCCESS, pge_errstat_warning, OMSAO_W_GETATTR, &
@@ -299,7 +298,7 @@ SUBROUTINE init_metadata ( errstat )
         SELECT CASE ( mdata_loc )
         CASE ( "CLD" )
            md_stat = PGS_MET_getPCAttr_s( &
-                voc_amf_luns(voc_omicld_idx), version, TRIM(ADJUSTL(cmd_str))//'.0', &
+                cloud_lun, version, TRIM(ADJUSTL(cmd_str))//'.0', &
                 TRIM(ADJUSTL(upper_case(mdata_voc_fields(1,imd)))), &
                 mdata_voc_values(imd) )
            CALL error_check ( md_stat, PGS_S_SUCCESS, pge_errstat_warning, OMSAO_W_GETATTR, &

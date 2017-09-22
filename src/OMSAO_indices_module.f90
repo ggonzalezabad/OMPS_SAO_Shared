@@ -266,31 +266,41 @@ MODULE OMSAO_indices_module
   !   second, and so on.
   ! ----------------------------------------------------------------------
 
-  ! -----------------------------------------------------------------
+  ! -------------------------------------------------------------
   ! Logical Unit Numbers (LUNs) in PCF. Some registered, some not.
-  ! The following list excludes any LUNs that are PGE specific, which
-  ! are collected in individual arrays.
-  ! -----------------------------------------------------------------
+  ! -------------------------------------------------------------
   INTEGER (KIND=i4), PARAMETER :: &
-       granule_s_lun          =  10258, & ! LUN for GranuleStartTime
-       granule_e_lun          =  10259, & ! LUN for GranuleStartTime
-       verbosity_lun          = 200100, & ! LUN for PGE verbosity threshold
-       pge_version_lun        = 200105, & ! LUN for PGEVERSION
-       proccenter_lun         = 200110, & ! LUN for ProcessingCenter
-       prochost_lun           = 200115, & ! LUN for ProcessingHost
-       reproc_actual_lun      = 200135, & ! LUN for ReprocessingActual
-       proclevel_lun          = 200170, & ! LUN for ProcessLevel
-       instrument_name_lun    = 200175, & ! LUN for InstrumentName
-       opmode_lun             = 200180, & ! LUN for OperationMode
-       authoraffil_lun        = 200185, & ! LUN for Author Affiliation
-       authorname_lun         = 200190, & ! LUN for Author Name
-       orbitnumber_lun        = 200200, & ! LUN for orbit number
-       swathname_lun          = 200210, & ! LUN for swath name
-       versionid_lun          = 200220, & ! LUN for VersionID (formerly in MCF)
-       pge_molid_lun          = 700000, & ! LUN for PGE molecule ID; registered
-       l1b_radiance_lun       = 700010, & ! PGE L1B radiance file (both UV or VIS)
-       l1b_radianceref_lun    = 700015, & ! PGE L1B Radiance Reference file
-       l1b_irradiance_lun     = 700020    ! PGE L1B Solar irradiance  file
+       granule_s_lun       =  10258, & ! LUN for GranuleStartTime
+       granule_e_lun       =  10259, & ! LUN for GranuleStartTime
+       verbosity_lun       = 200100, & ! LUN for PGE verbosity threshold
+       pge_version_lun     = 200105, & ! LUN for PGEVERSION
+       proccenter_lun      = 200110, & ! LUN for ProcessingCenter
+       prochost_lun        = 200115, & ! LUN for ProcessingHost
+       reproc_actual_lun   = 200135, & ! LUN for ReprocessingActual
+       proclevel_lun       = 200170, & ! LUN for ProcessLevel
+       instrument_name_lun = 200175, & ! LUN for InstrumentName
+       opmode_lun          = 200180, & ! LUN for OperationMode
+       authoraffil_lun     = 200185, & ! LUN for Author Affiliation
+       authorname_lun      = 200190, & ! LUN for Author Name
+       orbitnumber_lun     = 200200, & ! LUN for orbit number
+       swathname_lun       = 200210, & ! LUN for swath name
+       versionid_lun       = 200220, & ! LUN for VersionID (formerly in MCF)
+       pge_molid_lun       = 700000, & ! LUN for PGE molecule ID; registered
+       mcf_lun             = 700001, & ! LUN for MCF file
+       l1b_radiance_lun    = 700010, & ! LUN L1B radiance file (both UV or VIS)
+       l1b_radianceref_lun = 700015, & ! LUN L1B Radiance Reference file
+       l1b_irradiance_lun  = 700020, & ! LUN L1B Solar irradiance  file
+       slitfunc_lun        = 700050, & ! LUN for slit function data tile
+       amf_table_lun       = 700210, & ! LUN AMF LUT file
+       cld_climatology_lun = 700230, & ! LUN cloud climatology file
+       cloud_lun           = 700240, & ! LUN L2 cloud file
+       albedo_lun          = 700280, & ! LUN for albedo file
+       solcomp_lun         = 700400, & ! LUN for solar composite spectrum file
+       solmonthave_lun     = 700500, & ! LUN for solar monthly mean spectrum file
+       refsec_lun          = 700600, & ! LUN for reference sector file
+       refsec_cld_lun      = 700615, & ! LUN for L2 reference sector cloud file
+       pge_l2_output_lun   = 700999    ! LUN for L2 output file
+
 
   ! -----------------------------------------------------------------
   ! Place any of the above LUNs that are associated with Config data
@@ -345,18 +355,6 @@ MODULE OMSAO_indices_module
        .FALSE., .FALSE.    /)
 
   CHARACTER (LEN=maxchlen), DIMENSION (n_config_luns) :: config_lun_values
-
-  ! ----------------------------------------
-  ! LUNs for the MCF files; one for each PGE
-  ! ----------------------------------------
-  INTEGER (KIND=i4), PARAMETER :: mcf_lun  = 700001
-
-  ! -------------------------------------------------------------------
-  ! * The OMI tabulated slit function data file. This is the same
-  !   for all PGEs so we use only one LUN.
-  ! -------------------------------------------------------------------
-  INTEGER (KIND=i4), PARAMETER :: omi_slitfunc_lun = 700050
-
   ! ----------------------------------------------------------------------
   ! * Input file LUNs for reference spectra and algorithm control file.
   !   The first (ICF) is for static, non-reference spectra input files.
@@ -396,11 +394,6 @@ MODULE OMSAO_indices_module
        700108,  700109,  700110,  700111,  700112,  700113,  700114,  700115, &
        700116,  700117,  700118,  700119,  700120,  700121,  700122,  700123, &
        700124,  700125,  700126,  700127                                      /)
-
-  ! ------------------------
-  ! * LUNs for PGE L2 Output
-  ! ------------------------
-  INTEGER (KIND=i4), PARAMETER :: pge_l2_output_lun = 700999
 
   ! -------------------------------------------
   ! * LUNs for HCHO Pre-Fitted O3 and BrO Input
@@ -456,52 +449,9 @@ MODULE OMSAO_indices_module
   ! ----------------
   INTEGER (KIND=i4), PARAMETER :: md_inventory_idx = 2, md_archive_idx = 3
 
-  ! ----------------------------------------------------------------------------------------
-  ! PGE specific LUNs:
-  !  * OMBRO    requires one AMF file (plain or WF-modified; can be one and the same); Clouds
-  !  * OMHCHO   requires several files associated with the AMF computation
-  !  * OMCHOCHO requires several files associated with the AMF computation
-  ! ----------------------------------------------------------------------------------------
-  INTEGER (KIND=i4), PARAMETER :: amf_table_lun = 700210
-  INTEGER (KIND=i4), PARAMETER :: omi_cloud_lun = 700240
-  INTEGER (KIND=i4), PARAMETER :: voc_amf_idx = 1, voc_isccp_idx = 2, voc_omicld_idx = 3
-  INTEGER (KIND=i4), PARAMETER :: n_voc_amf_luns = voc_omicld_idx
-  INTEGER (KIND=i4), DIMENSION (n_voc_amf_luns), PARAMETER :: voc_amf_luns = (/ 700210, 700230, omi_cloud_lun /)
-
-  ! --------------------------------
-  ! LUN for composite solar spectrum
-  ! --------------------------------
-  INTEGER (KIND=i4), PARAMETER :: OMSAO_solcomp_lun = 700400
-
-  ! -----------------------------------
-  ! LUN for solar monthly mean spectrum
-  ! -----------------------------------
-  INTEGER (KIND=r4), PARAMETER :: OMSAO_solmonthave_lun = 700500
-
-  ! ------------------------------------------------------------
-  ! LUN for GEOS-Chem background Reference Sector concentrations
-  ! ------------------------------------------------------------
-  INTEGER (KIND=r4), PARAMETER :: OMSAO_refseccor_lun     = 700600
-  INTEGER (KIND=r4), PARAMETER :: OMSAO_refseccor_cld_lun = 700615
-
-  ! --------------------------------
-  ! LUN for OMLER albedo climatology
-  ! --------------------------------
-  INTEGER (KIND=r4), PARAMETER :: albedo_lun = 700280
-
-  ! The following array is a bit of an oddity, and ultimately it may not be used
-  ! at all. It defines some strings that are part of the file names associated
-  ! with the OMHCHO AMF scheme. If we ever find ourselves in the position that
-  ! the LUNs have been screwed up (as COULD be the case when LUN registry is no
-  ! longer required), then we can use this array to indentify which file has is
-  ! connected with which LUN.
-  CHARACTER (LEN=7), DIMENSION (n_voc_amf_luns), PARAMETER :: &
-       voc_amf_lun_str = (/ 'AMF    ', 'ISCCP  ', 'OMCLDO2' /)
-
   ! -----------------------------------------
   ! Indices for diagnostic output control CCM
   ! -----------------------------------------
-
   INTEGER (KIND=i4), PARAMETER :: &
        ccdpix_didx    =  1,& ! CCD Pixel Range
        commcnt_didx   =  2,& ! Common Mode Count

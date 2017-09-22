@@ -13,7 +13,6 @@ MODULE OMSAO_wfamf_module
        omsao_e_he5swattach, omsao_e_he5gdattach, omsao_e_he5gdopen, &
        omsao_w_he5gdclose, f_sep, error_check
   USE OMSAO_he5_module
-  USE OMSAO_indices_module, ONLY: n_voc_amf_luns
   USE OMSAO_variables_module, ONLY: ctrvar, pcfvar
 
   IMPLICIT NONE
@@ -102,12 +101,6 @@ MODULE OMSAO_wfamf_module
      REAL (KIND=r4), DIMENSION (nlon_isccp) :: lonvals
      REAL (KIND=r8), DIMENSION (nlon_isccp) :: cfr, ctp
   END TYPE CloudClimatology
-  ! ----------------------------------------------
-  ! Composite variable for ISCCP Cloud Climatology
-  ! ----------------------------------------------
-  CHARACTER (LEN=maxchlen), DIMENSION (n_voc_amf_luns) :: amf_swath_names = 'undefined'
-  INTEGER (KIND=i4), DIMENSION (n_voc_amf_luns) :: amf_swath_ids = -1
-  INTEGER (KIND=i4), DIMENSION (n_voc_amf_luns) :: amf_swath_file_ids = -1
 
   ! --------------------------
   !(3) ISCCP Cloud Climatology
