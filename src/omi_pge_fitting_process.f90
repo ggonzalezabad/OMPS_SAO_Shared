@@ -113,7 +113,6 @@ SUBROUTINE omi_fitting (                                  &
   USE OMSAO_indices_module, ONLY: sao_molecule_names, voc_omicld_idx
   USE OMSAO_parameters_module, ONLY: i2_missval
   USE OMSAO_variables_module, ONLY: &
-       OMSAO_refseccor_cld_filename, &
        voc_amf_filenames, ctrvar, pcfvar
   USE OMSAO_omidata_module, ONLY: omi_latitude, omi_column_amount, &
        omi_cross_track_skippix, omi_radcal_itnum, omi_radcal_xflag, &
@@ -542,7 +541,7 @@ SUBROUTINE omi_fitting (                                  &
      ! clouds to reference sector one
      ! ------------------------------------
      
-     CALL amf_calculation_bis ( pge_idx, OMSAO_refseccor_cld_filename, &
+     CALL amf_calculation_bis ( pge_idx, pcfvar%refsec_cld_filename, &
           nTimesRadRR, nXtrackRadRR,                                   &
           omi_latitude(1:nXtrackRadRR,0:nTimesRadRR-1),                &
           omi_longitude(1:nXtrackRadRR,0:nTimesRadRR-1),               &

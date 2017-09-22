@@ -25,8 +25,7 @@ SUBROUTINE read_pcf_file ( pge_error_status )
   USE OMSAO_variables_module, ONLY: &
        voc_amf_filenames,      &
        refspecs_original, &
-       OMSAO_OMLER_filename,                     &
-       OMSAO_refseccor_cld_filename, pcfvar
+       OMSAO_OMLER_filename, pcfvar
   USE OMSAO_prefitcol_module, ONLY: o3_prefit_fname, bro_prefit_fname, &
        lqh2o_prefit_fname
   USE OMSAO_wfamf_module, ONLY: climatology_lun
@@ -321,17 +320,11 @@ SUBROUTINE read_pcf_file ( pge_error_status )
   ! Read name of file with the radiance reference clouds !gga 
   ! ---------------------------------------------------------
   version = 1
-  errstat = PGS_PC_GetReference ( OMSAO_refseccor_cld_lun, version, tmpchar)
-  tmpchar = TRIM(ADJUSTL(tmpchar)) ; strlen = LEN(TRIM(ADJUSTL(tmpchar)))
+  errstat = PGS_PC_GetReference ( OMSAO_refseccor_cld_lun, version, pcfvar%refsec_cld_filename)
   errstat = PGS_SMF_TestStatusLevel(errstat)
-  IF ( (errstat /= pgs_smf_mask_lev_s) .OR. (strlen == 0)  ) THEN
-     lunstr = int2string ( OMSAO_refseccor_cld_lun, 1 )
-     CALL error_check ( 0, 1, pge_errstat_warning, OMSAO_W_GETLUN, &
-          modulename//f_sep//"PGE_STATIC_INPUT_LUN "//TRIM(ADJUSTL(lunstr)), &
-          vb_lev_default, pge_error_status )
-  ELSE
-     OMSAO_refseccor_cld_filename = TRIM(ADJUSTL(tmpchar))
-  END IF
+  CALL error_check ( errstat, PGS_SMF_MASK_LEV_S, pge_errstat_fatal, OMSAO_F_GETLUN, &
+       modulename//f_sep//"REFSEC_CLD_FILENAME_LUN ", vb_lev_default, pge_error_status )
+  IF ( pge_error_status >= pge_errstat_error ) RETURN
 
   ! ----------------------------------
   ! Read name of OMLER albedo file gga

@@ -31,7 +31,8 @@ MODULE OMSAO_variables_module
      CHARACTER (LEN=maxchlen), DIMENSION (icf_idx:max_rs_idx) :: static_input_fnames
      CHARACTER (LEN=maxchlen) :: slitfunc_fname, solcomp_filename, solmonthave_filename, &
           l1b_radref_filename, l1b_rad_filename, l1b_irrad_filename, l2_filename, &
-          amf_table_filename, climatology_filename, refsec_filename
+          amf_table_filename, climatology_filename, refsec_filename, refsec_cld_filename
+
   END type pcf_variables
   TYPE(pcf_variables):: pcfvar
 
@@ -217,11 +218,6 @@ MODULE OMSAO_variables_module
   ! Filenames specific for the AMF scheme in OMBRO and OMHCHO
   ! ---------------------------------------------------------
   CHARACTER (LEN=maxchlen), DIMENSION (n_voc_amf_luns)   :: voc_amf_filenames
-
-  ! --------------------------------------------------------
-  ! Filename and logical for Reference Sector Correction gga
-  ! --------------------------------------------------------
-  CHARACTER (LEN=maxchlen) :: OMSAO_refseccor_cld_filename
 
   ! -----------------------------------------------------------------
   ! Logical for Scattering Weights, Gas Profile and Averaging Kernels
