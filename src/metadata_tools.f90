@@ -5,7 +5,7 @@ SUBROUTINE init_metadata ( errstat )
        l1b_irradiance_lun, l1b_radiance_lun, l1b_radianceref_lun, &
        mcf_lun, md_inventory_idx, md_archive_idx,                 &
        pge_hcho_idx, pge_gly_idx, pge_h2o_idx,                    &
-       o3_prefit_lun, bro_prefit_lun, cld_lun       
+       prefit_lun, cld_lun
   USE OMSAO_metadata_module
   USE OMSAO_errstat_module, ONLY: f_sep, omsao_e_getattr, omsao_f_metinit, &
        omsao_w_getattr, omsao_w_tai93, pge_errstat_error, pge_errstat_fatal, &
@@ -199,7 +199,7 @@ SUBROUTINE init_metadata ( errstat )
         CASE ( "BRO" )
            IF ( ctrvar%yn_bro_prefit(1) ) THEN
               md_stat = PGS_MET_getPCAttr_s( &
-                   bro_prefit_lun, version, cmd_str, &
+                   prefit_lun, version, cmd_str, &
                    TRIM(ADJUSTL(upper_case(mdata_omhcho_fields(1,imd)))), &
                    mdata_omhcho_values(imd) )
               CALL error_check ( md_stat, PGS_S_SUCCESS, pge_errstat_warning, OMSAO_W_GETATTR, &
@@ -209,7 +209,7 @@ SUBROUTINE init_metadata ( errstat )
         CASE ( "OOO" )
            IF ( ctrvar%yn_o3_prefit(1) ) THEN
               md_stat = PGS_MET_getPCAttr_s( &
-                   o3_prefit_lun, version, cmd_str, &
+                   prefit_lun, version, cmd_str, &
                    TRIM(ADJUSTL(upper_case(mdata_omhcho_fields(1,imd)))), &
                    mdata_omhcho_values(imd) )
               CALL error_check ( md_stat, PGS_S_SUCCESS, pge_errstat_warning, OMSAO_W_GETATTR, &

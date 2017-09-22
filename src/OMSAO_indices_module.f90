@@ -295,6 +295,7 @@ MODULE OMSAO_indices_module
        cld_climatology_lun = 700230, & ! LUN cloud climatology file
        cld_lun             = 700240, & ! LUN L2 cloud file
        albedo_lun          = 700280, & ! LUN for albedo file
+       prefit_lun          = 700301, & ! LUN for prefit columns file
        solcomp_lun         = 700400, & ! LUN for solar composite spectrum file
        solmonthave_lun     = 700500, & ! LUN for solar monthly mean spectrum file
        refsec_lun          = 700600, & ! LUN for reference sector file
@@ -394,16 +395,6 @@ MODULE OMSAO_indices_module
        700108,  700109,  700110,  700111,  700112,  700113,  700114,  700115, &
        700116,  700117,  700118,  700119,  700120,  700121,  700122,  700123, &
        700124,  700125,  700126,  700127                                      /)
-
-  ! -------------------------------------------
-  ! * LUNs for HCHO Pre-Fitted O3 and BrO Input
-  ! -------------------------------------------
-  INTEGER (KIND=i4), PARAMETER :: o3_prefit_lun = 700301, bro_prefit_lun = 700302
-      
-  ! -----------------------------------------------
-  ! * LUNs for CHOCHO Pre-Fitted Liquid Water Input
-  ! -----------------------------------------------
-  INTEGER (KIND=i4), PARAMETER :: lqh2o_prefit_lun = 700310
 
   ! -------------------------------------------------------
   ! Strings to search for in the fitting control input file

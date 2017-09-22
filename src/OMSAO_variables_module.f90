@@ -32,7 +32,7 @@ MODULE OMSAO_variables_module
      CHARACTER (LEN=maxchlen) :: slitfunc_fname, solcomp_fname, solmonthave_fname, &
           l1b_radref_fname, l1b_rad_fname, l1b_irrad_fname, l2_fname, &
           amf_table_fname, climatology_fname, refsec_fname, refsec_cld_fname, &
-          albedo_fname, cld_climatology_fname, cld_fname
+          albedo_fname, cld_climatology_fname, cld_fname, prefit_fname
   END type pcf_variables
   TYPE(pcf_variables):: pcfvar
 

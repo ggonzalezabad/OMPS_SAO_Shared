@@ -6,8 +6,8 @@ SUBROUTINE read_pcf_file ( pge_error_status )
        solmonthave_lun, solcomp_lun, refsec_lun, refsec_cld_lun, &
        albedo_lun, slitfunc_lun, n_config_luns, max_rs_idx, &
        l1b_radiance_lun, l1b_radianceref_lun, l1b_irradiance_lun, &
-       icf_idx, pge_gly_idx, lqh2o_prefit_lun, pge_hcho_idx, &
-       o3_prefit_lun, bro_prefit_lun, pge_molid_lun, &
+       icf_idx, pge_gly_idx, pge_hcho_idx, &
+       prefit_lun, pge_molid_lun, &
        versionid_lun, swathname_lun, instrument_name_lun, &
        pge_version_lun, proclevel_lun, granule_e_lun, granule_s_lun, &
        orbitnumber_lun, verbosity_lun, amf_table_lun, cld_lun, cld_climatology_lun
@@ -22,8 +22,6 @@ SUBROUTINE read_pcf_file ( pge_error_status )
   USE OMSAO_he5_module, ONLY: pge_swath_name, process_level, &
        instrument_name, pge_version
   USE OMSAO_variables_module, ONLY: refspecs_original, pcfvar
-  USE OMSAO_prefitcol_module, ONLY: o3_prefit_fname, bro_prefit_fname, &
-       lqh2o_prefit_fname
   USE OMSAO_wfamf_module, ONLY: climatology_lun
   USE OMSAO_control_file_module, ONLY: read_fitting_control_file
 
@@ -176,7 +174,6 @@ SUBROUTINE read_pcf_file ( pge_error_status )
              TRIM(ADJUSTL(pcfvar%pge_name)), vb_lev_stmdebug, errstat )  
      END SELECT
   END DO
-
   errstat = pge_errstat_ok
 
   ! ---------------------------------------------------------
@@ -373,50 +370,15 @@ SUBROUTINE read_pcf_file ( pge_error_status )
        modulename//f_sep//"PGE_L2_OUTPUT_LUN ", vb_lev_default, pge_error_status )
   IF ( pge_error_status >= pge_errstat_error ) RETURN
 
-  ! ---------------------------------------------------------
-  ! For OMHCHO read HE5 file names with pre-fitted O3 and BrO
-  ! ---------------------------------------------------------
-  SELECT CASE ( pcfvar%pge_idx )
-  
-  
-  CASE ( pge_hcho_idx )
-     ! -----------
-     ! O3 pre-fits
-     ! -----------
-     version = 1
-     errstat = PGS_PC_GetReference (o3_prefit_lun, version, o3_prefit_fname)
-     errstat = PGS_SMF_TestStatusLevel(errstat)
-     lunstr = int2string ( o3_prefit_lun, 1 )
-     CALL error_check ( errstat, PGS_SMF_MASK_LEV_S, pge_errstat_error, OMSAO_E_GETLUN, &
-          modulename//f_sep//"O3_PREFIT_LUN "//TRIM(ADJUSTL(lunstr)), &
-          vb_lev_default, pge_error_status )
-     ! ------------
-     ! BrO pre-fits
-     ! ------------
-     version = 1
-     errstat = PGS_PC_GetReference (bro_prefit_lun, version, bro_prefit_fname)
-     errstat = PGS_SMF_TestStatusLevel(errstat)
-     lunstr = int2string ( bro_prefit_lun, 1 )
-     CALL error_check ( errstat, PGS_SMF_MASK_LEV_S, pge_errstat_error, OMSAO_E_GETLUN, &
-          modulename//f_sep//"BRO_PREFIT_LUN "//TRIM(ADJUSTL(lunstr)), &
-          vb_lev_default, pge_error_status )
-  
-  CASE ( pge_gly_idx )
-     ! ---------------------
-     ! Liquid Water pre-fits
-     ! ---------------------
-     version = 1
-     errstat = PGS_PC_GetReference (lqh2o_prefit_lun, version, lqh2o_prefit_fname)
-     errstat = PGS_SMF_TestStatusLevel(errstat)
-     lunstr = int2string ( lqh2o_prefit_lun, 1 )
-     CALL error_check ( errstat, PGS_SMF_MASK_LEV_S, pge_errstat_error, OMSAO_E_GETLUN, &
-          modulename//f_sep//"LQH2O_PREFIT_LUN "//TRIM(ADJUSTL(lunstr)), &
-          vb_lev_default, pge_error_status )
-          
-  CASE DEFAULT
-  	! Do Nothing
-  END SELECT
-
+  ! ---------------------------
+  ! Read prefit column filename
+  ! ---------------------------
+  version = 1
+  errstat = PGS_PC_GetReference (prefit_lun, version, pcfvar%prefit_fname)
+  errstat = PGS_SMF_TestStatusLevel(errstat)
+  CALL error_check ( errstat, PGS_SMF_MASK_LEV_S, pge_errstat_fatal, OMSAO_F_GETLUN, &
+       modulename//f_sep//"PREFIT_LUN ", vb_lev_default, pge_error_status )
+  IF ( pge_error_status >= pge_errstat_error ) RETURN
 
   RETURN
 END SUBROUTINE read_pcf_file
