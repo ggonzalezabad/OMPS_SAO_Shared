@@ -89,7 +89,7 @@ CONTAINS
     locerrstat = PGS_SMF_TESTSTATUSLEVEL(locerrstat)
     CALL error_check ( &
          locerrstat, pgs_smf_mask_lev_s, pge_errstat_error, OMSAO_E_OPEN_SOLMONAVE_FILE, &
-         modulename//f_sep//TRIM(ADJUSTL(pcfvar%solmonthave_filename)), vb_lev_default, errstat )
+         modulename//f_sep//TRIM(ADJUSTL(pcfvar%solmonthave_fname)), vb_lev_default, errstat )
     IF (  errstat /= pge_errstat_ok ) RETURN
 
     ! --------------------------------
@@ -101,7 +101,7 @@ CONTAINS
     IF ( ios /= 0 ) THEN
        CALL error_check ( &
             ios, file_read_ok, pge_errstat_error, OMSAO_E_READ_SOLMONAVE_FILE, &
-            modulename//f_sep//TRIM(ADJUSTL(pcfvar%solmonthave_filename)), vb_lev_default, errstat )
+            modulename//f_sep//TRIM(ADJUSTL(pcfvar%solmonthave_fname)), vb_lev_default, errstat )
        IF (  errstat /= pge_errstat_ok ) RETURN
     END IF
 
@@ -113,7 +113,7 @@ CONTAINS
        IF ( ios /= 0 ) THEN
           CALL error_check ( &
                ios, file_read_ok, pge_errstat_error, OMSAO_E_READ_SOLMONAVE_FILE, &
-               modulename//f_sep//TRIM(ADJUSTL(pcfvar%solmonthave_filename)), vb_lev_default, errstat )
+               modulename//f_sep//TRIM(ADJUSTL(pcfvar%solmonthave_fname)), vb_lev_default, errstat )
           IF (  errstat /= pge_errstat_ok ) RETURN
        END IF
        DO jw = 1, nw
@@ -122,7 +122,7 @@ CONTAINS
           IF ( ios /= 0 ) THEN
              CALL error_check ( &
                   ios, file_read_ok, pge_errstat_error, OMSAO_E_READ_SOLMONAVE_FILE, &
-                  modulename//f_sep//TRIM(ADJUSTL(pcfvar%solmonthave_filename)),      &
+                  modulename//f_sep//TRIM(ADJUSTL(pcfvar%solmonthave_fname)),      &
                   vb_lev_default, errstat )
              IF (  errstat /= pge_errstat_ok ) RETURN
           END IF
@@ -136,7 +136,7 @@ CONTAINS
     locerrstat = PGS_SMF_TESTSTATUSLEVEL(locerrstat)
     CALL error_check ( &
          locerrstat, pgs_smf_mask_lev_s, pge_errstat_warning, OMSAO_W_CLOSE_SOLMONAVE_FILE, &
-         modulename//f_sep//TRIM(ADJUSTL(pcfvar%solmonthave_filename)), vb_lev_default, errstat )
+         modulename//f_sep//TRIM(ADJUSTL(pcfvar%solmonthave_fname)), vb_lev_default, errstat )
 
     IF ( errstat >= pge_errstat_error ) RETURN
 

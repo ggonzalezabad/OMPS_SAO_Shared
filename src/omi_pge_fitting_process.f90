@@ -42,11 +42,11 @@ SUBROUTINE omi_pge_fitting_process ( pge_idx, n_max_rspec,             &
   ! assign the values needed to the significant variables. After this no more reading
   ! will be needed.
   ! ----------------------------------------------------------------------------------
-  omps_reader_status = TC_SDR_OMPS_READER(OMPS_data,TRIM(ADJUSTL(pcfvar%l1b_rad_filename)))
+  omps_reader_status = TC_SDR_OMPS_READER(OMPS_data,TRIM(ADJUSTL(pcfvar%l1b_rad_fname)))
   pge_error_status = ABS(MIN(pge_error_status, INT(omps_reader_status,KIND=4)))
   IF (pge_error_status >= pge_errstat_error ) GO TO 666
 
-  omps_reader_status = TC_SDR_OMPS_READER(OMPS_data_radiance_reference,TRIM(ADJUSTL(pcfvar%l1b_radref_filename)))
+  omps_reader_status = TC_SDR_OMPS_READER(OMPS_data_radiance_reference,TRIM(ADJUSTL(pcfvar%l1b_radref_fname)))
   pge_error_status = ABS(MIN(pge_error_status, INT(omps_reader_status,KIND=4)))
   IF (pge_error_status >= pge_errstat_error ) GO TO 666
   
@@ -230,7 +230,7 @@ SUBROUTINE omi_fitting (                                  &
   ! "rr" ones (in this case, the dimensions are the same). Otherwise we
   ! have to read them from the radiance reference granule.
   ! --------------------------------------------------------------------
-  IF ( TRIM(ADJUSTL(pcfvar%l1b_radref_filename)) /= TRIM(ADJUSTL(pcfvar%l1b_rad_filename)) ) THEN
+  IF ( TRIM(ADJUSTL(pcfvar%l1b_radref_fname)) /= TRIM(ADJUSTL(pcfvar%l1b_rad_fname)) ) THEN
     CALL omi_set_xtrpix_range ( &
           nTimesRadRR, nXtrackRadRR, ctrvar%pixnum_lim(3:4), &
            omi_xtrpix_range_rr(0:nTimesRadRR-1,1:2), &
@@ -257,7 +257,7 @@ SUBROUTINE omi_fitting (                                  &
   ! ----------------------------------------
   ! Initialization of HE5 output data fields
   ! ----------------------------------------
-  errstat = HE5_Init_Swath ( TRIM(ADJUSTL(pcfvar%l2_filename)), pge_swath_name, nTimesRad, nXtrackRad, CmETA )
+  errstat = HE5_Init_Swath ( TRIM(ADJUSTL(pcfvar%l2_fname)), pge_swath_name, nTimesRad, nXtrackRad, CmETA )
   CALL he5_initialize_datafields ( )
 
   errstat = HE5_Define_Fields ( pge_idx, pge_swath_name, nTimesRad, nXtrackRad, CmETA )
@@ -465,7 +465,7 @@ SUBROUTINE omi_fitting (                                  &
   ! ---------------------------
   ! SCD to VCD (AMF calculation
   ! ---------------------------
-  CALL amf_calculation_bis ( pge_idx, pcfvar%cld_filename, &
+  CALL amf_calculation_bis ( pge_idx, pcfvar%cld_fname, &
        nTimesRad, nXtrackRad,                                &
        omi_latitude(1:nXtrackRad,0:nTimesRad-1),             &
        omi_longitude(1:nXtrackRad,0:nTimesRad-1),            &
@@ -540,7 +540,7 @@ SUBROUTINE omi_fitting (                                  &
      ! clouds to reference sector one
      ! ------------------------------------
      
-     CALL amf_calculation_bis ( pge_idx, pcfvar%refsec_cld_filename, &
+     CALL amf_calculation_bis ( pge_idx, pcfvar%refsec_cld_fname, &
           nTimesRadRR, nXtrackRadRR,                                   &
           omi_latitude(1:nXtrackRadRR,0:nTimesRadRR-1),                &
           omi_longitude(1:nXtrackRadRR,0:nTimesRadRR-1),               &

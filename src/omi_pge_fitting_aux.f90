@@ -730,7 +730,7 @@ SUBROUTINE set_input_pointer_and_versions ( pge_idx )
   ! (a) Earthshine reference granule
   ! --------------------------------
   IF ( ctrvar%yn_radiance_reference .AND. &
-       ( TRIM(ADJUSTL(pcfvar%l1b_rad_filename)) /= TRIM(ADJUSTL(pcfvar%l1b_radref_filename))) ) THEN
+       ( TRIM(ADJUSTL(pcfvar%l1b_rad_fname)) /= TRIM(ADJUSTL(pcfvar%l1b_radref_fname))) ) THEN
      n_lun_inp = n_lun_inp + 1
      lun_input(n_lun_inp) = l1b_radianceref_lun
      yn_radref = .TRUE.

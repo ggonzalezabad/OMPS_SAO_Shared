@@ -52,7 +52,7 @@ SUBROUTINE create_radiance_reference (nt, nx, nw, locerrstat)
   ! Read OMPS radiance reference granule
   ! ------------------------------------
   omps_reader_status_reference = TC_SDR_OMPS_READER(OMPS_data_radiance_reference, &
-                                                    pcfvar%l1b_radref_filename)
+                                                    pcfvar%l1b_radref_fname)
 
   latr4(1:nx,0:nt-1)                  = OMPS_data_radiance_reference%Latitude(1:nx,1:nt)
   tmp_szenith(1:nx,0:nt-1)            = OMPS_data_radiance_reference%SolarZenithAngle(1:nx,1:nt)

@@ -29,10 +29,10 @@ MODULE OMSAO_variables_module
      INTEGER (KIND=I4) :: verb_thresh_lev
      INTEGER (KIND=I4) :: orbit_number, ecs_version_id
      CHARACTER (LEN=maxchlen), DIMENSION (icf_idx:max_rs_idx) :: static_input_fnames
-     CHARACTER (LEN=maxchlen) :: slitfunc_fname, solcomp_filename, solmonthave_filename, &
-          l1b_radref_filename, l1b_rad_filename, l1b_irrad_filename, l2_filename, &
-          amf_table_filename, climatology_filename, refsec_filename, refsec_cld_filename, &
-          albedo_filename, cld_climatology_filename, cld_filename
+     CHARACTER (LEN=maxchlen) :: slitfunc_fname, solcomp_fname, solmonthave_fname, &
+          l1b_radref_fname, l1b_rad_fname, l1b_irrad_fname, l2_fname, &
+          amf_table_fname, climatology_fname, refsec_fname, refsec_cld_fname, &
+          albedo_fname, cld_climatology_fname, cld_fname
   END type pcf_variables
   TYPE(pcf_variables):: pcfvar
 

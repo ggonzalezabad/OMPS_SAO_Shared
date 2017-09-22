@@ -229,7 +229,7 @@ SUBROUTINE read_pcf_file ( pge_error_status )
   ! Read Irradiance L1B file name
   ! -----------------------------
   version = 1
-  errstat = PGS_PC_GetReference (l1b_irradiance_lun, version, pcfvar%l1b_irrad_filename)
+  errstat = PGS_PC_GetReference (l1b_irradiance_lun, version, pcfvar%l1b_irrad_fname)
   errstat = PGS_SMF_TestStatusLevel(errstat)
   CALL error_check ( errstat, PGS_SMF_MASK_LEV_S, pge_errstat_fatal, OMSAO_F_GETLUN, &
        modulename//f_sep//"L1B_IRRADIANCE_LUN", vb_lev_default, pge_error_status )
@@ -239,7 +239,7 @@ SUBROUTINE read_pcf_file ( pge_error_status )
   ! Read Radiance L1B file name
   ! ---------------------------
   version = 1
-  errstat = PGS_PC_GetReference (l1b_radiance_lun, version, pcfvar%l1b_rad_filename)
+  errstat = PGS_PC_GetReference (l1b_radiance_lun, version, pcfvar%l1b_rad_fname)
   errstat = PGS_SMF_TestStatusLevel(errstat)
   CALL error_check ( errstat, PGS_SMF_MASK_LEV_S, pge_errstat_fatal, OMSAO_F_GETLUN, &
        modulename//f_sep//"L1B_RADIANCE_LUN", vb_lev_default, pge_error_status )
@@ -249,7 +249,7 @@ SUBROUTINE read_pcf_file ( pge_error_status )
   ! Read Radiance Reference L1B file name
   ! -------------------------------------
   version = 1
-  errstat = PGS_PC_GetReference (l1b_radianceref_lun, version, pcfvar%l1b_radref_filename)
+  errstat = PGS_PC_GetReference (l1b_radianceref_lun, version, pcfvar%l1b_radref_fname)
   errstat = PGS_SMF_TestStatusLevel(errstat)
   CALL error_check ( errstat, PGS_SMF_MASK_LEV_S, pge_errstat_fatal, OMSAO_F_GETLUN, &
        modulename//f_sep//"L1B_RADIANCEREF_LUN", vb_lev_default, pge_error_status )
@@ -259,7 +259,7 @@ SUBROUTINE read_pcf_file ( pge_error_status )
   ! Read name of file with the radiance clouds
   ! ------------------------------------------
   version = 1
-  errstat = PGS_PC_GetReference ( cld_lun, version, pcfvar%cld_filename)
+  errstat = PGS_PC_GetReference ( cld_lun, version, pcfvar%cld_fname)
   errstat = PGS_SMF_TestStatusLevel(errstat)
   CALL error_check ( errstat, PGS_SMF_MASK_LEV_S, pge_errstat_fatal, OMSAO_F_GETLUN, &
        modulename//f_sep//"CLD_FILENAME_LUN ", vb_lev_default, pge_error_status )
@@ -271,7 +271,7 @@ SUBROUTINE read_pcf_file ( pge_error_status )
   ! to the output file.
   ! -------------------------------------------------------------------------
   version = 1
-  errstat = PGS_PC_GetReference ( amf_table_lun, version, pcfvar%amf_table_filename)
+  errstat = PGS_PC_GetReference ( amf_table_lun, version, pcfvar%amf_table_fname)
   errstat = PGS_SMF_TestStatusLevel ( errstat )
   CALL error_check ( errstat, PGS_SMF_MASK_LEV_S, pge_errstat_fatal, OMSAO_F_GETLUN, &
        modulename//f_sep//"AMF_TABLE_FILENAME_LUN", vb_lev_default, pge_error_status )
@@ -281,7 +281,7 @@ SUBROUTINE read_pcf_file ( pge_error_status )
   ! Read cloud climatology filename
   ! -------------------------------
   version = 1
-  errstat = PGS_PC_GetReference ( cld_climatology_lun, version, pcfvar%cld_climatology_filename )
+  errstat = PGS_PC_GetReference ( cld_climatology_lun, version, pcfvar%cld_climatology_fname )
   errstat = PGS_SMF_TestStatusLevel ( errstat )
   CALL error_check ( errstat, PGS_SMF_MASK_LEV_S, pge_errstat_fatal, OMSAO_F_GETLUN, &
        modulename//f_sep//"CLIMATOLOGY_FILENAME_LUN", vb_lev_default, pge_error_status )
@@ -292,7 +292,7 @@ SUBROUTINE read_pcf_file ( pge_error_status )
   ! Read climatology filename
   ! -------------------------
   version = 1
-  errstat = PGS_PC_GetReference ( climatology_lun, version, pcfvar%climatology_filename )
+  errstat = PGS_PC_GetReference ( climatology_lun, version, pcfvar%climatology_fname )
   errstat = PGS_SMF_TestStatusLevel ( errstat )
   CALL error_check ( errstat, PGS_SMF_MASK_LEV_S, pge_errstat_fatal, OMSAO_F_GETLUN, &
        modulename//f_sep//"CLIMATOLOGY_FILENAME_LUN", vb_lev_default, pge_error_status )
@@ -304,7 +304,7 @@ SUBROUTINE read_pcf_file ( pge_error_status )
   !  fitting control file)
   ! -------------------------------------------------------------------------
   version = 1
-  errstat = PGS_PC_GetReference ( solcomp_lun, version, pcfvar%solcomp_filename)
+  errstat = PGS_PC_GetReference ( solcomp_lun, version, pcfvar%solcomp_fname)
   errstat = PGS_SMF_TestStatusLevel(errstat)
   CALL error_check ( errstat, PGS_SMF_MASK_LEV_S, pge_errstat_fatal, OMSAO_F_GETLUN, &
        modulename//f_sep//"SOLCOMP_FILENAME_LUN ", vb_lev_default, pge_error_status )
@@ -316,7 +316,7 @@ SUBROUTINE read_pcf_file ( pge_error_status )
   !  fitting control file) !gga
   ! -------------------------------------------------------------------------
   version = 1
-  errstat = PGS_PC_GetReference ( solmonthave_lun, version, pcfvar%solmonthave_filename)
+  errstat = PGS_PC_GetReference ( solmonthave_lun, version, pcfvar%solmonthave_fname)
   errstat = PGS_SMF_TestStatusLevel(errstat)
   CALL error_check ( errstat, PGS_SMF_MASK_LEV_S, pge_errstat_fatal, OMSAO_F_GETLUN, &
        modulename//f_sep//"SOLMONTHAVE_FILENAME_LUN ", vb_lev_default, pge_error_status )
@@ -327,7 +327,7 @@ SUBROUTINE read_pcf_file ( pge_error_status )
   ! concentrations !gga 
   ! ------------------------------------------------------------
   version = 1
-  errstat = PGS_PC_GetReference ( refsec_lun, version, pcfvar%refsec_filename)
+  errstat = PGS_PC_GetReference ( refsec_lun, version, pcfvar%refsec_fname)
   errstat = PGS_SMF_TestStatusLevel(errstat)
   CALL error_check ( errstat, PGS_SMF_MASK_LEV_S, pge_errstat_fatal, OMSAO_F_GETLUN, &
           modulename//f_sep//"REFSEC_FILENAME_LUN ", vb_lev_default, pge_error_status )
@@ -337,7 +337,7 @@ SUBROUTINE read_pcf_file ( pge_error_status )
   ! Read name of file with the radiance reference clouds
   ! ----------------------------------------------------
   version = 1
-  errstat = PGS_PC_GetReference ( refsec_cld_lun, version, pcfvar%refsec_cld_filename)
+  errstat = PGS_PC_GetReference ( refsec_cld_lun, version, pcfvar%refsec_cld_fname)
   errstat = PGS_SMF_TestStatusLevel(errstat)
   CALL error_check ( errstat, PGS_SMF_MASK_LEV_S, pge_errstat_fatal, OMSAO_F_GETLUN, &
        modulename//f_sep//"REFSEC_CLD_FILENAME_LUN ", vb_lev_default, pge_error_status )
@@ -347,7 +347,7 @@ SUBROUTINE read_pcf_file ( pge_error_status )
   ! Read name of OMLER albedo file gga
   ! ----------------------------------
   version = 1
-  errstat = PGS_PC_GetReference (albedo_lun, version, pcfvar%albedo_filename)
+  errstat = PGS_PC_GetReference (albedo_lun, version, pcfvar%albedo_fname)
   errstat = PGS_SMF_TestStatusLevel(errstat)
   CALL error_check ( errstat, PGS_SMF_MASK_LEV_S, pge_errstat_fatal, OMSAO_F_GETLUN, &
           modulename//f_sep//"ALBEDO_filename", vb_lev_default, pge_error_status )
@@ -357,7 +357,7 @@ SUBROUTINE read_pcf_file ( pge_error_status )
   ! Read name of L2 output file
   ! ---------------------------
   version = 1
-  errstat = PGS_PC_GetReference (pge_l2_output_lun, version, pcfvar%l2_filename)
+  errstat = PGS_PC_GetReference (pge_l2_output_lun, version, pcfvar%l2_fname)
   errstat = PGS_SMF_TestStatusLevel(errstat)
   CALL error_check ( errstat, PGS_SMF_MASK_LEV_S, pge_errstat_fatal, OMSAO_F_GETLUN, &
        modulename//f_sep//"PGE_L2_OUTPUT_LUN ", vb_lev_default, pge_error_status )
@@ -367,7 +367,7 @@ SUBROUTINE read_pcf_file ( pge_error_status )
   ! Read name of cloud climatology filename
   ! ---------------------------------------
   version = 1
-  errstat = PGS_PC_GetReference (pge_l2_output_lun, version, pcfvar%l2_filename)
+  errstat = PGS_PC_GetReference (pge_l2_output_lun, version, pcfvar%l2_fname)
   errstat = PGS_SMF_TestStatusLevel(errstat)
   CALL error_check ( errstat, PGS_SMF_MASK_LEV_S, pge_errstat_fatal, OMSAO_F_GETLUN, &
        modulename//f_sep//"PGE_L2_OUTPUT_LUN ", vb_lev_default, pge_error_status )

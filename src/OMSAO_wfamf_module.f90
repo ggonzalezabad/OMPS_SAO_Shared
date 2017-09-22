@@ -478,7 +478,7 @@ CONTAINS
     ! ----------------------
     locerrstat = pge_errstat_ok
     
-    swath_file = TRIM(ADJUSTL(pcfvar%climatology_filename))
+    swath_file = TRIM(ADJUSTL(pcfvar%climatology_fname))
     ismonth    = granule_month
 
     ! --------------------------------------------------------------
@@ -739,7 +739,7 @@ CONTAINS
     ! ----------------------
     locerrstat = pge_errstat_ok
 
-    grid_file = TRIM(ADJUSTL(pcfvar%albedo_filename))
+    grid_file = TRIM(ADJUSTL(pcfvar%albedo_fname))
 
     ! -------------------------------------------------------------------------------
     ! Open he5 OMI OMLER grid file and check GRID_FILE_ID (-1 if error)
@@ -1360,10 +1360,10 @@ CONTAINS
     ! -------------------
     ! Opening input TABLE
     ! -------------------
-    CALL h5fopen_f(TRIM(ADJUSTL(pcfvar%amf_table_filename)), H5F_ACC_RDONLY_F, &
+    CALL h5fopen_f(TRIM(ADJUSTL(pcfvar%amf_table_fname)), H5F_ACC_RDONLY_F, &
                    input_file_id, hdferr)
     IF (hdferr .eq. -1) THEN
-       WRITE(*,100) 'ERROR: Opening '//TRIM(ADJUSTL(pcfvar%amf_table_filename))
+       WRITE(*,100) 'ERROR: Opening '//TRIM(ADJUSTL(pcfvar%amf_table_fname))
     END IF
 
     ! --------------------------------------------------------------------------

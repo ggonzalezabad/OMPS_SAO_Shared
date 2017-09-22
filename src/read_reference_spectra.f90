@@ -108,7 +108,7 @@ SUBROUTINE read_reference_spectra ( pge_idx, n_max_rspec, pge_error_status )
   IF ( ctrvar%yn_solar_comp ) THEN
      errstat = pge_errstat_ok
      CALL soco_pars_read ( &
-          pcfvar%solcomp_filename, ctrvar%solar_comp_typ, 'UV1', &
+          pcfvar%solcomp_fname, ctrvar%solar_comp_typ, 'UV1', &
           ctrvar%winwav_min, ctrvar%winwav_max, errstat )
      CALL error_check ( &
           errstat, pge_errstat_ok, pge_errstat_error, OMSAO_E_READ_REFSPEC_FILE, &
