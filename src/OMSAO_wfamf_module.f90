@@ -14,7 +14,7 @@ MODULE OMSAO_wfamf_module
        omsao_w_he5gdclose, f_sep, error_check
   USE OMSAO_he5_module
   USE OMSAO_indices_module, ONLY: n_voc_amf_luns
-  USE OMSAO_variables_module, ONLY: ctrvar
+  USE OMSAO_variables_module, ONLY: ctrvar, pcfvar
 
   IMPLICIT NONE
 
@@ -67,8 +67,6 @@ MODULE OMSAO_wfamf_module
   ! PCF stuff
   ! ---------
   INTEGER(KIND=i4), PARAMETER :: climatology_lun = 700270
-  CHARACTER(LEN=maxchlen) :: amf_table_filename
-  CHARACTER(LEN=maxchlen) :: OMSAO_climatology_filename
 
   ! -----------------------------
   ! Dimensions of the climatology
@@ -449,7 +447,6 @@ CONTAINS
     ! ==========================================================
     
     USE OMSAO_indices_module,   ONLY: sao_molecule_names
-    USE OMSAO_variables_module, ONLY: pcfvar
     IMPLICIT NONE    
 
     ! ------------------
@@ -488,7 +485,7 @@ CONTAINS
     ! ----------------------
     locerrstat = pge_errstat_ok
     
-    swath_file = TRIM(ADJUSTL(OMSAO_climatology_filename))
+    swath_file = TRIM(ADJUSTL(pcfvar%climatology_filename))
     ismonth    = granule_month
 
     ! --------------------------------------------------------------
@@ -1372,10 +1369,10 @@ CONTAINS
     ! -------------------
     ! Opening input TABLE
     ! -------------------
-    CALL h5fopen_f(TRIM(ADJUSTL(amf_table_filename)), H5F_ACC_RDONLY_F, &
+    CALL h5fopen_f(TRIM(ADJUSTL(pcfvar%amf_table_filename)), H5F_ACC_RDONLY_F, &
                    input_file_id, hdferr)
     IF (hdferr .eq. -1) THEN
-       WRITE(*,100) 'ERROR: Opening '//TRIM(ADJUSTL(amf_table_filename))
+       WRITE(*,100) 'ERROR: Opening '//TRIM(ADJUSTL(pcfvar%amf_table_filename))
     END IF
 
     ! --------------------------------------------------------------------------

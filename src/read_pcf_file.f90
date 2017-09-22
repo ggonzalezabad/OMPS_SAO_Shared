@@ -29,8 +29,7 @@ SUBROUTINE read_pcf_file ( pge_error_status )
        OMSAO_refseccor_cld_filename, pcfvar
   USE OMSAO_prefitcol_module, ONLY: o3_prefit_fname, bro_prefit_fname, &
        lqh2o_prefit_fname
-  USE OMSAO_wfamf_module, ONLY: climatology_lun,  &
-       OMSAO_climatology_filename
+  USE OMSAO_wfamf_module, ONLY: climatology_lun
   USE OMSAO_control_file_module, ONLY: read_fitting_control_file
 
   IMPLICIT NONE
@@ -264,42 +263,25 @@ SUBROUTINE read_pcf_file ( pge_error_status )
        modulename//f_sep//"L1B_RADIANCEREF_LUN", vb_lev_default, pge_error_status )
   IF ( pge_error_status >= pge_errstat_error ) RETURN
 
-  pcfvar%l1b_radref_filename = TRIM(ADJUSTL(pcfvar%l1b_radref_filename))
-
-
   ! -------------------------------------------------------------------------
   ! Read name of AMF table file. Remember that a missing AMF table is
   ! not a fatal problem, since in that case the slant columns will be written
   ! to the output file.
   ! -------------------------------------------------------------------------
   version = 1
-  errstat = PGS_PC_GetReference ( amf_table_lun, version, tmpchar )
-  tmpchar = TRIM(ADJUSTL(tmpchar)) ; strlen = LEN(TRIM(ADJUSTL(tmpchar)))
+  errstat = PGS_PC_GetReference ( amf_table_lun, version, pcfvar%amf_table_filename)
   errstat = PGS_SMF_TestStatusLevel ( errstat )
-  IF ( ( errstat /= pgs_smf_mask_lev_s ) .OR. ( strlen == 0 ) ) THEN
-     lunstr = int2string ( amf_table_lun, 1 )
-     CALL error_check ( 0, 1, pge_errstat_warning, OMSAO_W_GETLUN, &
-          modulename//f_sep//"PGE_STATIC_INPUT_LUN "//TRIM(ADJUSTL(lunstr)),&
-          vb_lev_default, pge_error_status )
-  ELSE
-     pcfvar%amf_table_filename = TRIM ( ADJUSTL (tmpchar))
-  END IF
-  stop
+  CALL error_check ( errstat, PGS_SMF_MASK_LEV_S, pge_errstat_fatal, OMSAO_F_GETLUN, &
+       modulename//f_sep//"AMF_TABLE_FILENAME", vb_lev_default, pge_error_status )
+  
   ! ----------------
   ! Climatology
   ! ----------------
   version = 1
-  errstat = PGS_PC_GetReference ( climatology_lun, version, tmpchar )
-  tmpchar = TRIM(ADJUSTL(tmpchar)) ; strlen = LEN(TRIM(ADJUSTL(tmpchar)))
+  errstat = PGS_PC_GetReference ( climatology_lun, version, pcfvar%climatology_filename )
   errstat = PGS_SMF_TestStatusLevel ( errstat )
-  IF ( ( errstat /= pgs_smf_mask_lev_s ) .OR. ( strlen == 0 ) ) THEN
-     lunstr = int2string ( climatology_lun, 1 )
-     CALL error_check ( 0, 1, pge_errstat_warning, OMSAO_W_GETLUN, &
-          modulename//f_sep//"PGE_STATIC_INPUT_LUN "//TRIM(ADJUSTL(lunstr)),&
-          vb_lev_default, pge_error_status )
-  ELSE
-     OMSAO_climatology_filename = TRIM ( ADJUSTL (tmpchar))
-  END IF
+  CALL error_check ( errstat, PGS_SMF_MASK_LEV_S, pge_errstat_fatal, OMSAO_F_GETLUN, &
+       modulename//f_sep//"CLIMATOLOGY_FILENAME", vb_lev_default, pge_error_status )
 
   ! -------------------------------------------------------------------------
   ! Read name of file with Solar Spectrum Composite 
@@ -398,7 +380,7 @@ SUBROUTINE read_pcf_file ( pge_error_status )
        modulename//f_sep//"PGE_L2_OUTPUT_LUN "//TRIM(ADJUSTL(lunstr)), &
        vb_lev_default, pge_error_status )
   IF ( pge_error_status >= pge_errstat_error ) RETURN
-
+  stop
 
   ! ---------------------------------------------------------
   ! For OMHCHO read HE5 file names with pre-fitted O3 and BrO
