@@ -7,12 +7,9 @@ MODULE OMSAO_prefitcol_module
   ! unclutter the main OMI PGE fitting routine.
   ! =================================================================
 
-  USE OMSAO_precision_module,  ONLY: i4, r8
-  USE OMSAO_omidata_module,    ONLY: nxtrack_max, nlines_max
+  USE OMSAO_precision_module, ONLY: i4, r8
+  USE OMSAO_omidata_module, ONLY: nxtrack_max, nlines_max
   USE OMSAO_parameters_module, ONLY: maxchlen
-  USE OMSAO_indices_module,    ONLY: &
-       o3_t1_idx, o3_t2_idx, o3_t3_idx, bro_idx, lqh2o_idx, &
-       pge_hcho_idx, pge_gly_idx
   USE OMSAO_variables_module, ONLY: ctrvar
   
   IMPLICIT NONE
@@ -23,7 +20,7 @@ MODULE OMSAO_prefitcol_module
   INTEGER (KIND=i4) :: n_prefit_vars
   
   ! --------------------------------------------
-  ! BrO prefitted column variables
+  ! Prefitted column variables
   ! --------------------------------------------
   CHARACTER (LEN=maxchlen)                                    :: prefit_fname
   INTEGER   (KIND=i4)                                         :: prefit_fitidx
@@ -33,7 +30,7 @@ MODULE OMSAO_prefitcol_module
 
 CONTAINS
 
-  SUBROUTINE init_prefit_files ( pge_idx, ntimes, nxtrack, errstat )
+  SUBROUTINE init_prefit_files ( ntimes, nxtrack, errstat )
 
     USE OMSAO_errstat_module, ONLY: pge_errstat_ok, pge_errstat_error, &
          pge_errstat_fatal, f_sep, omi_s_success, omsao_e_prefitdim, &
@@ -47,7 +44,7 @@ CONTAINS
     ! ---------------
     ! Input variables
     ! ---------------
-    INTEGER (KIND=i4), INTENT (IN) :: pge_idx, ntimes, nxtrack
+    INTEGER (KIND=i4), INTENT (IN) :: ntimes, nxtrack
 
     ! ------------------
     ! Modified variables
@@ -89,7 +86,7 @@ CONTAINS
     RETURN
   END SUBROUTINE init_prefit_files
 
- SUBROUTINE read_prefit_columns ( pge_idx, nxtrack, nloop, iline, errstat )
+ SUBROUTINE read_prefit_columns ( nxtrack, nloop, iline, errstat )
 
     USE OMSAO_parameters_module, ONLY: r8_missval
     USE OMSAO_variables_module,  ONLY: refspecs_original, ctrvar
@@ -101,7 +98,7 @@ CONTAINS
     ! ---------------
     ! Input variables
     ! ---------------
-    INTEGER (KIND=i4), INTENT (IN) :: pge_idx, nxtrack, nloop, iline
+    INTEGER (KIND=i4), INTENT (IN) :: nxtrack, nloop, iline
 
     ! ------------------
     ! Modified variables
@@ -111,7 +108,7 @@ CONTAINS
     ! ---------------
     ! Local variables
     ! ---------------
-    INTEGER (KIND=i4) :: locerrstat, i, iloop, it, nxtloc
+    INTEGER (KIND=i4) :: locerrstat, iloop, it, nxtloc
     LOGICAL           :: yn_read_amf
     CHARACTER (LEN=12), PARAMETER :: col_str  = "ColumnAmount"
     CHARACTER (LEN=17), PARAMETER :: dcol_str = "ColumnUncertainty"
@@ -296,6 +293,5 @@ CONTAINS
 
     RETURN
   END FUNCTION he5_close_prefit_file
-
 
 END MODULE OMSAO_prefitcol_module

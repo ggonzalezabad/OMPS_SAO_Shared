@@ -142,7 +142,7 @@ SUBROUTINE omi_pge_swathline_loop_memory (                               &
      ! --------------------------------
      IF ( ( .NOT. yn_radiance_reference ) .AND. ( pge_idx == pge_hcho_idx ) .AND. &
           ANY( (/yn_o3_prefit(1), yn_bro_prefit(1)/) ) ) THEN
-        CALL read_prefit_columns ( pge_idx, nx, nblock, iline, locerrstat )
+        CALL read_prefit_columns ( nx, nblock, iline, locerrstat )
         errstat = MAX ( errstat, locerrstat )
         IF ( errstat >= pge_errstat_error ) RETURN
      END IF
