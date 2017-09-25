@@ -1,3 +1,12 @@
+MODULE OMSAO_pcf_file_module
+
+  IMPLICIT NONE
+
+  PRIVATE
+  PUBLIC :: read_pcf_file
+
+  CONTAINS
+
 SUBROUTINE read_pcf_file ( pge_error_status )
 
   USE OMSAO_precision_module, ONLY: i4
@@ -6,12 +15,11 @@ SUBROUTINE read_pcf_file ( pge_error_status )
        solmonthave_lun, solcomp_lun, refsec_lun, refsec_cld_lun, &
        albedo_lun, slitfunc_lun, n_config_luns, max_rs_idx, &
        l1b_radiance_lun, l1b_radianceref_lun, l1b_irradiance_lun, &
-       icf_idx, pge_gly_idx, pge_hcho_idx, &
-       prefit_lun, pge_molid_lun, &
+       icf_idx, prefit_lun, pge_molid_lun, &
        versionid_lun, swathname_lun, instrument_name_lun, &
        pge_version_lun, proclevel_lun, granule_e_lun, granule_s_lun, &
        orbitnumber_lun, verbosity_lun, amf_table_lun, cld_lun, cld_climatology_lun
-  USE OMSAO_errstat_module, ONLY: pge_errstat_ok, f_sep, omsao_e_getlun, &
+  USE OMSAO_errstat_module, ONLY: pge_errstat_ok, f_sep, &
        omsao_f_get_molindex, omsao_f_getlun, omsao_s_get_molindex, omsao_w_getlun, &
        omsao_w_subroutine, pge_errstat_error, pge_errstat_fatal, pge_errstat_warning, &
        pgs_smf_mask_lev_s, vb_lev_default, vb_lev_stmdebug, PGSd_PC_VALUE_LENGTH_MAX, &
@@ -382,3 +390,5 @@ SUBROUTINE read_pcf_file ( pge_error_status )
 
   RETURN
 END SUBROUTINE read_pcf_file
+
+END MODULE OMSAO_pcf_file_module

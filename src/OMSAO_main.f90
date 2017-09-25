@@ -16,10 +16,12 @@ SUBROUTINE OMSAO_main ( exit_value )
 
   USE OMSAO_precision_module, ONLY: i4
   USE OMSAO_variables_module, ONLY: pcfvar
+  USE OMSAO_pcf_file_module, ONLY: read_pcf_file
   USE OMSAO_errstat_module, ONLY: pge_errstat_ok, pge_errstat_warning, &
        pge_errstat_error, pge_errstat_fatal, omsao_a_subroutine, &
        omsao_w_subroutine, f_sep, vb_lev_default, error_check, &
        pge_error_status_exit
+
   IMPLICIT NONE
 
   ! ---------------
