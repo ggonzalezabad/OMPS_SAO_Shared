@@ -744,61 +744,19 @@ SUBROUTINE set_input_pointer_and_versions ( pge_idx )
      lun_input(n_lun_inp) = l1b_irradiance_lun
   END IF
 
-  ! -------------------------------------------------------------------
-  ! Depending on the PGE we are running, we need to add some input LUNs
-  ! -------------------------------------------------------------------
-  SELECT CASE ( pge_idx )
-  CASE (pge_oclo_idx)
-     ! -----------------------
-     ! Nothing to be done here
-     ! -----------------------
-  CASE (pge_bro_idx)
-     ! -----------------------
-     ! Nothing to be done here
-     ! -----------------------
-  CASE (pge_hcho_idx)
-     ! -----------------
-     ! Add the Cloud LUN
-     ! -----------------
+  ! ------
+  ! Clouds
+  ! ------
+  n_lun_inp            = n_lun_inp + 1
+  lun_input(n_lun_inp) = cld_lun
+  
+  ! ----------
+  ! Pre-fitted
+  ! ----------
+  IF ( ctrvar%yn_prefit(1) ) THEN
      n_lun_inp            = n_lun_inp + 1
-     lun_input(n_lun_inp) = cld_lun
-     ! ----------------------------------------------------------
-     ! Add possibly pre-fitted OMSAO3 and OMBRO
-     ! ----------------------------------------------------------
-     IF ( ctrvar%yn_o3_prefit(1) ) THEN
-        n_lun_inp            = n_lun_inp + 1
-        lun_input(n_lun_inp) = prefit_lun
-     END IF
-     IF ( ctrvar%yn_bro_prefit(1) ) THEN
-        n_lun_inp            = n_lun_inp + 1
-        lun_input(n_lun_inp) = prefit_lun
-     END IF
-  CASE (pge_gly_idx)
-     ! -----------------
-     ! Add the Cloud LUN
-     ! -----------------
-     n_lun_inp            = n_lun_inp + 1
-     lun_input(n_lun_inp) = cld_lun
-     
-     ! --------------------
-     ! Pre-fitted lqH2O CCM
-     ! --------------------
-     IF ( ctrvar%yn_lqh2o_prefit(1) ) THEN
-        n_lun_inp            = n_lun_inp + 1
-        lun_input(n_lun_inp) = prefit_lun
-     END IF
-  CASE (pge_h2o_idx)
-     ! -----------------
-     ! Add the Cloud LUN
-     ! -----------------
-     n_lun_inp            = n_lun_inp + 1
-     lun_input(n_lun_inp) = cld_lun
-
-  CASE (pge_o3_idx)
-     ! -----------------------
-     ! Nothing to be done here
-     ! -----------------------
-  END SELECT
+     lun_input(n_lun_inp) = prefit_lun
+  END IF
 
   ! ------------------------------------------------------------
   ! Composing the InputVersion string is more difficult, because
@@ -897,113 +855,41 @@ SUBROUTINE get_input_versions (pge_idx, yn_solar_comp, yn_radref, input_versions
        TRIM(ADJUSTL(irr_name))//':'//TRIM(ADJUSTL(irr_version))
 
   ! ---------------------------------------------------
-  ! For OMHCHO and OMCHOCHO we have to add some extras.
+  ! In all cases we should have auxilliary cloud inputs
   ! ---------------------------------------------------
-  SELECT CASE ( pge_idx )
-  CASE ( pge_hcho_idx )
-     ! ---------------------------------------------------
-     ! In all cases we should have auxilliary cloud inputs
-     ! ---------------------------------------------------
-     DO i = 1, n_mdata_voc
-        IF ( TRIM(ADJUSTL(mdata_voc_fields(3,i))) == 'CLD' ) THEN
-           IF ( TRIM(ADJUSTL(mdata_voc_fields(1,i))) == 'PGEVERSION' ) &
-                cld_version = TRIM(ADJUSTL(mdata_voc_values(i)))
-           IF ( TRIM(ADJUSTL(mdata_voc_fields(1,i))) == 'ShortName'  ) &
-                cld_name    = TRIM(ADJUSTL(mdata_voc_values(i)))
+  DO i = 1, n_mdata_voc
+     IF ( TRIM(ADJUSTL(mdata_voc_fields(3,i))) == 'CLD' ) THEN
+        IF ( TRIM(ADJUSTL(mdata_voc_fields(1,i))) == 'PGEVERSION' ) &
+             cld_version = TRIM(ADJUSTL(mdata_voc_values(i)))
+        IF ( TRIM(ADJUSTL(mdata_voc_fields(1,i))) == 'ShortName'  ) &
+             cld_name    = TRIM(ADJUSTL(mdata_voc_values(i)))
+     END IF
+  END DO
+
+  ! ----------------------------
+  ! Full Version string required
+  ! ----------------------------
+  input_versions = TRIM(ADJUSTL(input_versions)) // ' ' // &
+       TRIM(ADJUSTL(cld_name))//':'//TRIM(ADJUSTL(cld_version))
+
+  ! -----------------------
+  ! Add possibly pre-fitted
+  ! -----------------------
+  IF ( ctrvar%yn_prefit(1) ) THEN
+     DO i = 1, n_mdata_omhcho
+        IF ( TRIM(ADJUSTL(mdata_omhcho_fields(3,i))) ==  'OOO' ) THEN
+           IF ( TRIM(ADJUSTL(mdata_omhcho_fields(1,i))) == 'PGEVERSION' ) &
+                ooo_version = TRIM(ADJUSTL(mdata_omhcho_values(i)))
+           IF ( TRIM(ADJUSTL(mdata_omhcho_fields(1,i))) == 'ShortName'  ) &
+                ooo_name    = TRIM(ADJUSTL(mdata_omhcho_values(i)))
         END IF
      END DO
-
      ! ----------------------------
      ! Full Version string required
      ! ----------------------------
-     input_versions = TRIM(ADJUSTL(input_versions)) // ' ' // &
-          TRIM(ADJUSTL(cld_name))//':'//TRIM(ADJUSTL(cld_version))
-
-     ! ----------------------------------------------------------
-     ! Add possibly pre-fitted OMSAO3 and OMBRO, and OMCLDO2 ESDT
-     ! ----------------------------------------------------------
-     IF ( ctrvar%yn_o3_prefit(1) ) THEN
-        DO i = 1, n_mdata_omhcho
-           IF ( TRIM(ADJUSTL(mdata_omhcho_fields(3,i))) ==  'OOO' ) THEN
-              IF ( TRIM(ADJUSTL(mdata_omhcho_fields(1,i))) == 'PGEVERSION' ) &
-                   ooo_version = TRIM(ADJUSTL(mdata_omhcho_values(i)))
-              IF ( TRIM(ADJUSTL(mdata_omhcho_fields(1,i))) == 'ShortName'  ) &
-                   ooo_name    = TRIM(ADJUSTL(mdata_omhcho_values(i)))
-           END IF
-        END DO
-        ! ----------------------------
-        ! Full Version string required
-        ! ----------------------------
-        input_versions = TRIM(ADJUSTL(input_versions))            // ' ' // &
-             TRIM(ADJUSTL(ooo_name))//':'//TRIM(ADJUSTL(ooo_version))
-     END IF
-     IF ( ctrvar%yn_bro_prefit(1) ) THEN
-        DO i = 1, n_mdata_omhcho
-           IF ( TRIM(ADJUSTL(mdata_omhcho_fields(3,i))) == 'BRO' ) THEN
-              IF ( TRIM(ADJUSTL(mdata_omhcho_fields(1,i))) == 'PGEVERSION' ) &
-                   bro_version = TRIM(ADJUSTL(mdata_omhcho_values(i)))
-              IF ( TRIM(ADJUSTL(mdata_omhcho_fields(1,i))) == 'ShortName'  ) &
-                   bro_name    = TRIM(ADJUSTL(mdata_omhcho_values(i)))
-           END IF
-        END DO
-        ! ----------------------------
-        ! Full Version string required
-        ! ----------------------------
-        input_versions = TRIM(ADJUSTL(input_versions))            // ' ' // &
-             TRIM(ADJUSTL(bro_name))//':'//TRIM(ADJUSTL(bro_version))
-     END IF
-
-  CASE ( pge_gly_idx)
-     ! ---------------------------------------------------
-     ! In all cases we should have auxilliary cloud inputs
-     ! ---------------------------------------------------
-     DO i = 1, n_mdata_voc
-        IF ( TRIM(ADJUSTL(mdata_voc_fields(3,i))) == 'CLD' ) THEN
-           IF ( TRIM(ADJUSTL(mdata_voc_fields(1,i))) == 'PGEVERSION' ) &
-                cld_version = TRIM(ADJUSTL(mdata_voc_values(i)))
-           IF ( TRIM(ADJUSTL(mdata_voc_fields(1,i))) == 'ShortName'  ) &
-                cld_name    = TRIM(ADJUSTL(mdata_voc_values(i)))
-        END IF
-     END DO
-
-     ! ----------------------------
-     ! Full Version string required
-     ! ----------------------------
-     input_versions = TRIM(ADJUSTL(input_versions)) // ' ' // &
-          TRIM(ADJUSTL(cld_name))//':'//TRIM(ADJUSTL(cld_version))
-		 
-     ! lqH2O prefit
-     IF ( ctrvar%yn_lqh2o_prefit(1) ) THEN
-        DO i = 1, n_mdata_omchocho
-           IF ( TRIM(ADJUSTL(mdata_omchocho_fields(3,i))) == 'LQH2O' ) THEN
-              IF ( TRIM(ADJUSTL(mdata_omchocho_fields(1,i))) == 'PGEVERSION' ) &
-                   lqh2o_version = TRIM(ADJUSTL(mdata_omchocho_values(i)))
-              IF ( TRIM(ADJUSTL(mdata_omchocho_fields(1,i))) == 'ShortName'  ) &
-                   lqh2o_name    = TRIM(ADJUSTL(mdata_omchocho_values(i)))
-           END IF
-        END DO
-        ! ----------------------------
-        ! Full Version string required
-        ! ----------------------------
-        input_versions = TRIM(ADJUSTL(input_versions))            // ' ' // &
-             TRIM(ADJUSTL(lqh2o_name))//':'//TRIM(ADJUSTL(lqh2o_version))
-     END IF
-
-  CASE ( pge_h2o_idx)
-     ! ---------------------------------------------------
-     ! In all cases we should have auxilliary cloud inputs
-     ! ---------------------------------------------------
-     DO i = 1, n_mdata_voc
-        IF ( TRIM(ADJUSTL(mdata_voc_fields(3,i))) == 'CLD' ) THEN
-           IF ( TRIM(ADJUSTL(mdata_voc_fields(1,i))) == 'PGEVERSION' ) &
-                cld_version = TRIM(ADJUSTL(mdata_voc_values(i)))
-           IF ( TRIM(ADJUSTL(mdata_voc_fields(1,i))) == 'ShortName'  ) &
-                cld_name    = TRIM(ADJUSTL(mdata_voc_values(i)))
-        END IF
-     END DO
-
-
-  END SELECT
+     input_versions = TRIM(ADJUSTL(input_versions))            // ' ' // &
+          TRIM(ADJUSTL(ooo_name))//':'//TRIM(ADJUSTL(ooo_version))
+  END IF
 
   RETURN
 END SUBROUTINE get_input_versions

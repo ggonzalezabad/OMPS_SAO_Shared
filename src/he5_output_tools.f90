@@ -1510,41 +1510,16 @@ FUNCTION he5_close_output_file ( pge_idx ) RESULT ( he5stat )
        locerr, HE5_STAT_OK, pge_errstat_warning, OMSAO_W_HE5SWCLOSE, &
        modulename, vb_lev_default, he5stat )
 
-  ! -------------------------------------------------------------
-  ! If we are running as OMHCHO and OMOCLO, we also need to close
-  ! a few auxiliary files.
-  ! -------------------------------------------------------------
-  SELECT CASE ( pge_idx )
-  CASE ( pge_bro_idx )
-  CASE ( pge_hcho_idx )
-     ! ------------------
-     ! O3 and BrO prefits
-     ! ------------------
-     IF ( TRIM(ADJUSTL(o3fit_swath_name)) /= 'undefined' .AND. &
-          o3fit_swath_id                  /= -1          .AND. &
-          o3fit_swath_file_id             /= -1              ) THEN
-        locerr = HE5_SWDETACH ( o3fit_swath_id )
-        locerr = HE5_SWCLOSE  ( o3fit_swath_file_id )
-     END IF
-     IF ( TRIM(ADJUSTL(brofit_swath_name)) /= 'undefined' .AND. &
-          brofit_swath_id                  /= -1          .AND. &
-          brofit_swath_file_id             /= -1              ) THEN
-        locerr = HE5_SWDETACH ( brofit_swath_id )
-        locerr = HE5_SWCLOSE  ( brofit_swath_file_id )
-     END IF
-  CASE ( pge_gly_idx )
-     ! --------------------
-     ! Liquid Water prefits
-     ! --------------------
-     IF ( TRIM(ADJUSTL(lqh2ofit_swath_name)) /= 'undefined' .AND. &
-          lqh2ofit_swath_id                  /= -1          .AND. &
-          lqh2ofit_swath_file_id             /= -1              ) THEN
-        locerr = HE5_SWDETACH ( lqh2ofit_swath_id )
-        locerr = HE5_SWCLOSE  ( lqh2ofit_swath_file_id )
-     END IF
-  CASE ( pge_oclo_idx )
-  END SELECT
-
+  ! -----------
+  ! Prefit file
+  ! -----------
+  IF ( TRIM(ADJUSTL(prefit_swath_name)) /= 'undefined' .AND. &
+       prefit_swath_id                  /= -1          .AND. &
+       prefit_swath_file_id             /= -1              ) THEN
+     locerr = HE5_SWDETACH ( prefit_swath_id )
+     locerr = HE5_SWCLOSE  ( prefit_swath_file_id )
+  END IF
+  
   RETURN
 END FUNCTION he5_close_output_file
 

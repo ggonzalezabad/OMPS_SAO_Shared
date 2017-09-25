@@ -67,13 +67,9 @@ MODULE OMSAO_he5_module
   ! Swath IDs for pre-fitted BrO and O3 HE5 swaths and swath files
   ! --------------------------------------------------------------
   CHARACTER (LEN=maxchlen) :: &
-       o3fit_swath_name    = 'undefined', &
-       brofit_swath_name   = 'undefined', &
-       lqh2ofit_swath_name = 'undefined'
+       prefit_swath_name    = 'undefined'
   INTEGER   (KIND=i4) :: &
-       o3fit_swath_id    = -1, o3fit_swath_file_id    = -1, &
-       brofit_swath_id   = -1, brofit_swath_file_id   = -1, &
-       lqh2ofit_swath_id = -1, lqh2ofit_swath_file_id = -1
+       prefit_swath_id    = -1, prefit_swath_file_id    = -1
 
   ! --------------------
   ! Fill Value attribute

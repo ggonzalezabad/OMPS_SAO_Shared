@@ -84,14 +84,13 @@ MODULE OMSAO_variables_module
           yn_remove_target, yn_use_labslitfunc, yn_solar_i0, yn_amf_wfmod, &
           yn_o3amf_cor, yn_run_destriping, yn_remove_ctrbias, yn_newshift, &
           yn_refseccor
-
-     LOGICAL, DIMENSION (2) :: yn_bro_prefit, yn_o3_prefit, yn_lqh2o_prefit
+     LOGICAL, DIMENSION (2) :: yn_prefit
      LOGICAL, DIMENSION (us1_idx:us2_idx) :: have_undersampling
 
      INTEGER (KIND=I4) :: n_mol_fit, n_fincol_idx, solar_comp_typ, common_fitpos, &
           target_npol, max_itnum_sol, max_itnum_rad, radwavcal_freq, amf_wfmod_idx, &
           ctr_bias_pol, ctr_pol_base, ctr_pol_scal, ctr_pol_patt, ctr_nloop, ctr_nblocks, &
-          ctr_fitfunc_calls
+          ctr_fitfunc_calls, prefit_idx
 
      INTEGER (KIND=I4), DIMENSION (max_mol_fit) :: fitcol_idx
      INTEGER (KIND=I4), DIMENSION (2,max_mol_fit*mxs_idx) :: fincol_idx

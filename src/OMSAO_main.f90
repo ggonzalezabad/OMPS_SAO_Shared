@@ -65,7 +65,7 @@ SUBROUTINE OMSAO_main ( exit_value )
        modulename//f_sep//"READ_PCF_FILE.", vb_lev_default, pge_error_status )
   IF ( pge_error_status >= pge_errstat_error ) GOTO 666
   errstat = pge_errstat_ok
-  stop
+  
   ! ------------------------------------------------------------
   CALL init_metadata ( errstat )  ! Initialize MetaData
   ! ------------------------------------------------------------

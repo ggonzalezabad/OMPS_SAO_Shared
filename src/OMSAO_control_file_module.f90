@@ -271,9 +271,7 @@ SUBROUTINE read_fitting_control_file ( pge_error_status )
   ! (1) Use Liquid Water prefitted columns?
   ! (2) Vary those prefitted columns within their fitting uncertainties?
   ! --------------------------------------------------------------------
-  READ (fit_ctrl_unit, *) ctrvar%yn_o3_prefit (1:2)
-  READ (fit_ctrl_unit, *) ctrvar%yn_bro_prefit(1:2)
-  READ (fit_ctrl_unit, *) ctrvar%yn_lqh2o_prefit (1:2)
+  READ (fit_ctrl_unit, *) ctrvar%yn_prefit (1:2), ctrvar%prefit_idx
   READ (fit_ctrl_unit, *) ctrvar%yn_solar_i0
   READ (fit_ctrl_unit, *) ctrvar%max_itnum_rad
   READ (fit_ctrl_unit, *) ctrvar%radwavcal_freq
@@ -589,14 +587,11 @@ SUBROUTINE find_radiance_fitting_variables ( errstat )
   USE OMSAO_indices_module, ONLY: max_rs_idx, max_calfit_idx, mns_idx, mxs_idx,       &
        calfit_titles,  radfit_titles,  refspec_titles,     &
        calfit_strings, radfit_strings, refspec_strings,    &
-       o3_t1_idx, o3_t3_idx, bro_idx, comm_idx
+       comm_idx
   USE OMSAO_variables_module, ONLY: &
        n_fitvar_rad, all_radfit_idx, mask_fitvar_rad, &
        ctrvar
   USE OMSAO_parameters_module, ONLY: maxchlen
-  USE OMSAO_prefitcol_module, ONLY:         &
-       o3_prefit_fitidx, bro_prefit_fitidx, &
-       n_prefit_vars
   USE OMSAO_omidata_module, ONLY: &
        correlation_names, correlation_names_concat, nclenfit
 
@@ -672,7 +667,6 @@ SUBROUTINE find_radiance_fitting_variables ( errstat )
   ! Now the reference spectra parameters
   ! ------------------------------------
   ctrvar%n_fincol_idx  = 0
-  n_prefit_vars = 0
   DO i = 1, max_rs_idx
      idx = max_calfit_idx + (i-1)*mxs_idx
      DO j = mns_idx, mxs_idx        
@@ -704,21 +698,6 @@ SUBROUTINE find_radiance_fitting_variables ( errstat )
            END DO getfincol
 
         END IF
-
-        ! -------------------------------------------------------------------------
-        ! Check for any indices that correspond to pre-fitted columns
-        ! -------------------------------------------------------------------------
-        SELECT CASE ( i )
-        CASE ( bro_idx )
-           IF ( ctrvar%yn_bro_prefit(1) .AND. &
-                (ctrvar%fitvar_rad_init(idx+j) /= 0.0_r8 .OR. &
-                (ctrvar%lo_radbnd(idx+j) < ctrvar%up_radbnd(idx+j))) ) bro_prefit_fitidx   = idx+j
-        CASE ( o3_t1_idx:o3_t3_idx )
-           IF ( ctrvar%yn_o3_prefit(1) .AND. &
-                (ctrvar%fitvar_rad_init(idx+j) /= 0.0_r8 .OR. &
-                (ctrvar%lo_radbnd(idx+j) < ctrvar%up_radbnd(idx+j))) ) o3_prefit_fitidx(i) = idx+j
-        CASE DEFAULT
-        END SELECT
 
      END DO
 

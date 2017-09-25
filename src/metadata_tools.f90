@@ -197,7 +197,7 @@ SUBROUTINE init_metadata ( errstat )
 
         SELECT CASE ( mdata_loc )
         CASE ( "BRO" )
-           IF ( ctrvar%yn_bro_prefit(1) ) THEN
+           IF ( ctrvar%yn_prefit(1) ) THEN
               md_stat = PGS_MET_getPCAttr_s( &
                    prefit_lun, version, cmd_str, &
                    TRIM(ADJUSTL(upper_case(mdata_omhcho_fields(1,imd)))), &
@@ -207,7 +207,7 @@ SUBROUTINE init_metadata ( errstat )
                    vb_lev_default, errstat )
            END IF
         CASE ( "OOO" )
-           IF ( ctrvar%yn_o3_prefit(1) ) THEN
+           IF ( ctrvar%yn_prefit(1) ) THEN
               md_stat = PGS_MET_getPCAttr_s( &
                    prefit_lun, version, cmd_str, &
                    TRIM(ADJUSTL(upper_case(mdata_omhcho_fields(1,imd)))), &
