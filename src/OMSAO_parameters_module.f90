@@ -21,7 +21,7 @@ MODULE OMSAO_parameters_module
   ! -------------------------------------------------------------------------
   ! Maximum numbers for fitting parameters, GOME pixels, spectral points, ...
   ! -------------------------------------------------------------------------
-  INTEGER (KIND=i4), PARAMETER :: max_spec_pts = 15001
+  INTEGER (KIND=i4), PARAMETER :: max_spec_pts = 6001
   
   ! ==================
   ! Physical constants

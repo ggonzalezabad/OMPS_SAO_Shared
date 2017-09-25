@@ -8,7 +8,7 @@ MODULE OMSAO_errstat_module
   !
   ! =================================================================
 
-  USE OMSAO_precision_module
+  USE OMSAO_precision_module, ONLY: i4
   USE OMSAO_parameters_module, ONLY: maxchlen
 
   IMPLICIT NONE
@@ -134,7 +134,7 @@ CONTAINS
        ! additions to "PROGRESS" messages, which is not what we want.
        ! ------------------------------------------------------------
     CASE ( pge_errstat_warning )
-       addsev = TRIM(ADJUSTL(addsev)) !//' Severity is: WARNING'
+       addsev = TRIM(ADJUSTL(addsev))//' Severity is: WARNING'
     CASE ( pge_errstat_error )
        addsev = TRIM(ADJUSTL(addsev))//' Severity is: ERROR'
     CASE ( pge_errstat_fatal )
@@ -154,7 +154,6 @@ CONTAINS
 
   SUBROUTINE pge_error_status_exit ( pge_error_status, exit_value )
 
-    USE OMSAO_parameters_module, ONLY: maxchlen
     IMPLICIT NONE
 
     ! ---------------------------------------------------------------------

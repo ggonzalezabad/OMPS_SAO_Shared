@@ -36,7 +36,7 @@ SUBROUTINE omi_pge_fitting_process ( pge_idx, n_max_rspec,             &
   INTEGER (KIND=i2)       :: omps_reader_status
   
   pge_error_status = pge_errstat_ok
-
+  stop
   ! ----------------------------------------------------------------------------------
   ! Since the OMPS TC files are not that big I'm going to read here the whole file and
   ! assign the values needed to the significant variables. After this no more reading

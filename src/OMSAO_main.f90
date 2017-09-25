@@ -20,8 +20,8 @@ SUBROUTINE OMSAO_main ( exit_value )
   USE OMSAO_reference_spectra, ONLY: read_reference_spectra
   USE OMSAO_errstat_module, ONLY: pge_errstat_ok, pge_errstat_warning, &
        pge_errstat_error, pge_errstat_fatal, omsao_a_subroutine, &
-       omsao_w_subroutine, f_sep, vb_lev_default, error_check, &
-       pge_error_status_exit
+       omsao_f_subroutine, f_sep, error_check, &
+       pge_error_status_exit, vb_lev_screen
 
   IMPLICIT NONE
 
@@ -64,44 +64,37 @@ SUBROUTINE OMSAO_main ( exit_value )
   ! ---------------------------------------------------------------------------
   CALL read_pcf_file ( errstat )   ! Read PCF file
   ! ---------------------------------------------------------------------------
-  CALL error_check ( errstat, pge_errstat_ok, pge_errstat_warning, OMSAO_W_SUBROUTINE, &
-       modulename//f_sep//"READ_PCF_FILE.", vb_lev_default, pge_error_status )
+  CALL error_check ( errstat, pge_errstat_ok, pge_errstat_fatal, OMSAO_F_SUBROUTINE, &
+       modulename//f_sep//"READ_PCF_FILE.", vb_lev_screen, pge_error_status )
   IF ( pge_error_status >= pge_errstat_error ) GOTO 666
-  errstat = pge_errstat_ok
   
-  ! ------------------------------------------------------------
-  CALL init_metadata ( errstat )  ! Initialize MetaData
-  ! ------------------------------------------------------------
-  CALL error_check ( errstat, pge_errstat_ok, pge_errstat_warning, OMSAO_W_SUBROUTINE, &
-       modulename//f_sep//"INIT_METADATA.", vb_lev_default, pge_error_status )
-  IF ( pge_error_status >= pge_errstat_fatal ) GOTO 666
-  errstat = pge_errstat_ok
+  ! ---------------------------------------------------
+!  CALL init_metadata ( errstat )  ! Initialize MetaData
+  ! ---------------------------------------------------
+!  CALL error_check ( errstat, pge_errstat_ok, pge_errstat_warning, OMSAO_F_SUBROUTINE, &
+!       modulename//f_sep//"INIT_METADATA.", vb_lev_screen, pge_error_status )
+!  IF ( pge_error_status >= pge_errstat_fatal ) GOTO 666
 
-  ! ----------------------------------------------------------------------------------------
+  ! -------------------------------------------------------------------------------
   CALL read_reference_spectra ( n_max_rspec, errstat )     ! Read reference spectra
-  ! ----------------------------------------------------------------------------------------
-  print*, n_max_rspec, errstat
-  CALL error_check ( errstat, pge_errstat_ok, pge_errstat_warning, OMSAO_W_SUBROUTINE, &
-       modulename//f_sep//"READ_REFERENCE_SPECTRA.", vb_lev_default, pge_error_status )
+  ! -------------------------------------------------------------------------------
+  CALL error_check ( errstat, pge_errstat_ok, pge_errstat_fatal, OMSAO_F_SUBROUTINE, &
+       modulename//f_sep//"READ_REFERENCE_SPECTRA.", vb_lev_screen, pge_error_status )
   IF ( pge_error_status >= pge_errstat_fatal ) GOTO 666
 
-  errstat = pge_errstat_ok
-
-  CALL error_check ( errstat, pge_errstat_ok, pge_errstat_warning, OMSAO_W_SUBROUTINE, &
-       modulename//f_sep//"OMI_SLITFUNC_READ.", vb_lev_default, pge_error_status )
-  IF ( pge_error_status >= pge_errstat_fatal ) GOTO 666
-  stop
   ! ---------------------------------------------
   ! Set number of InputPointers and InputVersions
   ! ---------------------------------------------
-  CALL set_input_pointer_and_versions ( pcfvar%pge_idx )
-  errstat = pge_errstat_ok
+  CALL set_input_pointer_and_versions ( errstat )
+  CALL error_check ( errstat, pge_errstat_ok, pge_errstat_fatal, OMSAO_F_SUBROUTINE, &
+       modulename//f_sep//"SET_INPUT_POINTER_AND_VERSIONS.", vb_lev_screen, pge_error_status )
+  IF ( pge_error_status >= pge_errstat_fatal ) GOTO 666
 
   ! --------------------------------------------------------------------------------------------
   CALL omi_pge_fitting_process  ( pcfvar%pge_idx, n_max_rspec, errstat )   ! Where all the work is done
   ! --------------------------------------------------------------------------------------------
   CALL error_check ( errstat, pge_errstat_warning, errstat, OMSAO_A_SUBROUTINE, &
-       modulename//f_sep//"OMI_PGE_FITTING_PROCESS.", vb_lev_default, pge_error_status )
+       modulename//f_sep//"OMI_PGE_FITTING_PROCESS.", vb_lev_screen, pge_error_status )
   IF ( pge_error_status >= pge_errstat_fatal ) GOTO 666
 
   ! ------------------------------------

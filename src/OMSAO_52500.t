@@ -114,6 +114,8 @@ OMSAO_U_ENDOFRUN           END_OF_RUN_U...PGE execution completed with unknown e
 
 OMSAO_A_SUBROUTINE         ALERT...non-zero exit status returned from subroutine
 OMSAO_W_SUBROUTINE         WARNING... warning-status returned from subroutine
+OMSAO_E_SUBROUTINE         ERROR... error-status returned from subroutine
+OMSAO_F_SUBROUTINE         FATAL... fatal-status returned from subroutine
 
 OMSAO_F_XTRMISRAD          FATAL ERROR...Cross-track position different between L1b radiance granules
 

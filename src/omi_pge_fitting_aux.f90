@@ -685,26 +685,31 @@ SUBROUTINE compute_fitting_statistics ( &
 END SUBROUTINE compute_fitting_statistics
 
 
-SUBROUTINE set_input_pointer_and_versions ( pge_idx )
+SUBROUTINE set_input_pointer_and_versions ( errstat )
 
   USE OMSAO_precision_module, ONLY: i4
-  USE OMSAO_indices_module, ONLY: pge_oclo_idx, pge_bro_idx, pge_hcho_idx, &
-       pge_o3_idx, pge_gly_idx, l1b_radiance_lun, l1b_radianceref_lun, &
-       l1b_irradiance_lun, prefit_lun, pge_h2o_idx, cld_lun
+  USE OMSAO_indices_module, ONLY: l1b_radiance_lun, l1b_radianceref_lun, &
+       l1b_irradiance_lun, prefit_lun, cld_lun
   USE OMSAO_he5_module, ONLY: n_lun_inp, lun_input, input_versions
   USE OMSAO_variables_module, ONLY: ctrvar, pcfvar
+  USE OMSAO_errstat_module, ONLY: pge_errstat_ok
 
   IMPLICIT NONE
 
   ! ---------------
   ! Input variables
   ! ---------------
-  INTEGER (KIND=i4), INTENT (IN) :: pge_idx
+  INTEGER (KIND=i4), INTENT (INOUT) :: errstat
 
   ! ---------------
   ! Local variables
   ! ---------------
   LOGICAL :: yn_radref
+
+  ! -------------------
+  ! Set error code good
+  ! -------------------
+  errstat = pge_errstat_ok
 
   ! ----------------------------------------
   ! Initialize variables returned via MODULE
@@ -763,20 +768,18 @@ SUBROUTINE set_input_pointer_and_versions ( pge_idx )
   ! we have to compose the pieces of information from various
   ! MetaData strings.
   ! ------------------------------------------------------------
-  CALL get_input_versions ( pge_idx, ctrvar%yn_solar_comp, yn_radref, input_versions )
+  CALL get_input_versions ( ctrvar%yn_solar_comp, yn_radref, input_versions )
   input_versions = TRIM(ADJUSTL(input_versions))
 
   RETURN
 END SUBROUTINE set_input_pointer_and_versions
 
-SUBROUTINE get_input_versions (pge_idx, yn_solar_comp, yn_radref, input_versions )
+SUBROUTINE get_input_versions (yn_solar_comp, yn_radref, input_versions )
 
   USE OMSAO_precision_module, ONLY: i4
-  USE OMSAO_indices_module,  ONLY: pge_hcho_idx, pge_gly_idx, pge_h2o_idx
-  USE OMSAO_metadata_module, ONLY: n_mdata_omchocho, n_mdata_omhcho, n_mdata_str, &
+  USE OMSAO_metadata_module, ONLY: n_mdata_omhcho, n_mdata_str, &
        n_mdata_voc, mdata_string_values, mdata_string_fields, mdata_voc_values, &
-       mdata_voc_fields, mdata_omchocho_values, mdata_omchocho_fields, &
-       mdata_omhcho_values, mdata_omhcho_fields, PGSd_MET_NAME_L
+       mdata_voc_fields, mdata_omhcho_values, mdata_omhcho_fields, PGSd_MET_NAME_L
   USE OMSAO_variables_module, ONLY: ctrvar
 
   IMPLICIT NONE
@@ -784,7 +787,6 @@ SUBROUTINE get_input_versions (pge_idx, yn_solar_comp, yn_radref, input_versions
   ! --------------
   ! Input variable
   ! --------------
-  INTEGER,           INTENT (IN)  :: pge_idx
   LOGICAL,           INTENT (IN)  :: yn_solar_comp, yn_radref
 
   ! ---------------
@@ -801,9 +803,7 @@ SUBROUTINE get_input_versions (pge_idx, yn_solar_comp, yn_radref, input_versions
        rrf_name, rrf_version, &  ! Radiance Reference granule
        irr_name, irr_version, &  ! Irradiance granule
        cld_name, cld_version, &  ! Cloud ESDT
-       bro_name, bro_version, &  ! BrO Prefit ESDT
-       ooo_name, ooo_version, &  ! Ozone Prefit ESDT
-       lqh2o_name, lqh2o_version   ! lqH2O Prefit ESDT
+       ooo_name, ooo_version  ! Ozone Prefit ESDT
   ! --------------------------
   ! Initialize output variable
   ! --------------------------

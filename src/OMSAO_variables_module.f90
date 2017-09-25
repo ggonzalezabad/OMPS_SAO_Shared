@@ -147,7 +147,6 @@ MODULE OMSAO_variables_module
   TYPE, PUBLIC :: ReferenceSpectrum
      CHARACTER (LEN=maxchlen)                      :: Title, Units
      CHARACTER (LEN=maxchlen)                      :: FileName
-     CHARACTER (LEN=maxchlen)                      :: FittingIdxName
      INTEGER   (KIND=I4)                           :: nPoints
      REAL      (KIND=r8)                           :: NormFactor, Temperature
      REAL      (KIND=r8), DIMENSION (2)            :: FirstLastWav
@@ -161,7 +160,6 @@ MODULE OMSAO_variables_module
   TYPE, PUBLIC :: CommonModeSpectrum
      CHARACTER (LEN=maxchlen)                                  :: Title, Units
      CHARACTER (LEN=maxchlen)                                  :: FileName
-     CHARACTER (LEN=maxchlen)                                  :: FittingIdxName
      INTEGER   (KIND=I4)                                       :: nPoints
      REAL      (KIND=r8)                                       :: NormFactor, Temperature
      REAL      (KIND=r8), DIMENSION (2)                        :: FirstLastWav
