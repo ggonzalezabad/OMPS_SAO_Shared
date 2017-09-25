@@ -17,6 +17,7 @@ SUBROUTINE OMSAO_main ( exit_value )
   USE OMSAO_precision_module, ONLY: i4
   USE OMSAO_variables_module, ONLY: pcfvar
   USE OMSAO_pcf_file_module, ONLY: read_pcf_file
+  USE OMSAO_reference_spectra, ONLY: read_reference_spectra
   USE OMSAO_errstat_module, ONLY: pge_errstat_ok, pge_errstat_warning, &
        pge_errstat_error, pge_errstat_fatal, omsao_a_subroutine, &
        omsao_w_subroutine, f_sep, vb_lev_default, error_check, &
@@ -77,8 +78,9 @@ SUBROUTINE OMSAO_main ( exit_value )
   errstat = pge_errstat_ok
 
   ! ----------------------------------------------------------------------------------------
-  CALL read_reference_spectra ( pcfvar%pge_idx, n_max_rspec, errstat )     ! Read reference spectra
+  CALL read_reference_spectra ( n_max_rspec, errstat )     ! Read reference spectra
   ! ----------------------------------------------------------------------------------------
+  print*, n_max_rspec, errstat
   CALL error_check ( errstat, pge_errstat_ok, pge_errstat_warning, OMSAO_W_SUBROUTINE, &
        modulename//f_sep//"READ_REFERENCE_SPECTRA.", vb_lev_default, pge_error_status )
   IF ( pge_error_status >= pge_errstat_fatal ) GOTO 666
