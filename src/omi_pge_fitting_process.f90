@@ -593,7 +593,7 @@ SUBROUTINE omi_fitting (                                  &
   ! Close output file
   ! -----------------
   errstat = pge_errstat_ok
-  errstat = he5_close_output_file ( pge_idx)
+  errstat = he5_close_output_file ( )
   CALL error_check ( errstat, pge_errstat_ok, pge_errstat_warning, OMSAO_W_SUBROUTINE, &
        modulename//f_sep//"HE5_CLOSE_OUTPUT_FILE", vb_lev_default, pge_error_status )
 

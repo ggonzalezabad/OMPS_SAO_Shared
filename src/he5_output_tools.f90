@@ -1463,7 +1463,7 @@ FUNCTION he5_write_global_attributes ( ) RESULT ( he5stat )
   RETURN
 END FUNCTION he5_write_global_attributes
 
-FUNCTION he5_close_output_file ( pge_idx ) RESULT ( he5stat )
+FUNCTION he5_close_output_file ( ) RESULT ( he5stat )
 
   !------------------------------------------------------------------------------
   ! This function detatches from the HE5 swath and closes the HE5 output file.
@@ -1472,8 +1472,6 @@ FUNCTION he5_close_output_file ( pge_idx ) RESULT ( he5stat )
   !
   !------------------------------------------------------------------------------
 
-  USE OMSAO_indices_module, ONLY: &
-       pge_bro_idx, pge_hcho_idx, pge_oclo_idx, pge_gly_idx
   USE OMSAO_he5_module
   USE OMSAO_errstat_module, ONLY: pge_errstat_ok, pge_errstat_warning, &
        error_check, omsao_w_he5swclose, he5_stat_ok, vb_lev_default
@@ -1484,11 +1482,6 @@ FUNCTION he5_close_output_file ( pge_idx ) RESULT ( he5stat )
   ! Name of this module/subroutine/function
   ! ---------------------------------------
   CHARACTER (LEN=21), PARAMETER :: modulename = 'he5_close_output_file'
-
-  ! --------------
-  ! Input variable
-  ! --------------
-  INTEGER (KIND=i4), INTENT (IN) :: pge_idx
 
   ! ---------------
   ! Result variable
