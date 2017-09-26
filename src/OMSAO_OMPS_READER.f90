@@ -78,6 +78,39 @@ MODULE OMSAO_OMPS_READER
      INTEGER(KIND=4), DIMENSION(:), POINTER :: SensorStatusBits => NULL()
   END TYPE OMPS_NMEV_v2_type
 
+  TYPE, PUBLIC :: OMPS_NMTO3_type
+     CHARACTER (LEN=MAX_NAME_LENGTH) :: filename
+     INTEGER(KIND=4) :: nLines
+     INTEGER(KIND=4) :: nXtrack
+     INTEGER(KIND=4) :: nWavel
+
+     ! ======================
+     ! Data storage variables
+     ! ======================
+     ! Ancillary data
+     REAL(KIND=4), DIMENSION(:,:), POINTER :: CloudPressure => NULL()
+     INTEGER(KIND=4), DIMENSION(:,:), POINTER :: SurfaceCategory => NULL()
+     REAL(KIND=4), DIMENSION(:,:), POINTER :: TerrainPressure => NULL()
+
+     ! Geolocation data
+     REAL(KIND=4), DIMENSION(:,:), POINTER :: Latitude => NULL()
+     REAL(KIND=4), DIMENSION(:,:), POINTER :: LatidudeCorner => NULL()
+     REAL(KIND=4), DIMENSION(:,:), POINTER :: Longitude => NULL()
+     REAL(KIND=4), DIMENSION(:,:), POINTER :: LongitudeCorner => NULL()
+     REAL(KIND=4), DIMENSION(:,:), POINTER :: RelativeAzimuthAngle => NULL()
+     REAL(KIND=4), DIMENSION(:,:), POINTER :: SolarAzimuthAngle => NULL()
+     REAL(KIND=4), DIMENSION(:,:), POINTER :: SolarZenithAngle => NULL()
+     REAL(KIND=4), DIMENSION(:,:), POINTER :: ViewingAzimuthAngle => NULL()
+     REAL(KIND=4), DIMENSION(:,:), POINTER :: ViewingZenithAngle => NULL()
+
+     ! Science data
+     REAL(KIND=4), DIMENSION(:,:), POINTER :: ColumnAmountO3 => NULL()
+     INTEGER(KIND=1), DIMENSION(:), POINTER :: MeasurementQualityFlags => NULL()
+     INTEGER(KIND=2), DIMENSION(:,:), POINTER :: QualityFlags => NULL()
+     REAL(KIND=4), DIMENSION(:,:), POINTER :: RadiativeCloudFraction => NULL()
+     REAL(KIND=4), DIMENSION(:,:), POINTER :: Reflectivity331 => NULL()
+     REAL(KIND=4), DIMENSION(:,:), POINTER :: Reflectivity360 => NULL()
+  END type OMPS_NMTO3_type
 CONTAINS
   FUNCTION OMPS_NMEV_READER(this, filename) RESULT(status)
 
