@@ -16,8 +16,8 @@ SUBROUTINE omps_data_to_omi_variables (OMPS_data,nt,nx,nw)
   ! ---------------
   ! Input variables
   ! ---------------
-  TYPE (TC_SDR_OMPS_type), INTENT(IN) :: OMPS_data
-  INTEGER (KIND=i4),       INTENT(IN) :: nt, nx, nw
+  TYPE (OMPS_NMEV_type), INTENT(IN) :: OMPS_data
+  INTEGER (KIND=i4), INTENT(IN) :: nt, nx, nw
 
   ! ---------------
   ! Local varaibles
@@ -38,13 +38,10 @@ SUBROUTINE omps_data_to_omi_variables (OMPS_data,nt,nx,nw)
 
   omi_latitude(1:nx,0:nt-1)        = OMPS_data%Latitude(1:nx,1:nt)
   omi_longitude(1:nx,0:nt-1)       = OMPS_data%Longitude(1:nx,1:nt)
-  omi_height(1:nx,0:nt-1)          = OMPS_data%TerrainPressure(1:nx,1:nt)
   omi_szenith(1:nx,0:nt-1)         = OMPS_data%SolarZenithAngle(1:nx,1:nt)
   omi_sazimuth(1:nx,0:nt-1)        = OMPS_data%SolarAzimuth(1:nx,1:nt)
   omi_vzenith(1:nx,0:nt-1)         = OMPS_data%SatelliteZenithAngle(1:nx,1:nt)
   omi_vazimuth(1:nx,0:nt-1)        = OMPS_data%SatelliteAzimuth(1:nx,1:nt)
-  omi_albedo(1:nx,0:nt-1)          = OMPS_data%SurfaceReflectivity(1:nx,1:nt)
-  omi_snowicefraction(1:nx,0:nt-1) = OMPS_data%SnowIceFraction(1:nx,1:nt)
   
   dummy = TRIM(OMPS_DATA%UTC_CCSDS_A(1))
   read(dummy(6:7),'(i2)') granule_month

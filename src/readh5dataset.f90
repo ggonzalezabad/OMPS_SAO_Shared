@@ -102,7 +102,7 @@ MODULE ReadH5Dataset
      MODULE PROCEDURE  &
       & H5ReadInteger0D, H5ReadInteger1D, H5ReadInteger2D, H5ReadInteger3D, &
       & H5ReadReal0D,    H5ReadReal1D,    H5ReadReal2D,    H5ReadReal3D,    &
-      & H5ReadReal4D,    H5Read3DRealdims,                                  &
+      & H5ReadReal4D,    H5Read3DRealdims,H5Read2DRealdims,                 &
       & H5ReadDouble0D,  H5ReadDouble1D,  H5ReadDouble2D,  H5ReadDouble3D,  &
       & H5ReadString0D,  H5ReadString1D,                                    &
       & H5ReadCompInteger0D, H5ReadCompReal0D, H5ReadCompDouble0D,          &
@@ -1718,6 +1718,75 @@ CONTAINS
   END SUBROUTINE H5Read3DRealdims
 
   ! ********************************************************************
+
+ ! *********************************************************************
+
+  SUBROUTINE H5Read2DRealdims    &
+       (                         &
+       H5filename,        & !Coming in
+       datasetname,       & !Coming in
+       nLines,nXtrack     &  !Going out
+       )
+    !
+    !<<<<<<<<<<<<<<<<<<<<<<< Implicit statement >>>>>>>>>>>>>>>>>>>>>
+    IMPLICIT NONE
+
+    !<<<<<<<<<<<<<<<<<<<<<<< Arguments >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+    !Coming in
+    CHARACTER (len = *), INTENT(in)                      :: H5filename
+    CHARACTER (len = *), INTENT(in)                      :: datasetname
+
+    !Going out:
+    INTEGER(KIND=4), INTENT(out)                         :: nLines,nXtrack
+
+    !<<<<<<<<<<<<<<<<<<<<<<< Local variables >>>>>>>>>>>>>>>>>>>>>>>>
+    INTEGER, PARAMETER                                   :: maxdims = 2
+    INTEGER(hsize_t), DIMENSION(maxdims)                 :: datadims
+    INTEGER(hsize_t), DIMENSION(maxdims)                 :: maxdatadims
+    INTEGER                                              :: ltype
+
+    !<<<<<<<<<<<<<<<<<<<<<<< Start of routine code >>>>>>>>>>>>>>>>>>
+
+    CALL DebugMessage(" === in H5Read2DRealdims ===")
+
+    ! Initialise the HDF5 file and open all levels up to
+    ! the one that needs to be read.
+
+    CALL H5Read_init ( H5filename, datasetname )
+    IF (ErrorFlag.lt.0) return
+
+    ! Get details of the dataset
+
+    CALL DebugMessage(" --- Determining details of the data")
+
+    ltype=OpenLevels_type(NLevels)
+
+    IF ( ltype.eq.H5G_DATASET_F) THEN
+       CALL h5dget_space_f(d_id,dspace,ErrorFlag)
+    ELSE  !  ltype.eq.3
+       CALL h5aget_space_f(d_id,dspace,ErrorFlag)
+    ENDIF
+    IF (ErrorFlag.lt.0) THEN
+       ErrorMessage=" *** Error determining dataspace"
+       return
+    ENDIF
+
+    ! Get the dimensions
+    CALL h5sget_simple_extent_dims_f(dspace,datadims,maxdatadims,ErrorFlag)
+    IF (ErrorFlag.lt.0) THEN
+       ErrorMessage=" *** Error determining dataspace size"
+       return
+    ENDIF
+    nLines  = datadims(2)
+    nXtrack = datadims(1)
+    ! Close all that is open
+
+    CALL H5Read_close
+
+  END SUBROUTINE H5Read2DRealdims
+
+  ! ********************************************************************
+
 
 ! *******************************************************************
 ! *** Reading 0-, 1-, 2- and 3-D Double Datasets or Attributes    ***

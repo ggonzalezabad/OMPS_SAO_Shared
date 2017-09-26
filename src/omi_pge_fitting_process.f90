@@ -8,7 +8,8 @@ SUBROUTINE omi_pge_fitting_process ( pge_idx, n_max_rspec,             &
   USE OMSAO_he5_module, ONLY: NrofScanLines, NrofCrossTrackPixels
   USE OMSAO_variables_module, ONLY: pcfvar
   USE OMSAO_solcomp_module, ONLY: soco_pars_deallocate
-  USE OMSAO_OMPS_READER, ONLY: OMPS_NMEV_v2_type, OMPS_NMEV_READER
+  USE OMSAO_omps_reader, ONLY: omps_nmev_type, omps_nmto3_type, &
+       omps_nmev_reader, omps_nmto3_reader
 
   IMPLICIT NONE
 
@@ -33,8 +34,9 @@ SUBROUTINE omi_pge_fitting_process ( pge_idx, n_max_rspec,             &
   ! ---------------------
   ! OMPS reader variables
   ! ---------------------
-  TYPE (OMPS_NMEV_v2_type) :: OMPS_data
-  TYPE (OMPS_NMEV_v2_type) :: OMPS_data_radiance_reference
+  TYPE (omps_nmev_type) :: OMPS_data
+  TYPE (omps_nmev_type) :: OMPS_data_radiance_reference
+  TYPE (omps_nmto3_type) :: OMPS_to3_data
   INTEGER (KIND=i4) :: omps_reader_status
   
   pge_error_status = pge_errstat_ok
@@ -53,7 +55,11 @@ SUBROUTINE omi_pge_fitting_process ( pge_idx, n_max_rspec,             &
        modulename//f_sep//"Read OMPS radiance reference data.", vb_lev_default, pge_error_status )
   IF (pge_error_status >= pge_errstat_error ) GO TO 666
 
-  stop
+  omps_reader_status = OMPS_NMTO3_READER(OMPS_to3_data,TRIM(ADJUSTL(pcfvar%l2_to3_fname)))
+  CALL error_check ( INT(omps_reader_status,KIND=i4), pge_errstat_ok, pge_errstat_fatal, OMSAO_F_SUBROUTINE, &
+       modulename//f_sep//"Read OMPS total ozone data.", vb_lev_default, pge_error_status )
+  IF (pge_error_status >= pge_errstat_error ) GO TO 666
+
   ! ---------------------------------------------
   ! Fudge to fill up the OMI variables to be used
   ! later on (irradiance, radiance, ...)
@@ -62,9 +68,6 @@ SUBROUTINE omi_pge_fitting_process ( pge_idx, n_max_rspec,             &
   ! Substitutes: omi_read_irradiance
   !              omi_read_radiance
   ! ---------------------------------------------
-  IF ( pge_error_status >= pge_errstat_error ) GO TO 666
-
-  
   NrofScanLines        = OMPS_data%nLines
   NrofCrossTrackPixels = OMPS_data%nXtrack
   nTimesRad            = OMPS_data%nLines
@@ -127,7 +130,7 @@ SUBROUTINE omi_fitting (                                  &
   USE OMSAO_wfamf_module, ONLY: omi_read_climatology, CmETA, amf_calculation_bis
   USE OMSAO_pixelcorner_module, ONLY: compute_pixel_corners
   USE OMSAO_Reference_sector_module, ONLY: Reference_Sector_Correction
-  USE OMSAO_OMPS_READER, ONLY: omps_nmev_v2_type
+  USE OMSAO_OMPS_READER, ONLY: omps_nmev_type
 
   IMPLICIT NONE
 
@@ -136,7 +139,7 @@ SUBROUTINE omi_fitting (                                  &
   ! ---------------
   INTEGER (KIND=i4), INTENT (IN) :: pge_idx, nTimesRad, nXtrackRad, n_max_rspec
   INTEGER (KIND=i4), INTENT (IN) :: nTimesRadRR, nWvlCCDrr, nXtrackRadRR
-  TYPE (OMPS_NMEV_v2_type), INTENT(IN) :: OMPS_data_radiance_reference
+  TYPE (OMPS_NMEV_type), INTENT(IN) :: OMPS_data_radiance_reference
   
   ! ---------------
   ! Output variable

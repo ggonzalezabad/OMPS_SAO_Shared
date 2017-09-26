@@ -1,15 +1,15 @@
 SUBROUTINE create_radiance_reference (nt, nx, nw, locerrstat)
 
-  USE OMSAO_OMPS_READER
   USE OMSAO_precision_module
-  USE OMSAO_errstat_module,      ONLY : pge_errstat_ok
+  USE OMSAO_errstat_module, ONLY : pge_errstat_ok
   USE OMSAO_radiance_ref_module
-  USE OMSAO_omidata_module,    ONLY: &
+  USE OMSAO_omidata_module, ONLY: &
        omi_ccdpix_selection, omi_nwav_radref, omi_radref_spec, omi_radref_wavl,     &
        omi_radref_qflg, omi_radref_sza, omi_radref_vza, omi_radref_wght,            &
        omi_ccdpix_exclusion, omi_sol_wav_avg 
   USE OMSAO_variables_module, ONLY : ctrvar, pcfvar
-  USe OMSAO_parameters_module
+  USE OMSAO_parameters_module
+  USE OMSAO_omps_reader
 
   IMPLICIT NONE
 
@@ -26,7 +26,7 @@ SUBROUTINE create_radiance_reference (nt, nx, nw, locerrstat)
   ! ---------------
   ! Local variables
   ! ---------------
-  TYPE (OMPS_NMEV_v2_type) :: OMPS_data_radiance_reference
+  TYPE(omps_nmev_type) :: OMPS_data_radiance_reference
   INTEGER (KIND=i2)                          :: omps_reader_status_reference
   INTEGER (KIND=i2), DIMENSION(nw)           :: qflg_mask
   REAL    (KIND=r4)                          :: lat_midpt

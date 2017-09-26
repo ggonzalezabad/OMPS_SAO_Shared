@@ -273,7 +273,7 @@ MODULE OMSAO_indices_module
        granule_s_lun       =  10258, & ! LUN for GranuleStartTime
        granule_e_lun       =  10259, & ! LUN for GranuleStartTime
        verbosity_lun       = 200100, & ! LUN for PGE verbosity threshold
-       pge_version_lun     = 200105, & ! LUN for PGEVERSION
+       version_lun         = 200105, & ! LUN for PGEVERSION
        proccenter_lun      = 200110, & ! LUN for ProcessingCenter
        prochost_lun        = 200115, & ! LUN for ProcessingHost
        reproc_actual_lun   = 200135, & ! LUN for ReprocessingActual
@@ -285,7 +285,7 @@ MODULE OMSAO_indices_module
        orbitnumber_lun     = 200200, & ! LUN for orbit number
        swathname_lun       = 200210, & ! LUN for swath name
        versionid_lun       = 200220, & ! LUN for VersionID (formerly in MCF)
-       pge_molid_lun       = 700000, & ! LUN for PGE molecule ID; registered
+       molid_lun           = 700000, & ! LUN for PGE molecule ID; registered
        mcf_lun             = 700001, & ! LUN for MCF file
        l1b_radiance_lun    = 700010, & ! LUN L1B radiance file (both UV or VIS)
        l1b_radianceref_lun = 700015, & ! LUN L1B Radiance Reference file
@@ -294,13 +294,14 @@ MODULE OMSAO_indices_module
        amf_table_lun       = 700210, & ! LUN AMF LUT file
        cld_climatology_lun = 700230, & ! LUN cloud climatology file
        cld_lun             = 700240, & ! LUN L2 cloud file
+       to3_lun             = 700250, & ! LUN L2 Total Ozone file
        albedo_lun          = 700280, & ! LUN for albedo file
        prefit_lun          = 700301, & ! LUN for prefit columns file
        solcomp_lun         = 700400, & ! LUN for solar composite spectrum file
        solmonthave_lun     = 700500, & ! LUN for solar monthly mean spectrum file
        refsec_lun          = 700600, & ! LUN for reference sector file
        refsec_cld_lun      = 700615, & ! LUN for L2 reference sector cloud file
-       pge_l2_output_lun   = 700999    ! LUN for L2 output file
+       l2_output_lun       = 700999    ! LUN for L2 output file
 
 
   ! -----------------------------------------------------------------
@@ -317,13 +318,13 @@ MODULE OMSAO_indices_module
   INTEGER (KIND=i4), PARAMETER :: n_config_luns = 16
   INTEGER (KIND=i4), DIMENSION (n_config_luns), PARAMETER :: config_lun_array = (/  &
        granule_s_lun,          granule_e_lun,          &
-       verbosity_lun,          pge_version_lun,        &
+       verbosity_lun,          version_lun,            &
        proccenter_lun,         prochost_lun,           &
        reproc_actual_lun,      proclevel_lun,          &
        instrument_name_lun,    opmode_lun,             &
        authoraffil_lun,        authorname_lun,         &
        orbitnumber_lun,        swathname_lun,          &
-       versionid_lun,          pge_molid_lun            /)
+       versionid_lun,          molid_lun               /)
 
   CHARACTER (LEN=29), DIMENSION (n_config_luns), PARAMETER :: config_lun_strings = (/  &
        "Granule Start Time           ", "Granule End Time             ", &

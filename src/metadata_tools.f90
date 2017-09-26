@@ -571,7 +571,7 @@ END SUBROUTINE check_metadata_consistency
 SUBROUTINE set_l2_metadata ( errstat )
 
   USE OMSAO_precision_module,  ONLY: i4
-  USE OMSAO_indices_module,    ONLY: md_inventory_idx, md_archive_idx, pge_l2_output_lun
+  USE OMSAO_indices_module,    ONLY: md_inventory_idx, md_archive_idx, l2_output_lun
   USE OMSAO_he5_module,        ONLY: n_lun_inp_max, n_lun_inp, lun_input
   USE OMSAO_metadata_module
   USE OMSAO_errstat_module, ONLY: f_sep, omsao_e_getlun, omsao_e_getref, omsao_e_mdinit, &
@@ -690,7 +690,7 @@ SUBROUTINE set_l2_metadata ( errstat )
   ! * Obtain L2 output filename
   !   (replicate what's being done in the READ_PCF_FILE subroutine)
   version = 1
-  md_stat = PGS_PC_GetReference (pge_l2_output_lun, version, pcfvar%l2_fname)
+  md_stat = PGS_PC_GetReference (l2_output_lun, version, pcfvar%l2_fname)
   IF ( md_stat /= PGS_S_SUCCESS .OR. LEN(TRIM(ADJUSTL(pcfvar%l2_fname))) == 0 ) THEN
      CALL error_check ( &
           1, 0, pge_errstat_error, OMSAO_E_GETLUN, &

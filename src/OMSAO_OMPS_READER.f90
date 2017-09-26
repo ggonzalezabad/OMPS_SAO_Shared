@@ -6,24 +6,20 @@
 ! with small modifications
 !!
 
-MODULE OMSAO_OMPS_READER
+MODULE OMSAO_omps_reader
 
   USE ReadH5dataset, ONLY: H5ReadDataset, H5ReadAttribute, ErrorFlag, &
        ErrorMessage ! Contains the generic HDF5 reading routines
 
-  IMPLICIT NONE
-  
   PRIVATE
-  PUBLIC :: OMPS_NMEV_READER
-
+  PUBLIC :: omps_nmev_type, omps_nmto3_type, omps_nmev_reader, omps_nmto3_reader
   INTEGER (KIND = 4), PARAMETER :: MAX_NAME_LENGTH = 256
 
-  TYPE, PUBLIC :: OMPS_NMEV_v2_type
+  TYPE omps_nmev_type
      CHARACTER (LEN=MAX_NAME_LENGTH) :: filename
      INTEGER(KIND=4)                 :: nLines
      INTEGER(KIND=4)                 :: nXtrack
      INTEGER(KIND=4)                 :: nWavel
-  
      ! ======================
      ! Data storage variables
      ! ======================
@@ -36,7 +32,6 @@ MODULE OMSAO_OMPS_READER
      REAL(KIND=4), DIMENSION(:,:),     POINTER :: SolarFlux => NULL()
      REAL(KIND=4), DIMENSION(:,:),     POINTER :: SolarFluxWavelengths => NULL()
      REAL(KIND=4), DIMENSION(:,:,:),   POINTER :: StrayLightCorrection => NULL()
-
      ! Geolocation data
      REAL(KIND=8), DIMENSION(:), POINTER :: ECISolarDeclination => NULL()
      REAL(KIND=8), DIMENSION(:), POINTER :: ECISolarRightAscension => NULL()
@@ -63,10 +58,8 @@ MODULE OMSAO_OMPS_READER
      REAL(KIND=8), DIMENSION(:), POINTER :: SubSatelliteSolarZenithAngle => NULL()
      REAL(KIND=8), POINTER :: SunEarthDistance => NULL()
      CHARACTER(LEN=MAX_NAME_LENGTH), DIMENSION(:), POINTER :: UTC_CCSDS_A => NULL()
-
      ! Input pointers
      CHARACTER(LEN=7000), POINTER :: ControlFileContents => NULL() !7000 expecting it to be long enough
-     
      ! Science data
      REAL(KIND=4), DIMENSION(:), POINTER :: ExposureTime => NULL()
      INTEGER(KIND=1), DIMENSION(:), POINTER :: NumberCoadds => NULL()
@@ -76,14 +69,13 @@ MODULE OMSAO_OMPS_READER
      REAL(KIND=4), DIMENSION(:,:,:), POINTER :: RawCounts => NULL()
      INTEGER(KIND=4), DIMENSION(:), POINTER :: ReportIntQualFlags => NULL()
      INTEGER(KIND=4), DIMENSION(:), POINTER :: SensorStatusBits => NULL()
-  END TYPE OMPS_NMEV_v2_type
+  END TYPE omps_nmev_type
 
-  TYPE, PUBLIC :: OMPS_NMTO3_type
+  TYPE omps_nmto3_type
      CHARACTER (LEN=MAX_NAME_LENGTH) :: filename
      INTEGER(KIND=4) :: nLines
      INTEGER(KIND=4) :: nXtrack
      INTEGER(KIND=4) :: nWavel
-
      ! ======================
      ! Data storage variables
      ! ======================
@@ -91,18 +83,16 @@ MODULE OMSAO_OMPS_READER
      REAL(KIND=4), DIMENSION(:,:), POINTER :: CloudPressure => NULL()
      INTEGER(KIND=4), DIMENSION(:,:), POINTER :: SurfaceCategory => NULL()
      REAL(KIND=4), DIMENSION(:,:), POINTER :: TerrainPressure => NULL()
-
      ! Geolocation data
      REAL(KIND=4), DIMENSION(:,:), POINTER :: Latitude => NULL()
-     REAL(KIND=4), DIMENSION(:,:), POINTER :: LatidudeCorner => NULL()
+     REAL(KIND=4), DIMENSION(:,:,:), POINTER :: LatitudeCorner => NULL()
      REAL(KIND=4), DIMENSION(:,:), POINTER :: Longitude => NULL()
-     REAL(KIND=4), DIMENSION(:,:), POINTER :: LongitudeCorner => NULL()
+     REAL(KIND=4), DIMENSION(:,:,:), POINTER :: LongitudeCorner => NULL()
      REAL(KIND=4), DIMENSION(:,:), POINTER :: RelativeAzimuthAngle => NULL()
      REAL(KIND=4), DIMENSION(:,:), POINTER :: SolarAzimuthAngle => NULL()
      REAL(KIND=4), DIMENSION(:,:), POINTER :: SolarZenithAngle => NULL()
      REAL(KIND=4), DIMENSION(:,:), POINTER :: ViewingAzimuthAngle => NULL()
      REAL(KIND=4), DIMENSION(:,:), POINTER :: ViewingZenithAngle => NULL()
-
      ! Science data
      REAL(KIND=4), DIMENSION(:,:), POINTER :: ColumnAmountO3 => NULL()
      INTEGER(KIND=1), DIMENSION(:), POINTER :: MeasurementQualityFlags => NULL()
@@ -110,9 +100,11 @@ MODULE OMSAO_OMPS_READER
      REAL(KIND=4), DIMENSION(:,:), POINTER :: RadiativeCloudFraction => NULL()
      REAL(KIND=4), DIMENSION(:,:), POINTER :: Reflectivity331 => NULL()
      REAL(KIND=4), DIMENSION(:,:), POINTER :: Reflectivity360 => NULL()
-  END type OMPS_NMTO3_type
+  END TYPE omps_nmto3_type
+
 CONTAINS
-  FUNCTION OMPS_NMEV_READER(this, filename) RESULT(status)
+
+  FUNCTION omps_nmev_reader(this, filename) RESULT(status)
 
     ! I'm going to use the Belgiums hdf5 reader
     ! The most recent version of the package is available at:
@@ -121,13 +113,15 @@ CONTAINS
     ! type files is going to be readed for possible future use.
     ! Stand alone version.
     
+    IMPLICIT NONE
+
     CHARACTER (LEN=*) :: filename
-    TYPE (OMPS_NMEV_v2_type), INTENT(INOUT) :: this
+    TYPE (OMPS_NMEV_type), INTENT(INOUT) :: this
     INTEGER(KIND=4) :: status, ierr
     
-    ! --------------------------------------
-    ! Allocate memory, first deallocating it
-    ! --------------------------------------
+    ! -------------------------------------
+    ! Make sure pointers are not associated
+    ! -------------------------------------
     IF (ASSOCIATED(this%BandCenterWavelengths)) DEALLOCATE(this%BandCenterWavelengths)
     IF (ASSOCIATED(this%CCDRowColIndicies)) DEALLOCATE(this%CCDRowColIndicies)
     IF (ASSOCIATED(this%DarkCurrentCorrection)) DEALLOCATE(this%DarkCurrentCorrection)
@@ -571,6 +565,231 @@ CONTAINS
 990 WRITE(*, '(A)') ErrorMessage
     status = 2
     RETURN
-    
-  END FUNCTION OMPS_NMEV_READER
-END MODULE OMSAO_OMPS_READER
+  END FUNCTION omps_nmev_reader
+
+  FUNCTION omps_nmto3_reader(this, filename) RESULT(status)
+
+    IMPLICIT NONE
+
+    CHARACTER (LEN=*) :: filename
+    TYPE(omps_nmto3_type), INTENT(INOUT) :: this
+    INTEGER(KIND=4) :: status, ierr
+
+    ! -------------------------------------
+    ! Make sure pointers are not associated
+    ! -------------------------------------
+     ! Ancillary data
+    IF (ASSOCIATED(this%CloudPressure)) DEALLOCATE(this%CloudPressure)
+    IF (ASSOCIATED(this%SurfaceCategory)) DEALLOCATE(this%SurfaceCategory)
+    IF (ASSOCIATED(this%TerrainPressure)) DEALLOCATE(this%TerrainPressure)
+    ! Geolocation data
+    IF (ASSOCIATED(this%Latitude)) DEALLOCATE(this%Latitude)
+    IF (ASSOCIATED(this%LatitudeCorner)) DEALLOCATE(this%LatitudeCorner)
+    IF (ASSOCIATED(this%Longitude)) DEALLOCATE(this%Longitude)
+    IF (ASSOCIATED(this%LongitudeCorner)) DEALLOCATE(this%LongitudeCorner)
+    IF (ASSOCIATED(this%RelativeAzimuthAngle)) DEALLOCATE(this%RelativeAzimuthAngle)
+    IF (ASSOCIATED(this%SolarAzimuthAngle)) DEALLOCATE(this%SolarAzimuthAngle)
+    IF (ASSOCIATED(this%SolarZenithAngle)) DEALLOCATE(this%SolarZenithAngle)
+    IF (ASSOCIATED(this%ViewingAzimuthAngle)) DEALLOCATE(this%ViewingAzimuthAngle)
+    IF (ASSOCIATED(this%ViewingZenithAngle)) DEALLOCATE(this%ViewingZenithAngle)
+     ! Science data
+    IF (ASSOCIATED(this%ColumnAmountO3)) DEALLOCATE(this%ColumnAmountO3)
+    IF (ASSOCIATED(this%MeasurementQualityFlags)) DEALLOCATE(this%MeasurementQualityFlags)
+    IF (ASSOCIATED(this%QualityFlags)) DEALLOCATE(this%QualityFlags)
+    IF (ASSOCIATED(this%RadiativeCloudFraction)) DEALLOCATE(this%RadiativeCloudFraction)
+    IF (ASSOCIATED(this%Reflectivity331)) DEALLOCATE(this%Reflectivity331)
+    IF (ASSOCIATED(this%Reflectivity360)) DEALLOCATE(this%Reflectivity360)
+
+    ! ----------------------------------------------------------
+    ! Filling up the dimension variables nLines, nXtrack, nWavel
+    ! ----------------------------------------------------------
+    CALL H5ReadDataset(filename, &
+         "/AncillaryData/CloudPressure", this%nLines, this%nXtrack)
+
+    ALLOCATE(this%CloudPressure(this%nXtrack,this%nLines), STAT = ierr)
+    IF ( ierr .NE. 0 ) THEN
+       ErrorMessage = 'Error allocating cloud pressure'
+       GOTO 990
+    END IF
+    ALLOCATE(this%SurfaceCategory(this%nXtrack,this%nLines), STAT = ierr)
+    IF ( ierr .NE. 0 ) THEN
+       ErrorMessage = 'Error allocating surface category'
+       GOTO 990
+    END IF
+    ALLOCATE(this%TerrainPressure(this%nXtrack,this%nLines), STAT = ierr)
+    IF ( ierr .NE. 0 ) THEN
+       ErrorMessage = 'Error allocating terrain pressure'
+       GOTO 990
+    END IF
+    ALLOCATE(this%Latitude(this%nXtrack,this%nLines), STAT = ierr)
+    IF ( ierr .NE. 0 ) THEN
+       ErrorMessage = 'Error allocating Latitude'
+       GOTO 990
+    END IF
+    ALLOCATE(this%LatitudeCorner(4,this%nXtrack,this%nLines), STAT = ierr)
+    IF ( ierr .NE. 0 ) THEN
+       ErrorMessage = 'Error allocating Latitude Corner'
+       GOTO 990
+    END IF
+    ALLOCATE(this%Longitude(this%nXtrack,this%nLines), STAT = ierr)
+    IF ( ierr .NE. 0 ) THEN
+       ErrorMessage = 'Error allocating Longitude'
+       GOTO 990
+    END IF
+    ALLOCATE(this%LongitudeCorner(4,this%nXtrack,this%nLines), STAT = ierr)
+    IF ( ierr .NE. 0 ) THEN
+       ErrorMessage = 'Error allocating Longitude Corner'
+       GOTO 990
+    END IF
+    ALLOCATE(this%RelativeAzimuthAngle(this%nXtrack,this%nLines), STAT = ierr)
+    IF ( ierr .NE. 0 ) THEN
+       ErrorMessage = 'Error allocating Relative Azimuth Angle'
+       GOTO 990
+    END IF
+    ALLOCATE(this%SolarAzimuthAngle(this%nXtrack,this%nLines), STAT = ierr)
+    IF ( ierr .NE. 0 ) THEN
+       ErrorMessage = 'Error allocating Solar Azimuth Angle'
+       GOTO 990
+    END IF
+    ALLOCATE(this%SolarZenithAngle(this%nXtrack,this%nLines), STAT = ierr)
+    IF ( ierr .NE. 0 ) THEN
+       ErrorMessage = 'Error allocating Solar Zenith Angle'
+       GOTO 990
+    END IF
+    ALLOCATE(this%ViewingAzimuthAngle(this%nXtrack,this%nLines), STAT = ierr)
+    IF ( ierr .NE. 0 ) THEN
+       ErrorMessage = 'Error allocating Viewing Azimuth Angle'
+       GOTO 990
+    END IF
+    ALLOCATE(this%ViewingZenithAngle(this%nXtrack,this%nLines), STAT = ierr)
+    IF ( ierr .NE. 0 ) THEN
+       ErrorMessage = 'Error allocating Viewing Zenith Angle'
+       GOTO 990
+    END IF
+    ALLOCATE(this%ColumnAmountO3(this%nXtrack,this%nLines), STAT = ierr)
+    IF ( ierr .NE. 0 ) THEN
+       ErrorMessage = 'Error allocating Column Amount O3'
+       GOTO 990
+    END IF
+    ALLOCATE(this%MeasurementQualityFlags(this%nLines), STAT = ierr)
+    IF ( ierr .NE. 0 ) THEN
+       ErrorMessage = 'Error allocating Measurement Quality Flags'
+       GOTO 990
+    END IF
+    ALLOCATE(this%QualityFlags(this%nXtrack,this%nLines), STAT = ierr)
+    IF ( ierr .NE. 0 ) THEN
+       ErrorMessage = 'Error allocating Quality Flags'
+       GOTO 990
+    END IF
+    ALLOCATE(this%RadiativeCloudFraction(this%nXtrack,this%nLines), STAT = ierr)
+    IF ( ierr .NE. 0 ) THEN
+       ErrorMessage = 'Error allocating Radiatice Cloud Fraction'
+       GOTO 990
+    END IF
+    ALLOCATE(this%Reflectivity331(this%nXtrack,this%nLines), STAT = ierr)
+    IF ( ierr .NE. 0 ) THEN
+       ErrorMessage = 'Error allocating Reflectivity 331'
+       GOTO 990
+    END IF
+    ALLOCATE(this%Reflectivity360(this%nXtrack,this%nLines), STAT = ierr)
+    IF ( ierr .NE. 0 ) THEN
+       ErrorMessage = 'Error allocating Reflectivity 360'
+       GOTO 990
+    END IF
+
+    ! ============
+    ! Reading data
+    ! ============
+    ! ----------------
+    ! Ancillary data
+    ! ----------------
+    CALL H5ReadDataset(filename, &
+         "/AncillaryData/CloudPressure", &
+         this%CloudPressure)
+    IF (ErrorFlag.NE.0) GOTO 990
+    CALL H5ReadDataset(filename, &
+         "/AncillaryData/SurfaceCategory", &
+         this%SurfaceCategory)
+    IF (ErrorFlag.NE.0) GOTO 990
+    CALL H5ReadDataset(filename, &
+         "/AncillaryData/TerrainPressure", &
+         this%TerrainPressure)
+    IF (ErrorFlag.NE.0) GOTO 990
+
+    ! ----------------
+    ! Geolocation data
+    ! ----------------
+    CALL H5ReadDataset(filename, &
+         "/GeolocationData/Latitude", &
+         this%Latitude)
+    IF (ErrorFlag.NE.0) GOTO 990
+    CALL H5ReadDataset(filename, &
+         "/GeolocationData/LatitudeCorner", &
+         this%LatitudeCorner)
+    IF (ErrorFlag.NE.0) GOTO 990
+    CALL H5ReadDataset(filename, &
+         "/GeolocationData/Longitude", &
+         this%Longitude)
+    IF (ErrorFlag.NE.0) GOTO 990
+    CALL H5ReadDataset(filename, &
+         "/GeolocationData/LongitudeCorner", &
+         this%LongitudeCorner)
+    IF (ErrorFlag.NE.0) GOTO 990
+    CALL H5ReadDataset(filename, &
+         "/GeolocationData/RelativeAzimuthAngle", &
+         this%RelativeAzimuthAngle)
+    IF (ErrorFlag.NE.0) GOTO 990
+    CALL H5ReadDataset(filename, &
+         "/GeolocationData/SolarAzimuthAngle", &
+         this%SolarAzimuthAngle)
+    IF (ErrorFlag.NE.0) GOTO 990
+    CALL H5ReadDataset(filename, &
+         "/GeolocationData/SolarZenithAngle", &
+         this%SolarZenithAngle)
+    IF (ErrorFlag.NE.0) GOTO 990
+    CALL H5ReadDataset(filename, &
+         "/GeolocationData/ViewingAzimuthAngle", &
+         this%ViewingAzimuthAngle)
+    IF (ErrorFlag.NE.0) GOTO 990
+    CALL H5ReadDataset(filename, &
+         "/GeolocationData/ViewingZenithAngle", &
+         this%ViewingZenithAngle)
+    IF (ErrorFlag.NE.0) GOTO 990
+
+    ! ------------
+    ! Science data
+    ! ------------
+    CALL H5ReadDataset(filename, &
+         "/ScienceData/ColumnAmountO3", &
+         this%ColumnAmountO3)
+    IF (ErrorFlag.NE.0) GOTO 990
+    CALL H5ReadDataset(filename, &
+         "/ScienceData/MeasurementQualityFlags", &
+         this%MeasurementQualityFlags)
+    IF (ErrorFlag.NE.0) GOTO 990
+    CALL H5ReadDataset(filename, &
+         "/ScienceData/QualityFlags", &
+         this%QualityFlags)
+    IF (ErrorFlag.NE.0) GOTO 990
+    CALL H5ReadDataset(filename, &
+         "/ScienceData/RadiativeCloudFraction", &
+         this%RadiativeCloudFraction)
+    IF (ErrorFlag.NE.0) GOTO 990
+    CALL H5ReadDataset(filename, &
+         "/ScienceData/Reflectivity331", &
+         this%Reflectivity331)
+    IF (ErrorFlag.NE.0) GOTO 990
+    CALL H5ReadDataset(filename, &
+         "/ScienceData/Reflectivity360", &
+         this%Reflectivity360)
+    IF (ErrorFlag.NE.0) GOTO 990
+
+    status = ErrorFlag
+    RETURN
+990 WRITE(*, '(A)') ErrorMessage
+    status = 2
+    RETURN
+  END FUNCTION omps_nmto3_reader
+
+
+END MODULE OMSAO_omps_reader
