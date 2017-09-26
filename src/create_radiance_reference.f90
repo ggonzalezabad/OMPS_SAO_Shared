@@ -26,7 +26,7 @@ SUBROUTINE create_radiance_reference (nt, nx, nw, locerrstat)
   ! ---------------
   ! Local variables
   ! ---------------
-  TYPE (TC_SDR_OMPS_type)                    :: OMPS_data_radiance_reference
+  TYPE (OMPS_NMEV_v2_type) :: OMPS_data_radiance_reference
   INTEGER (KIND=i2)                          :: omps_reader_status_reference
   INTEGER (KIND=i2), DIMENSION(nw)           :: qflg_mask
   REAL    (KIND=r4)                          :: lat_midpt
@@ -51,7 +51,7 @@ SUBROUTINE create_radiance_reference (nt, nx, nw, locerrstat)
   ! ------------------------------------
   ! Read OMPS radiance reference granule
   ! ------------------------------------
-  omps_reader_status_reference = TC_SDR_OMPS_READER(OMPS_data_radiance_reference, &
+  omps_reader_status_reference = OMPS_NMEV_READER(OMPS_data_radiance_reference, &
                                                     pcfvar%l1b_radref_fname)
 
   latr4(1:nx,0:nt-1)                  = OMPS_data_radiance_reference%Latitude(1:nx,1:nt)

@@ -1,13 +1,14 @@
 SUBROUTINE omi_pge_fitting_process ( pge_idx, n_max_rspec,             &
                                      pge_error_status )
 
-  USE OMSAO_precision_module
+  USE OMSAO_precision_module, ONLY: i4
   USE OMSAO_errstat_module, ONLY: pge_errstat_ok, pge_errstat_error, &
-       pge_errstat_fatal
+       pge_errstat_fatal, error_check, f_sep, omsao_f_subroutine, &
+       vb_lev_default, pge_error_status_exit
   USE OMSAO_he5_module, ONLY: NrofScanLines, NrofCrossTrackPixels
   USE OMSAO_variables_module, ONLY: pcfvar
   USE OMSAO_solcomp_module, ONLY: soco_pars_deallocate
-  USE OMSAO_OMPS_READER
+  USE OMSAO_OMPS_READER, ONLY: OMPS_NMEV_v2_type, OMPS_NMEV_READER
 
   IMPLICIT NONE
 
@@ -27,29 +28,32 @@ SUBROUTINE omi_pge_fitting_process ( pge_idx, n_max_rspec,             &
   INTEGER (KIND=i4) :: nTimesRad,   nXtrackRad,   nWvlCCD
   INTEGER (KIND=i4) :: nTimesRadRR, nXtrackRadRR, nWvlCCDrr
   INTEGER (KIND=i4) :: errstat
+  CHARACTER(LEN=23) :: modulename = 'omi_pge_fitting_process'
 
   ! ---------------------
   ! OMPS reader variables
   ! ---------------------
-  TYPE (TC_SDR_OMPS_type) :: OMPS_data
-  TYPE (TC_SDR_OMPS_type) :: OMPS_data_radiance_reference
-  INTEGER (KIND=i2)       :: omps_reader_status
+  TYPE (OMPS_NMEV_v2_type) :: OMPS_data
+  TYPE (OMPS_NMEV_v2_type) :: OMPS_data_radiance_reference
+  INTEGER (KIND=i4) :: omps_reader_status
   
   pge_error_status = pge_errstat_ok
-  stop
   ! ----------------------------------------------------------------------------------
-  ! Since the OMPS TC files are not that big I'm going to read here the whole file and
+  ! Since the OMPS NM files are not that big I'm going to read here the whole file and
   ! assign the values needed to the significant variables. After this no more reading
   ! will be needed.
   ! ----------------------------------------------------------------------------------
-  omps_reader_status = TC_SDR_OMPS_READER(OMPS_data,TRIM(ADJUSTL(pcfvar%l1b_rad_fname)))
-  pge_error_status = ABS(MIN(pge_error_status, INT(omps_reader_status,KIND=4)))
+  omps_reader_status = OMPS_NMEV_READER(OMPS_data,TRIM(ADJUSTL(pcfvar%l1b_rad_fname)))
+  CALL error_check ( INT(omps_reader_status,KIND=i4), pge_errstat_ok, pge_errstat_fatal, OMSAO_F_SUBROUTINE, &
+       modulename//f_sep//"Read OMPS radiance data.", vb_lev_default, pge_error_status )
+  IF ( pge_error_status >= pge_errstat_error ) GOTO 666
+
+  omps_reader_status = OMPS_NMEV_READER(OMPS_data_radiance_reference,TRIM(ADJUSTL(pcfvar%l1b_radref_fname)))
+  CALL error_check ( INT(omps_reader_status,KIND=i4), pge_errstat_ok, pge_errstat_fatal, OMSAO_F_SUBROUTINE, &
+       modulename//f_sep//"Read OMPS radiance reference data.", vb_lev_default, pge_error_status )
   IF (pge_error_status >= pge_errstat_error ) GO TO 666
 
-  omps_reader_status = TC_SDR_OMPS_READER(OMPS_data_radiance_reference,TRIM(ADJUSTL(pcfvar%l1b_radref_fname)))
-  pge_error_status = ABS(MIN(pge_error_status, INT(omps_reader_status,KIND=4)))
-  IF (pge_error_status >= pge_errstat_error ) GO TO 666
-  
+  stop
   ! ---------------------------------------------
   ! Fudge to fill up the OMI variables to be used
   ! later on (irradiance, radiance, ...)
@@ -58,7 +62,6 @@ SUBROUTINE omi_pge_fitting_process ( pge_idx, n_max_rspec,             &
   ! Substitutes: omi_read_irradiance
   !              omi_read_radiance
   ! ---------------------------------------------
-  pge_error_status = MAX ( pge_error_status, errstat )
   IF ( pge_error_status >= pge_errstat_error ) GO TO 666
 
   
@@ -80,7 +83,11 @@ SUBROUTINE omi_pge_fitting_process ( pge_idx, n_max_rspec,             &
        nTimesRadRR, nXtrackRadRR, nWvlCCDrr, OMPS_data_radiance_reference, pge_error_status       )
 
   IF ( pge_error_status >= pge_errstat_fatal ) GO TO 666
-  
+
+  ! -------------------------------------------------
+  ! Deallocation of some potentially allocated memory
+  ! -------------------------------------------------
+  CALL soco_pars_deallocate (errstat)  
   
   ! -------------------------------------------------------------
   ! Here is the place to jump to in case some error has occurred.
@@ -89,13 +96,7 @@ SUBROUTINE omi_pge_fitting_process ( pge_idx, n_max_rspec,             &
   ! taking any particular action at this point.
   ! -------------------------------------------------------------
 666 CONTINUE
-
-  ! -------------------------------------------------
-  ! Deallocation of some potentially allocated memory
-  ! -------------------------------------------------
-  CALL soco_pars_deallocate (errstat)
-
-  IF ( pge_error_status >= pge_errstat_fatal ) RETURN
+  IF ( pge_error_status >= pge_errstat_error ) RETURN
 
   RETURN
 END SUBROUTINE omi_pge_fitting_process
@@ -126,7 +127,7 @@ SUBROUTINE omi_fitting (                                  &
   USE OMSAO_wfamf_module, ONLY: omi_read_climatology, CmETA, amf_calculation_bis
   USE OMSAO_pixelcorner_module, ONLY: compute_pixel_corners
   USE OMSAO_Reference_sector_module, ONLY: Reference_Sector_Correction
-  USE OMSAO_OMPS_READER, ONLY: tc_sdr_omps_type
+  USE OMSAO_OMPS_READER, ONLY: omps_nmev_v2_type
 
   IMPLICIT NONE
 
@@ -135,7 +136,7 @@ SUBROUTINE omi_fitting (                                  &
   ! ---------------
   INTEGER (KIND=i4), INTENT (IN) :: pge_idx, nTimesRad, nXtrackRad, n_max_rspec
   INTEGER (KIND=i4), INTENT (IN) :: nTimesRadRR, nWvlCCDrr, nXtrackRadRR
-  TYPE (TC_SDR_OMPS_type), INTENT(IN) :: OMPS_data_radiance_reference
+  TYPE (OMPS_NMEV_v2_type), INTENT(IN) :: OMPS_data_radiance_reference
   
   ! ---------------
   ! Output variable

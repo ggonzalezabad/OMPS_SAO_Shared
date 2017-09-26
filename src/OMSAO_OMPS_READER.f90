@@ -2,42 +2,31 @@
 !!
 ! Created by gga January 2014
 !!
-! All he5 internals are done by the belgioum (BIRA) module ReadH5dataset
+! All he5 internals are done by the belgium (BIRA) module ReadH5dataset
 ! with small modifications
 !!
 
 MODULE OMSAO_OMPS_READER
 
-  USE ReadH5dataset ! Contains the generic HDF5 reading routines
+  USE ReadH5dataset, ONLY: H5ReadDataset, H5ReadAttribute, ErrorFlag, &
+       ErrorMessage ! Contains the generic HDF5 reading routines
 
   IMPLICIT NONE
   
-  PUBLIC :: TC_SDR_OMPS_READER
+  PRIVATE
+  PUBLIC :: OMPS_NMEV_READER
 
-  INTEGER (KIND = 4), PARAMETER, PUBLIC :: MAX_NAME_LENGTH = 256
+  INTEGER (KIND = 4), PARAMETER :: MAX_NAME_LENGTH = 256
 
-  TYPE, PUBLIC :: TC_SDR_OMPS_type
+  TYPE, PUBLIC :: OMPS_NMEV_v2_type
      CHARACTER (LEN=MAX_NAME_LENGTH) :: filename
      INTEGER(KIND=4)                 :: nLines
      INTEGER(KIND=4)                 :: nXtrack
      INTEGER(KIND=4)                 :: nWavel
-     INTEGER(KIND=4)                 :: nLevel
-     INTEGER(KIND=4)                 :: nProf
-     
+  
+     ! ======================
      ! Data storage variables
-     ! =================================================================
-     ! Ancillary data
-     REAL(KIND=4), DIMENSION(:,:),     POINTER :: CloudPressure => NULL()
-     REAL(KIND=4), DIMENSION(:,:,:,:), POINTER :: O3Profile => NULL()
-     REAL(KIND=4), DIMENSION(:),       POINTER :: PressureProfile => NULL()
-     REAL(KIND=4), DIMENSION(:,:),     POINTER :: SnowIceFraction => NULL()
-     REAL(KIND=4), DIMENSION(:,:),     POINTER :: StandardDeviation => NULL()
-     REAL(KIND=4), DIMENSION(:,:),     POINTER :: SurfaceReflectivity => NULL()
-     REAL(KIND=4), DIMENSION(:,:,:),   POINTER :: TemperatureProfile => NULL()
-     REAL(KIND=4), DIMENSION(:,:),     POINTER :: TerrainPressure => NULL()
-     REAL(KIND=4), DIMENSION(:,:),     POINTER :: TropopausePressure => NULL()
-     REAL(KIND=4), DIMENSION(:,:,:,:), POINTER :: TroposphericO3 => NULL()
-
+     ! ======================
      ! Calibration data
      REAL(KIND=4), DIMENSION(:,:,:),   POINTER :: BandCenterWavelengths => NULL()
      INTEGER(KIND=2), DIMENSION(:,:,:),POINTER :: CCDRowColIndicies => NULL()
@@ -46,595 +35,509 @@ MODULE OMSAO_OMPS_READER
      REAL(KIND=4), DIMENSION(:,:,:),   POINTER :: SmearCorrection => NULL()
      REAL(KIND=4), DIMENSION(:,:),     POINTER :: SolarFlux => NULL()
      REAL(KIND=4), DIMENSION(:,:),     POINTER :: SolarFluxWavelengths => NULL()
-     
+     REAL(KIND=4), DIMENSION(:,:,:),   POINTER :: StrayLightCorrection => NULL()
+
      ! Geolocation data
-     REAL(KIND=8), DIMENSION(:),       POINTER :: GoniometricSolarAzimuth => NULL()
-     REAL(KIND=8), DIMENSION(:),       POINTER :: GoniometricSolarElevation => NULL()
-     INTEGER(KIND=2), DIMENSION(:,:),  POINTER :: GroundPixelQualityFlags => NULL()
-     REAL(KIND=8), DIMENSION(:),       POINTER :: ImageMidpoint_TAI93 => NULL()
-     INTEGER(KIND=2), DIMENSION(:),    POINTER :: InstrumentQualityFlags => NULL()
-     REAL(KIND=4), DIMENSION(:,:),     POINTER :: Latitude => NULL()
-     REAL(KIND=4), DIMENSION(:,:),     POINTER :: Longitude => NULL()
-     REAL(KIND=4), DIMENSION(:,:),     POINTER :: SatelliteAzimuth => NULL()
-     REAL(KIND=4), DIMENSION(:,:),     POINTER :: SatelliteZenithAngle => NULL()
-     REAL(KIND=4), DIMENSION(:,:),     POINTER :: SolarAzimuth => NULL()
-     REAL(KIND=8), DIMENSION(:),       POINTER :: SolarBeta => NULL()
-     REAL(KIND=8), DIMENSION(:),       POINTER :: SolarDeclination_ECI => NULL()
-     REAL(KIND=8), DIMENSION(:),       POINTER :: SolarRightAscension_ECI => NULL()
-     REAL(KIND=8), DIMENSION(:,:),     POINTER :: SolarUnitVectorECI => NULL()
-     REAL(KIND=4), DIMENSION(:,:),     POINTER :: SolarZenithAngle => NULL()
-     REAL(KIND=8), DIMENSION(:),       POINTER :: SpacecraftAltitude => NULL()
-     REAL(KIND=8), DIMENSION(:),       POINTER :: SpacecraftLatitude => NULL()
-     REAL(KIND=8), DIMENSION(:),       POINTER :: SpacecraftLongitude => NULL()
-     REAL(KIND=8), DIMENSION(:,:),     POINTER :: SpacecraftPositionECI => NULL()
-     REAL(KIND=8), DIMENSION(:,:),     POINTER :: SpacecraftVelocityECI => NULL()
-     REAL(KIND=8), DIMENSION(:),       POINTER :: SubSatelliteSolarZenithAngle => NULL()
-     REAL(KIND=8), DIMENSION(:),       POINTER :: SunEarthDistance => NULL()
-     CHARACTER(LEN=MAX_NAME_LENGTH), &
-          DIMENSION(:), POINTER :: UTC_CCSDS_A => NULL()
-     REAL(KIND=4), DIMENSION(:),       POINTER :: expose => NULL()
+     REAL(KIND=8), DIMENSION(:), POINTER :: ECISolarDeclination => NULL()
+     REAL(KIND=8), DIMENSION(:), POINTER :: ECISolarRightAscension => NULL()
+     REAL(KIND=8), DIMENSION(:,:), POINTER :: ECISolarUnitVector => NULL()
+     REAL(KIND=8), DIMENSION(:,:), POINTER :: ECISpacecraftPosition => NULL()
+     REAL(KIND=8), DIMENSION(:,:), POINTER :: ECISpacecraftVelocity => NULL()
+     REAL(KIND=8), DIMENSION(:), POINTER :: GoniometricSolarAzimuth => NULL()
+     REAL(KIND=8), DIMENSION(:), POINTER :: GoniometricSolarElevation => NULL()
+     INTEGER(KIND=2), DIMENSION(:,:), POINTER :: GroundPixelQualityFlags => NULL()
+     REAL(KIND=8), DIMENSION(:), POINTER :: ImageMidpoint_TAI93 => NULL()
+     INTEGER(KIND=2), DIMENSION(:), POINTER :: InstrumentQualityFlags => NULL()
+     REAL(KIND=4), DIMENSION(:,:), POINTER :: Latitude => NULL()
+     REAL(KIND=4), DIMENSION(:,:,:), POINTER :: LatitudeCorner => NULL()
+     REAL(KIND=4), DIMENSION(:,:), POINTER :: Longitude => NULL()
+     REAL(KIND=4), DIMENSION(:,:,:), POINTER :: LongitudeCorner => NULL()
+     REAL(KIND=4), DIMENSION(:,:), POINTER :: SatelliteAzimuth => NULL()
+     REAL(KIND=4), DIMENSION(:,:), POINTER :: SatelliteZenithAngle => NULL()
+     REAL(KIND=4), DIMENSION(:,:), POINTER :: SolarAzimuth => NULL()
+     REAL(KIND=8), DIMENSION(:), POINTER :: SolarBeta => NULL()
+     REAL(KIND=4), DIMENSION(:,:), POINTER :: SolarZenithAngle => NULL()
+     REAL(KIND=8), DIMENSION(:), POINTER :: SpacecraftAltitude => NULL()
+     REAL(KIND=8), DIMENSION(:), POINTER :: SpacecraftLatitude => NULL()
+     REAL(KIND=8), DIMENSION(:), POINTER :: SpacecraftLongitude => NULL()
+     REAL(KIND=8), DIMENSION(:), POINTER :: SubSatelliteSolarZenithAngle => NULL()
+     REAL(KIND=8), POINTER :: SunEarthDistance => NULL()
+     CHARACTER(LEN=MAX_NAME_LENGTH), DIMENSION(:), POINTER :: UTC_CCSDS_A => NULL()
 
      ! Input pointers
-     CHARACTER(LEN=6000) :: ControlFileContents !5000 expecting it to be long enough
+     CHARACTER(LEN=7000), POINTER :: ControlFileContents => NULL() !7000 expecting it to be long enough
      
      ! Science data
-     REAL(KIND=4), DIMENSION(:,:),     POINTER :: ExposureTime => NULL()
-     REAL(KIND=4), DIMENSION(:,:),     POINTER :: HousekeepingData => NULL()
-     INTEGER(KIND=1), DIMENSION(:,:),  POINTER :: NumberCoadds => NULL()
-     INTEGER(KIND=2), DIMENSION(:,:,:),POINTER :: PixelQualityFlags => NULL()
-     REAL(KIND=4), DIMENSION(:,:,:),   POINTER :: Radiance => NULL()
-     REAL(KIND=4), DIMENSION(:,:,:),   POINTER :: RadianceError => NULL()
-     REAL(KIND=4), DIMENSION(:,:,:),   POINTER :: RawCounts => NULL()
-     INTEGER(KIND=4), DIMENSION(:),    POINTER :: ReportIntQualFlags => NULL()
-     INTEGER(KIND=4), DIMENSION(:),    POINTER :: SensorStatusBits => NULL()
+     REAL(KIND=4), DIMENSION(:), POINTER :: ExposureTime => NULL()
+     INTEGER(KIND=1), DIMENSION(:), POINTER :: NumberCoadds => NULL()
+     INTEGER(KIND=2), DIMENSION(:,:,:), POINTER :: PixelQualityFlags => NULL()
+     REAL(KIND=4), DIMENSION(:,:,:), POINTER :: Radiance => NULL()
+     REAL(KIND=4), DIMENSION(:,:,:), POINTER :: RadianceError => NULL()
+     REAL(KIND=4), DIMENSION(:,:,:), POINTER :: RawCounts => NULL()
+     INTEGER(KIND=4), DIMENSION(:), POINTER :: ReportIntQualFlags => NULL()
+     INTEGER(KIND=4), DIMENSION(:), POINTER :: SensorStatusBits => NULL()
+  END TYPE OMPS_NMEV_v2_type
 
-     END TYPE TC_SDR_OMPS_type
+CONTAINS
+  FUNCTION OMPS_NMEV_READER(this, filename) RESULT(status)
 
-     CONTAINS
-       FUNCTION TC_SDR_OMPS_READER(this, filename) RESULT(status)
+    ! I'm going to use the Belgiums hdf5 reader
+    ! The most recent version of the package is available at:
+    ! http://uv-vis.aeronomie.be/software/tools/hdf5read.php
+    ! All information available on the OMPS-NPP-NPP-TC_SDR_EV_NASA
+    ! type files is going to be readed for possible future use.
+    ! Stand alone version.
+    
+    CHARACTER (LEN=*) :: filename
+    TYPE (OMPS_NMEV_v2_type), INTENT(INOUT) :: this
+    INTEGER(KIND=4) :: status, ierr
+    
+    ! --------------------------------------
+    ! Allocate memory, first deallocating it
+    ! --------------------------------------
+    IF (ASSOCIATED(this%BandCenterWavelengths)) DEALLOCATE(this%BandCenterWavelengths)
+    IF (ASSOCIATED(this%CCDRowColIndicies)) DEALLOCATE(this%CCDRowColIndicies)
+    IF (ASSOCIATED(this%DarkCurrentCorrection)) DEALLOCATE(this%DarkCurrentCorrection)
+    IF (ASSOCIATED(this%RadianceCalCoeff)) DEALLOCATE(this%RadianceCalCoeff)
+    IF (ASSOCIATED(this%SmearCorrection)) DEALLOCATE(this%SmearCorrection)
+    IF (ASSOCIATED(this%SolarFlux)) DEALLOCATE(this%SolarFlux)
+    IF (ASSOCIATED(this%SolarFluxWavelengths)) DEALLOCATE(this%SolarFluxWavelengths)
+    IF (ASSOCIATED(this%StrayLightCorrection)) DEALLOCATE(this%StrayLightCorrection)
+    
+    IF (ASSOCIATED(this%ECISolarDeclination)) DEALLOCATE(this%ECISolarDeclination)
+    IF (ASSOCIATED(this%ECISolarRightAscension)) DEALLOCATE(this%ECISolarRightAscension)
+    IF (ASSOCIATED(this%ECISolarUnitVector)) DEALLOCATE(this%ECISolarUnitVector)
+    IF (ASSOCIATED(this%ECISpacecraftPosition)) DEALLOCATE(this%ECISpacecraftPosition)
+    IF (ASSOCIATED(this%ECISpacecraftVelocity)) DEALLOCATE(this%ECISpacecraftVelocity)
+    IF (ASSOCIATED(this%GoniometricSolarAzimuth)) DEALLOCATE(this%GoniometricSolarAzimuth)
+    IF (ASSOCIATED(this%GoniometricSolarElevation)) DEALLOCATE(this%GoniometricSolarElevation)
+    IF (ASSOCIATED(this%GroundPixelQualityFlags)) DEALLOCATE(this%GroundPixelQualityFlags)
+    IF (ASSOCIATED(this%ImageMidpoint_TAI93)) DEALLOCATE(this%ImageMidpoint_TAI93)
+    IF (ASSOCIATED(this%InstrumentQualityFlags)) DEALLOCATE(this%InstrumentQualityFlags)
+    IF (ASSOCIATED(this%Latitude)) DEALLOCATE(this%Latitude)
+    IF (ASSOCIATED(this%LatitudeCorner)) DEALLOCATE(this%LatitudeCorner)
+    IF (ASSOCIATED(this%Longitude)) DEALLOCATE(this%Longitude)
+    IF (ASSOCIATED(this%LongitudeCorner)) DEALLOCATE(this%LongitudeCorner)
+    IF (ASSOCIATED(this%SatelliteAzimuth)) DEALLOCATE(this%SatelliteAzimuth)
+    IF (ASSOCIATED(this%SatelliteZenithAngle)) DEALLOCATE(this%SatelliteZenithAngle)
+    IF (ASSOCIATED(this%SolarAzimuth)) DEALLOCATE(this%SolarAzimuth)
+    IF (ASSOCIATED(this%SolarBeta)) DEALLOCATE(this%SolarBeta)
+    IF (ASSOCIATED(this%SolarZenithAngle)) DEALLOCATE(this%SolarZenithAngle)
+    IF (ASSOCIATED(this%SpacecraftAltitude)) DEALLOCATE(this%SpacecraftAltitude)
+    IF (ASSOCIATED(this%SpacecraftLatitude)) DEALLOCATE(this%SpacecraftLatitude)
+    IF (ASSOCIATED(this%SpacecraftLongitude)) DEALLOCATE(this%SpacecraftLongitude)
+    IF (ASSOCIATED(this%SubSatelliteSolarZenithAngle)) DEALLOCATE(this%SubSatelliteSolarZenithAngle)
+    IF (ASSOCIATED(this%SunEarthDistance)) DEALLOCATE(this%SunEarthDistance)
+    IF (ASSOCIATED(this%UTC_CCSDS_A)) DEALLOCATE(this%UTC_CCSDS_A)
 
-         ! I'm going to use the Belgiums hdf5 reader
-         ! The most recent version of the package is available at:
-         ! http://uv-vis.aeronomie.be/software/tools/hdf5read.php
-         ! All information available on the OMPS-NPP-NPP-TC_SDR_EV_NASA
-         ! type files is going to be readed for possible future use.
-         ! Stand alone version.
+    IF (ASSOCIATED(this%ControlFileContents)) DEALLOCATE(this%ControlFileContents)
+    
+    IF (ASSOCIATED(this%ExposureTime)) DEALLOCATE(this%ExposureTime)
+    IF (ASSOCIATED(this%NumberCoadds)) DEALLOCATE(this%NumberCoadds)
+    IF (ASSOCIATED(this%PixelQualityFlags)) DEALLOCATE(this%PixelQualityFlags)
+    IF (ASSOCIATED(this%Radiance)) DEALLOCATE(this%Radiance)
+    IF (ASSOCIATED(this%RadianceError)) DEALLOCATE(this%RadianceError)
+    IF (ASSOCIATED(this%RawCounts)) DEALLOCATE(this%RawCounts)
+    IF (ASSOCIATED(this%ReportIntQualFlags)) DEALLOCATE(this%ReportIntQualFlags)
+    IF (ASSOCIATED(this%SensorStatusBits)) DEALLOCATE(this%SensorStatusBits)
+    
+    ! ----------------------------------------------------------
+    ! Filling up the dimension variables nLines, nXtrack, nWavel
+    ! ----------------------------------------------------------
+    CALL H5ReadDataset(filename, &
+         "/BinScheme1/ScienceData/Radiance", this%nLines, this%nXtrack, this%nWavel)
+    
+    ALLOCATE(this%BandCenterWavelengths(this%nWavel,this%nXtrack,this%nLines), STAT = ierr)
+    IF ( ierr .NE. 0 ) THEN
+       ErrorMessage = 'Error allocating Band Center Wavelengths'
+       GOTO 990
+    END IF
+    ALLOCATE(this%CCDRowColIndicies(this%nWavel,this%nXtrack,2), STAT = ierr)
+    IF ( ierr .NE. 0 ) THEN
+       ErrorMessage = 'Error allocating CCD Row Col Indices'
+       GOTO 990
+    END IF
+    ALLOCATE(this%DarkCurrentCorrection(this%nWavel,this%nXtrack), STAT = ierr)
+    IF ( ierr .NE. 0 ) THEN
+       ErrorMessage = 'Error allocating Dark Current Correction'
+       GOTO 990
+    END IF
+    ALLOCATE(this%RadianceCalCoeff(this%nWavel,this%nXtrack), STAT = ierr)
+    IF ( ierr .NE. 0 ) THEN
+       ErrorMessage = 'Error allocating Radiance Cal Coeff'
+       GOTO 990
+    END IF
+    ALLOCATE(this%SmearCorrection(this%nWavel,this%nXtrack,this%nLines), STAT = ierr)
+    IF ( ierr .NE. 0 ) THEN
+       ErrorMessage = 'Error allocating Smear Correction'
+       GOTO 990
+    END IF
+    ALLOCATE(this%SolarFlux(this%nWavel,this%nXtrack), STAT = ierr)
+    IF ( ierr .NE. 0 ) THEN
+       ErrorMessage = 'Error allocating Solar Flux'
+       GOTO 990
+    END IF
+    ALLOCATE(this%SolarFluxWavelengths(this%nWavel,this%nXtrack), STAT = ierr)
+    IF ( ierr .NE. 0 ) THEN
+       ErrorMessage = 'Error allocating Solar Flux Wavelengths'
+       GOTO 990
+    END IF
+    ALLOCATE(this%StrayLightCorrection(this%nWavel,this%nXtrack,this%nLines), STAT = ierr)
+    IF ( ierr .NE. 0 ) THEN
+       ErrorMessage = 'Error allocating Stray Light Correction'
+       GOTO 990
+    END IF
 
-         CHARACTER (LEN=MAX_NAME_LENGTH)        :: filename
-         TYPE (TC_SDR_OMPS_type), INTENT(INOUT) :: this
-         INTEGER(KIND=2)                        :: status, ierr
+    ALLOCATE(this%ECISolarDeclination(this%nLines), STAT = ierr)
+    IF ( ierr .NE. 0 ) THEN
+       ErrorMessage = 'Error allocating ECI Solar Declination'
+       GOTO 990
+    END IF
+    ALLOCATE(this%ECISolarRightAscension(this%nLines), STAT = ierr)
+    IF ( ierr .NE. 0 ) THEN
+       ErrorMessage = 'Error allocating ECI Solar Right Ascension'
+       GOTO 990
+    END IF
+    ALLOCATE(this%ECISolarUnitVector(3,this%nLines), STAT = ierr)
+    IF ( ierr .NE. 0 ) THEN
+       ErrorMessage = 'Error allocating ECI Unit Vector'
+       GOTO 990
+    END IF
+    ALLOCATE(this%ECISpacecraftPosition(3,this%nLines), STAT = ierr)
+    IF ( ierr .NE. 0 ) THEN
+       ErrorMessage = 'Error allocating ECI Spacecraft Position'
+       GOTO 990
+    END IF
+    ALLOCATE(this%ECISpacecraftVelocity(3,this%nLines), STAT = ierr)
+    IF ( ierr .NE. 0 ) THEN
+       ErrorMessage = 'Error allocating ECI Spacecraft Velocity'
+       GOTO 990
+    END IF
+    ALLOCATE(this%GoniometricSolarAzimuth(this%nLines), STAT = ierr)
+    IF ( ierr .NE. 0 ) THEN
+       ErrorMessage = 'Error allocating Goniometric Solar Azimuth'
+       GOTO 990
+    END IF
+    ALLOCATE(this%GoniometricSolarElevation(this%nLines), STAT = ierr)
+    IF ( ierr .NE. 0 ) THEN
+       ErrorMessage = 'Error allocating Goniometric Solar Elevation'
+       GOTO 990
+    END IF
+    ALLOCATE(this%GroundPixelQualityFlags(this%nXtrack,this%nLines), STAT = ierr)
+    IF ( ierr .NE. 0 ) THEN
+       ErrorMessage = 'Error allocating Ground Pixel Quality Flags'
+       GOTO 990
+    END IF
+    ALLOCATE(this%ImageMidpoint_TAI93(this%nLines), STAT = ierr)
+    IF ( ierr .NE. 0 ) THEN
+       ErrorMessage = 'Error allocating Image Mid point'
+       GOTO 990
+    END IF
+    ALLOCATE(this%InstrumentQualityFlags(this%nLines), STAT = ierr)
+    IF ( ierr .NE. 0 ) THEN
+       ErrorMessage = 'Error allocating Instrument Quality Flags'
+       GOTO 990
+    END IF
+    ALLOCATE(this%Latitude(this%nXtrack,this%nLines), STAT = ierr)
+    IF ( ierr .NE. 0 ) THEN
+       ErrorMessage = 'Error allocating Latitude'
+       GOTO 990
+    END IF
+    ALLOCATE(this%LatitudeCorner(4,this%nXtrack,this%nLines), STAT = ierr)
+    IF ( ierr .NE. 0 ) THEN
+       ErrorMessage = 'Error allocating Latitude Corner'
+       GOTO 990
+    END IF
+    ALLOCATE(this%Longitude(this%nXtrack,this%nLines), STAT = ierr)
+    IF ( ierr .NE. 0 ) THEN
+       ErrorMessage = 'Error allocating Longitude'
+       GOTO 990
+    END IF
+    ALLOCATE(this%LongitudeCorner(4,this%nXtrack,this%nLines), STAT = ierr)
+    IF ( ierr .NE. 0 ) THEN
+       ErrorMessage = 'Error allocating Longitude Corner'
+       GOTO 990
+    END IF
+    ALLOCATE(this%SatelliteAzimuth(this%nXtrack,this%nLines), STAT = ierr)
+    IF ( ierr .NE. 0 ) THEN
+       ErrorMessage = 'Error allocating Satellite Azimuth'
+       GOTO 990
+    END IF
+    ALLOCATE(this%SatelliteZenithAngle(this%nXtrack,this%nLines), STAT = ierr)
+    IF ( ierr .NE. 0 ) THEN
+       ErrorMessage = 'Error allocating Satellite Zenith Angle'
+       GOTO 990
+    END IF
+    ALLOCATE(this%SolarAzimuth(this%nXtrack,this%nLines), STAT = ierr)
+    IF ( ierr .NE. 0 ) THEN
+       ErrorMessage = 'Error allocating Solar Azimuth'
+       GOTO 990
+    END IF
+    ALLOCATE(this%SolarBeta(this%nLines), STAT = ierr)
+    IF ( ierr .NE. 0 ) THEN
+       ErrorMessage = 'Error allocating Solar Beta'
+       GOTO 990
+    END IF
+    ALLOCATE(this%SolarZenithAngle(this%nXtrack,this%nLines), STAT = ierr)
+    IF ( ierr .NE. 0 ) THEN
+       ErrorMessage = 'Error allocating Solar Zenith Angle'
+       GOTO 990
+    END IF
+    ALLOCATE(this%SpacecraftAltitude(this%nLines), STAT = ierr)
+    IF ( ierr .NE. 0 ) THEN
+       ErrorMessage = 'Error allocating Spacecraft Altitude'
+       GOTO 990
+    END IF
+    ALLOCATE(this%SpacecraftLatitude(this%nLines), STAT = ierr)
+    IF ( ierr .NE. 0 ) THEN
+       ErrorMessage = 'Error allocating Spacecraft Latitude'
+       GOTO 990
+    END IF
+    ALLOCATE(this%SpacecraftLongitude(this%nLines), STAT = ierr)
+    IF ( ierr .NE. 0 ) THEN
+       ErrorMessage = 'Error allocating Spacecraft Longitude'
+       GOTO 990
+    END IF
+    ALLOCATE(this%SubSatelliteSolarZenithAngle(this%nLines), STAT = ierr)
+    IF ( ierr .NE. 0 ) THEN
+       ErrorMessage = 'Error allocating Sub Satellite Solar Zenith Angle'
+       GOTO 990
+    END IF
+    ALLOCATE(this%SunEarthDistance, STAT = ierr)
+    IF ( ierr .NE. 0 ) THEN
+       ErrorMessage = 'Error allocating Sun Earth Distance'
+       GOTO 990
+    END IF
+    ALLOCATE(this%UTC_CCSDS_A(this%nLines), STAT = ierr)
+    IF ( ierr .NE. 0 ) THEN
+       ErrorMessage = 'Error allocating UTC_CCSDS_A'
+       GOTO 990
+    END IF
 
-         ! --------------------------------------
-         ! Allocate memory, first deallocating it
-         ! --------------------------------------
-         IF (ASSOCIATED(this%CloudPressure)) DEALLOCATE(this%CloudPressure)
-         IF (ASSOCIATED(this%O3Profile)) DEALLOCATE(this%O3Profile)
-         IF (ASSOCIATED(this%PressureProfile)) DEALLOCATE(this%PressureProfile)
-         IF (ASSOCIATED(this%SnowIceFraction)) DEALLOCATE(this%SnowIceFraction)
-         IF (ASSOCIATED(this%StandardDeviation)) DEALLOCATE(this%StandardDeviation)
-         IF (ASSOCIATED(this%SurfaceReflectivity)) DEALLOCATE(this%SurfaceReflectivity)
-         IF (ASSOCIATED(this%TemperatureProfile)) DEALLOCATE(this%TemperatureProfile)
-         IF (ASSOCIATED(this%TerrainPressure)) DEALLOCATE(this%TerrainPressure)
-         IF (ASSOCIATED(this%TropopausePressure)) DEALLOCATE(this%TropopausePressure)
-         IF (ASSOCIATED(this%TroposphericO3)) DEALLOCATE(this%TroposphericO3)
-         IF (ASSOCIATED(this%BandCenterWavelengths)) DEALLOCATE(this%BandCenterWavelengths)
-         IF (ASSOCIATED(this%CCDRowColIndicies)) DEALLOCATE(this%CCDRowColIndicies)
-         IF (ASSOCIATED(this%DarkCurrentCorrection)) DEALLOCATE(this%DarkCurrentCorrection)
-         IF (ASSOCIATED(this%RadianceCalCoeff)) DEALLOCATE(this%RadianceCalCoeff)
-         IF (ASSOCIATED(this%SmearCorrection)) DEALLOCATE(this%SmearCorrection)
-         IF (ASSOCIATED(this%SolarFlux)) DEALLOCATE(this%SolarFlux)
-         IF (ASSOCIATED(this%SolarFluxWavelengths)) DEALLOCATE(this%SolarFluxWavelengths)
-         IF (ASSOCIATED(this%GoniometricSolarAzimuth)) DEALLOCATE(this%GoniometricSolarAzimuth)
-         IF (ASSOCIATED(this%GoniometricSolarElevation)) DEALLOCATE(this%GoniometricSolarElevation)
-         IF (ASSOCIATED(this%GroundPixelQualityFlags)) DEALLOCATE(this%GroundPixelQualityFlags)
-         IF (ASSOCIATED(this%ImageMidpoint_TAI93)) DEALLOCATE(this%ImageMidpoint_TAI93)
-         IF (ASSOCIATED(this%InstrumentQualityFlags)) DEALLOCATE(this%InstrumentQualityFlags)
-         IF (ASSOCIATED(this%Latitude)) DEALLOCATE(this%Latitude)
-         IF (ASSOCIATED(this%Longitude)) DEALLOCATE(this%Longitude)
-         IF (ASSOCIATED(this%SatelliteAzimuth)) DEALLOCATE(this%SatelliteAzimuth)
-         IF (ASSOCIATED(this%SatelliteZenithAngle)) DEALLOCATE(this%SatelliteZenithAngle)
-         IF (ASSOCIATED(this%SolarAzimuth)) DEALLOCATE(this%SolarAzimuth)
-         IF (ASSOCIATED(this%SolarBeta)) DEALLOCATE(this%SolarBeta)
-         IF (ASSOCIATED(this%SolarDeclination_ECI)) DEALLOCATE(this%SolarDeclination_ECI)
-         IF (ASSOCIATED(this%SolarRightAscension_ECI)) DEALLOCATE(this%SolarRightAscension_ECI)
-         IF (ASSOCIATED(this%SolarUnitVectorECI)) DEALLOCATE(this%SolarUnitVectorECI)
-         IF (ASSOCIATED(this%SolarZenithAngle)) DEALLOCATE(this%SolarZenithAngle)
-         IF (ASSOCIATED(this%SpacecraftAltitude)) DEALLOCATE(this%SpacecraftAltitude)
-         IF (ASSOCIATED(this%SpacecraftLatitude)) DEALLOCATE(this%SpacecraftLatitude)
-         IF (ASSOCIATED(this%SpacecraftLongitude)) DEALLOCATE(this%SpacecraftLongitude)
-         IF (ASSOCIATED(this%SpacecraftPositionECI)) DEALLOCATE(this%SpacecraftPositionECI)
-         IF (ASSOCIATED(this%SpacecraftVelocityECI)) DEALLOCATE(this%SpacecraftVelocityECI)
-         IF (ASSOCIATED(this%SubSatelliteSolarZenithAngle)) DEALLOCATE(this%SubSatelliteSolarZenithAngle)
-         IF (ASSOCIATED(this%SunEarthDistance)) DEALLOCATE(this%SunEarthDistance)
-         IF (ASSOCIATED(this%UTC_CCSDS_A)) DEALLOCATE(this%UTC_CCSDS_A)
-         IF (ASSOCIATED(this%expose)) DEALLOCATE(this%expose)
-         IF (ASSOCIATED(this%ExposureTime)) DEALLOCATE(this%ExposureTime)
-         IF (ASSOCIATED(this%HousekeepingData)) DEALLOCATE(this%HousekeepingData)
-!!$         IF (ASSOCIATED(this%IntegrationTimeUsed)) DEALLOCATE(this%IntegrationTimeUsed)
-         IF (ASSOCIATED(this%NumberCoadds)) DEALLOCATE(this%NumberCoadds)
-         IF (ASSOCIATED(this%PixelQualityFlags)) DEALLOCATE(this%PixelQualityFlags)
-         IF (ASSOCIATED(this%Radiance)) DEALLOCATE(this%Radiance)
-         IF (ASSOCIATED(this%RadianceError)) DEALLOCATE(this%RadianceError)
-         IF (ASSOCIATED(this%RawCounts)) DEALLOCATE(this%RawCounts)
-         IF (ASSOCIATED(this%ReportIntQualFlags)) DEALLOCATE(this%ReportIntQualFlags)
-         IF (ASSOCIATED(this%SensorStatusBits)) DEALLOCATE(this%SensorStatusBits)
+    ALLOCATE(this%ControlFileContents, STAT = ierr)
+    IF ( ierr .NE. 0 ) THEN
+       ErrorMessage = 'Error allocating Control File Contents'
+       GOTO 990
+    END IF
 
-         ! ----------------------------------------------------------
-         ! Filling up the dimension variables nLines, nXtrack, nWavel
-         ! ----------------------------------------------------------
-         CALL H5ReadDataset(filename, &
-              "/SCIENCE_DATA/BinScheme1/Radiance", this%nLines, this%nXtrack, this%nWavel)
-         IF (ErrorFlag.lt.0) goto 990 
-         this%nprof  = 10
-         this%nlevel = 11
 
-         ALLOCATE(this%CloudPressure(this%nXtrack,this%nLines), STAT = ierr)
-         IF ( ierr .NE. 0 ) THEN
-            ErrorMessage = 'Error reading Cloud Pressure'
-            GOTO 990
-         END IF           
-         ALLOCATE(this%O3Profile(this%nXtrack,this%nLines,this%nLevel,this%nProf), STAT = ierr)
-         IF ( ierr .NE. 0 ) THEN
-            ErrorMessage = 'Error reading O3 Profile'
-            GOTO 990
-         END IF
-         ALLOCATE(this%PressureProfile(this%nLevel), STAT = ierr)
-         IF ( ierr .NE. 0 ) THEN
-            ErrorMessage = 'Error reading Pressure Profile'
-            GOTO 990
-         END IF
-         ALLOCATE(this%SnowIceFraction(this%nXtrack,this%nLines), STAT = ierr)
-         IF ( ierr .NE. 0 ) THEN
-            ErrorMessage = 'Error reading Snow Ice Fraction'
-            GOTO 990
-         END IF
-         ALLOCATE(this%StandardDeviation(this%nXtrack,this%nLines), STAT = ierr)
-         IF ( ierr .NE. 0 ) THEN
-            ErrorMessage = 'Error reading Standard Deviation'
-            GOTO 990
-         END IF
-         ALLOCATE(this%SurfaceReflectivity(this%nXtrack,this%nLines), STAT = ierr)
-         IF ( ierr .NE. 0 ) THEN
-            ErrorMessage = 'Error reading Surface Reflectivity'
-            GOTO 990
-         END IF
-         ALLOCATE(this%TemperatureProfile(this%nXtrack,this%nLines,this%nLevel), STAT = ierr)
-         IF ( ierr .NE. 0 ) THEN
-            ErrorMessage = 'Error reading Temperature Profile'
-            GOTO 990
-         END IF
-         ALLOCATE(this%TerrainPressure(this%nXtrack,this%nLines), STAT = ierr)
-         IF ( ierr .NE. 0 ) THEN
-            ErrorMessage = 'Error reading Terrain Pressure'
-            GOTO 990
-         END IF
-         ALLOCATE(this%TropopausePressure(this%nXtrack,this%nLines), STAT = ierr)
-         IF ( ierr .NE. 0 ) THEN
-            ErrorMessage = 'Error reading Tropopause Pressure'
-            GOTO 990
-         END IF
-         ALLOCATE(this%TroposphericO3(this%nXtrack,this%nLines,4,this%nProf), STAT = ierr)
-         IF ( ierr .NE. 0 ) THEN
-            ErrorMessage = 'Error reading Tropospheric O3'
-            GOTO 990
-         END IF
-         ALLOCATE(this%BandCenterWavelengths(this%nWavel,this%nXtrack,this%nLines), STAT = ierr)
-         IF ( ierr .NE. 0 ) THEN
-            ErrorMessage = 'Error reading Band Center Wavelengths'
-            GOTO 990
-         END IF
-         ALLOCATE(this%CCDRowColIndicies(this%nWavel,this%nXtrack,2), STAT = ierr)
-         IF ( ierr .NE. 0 ) THEN
-            ErrorMessage = 'Error reading CCD Row Col Indices'
-            GOTO 990
-         END IF
-         ALLOCATE(this%DarkCurrentCorrection(this%nWavel,this%nXtrack), STAT = ierr)
-         IF ( ierr .NE. 0 ) THEN
-            ErrorMessage = 'Error reading Dark Current Correction'
-            GOTO 990
-         END IF
-         ALLOCATE(this%RadianceCalCoeff(this%nWavel,this%nXtrack), STAT = ierr)
-         IF ( ierr .NE. 0 ) THEN
-            ErrorMessage = 'Error reading Radiance Cal Coeff'
-            GOTO 990
-         END IF
-         ALLOCATE(this%SmearCorrection(this%nWavel,this%nXtrack,this%nLines), STAT = ierr)
-         IF ( ierr .NE. 0 ) THEN
-            ErrorMessage = 'Error reading Smear Correction'
-            GOTO 990
-         END IF
-         ALLOCATE(this%SolarFlux(this%nWavel,this%nXtrack), STAT = ierr)
-         IF ( ierr .NE. 0 ) THEN
-            ErrorMessage = 'Error reading Solar Flux'
-            GOTO 990
-         END IF
-         ALLOCATE(this%SolarFluxWavelengths(this%nWavel,this%nXtrack), STAT = ierr)
-         IF ( ierr .NE. 0 ) THEN
-            ErrorMessage = 'Error reading Solar Flux Wavelengths'
-            GOTO 990
-         END IF
-         ALLOCATE(this%GoniometricSolarAzimuth(this%nLines), STAT = ierr)
-         IF ( ierr .NE. 0 ) THEN
-            ErrorMessage = 'Error reading Goniometric Solar Azimuth'
-            GOTO 990
-         END IF
-         ALLOCATE(this%GoniometricSolarElevation(this%nLines), STAT = ierr)
-         IF ( ierr .NE. 0 ) THEN
-            ErrorMessage = 'Error reading Goniometric Solar Elevation'
-            GOTO 990
-         END IF
-         ALLOCATE(this%GroundPixelQualityFlags(this%nXtrack,this%nLines), STAT = ierr)
-         IF ( ierr .NE. 0 ) THEN
-            ErrorMessage = 'Error reading Ground Pixel Quality Flags'
-            GOTO 990
-         END IF
-         ALLOCATE(this%ImageMidpoint_TAI93(this%nLines), STAT = ierr)
-         IF ( ierr .NE. 0 ) THEN
-            ErrorMessage = 'Error reading Image Mid point'
-            GOTO 990
-         END IF
-         ALLOCATE(this%InstrumentQualityFlags(this%nLines), STAT = ierr)
-         IF ( ierr .NE. 0 ) THEN
-            ErrorMessage = 'Error reading Instrument Quality Flags'
-            GOTO 990
-         END IF
-         ALLOCATE(this%Latitude(this%nXtrack,this%nLines), STAT = ierr)
-         IF ( ierr .NE. 0 ) THEN
-            ErrorMessage = 'Error reading Latitude'
-            GOTO 990
-         END IF
-         ALLOCATE(this%Longitude(this%nXtrack,this%nLines), STAT = ierr)
-         IF ( ierr .NE. 0 ) THEN
-            ErrorMessage = 'Error reading Longitude'
-            GOTO 990
-         END IF
-         ALLOCATE(this%SatelliteAzimuth(this%nXtrack,this%nLines), STAT = ierr)
-         IF ( ierr .NE. 0 ) THEN
-            ErrorMessage = 'Error reading Satellite Azimuth'
-            GOTO 990
-         END IF
-         ALLOCATE(this%SatelliteZenithAngle(this%nXtrack,this%nLines), STAT = ierr)
-         IF ( ierr .NE. 0 ) THEN
-            ErrorMessage = 'Error reading Satellite Zenith Angle'
-            GOTO 990
-         END IF
-         ALLOCATE(this%SolarAzimuth(this%nXtrack,this%nLines), STAT = ierr)
-         IF ( ierr .NE. 0 ) THEN
-            ErrorMessage = 'Error reading Solar Azimuth'
-            GOTO 990
-         END IF
-         ALLOCATE(this%SolarBeta(this%nLines), STAT = ierr)
-         IF ( ierr .NE. 0 ) THEN
-            ErrorMessage = 'Error reading Solar Beta'
-            GOTO 990
-         END IF
-         ALLOCATE(this%SolarDeclination_ECI(this%nLines), STAT = ierr)
-         IF ( ierr .NE. 0 ) THEN
-            ErrorMessage = 'Error reading Solar Declination'
-            GOTO 990
-         END IF
-         ALLOCATE(this%SolarRightAscension_ECI(this%nLines), STAT = ierr)
-         IF ( ierr .NE. 0 ) THEN
-            ErrorMessage = 'Error reading Solar Right Ascension'
-            GOTO 990
-         END IF
-         ALLOCATE(this%SolarUnitVectorECI(3,this%nLines), STAT = ierr)
-         IF ( ierr .NE. 0 ) THEN
-            ErrorMessage = 'Error reading Solar Unit Vector'
-            GOTO 990
-         END IF
-         ALLOCATE(this%SolarZenithAngle(this%nXtrack,this%nLines), STAT = ierr)
-         IF ( ierr .NE. 0 ) THEN
-            ErrorMessage = 'Error reading Solar Zenith Angle'
-            GOTO 990
-         END IF
-         ALLOCATE(this%SpacecraftAltitude(this%nLines), STAT = ierr)
-         IF ( ierr .NE. 0 ) THEN
-            ErrorMessage = 'Error reading Spacecraft Altitude'
-            GOTO 990
-         END IF
-         ALLOCATE(this%SpacecraftLatitude(this%nLines), STAT = ierr)
-         IF ( ierr .NE. 0 ) THEN
-            ErrorMessage = 'Error reading Spacecraft Latitude'
-            GOTO 990
-         END IF
-         ALLOCATE(this%SpacecraftLongitude(this%nLines), STAT = ierr)
-         IF ( ierr .NE. 0 ) THEN
-            ErrorMessage = 'Error reading Spacecraft Longitude'
-            GOTO 990
-         END IF
-         ALLOCATE(this%SpacecraftPositionECI(3,this%nLines), STAT = ierr)
-         IF ( ierr .NE. 0 ) THEN
-            ErrorMessage = 'Error reading Spacecraft position'
-            GOTO 990
-         END IF
-         ALLOCATE(this%SpacecraftVelocityECI(3,this%nLines), STAT = ierr)
-         IF ( ierr .NE. 0 ) THEN
-            ErrorMessage = 'Error reading Spacecraft Velocity'
-            GOTO 990
-         END IF
-         ALLOCATE(this%SubSatelliteSolarZenithAngle(this%nLines), STAT = ierr)
-         IF ( ierr .NE. 0 ) THEN
-            ErrorMessage = 'Error reading Sub Satellite Solar Zenith Angle'
-            GOTO 990
-         END IF
-         ALLOCATE(this%SunEarthDistance(1), STAT = ierr)
-         IF ( ierr .NE. 0 ) THEN
-            ErrorMessage = 'Error reading Sun Earth Distance'
-            GOTO 990
-         END IF
-         ALLOCATE(this%UTC_CCSDS_A(this%nLines), STAT = ierr)
-         IF ( ierr .NE. 0 ) THEN
-            ErrorMessage = 'Error reading UTC_CCSDS_A'
-            GOTO 990
-         END IF
-         ALLOCATE(this%expose(1), STAT = ierr)
-         IF ( ierr .NE. 0 ) THEN
-            ErrorMessage = 'Error reading expose'
-            GOTO 990
-         END IF
-         ALLOCATE(this%ExposureTime(1,this%nLines), STAT = ierr)
-         IF ( ierr .NE. 0 ) THEN
-            ErrorMessage = 'Error reading Exposure Time'
-            GOTO 990
-         END IF
-         ALLOCATE(this%HousekeepingData(8,this%nLines), STAT = ierr)
-         IF ( ierr .NE. 0 ) THEN
-            ErrorMessage = 'Error reading House keeping data'
-            GOTO 990
-         END IF
-         ALLOCATE(this%NumberCoadds(1,this%nLines), STAT = ierr)
-         IF ( ierr .NE. 0 ) THEN
-            ErrorMessage = 'Error reading Number Coadds'
-            GOTO 990
-         END IF
-         ALLOCATE(this%PixelQualityFlags(this%nWavel,this%nXtrack,this%nLines), STAT = ierr)
-         IF ( ierr .NE. 0 ) THEN
-            ErrorMessage = 'Error reading Pixel Quality Flags'
-            GOTO 990
-         END IF
-         ALLOCATE(this%Radiance(this%nWavel,this%nXtrack,this%nLines), STAT = ierr)
-         IF ( ierr .NE. 0 ) THEN
-            ErrorMessage = 'Error reading Radiance'
-            GOTO 990
-         END IF
-         ALLOCATE(this%RadianceError(this%nWavel,this%nXtrack,this%nLines), STAT = ierr)
-         IF ( ierr .NE. 0 ) THEN
-            ErrorMessage = 'Error reading Radiance Error'
-            GOTO 990
-         END IF
-         ALLOCATE(this%RawCounts(this%nWavel,this%nXtrack,this%nLines), STAT = ierr)
-         IF ( ierr .NE. 0 ) THEN
-            ErrorMessage = 'Error reading Raw Counts'
-            GOTO 990
-         END IF
-         ALLOCATE(this%ReportIntQualFlags(this%nLines), STAT = ierr)
-         IF ( ierr .NE. 0 ) THEN
-            ErrorMessage = 'Error reading Report Int Qual Flags'
-            GOTO 990
-         END IF
-         ALLOCATE(this%SensorStatusBits(this%nLines), STAT = ierr)
-         IF ( ierr .NE. 0 ) THEN
-            ErrorMessage = 'Error reading Sensor Status Bits'
-            GOTO 990
-         END IF
+    ALLOCATE(this%ExposureTime(this%nLines), STAT = ierr)
+    IF ( ierr .NE. 0 ) THEN
+       ErrorMessage = 'Error allocating Exposure Time'
+       GOTO 990
+    END IF
+    ALLOCATE(this%NumberCoadds(this%nLines), STAT = ierr)
+    IF ( ierr .NE. 0 ) THEN
+       ErrorMessage = 'Error allocating Number Coadds'
+       GOTO 990
+    END IF
+    ALLOCATE(this%PixelQualityFlags(this%nWavel,this%nXtrack,this%nLines), STAT = ierr)
+    IF ( ierr .NE. 0 ) THEN
+       ErrorMessage = 'Error allocating Pixel Quality Flags'
+       GOTO 990
+    END IF
+    ALLOCATE(this%Radiance(this%nWavel,this%nXtrack,this%nLines), STAT = ierr)
+    IF ( ierr .NE. 0 ) THEN
+       ErrorMessage = 'Error allocating Radiance'
+       GOTO 990
+    END IF
+    ALLOCATE(this%RadianceError(this%nWavel,this%nXtrack,this%nLines), STAT = ierr)
+    IF ( ierr .NE. 0 ) THEN
+       ErrorMessage = 'Error allocating Radiance Error'
+       GOTO 990
+    END IF
+    ALLOCATE(this%RawCounts(this%nWavel,this%nXtrack,this%nLines), STAT = ierr)
+    IF ( ierr .NE. 0 ) THEN
+       ErrorMessage = 'Error allocating Raw Counts'
+       GOTO 990
+    END IF
+    ALLOCATE(this%ReportIntQualFlags(this%nLines), STAT = ierr)
+    IF ( ierr .NE. 0 ) THEN
+       ErrorMessage = 'Error allocating Report Int Qual Flags'
+       GOTO 990
+    END IF
+    ALLOCATE(this%SensorStatusBits(this%nLines), STAT = ierr)
+    IF ( ierr .NE. 0 ) THEN
+       ErrorMessage = 'Error allocating Sensor Status Bits'
+       GOTO 990
+    END IF
+    
 
-         ! ----------------------------
-         ! Read elements of the h5 file
-         ! ----------------------------
-         ! Ancillary data
-         ! --------------
-         CALL H5ReadDataset(filename, &
-              "/ANC_DATA/BinScheme1/CloudPressure", this%CloudPressure)
-         IF (ErrorFlag.lt.0) goto 990
-         CALL H5ReadDataset(filename, &
-              "/ANC_DATA/BinScheme1/O3Profile", this%O3Profile)
-         IF (ErrorFlag.lt.0) goto 990
-         CALL H5ReadDataset(filename, &
-              "/ANC_DATA/BinScheme1/PressureProfile", this%PressureProfile)
-         IF (ErrorFlag.lt.0) goto 990
-         CALL H5ReadDataset(filename, &
-              "/ANC_DATA/BinScheme1/SnowIceFraction", this%SnowIceFraction)
-         IF (ErrorFlag.lt.0) goto 990
-         CALL H5ReadDataset(filename, &
-              "/ANC_DATA/BinScheme1/StandardDeviation", this%StandardDeviation)
-         IF (ErrorFlag.lt.0) goto 990
-         CALL H5ReadDataset(filename, &
-              "/ANC_DATA/BinScheme1/SurfaceReflectivity", this%SurfaceReflectivity)
-         IF (ErrorFlag.lt.0) goto 990
-         CALL H5ReadDataset(filename, &
-              "/ANC_DATA/BinScheme1/TemperatureProfile", this%TemperatureProfile)
-         IF (ErrorFlag.lt.0) goto 990
-         CALL H5ReadDataset(filename, &
-              "/ANC_DATA/BinScheme1/TerrainPressure", this%TerrainPressure)
-         IF (ErrorFlag.lt.0) goto 990
-         CALL H5ReadDataset(filename, &
-              "/ANC_DATA/BinScheme1/TropopausePressure", this%TropopausePressure)
-         IF (ErrorFlag.lt.0) goto 990
-         CALL H5ReadDataset(filename, &
-              "/ANC_DATA/BinScheme1/TroposphericO3", this%TroposphericO3)
-         IF (ErrorFlag.lt.0) goto 990
-         ! ----------------
-         ! Calibration data
-         ! ----------------
-         CALL H5ReadDataset(filename, &
-              "/CALIBRATION_DATA/BinScheme1/BandCenterWavelengths", &
-              this%BandCenterWavelengths)
-         IF (ErrorFlag.lt.0) goto 990
-         CALL H5ReadDataset(filename, &
-              "/CALIBRATION_DATA/CCDRowColIndicies", this%CCDRowColIndicies)
-         IF (ErrorFlag.lt.0) goto 990
-         CALL H5ReadDataset(filename, &
-              "/CALIBRATION_DATA/BinScheme1/DarkCurrentCorrection", &
-              this%DarkCurrentCorrection)
-         IF (ErrorFlag.lt.0) goto 990
-         CALL H5ReadDataset(filename, &
-              "/CALIBRATION_DATA/BinScheme1/RadianceCalCoeff", this%RadianceCalCoeff)
-         IF (ErrorFlag.lt.0) goto 990
-         CALL H5ReadDataset(filename, &
-              "/CALIBRATION_DATA/BinScheme1/SmearCorrection", this%SmearCorrection)
-         IF (ErrorFlag.lt.0) goto 990
-         CALL H5ReadDataset(filename, &
-              "/CALIBRATION_DATA/BinScheme1/SolarFlux", this%SolarFlux)
-         IF (ErrorFlag.lt.0) goto 990
-         CALL H5ReadDataset(filename, &
-              "/CALIBRATION_DATA/BinScheme1/SolarFluxWavelengths", &
-              this%SolarFluxWavelengths)
-         IF (ErrorFlag.lt.0) goto 990
-         ! ----------------
-         ! Geolocation data
-         ! ----------------
-         CALL H5ReadDataset(filename, &
-              "/GEOLOCATION_DATA/GoniometricSolarAzimuth", &
-              this%GoniometricSolarAzimuth)
-         IF (ErrorFlag.lt.0) goto 990
-         CALL H5ReadDataset(filename, &
-              "/GEOLOCATION_DATA/GoniometricSolarElevation", &
-              this%GoniometricSolarElevation)
-         IF (ErrorFlag.lt.0) goto 990
-         CALL H5ReadDataset(filename, &
-              "/GEOLOCATION_DATA/BinScheme1/GroundPixelQualityFlags", &
-              this%GroundPixelQualityFlags)
-         IF (ErrorFlag.lt.0) goto 990
-         CALL H5ReadDataset(filename, &
-              "/GEOLOCATION_DATA/ImageMidpoint_TAI93", this%ImageMidpoint_TAI93)
-         IF (ErrorFlag.lt.0) goto 990
-         CALL H5ReadDataset(filename, &
-              "/GEOLOCATION_DATA/InstrumentQualityFlags", &
-              this%InstrumentQualityFlags)
-         IF (ErrorFlag.lt.0) goto 990
-         CALL H5ReadDataset(filename, &
-              "/GEOLOCATION_DATA/BinScheme1/Latitude", &
-              this%Latitude)
-         IF (ErrorFlag.lt.0) goto 990
-         CALL H5ReadDataset(filename, &
-              "/GEOLOCATION_DATA/BinScheme1/Longitude", &
-              this%Longitude)
-         IF (ErrorFlag.lt.0) goto 990
-         CALL H5ReadDataset(filename, &
-              "/GEOLOCATION_DATA/BinScheme1/SatelliteAzimuth", &
-              this%SatelliteAzimuth)
-         IF (ErrorFlag.lt.0) goto 990
-         CALL H5ReadDataset(filename, &
-              "/GEOLOCATION_DATA/BinScheme1/SatelliteZenithAngle", &
-              this%SatelliteZenithAngle)
-         IF (ErrorFlag.lt.0) goto 990
-         CALL H5ReadDataset(filename, &
-              "/GEOLOCATION_DATA/BinScheme1/SolarAzimuth", &
-              this%SolarAzimuth)
-         IF (ErrorFlag.lt.0) goto 990
-         CALL H5ReadDataset(filename, &
-              "/GEOLOCATION_DATA/SolarBeta", this%SolarBeta)
-         IF (ErrorFlag.lt.0) goto 990
-         CALL H5ReadDataset(filename, &
-              "/GEOLOCATION_DATA/SolarDeclination_ECI", this%SolarDeclination_ECI)
-         IF (ErrorFlag.lt.0) goto 990
-         CALL H5ReadDataset(filename, &
-              "/GEOLOCATION_DATA/SolarRightAscension_ECI", &
-              this%SolarRightAscension_ECI)
-         IF (ErrorFlag.lt.0) goto 990
-         CALL H5ReadDataset(filename, &
-              "/GEOLOCATION_DATA/SolarUnitVectorECI", this%SolarUnitVectorECI)
-         IF (ErrorFlag.lt.0) goto 990
-         CALL H5ReadDataset(filename, &
-              "/GEOLOCATION_DATA/BinScheme1/SolarZenithAngle", &
-              this%SolarZenithAngle)
-         IF (ErrorFlag.lt.0) goto 990
-         CALL H5ReadDataset(filename, &
-              "/GEOLOCATION_DATA/SpacecraftAltitude", this%SpacecraftAltitude)
-         IF (ErrorFlag.lt.0) goto 990
-         CALL H5ReadDataset(filename, &
-              "/GEOLOCATION_DATA/SpacecraftLatitude", this%SpacecraftLatitude)
-         IF (ErrorFlag.lt.0) goto 990
-         CALL H5ReadDataset(filename, &
-              "/GEOLOCATION_DATA/SpacecraftLongitude", this%SpacecraftLongitude)
-         IF (ErrorFlag.lt.0) goto 990
-         CALL H5ReadDataset(filename, &
-              "/GEOLOCATION_DATA/SpacecraftPositionECI", this%SpacecraftPositionECI)
-         IF (ErrorFlag.lt.0) goto 990
-         CALL H5ReadDataset(filename, &
-              "/GEOLOCATION_DATA/SpacecraftVelocityECI", this%SpacecraftVelocityECI)
-         IF (ErrorFlag.lt.0) goto 990
-         CALL H5ReadDataset(filename, &
-              "/GEOLOCATION_DATA/SubSatelliteSolarZenithAngle", &
-              this%SubSatelliteSolarZenithAngle)
-         IF (ErrorFlag.lt.0) goto 990
-         CALL H5ReadDataset(filename, &
-              "/GEOLOCATION_DATA/SunEarthDistance", this%SunEarthDistance)
-         IF (ErrorFlag.lt.0) goto 990
-         CALL H5ReadDataset(filename, &
-              "/GEOLOCATION_DATA/UTC_CCSDS_A", this%UTC_CCSDS_A)
-         IF (ErrorFlag.lt.0) goto 990
-         CALL H5ReadDataset(filename, &
-              "/GEOLOCATION_DATA/expose", this%expose)
-         IF (ErrorFlag.lt.0) goto 990
-         ! --------------
-         ! Input pointers
-         ! --------------
-         CALL H5ReadDataset(filename, &
-              "/InputPointers/ControlFileContents", this%ControlFileContents)
-         IF (ErrorFlag.lt.0) goto 990
-!!$         CALL H5ReadDataset(filename, &
-!!$              "/InputPointers/TC_STB", this%TC_L1A_EV)
-!!$         IF (ErrorFlag.lt.0) goto 990
-!!$         CALL H5ReadDataset(filename, &
-!!$              "/InputPointers/TC_STB", this%TC_STB)
-!!$         IF (ErrorFlag.lt.0) goto 990
-!!$         CALL H5ReadDataset(filename, &
-!!$              "/InputPointers/TC_mCBC", this%TC_mCBC)
-!!$         IF (ErrorFlag.lt.0) goto 990
-!!$         CALL H5ReadDataset(filename, &
-!!$              "/InputPointers/TC_mDRK", this%TC_mDRK)
-!!$         IF (ErrorFlag.lt.0) goto 990
-!!$         CALL H5ReadDataset(filename, &
-!!$              "/InputPointers/TC_mIRF", this%TC_mIRF)
-!!$         IF (ErrorFlag.lt.0) goto 990
-!!$         CALL H5ReadDataset(filename, &
-!!$              "/InputPointers/TC_mRAD", this%TC_mRAD)
-!!$         IF (ErrorFlag.lt.0) goto 990       
-         ! ------------
-         ! Science data
-         ! ------------
-         CALL H5ReadDataset(filename, &
-              "/SCIENCE_DATA/ExposureTime", this%ExposureTime)
-         IF (ErrorFlag.lt.0) goto 990
-         CALL H5ReadDataset(filename, &
-              "/SCIENCE_DATA/HousekeepingData", this%HousekeepingData)
-         IF (ErrorFlag.lt.0) goto 990
-!!$         CALL H5ReadDataset(filename, &
-!!$              "/SCIENCE_DATA/IntegrationTimeUsed", &
-!!$              this%IntegrationTimeUsed)
-         IF (ErrorFlag.lt.0) goto 990
-         CALL H5ReadDataset(filename, &
-              "/SCIENCE_DATA/NumberCoadds", this%NumberCoadds)
-         IF (ErrorFlag.lt.0) goto 990
-         CALL H5ReadDataset(filename, &
-              "/SCIENCE_DATA/BinScheme1/PixelQualityFlags", &
-              this%PixelQualityFlags)
-         IF (ErrorFlag.lt.0) goto 990
-         CALL H5ReadDataset(filename, &
-              "/SCIENCE_DATA/BinScheme1/Radiance", this%Radiance)
-         IF (ErrorFlag.lt.0) goto 990
-         CALL H5ReadDataset(filename, &
-              "/SCIENCE_DATA/BinScheme1/RadianceError", &
-              this%RadianceError)
-         IF (ErrorFlag.lt.0) goto 990
-         CALL H5ReadDataset(filename, &
-              "/SCIENCE_DATA/BinScheme1/RawCounts", &
-              this%RawCounts)
-         IF (ErrorFlag.lt.0) goto 990
-         CALL H5ReadDataset(filename, &
-              "/SCIENCE_DATA/ReportIntQualFlags", this%ReportIntQualFlags)
-         IF (ErrorFlag.lt.0) goto 990
-         CALL H5ReadDataset(filename, &
-              "/SCIENCE_DATA/SensorStatusBits", this%SensorStatusBits)
-         IF (ErrorFlag.lt.0) goto 990
+    ! ============
+    ! Reading data
+    ! ============
+    ! ----------------
+    ! Calibration data
+    ! ----------------
+    CALL H5ReadDataset(filename, &
+         "/BinScheme1/CalibrationData/BandCenterWavelengths", &
+         this%BandCenterWavelengths)
+    IF (ErrorFlag.NE.0) GOTO 990
+    CALL H5ReadDataset(filename, &
+         "/BinScheme1/CalibrationData/CCDRowColIndicies", this%CCDRowColIndicies)
+    IF (ErrorFlag.NE.0) GOTO 990
+    CALL H5ReadDataset(filename, &
+         "/BinScheme1/CalibrationData/DarkCurrentCorrection", &
+         this%DarkCurrentCorrection)
+    IF (ErrorFlag.NE.0) GOTO 990
+    CALL H5ReadDataset(filename, &
+         "/BinScheme1/CalibrationData/RadianceCalCoeff", this%RadianceCalCoeff)
+    IF (ErrorFlag.NE.0) GOTO 990
+    CALL H5ReadDataset(filename, &
+         "/BinScheme1/CalibrationData/SmearCorrection", this%SmearCorrection)
+    IF (ErrorFlag.NE.0) GOTO 990
+    CALL H5ReadDataset(filename, &
+         "/BinScheme1/CalibrationData/SolarFlux", this%SolarFlux)
+    IF (ErrorFlag.NE.0) GOTO 990
+    CALL H5ReadDataset(filename, &
+         "/BinScheme1/CalibrationData/SolarFluxWavelengths", &
+         this%SolarFluxWavelengths)
+    IF (ErrorFlag.NE.0) GOTO 990
+    CALL H5ReadDataset(filename, &
+         "/BinScheme1/CalibrationData/StrayLightCorrection", &
+         this%StrayLightCorrection)  
+    IF (ErrorFlag.NE.0) GOTO 990
 
-         status = INT(ErrorFlag,KIND=2)
-         RETURN
-990      WRITE(*, '(A)') ErrorMessage
-         status = INT(ErrorFlag,KIND=2)
-         RETURN
-
-       END FUNCTION TC_SDR_OMPS_READER
-     END MODULE OMSAO_OMPS_READER
+    ! ----------------
+    ! Geolocation data
+    ! ----------------
+    CALL H5ReadDataset(filename, &
+         "/BinScheme1/GeolocationData/ECISolarDeclination", &
+         this%ECISolarDeclination)
+    IF (ErrorFlag.NE.0) GOTO 990
+    CALL H5ReadDataset(filename, &
+         "/BinScheme1/GeolocationData/ECISolarRightAscension", &
+         this%ECISolarRightAscension)
+    IF (ErrorFlag.NE.0) GOTO 990
+    CALL H5ReadDataset(filename, &
+         "/BinScheme1/GeolocationData/ECISolarUnitVector", &
+         this%ECISolarUnitVector)
+    IF (ErrorFlag.NE.0) GOTO 990
+    CALL H5ReadDataset(filename, &
+         "/BinScheme1/GeolocationData/ECISpacecraftPosition", &
+         this%ECISpacecraftPosition)
+    IF (ErrorFlag.NE.0) GOTO 990
+    CALL H5ReadDataset(filename, &
+         "/BinScheme1/GeolocationData/ECISpacecraftVelocity", &
+         this%ECISpacecraftVelocity)
+    IF (ErrorFlag.NE.0) GOTO 990
+    CALL H5ReadDataset(filename, &
+         "/BinScheme1/GeolocationData/GoniometricSolarAzimuth", &
+         this%GoniometricSolarAzimuth)
+    IF (ErrorFlag.NE.0) GOTO 990
+    CALL H5ReadDataset(filename, &
+         "/BinScheme1/GeolocationData/GoniometricSolarElevation", &
+         this%GoniometricSolarElevation)
+    IF (ErrorFlag.NE.0) GOTO 990
+    CALL H5ReadDataset(filename, &
+         "/BinScheme1/GeolocationData/GroundPixelQualityFlags", &
+         this%GroundPixelQualityFlags)
+    IF (ErrorFlag.NE.0) GOTO 990
+    CALL H5ReadDataset(filename, &
+         "/BinScheme1/GeolocationData/ImageMidpoint_TAI93", this%ImageMidpoint_TAI93)
+    IF (ErrorFlag.NE.0) GOTO 990
+    CALL H5ReadDataset(filename, &
+         "/BinScheme1/GeolocationData/InstrumentQualityFlags", &
+         this%InstrumentQualityFlags)
+    IF (ErrorFlag.NE.0) GOTO 990
+    CALL H5ReadDataset(filename, &
+         "/BinScheme1/GeolocationData/Latitude", &
+         this%Latitude)
+    IF (ErrorFlag.NE.0) GOTO 990
+    CALL H5ReadDataset(filename, &
+         "/BinScheme1/GeolocationData/LatitudeCorner", &
+         this%LatitudeCorner)
+    IF (ErrorFlag.NE.0) GOTO 990
+    CALL H5ReadDataset(filename, &
+         "/BinScheme1/GeolocationData/Longitude", &
+         this%Longitude)
+    IF (ErrorFlag.NE.0) GOTO 990
+    CALL H5ReadDataset(filename, &
+         "/BinScheme1/GeolocationData/LongitudeCorner", &
+         this%LongitudeCorner)
+    IF (ErrorFlag.NE.0) GOTO 990
+    CALL H5ReadDataset(filename, &
+         "/BinScheme1/GeolocationData/SatelliteAzimuthAngle", &
+         this%SatelliteAzimuth)
+    IF (ErrorFlag.NE.0) GOTO 990
+    CALL H5ReadDataset(filename, &
+         "/BinScheme1/GeolocationData/SatelliteZenithAngle", &
+         this%SatelliteZenithAngle)
+    IF (ErrorFlag.NE.0) GOTO 990
+    CALL H5ReadDataset(filename, &
+         "/BinScheme1/GeolocationData/SolarAzimuthAngle", &
+         this%SolarAzimuth)
+    IF (ErrorFlag.NE.0) GOTO 990
+    CALL H5ReadDataset(filename, &
+         "/BinScheme1/GeolocationData/SolarBetaAngle", this%SolarBeta)
+    IF (ErrorFlag.NE.0) GOTO 990
+    CALL H5ReadDataset(filename, &
+         "/BinScheme1/GeolocationData/SolarZenithAngle", &
+         this%SolarZenithAngle) 
+    IF (ErrorFlag.NE.0) GOTO 990
+    CALL H5ReadDataset(filename, &
+         "/BinScheme1/GeolocationData/SpacecraftAltitude", this%SpacecraftAltitude)
+    IF (ErrorFlag.NE.0) GOTO 990
+    CALL H5ReadDataset(filename, &
+         "/BinScheme1/GeolocationData/SpacecraftLatitude", this%SpacecraftLatitude)
+    IF (ErrorFlag.NE.0) GOTO 990
+    CALL H5ReadDataset(filename, &
+         "/BinScheme1/GeolocationData/SpacecraftLongitude", this%SpacecraftLongitude)    
+    IF (ErrorFlag.NE.0) GOTO 990
+    CALL H5ReadDataset(filename, &
+         "/BinScheme1/GeolocationData/SubSatelliteSolarZenithAngle", &
+         this%SubSatelliteSolarZenithAngle)
+    IF (ErrorFlag.NE.0) GOTO 990
+    CALL H5ReadAttribute(filename, &
+         "/BinScheme1/GeolocationData/SunEarthDistance", this%SunEarthDistance)    
+    IF (ErrorFlag.NE.0) GOTO 990
+    CALL H5ReadDataset(filename, &
+         "/BinScheme1/GeolocationData/UTC_CCSDS_A", this%UTC_CCSDS_A)
+    IF (ErrorFlag.NE.0) GOTO 990
+    
+    ! --------------
+    ! Input pointers
+    ! --------------
+    CALL H5ReadDataset(filename, &
+         "/InputPointers/ControlFileContents", this%ControlFileContents)
+    IF (ErrorFlag.NE.0) GOTO 990
+    
+    ! ------------
+    ! Science data
+    ! ------------
+    CALL H5ReadDataset(filename, &
+         "/BinScheme1/ScienceData/ExposureTime", this%ExposureTime)
+    IF (ErrorFlag.NE.0) GOTO 990
+    CALL H5ReadDataset(filename, &
+         "/BinScheme1/ScienceData/NumberCoadds", this%NumberCoadds)    
+    IF (ErrorFlag.NE.0) GOTO 990
+    CALL H5ReadDataset(filename, &
+         "/BinScheme1/ScienceData/PixelQualityFlags", &
+         this%PixelQualityFlags)
+    IF (ErrorFlag.NE.0) GOTO 990
+    CALL H5ReadDataset(filename, &
+         "/BinScheme1/ScienceData/Radiance", this%Radiance)
+    IF (ErrorFlag.NE.0) GOTO 990
+    CALL H5ReadDataset(filename, &
+         "/BinScheme1/ScienceData/RadianceError", &
+         this%RadianceError)
+    IF (ErrorFlag.NE.0) GOTO 990
+    CALL H5ReadDataset(filename, &
+         "/BinScheme1/ScienceData/RawCounts", &
+         this%RawCounts)
+    IF (ErrorFlag.NE.0) GOTO 990
+    CALL H5ReadDataset(filename, &
+         "/BinScheme1/ScienceData/ReportIntervalQualityFlags", this%ReportIntQualFlags)
+    IF (ErrorFlag.NE.0) GOTO 990
+    CALL H5ReadDataset(filename, &
+         "/BinScheme1/ScienceData/SensorStatusBits", this%SensorStatusBits)
+    IF (ErrorFlag.NE.0) GOTO 990
+    
+    status = ErrorFlag
+    RETURN
+990 WRITE(*, '(A)') ErrorMessage
+    status = 2
+    RETURN
+    
+  END FUNCTION OMPS_NMEV_READER
+END MODULE OMSAO_OMPS_READER
