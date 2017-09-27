@@ -65,9 +65,9 @@ CONTAINS
 
        curr_xtrack_pixnum = ipix
 
-       n_omi_irradwvl = nwav_irrad(ipix)
+       n_irradwvl = nwav_irrad(ipix)
 
-       IF ( n_omi_irradwvl <= 0 ) CYCLE
+       IF ( n_irradwvl <= 0 ) CYCLE
 
        saved_shift = -1.0e+30_r8 ; saved_squeeze = -1.0e+30_r8
 
@@ -76,11 +76,11 @@ CONTAINS
        exclud_idx(1:2) = ccdpix_exclusion(ipix,1:2)
        CALL omi_adjust_irradiance_data ( &           ! Set up generic fitting arrays
             select_idx(1:4), exclud_idx(1:2),             &
-            n_omi_irradwvl,                               &
-            irradiance_wavl  (1:n_omi_irradwvl,ipix), &
-            irradiance_spec  (1:n_omi_irradwvl,ipix), &
-            irradiance_ccdpix(1:n_omi_irradwvl,ipix), &
-            n_sol_wvl, curr_sol_spec(wvl_idx:ccd_idx,1:n_omi_irradwvl), &
+            n_irradwvl,                               &
+            irradiance_wavl  (1:n_irradwvl,ipix), &
+            irradiance_spec  (1:n_irradwvl,ipix), &
+            irradiance_ccdpix(1:n_irradwvl,ipix), &
+            n_sol_wvl, curr_sol_spec(wvl_idx:ccd_idx,1:n_irradwvl), &
             yn_skip_pix, locerrstat )
 
        ! -------------------------------------------------------------------------

@@ -147,7 +147,7 @@ MODULE OMSAO_omidata_module
   ! Finally some variables that will be initialized in the
   ! course of the processing.
   ! ------------------------------------------------------
-  INTEGER (KIND=i4) :: n_omi_radwvl, n_radrefwvl, n_omi_irradwvl, nclenfit
+  INTEGER (KIND=i4) :: n_radwvl, n_radrefwvl, n_irradwvl, nclenfit
 
   ! --------------------------------
   ! Current cross-track pixel number

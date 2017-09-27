@@ -1,5 +1,5 @@
 SUBROUTINE omi_adjust_irradiance_data ( &
-     ccdpix_idx, ccdpix_exc, n_omi_irradwvl, omi_irrad_wvl, omi_irrad_spc, &
+     ccdpix_idx, ccdpix_exc, n_irradwvl, omi_irrad_wvl, omi_irrad_spc, &
      omi_irrad_ccd, n_sol_wvl, curr_sol_spec, yn_skip_pix, errstat )
   USE OMSAO_precision_module, ONLY: i4, r8
   USE OMSAO_indices_module, ONLY: wvl_idx, spc_idx, sig_idx, ccd_idx
@@ -12,18 +12,18 @@ SUBROUTINE omi_adjust_irradiance_data ( &
   ! ---------------
   ! Input variables
   ! ---------------
-  INTEGER (KIND=i4),                             INTENT (IN) :: n_omi_irradwvl
+  INTEGER (KIND=i4),                             INTENT (IN) :: n_irradwvl
   INTEGER (KIND=i4), DIMENSION (2),              INTENT (IN) :: ccdpix_exc
   INTEGER (KIND=i4), DIMENSION (4),              INTENT (IN) :: ccdpix_idx
-  REAL    (KIND=r8), DIMENSION (n_omi_irradwvl), INTENT (IN) :: omi_irrad_wvl, omi_irrad_spc
+  REAL    (KIND=r8), DIMENSION (n_irradwvl), INTENT (IN) :: omi_irrad_wvl, omi_irrad_spc
 
   ! ----------------
   ! Output variables
   ! ----------------
   LOGICAL,                                               INTENT (OUT) :: yn_skip_pix
   INTEGER (KIND=i4),                                     INTENT (OUT) :: n_sol_wvl
-  INTEGER (KIND=i4), DIMENSION (n_omi_irradwvl),         INTENT (OUT) :: omi_irrad_ccd
-  REAL    (KIND=r8), DIMENSION (ccd_idx,n_omi_irradwvl), INTENT (OUT) :: curr_sol_spec
+  INTEGER (KIND=i4), DIMENSION (n_irradwvl),         INTENT (OUT) :: omi_irrad_ccd
+  REAL    (KIND=r8), DIMENSION (ccd_idx,n_irradwvl), INTENT (OUT) :: curr_sol_spec
 
   ! ------------------
   ! Modified variables
@@ -35,15 +35,15 @@ SUBROUTINE omi_adjust_irradiance_data ( &
   ! ---------------
   INTEGER (KIND=i4) :: i, j, locerrstat, imin1, imax1, imin2, imax2, j1, j2
   LOGICAL :: have_good_window
-  REAL (KIND=r8), DIMENSION (n_omi_irradwvl) :: weightsum
+  REAL (KIND=r8), DIMENSION (n_irradwvl) :: weightsum
   REAL (KIND=r8) :: sol_spec_avg, asum, ssum
 
   ! ----------------------------------------------
   ! Variables for separating the good from the bad
   ! ----------------------------------------------
   INTEGER (KIND=i4) :: ngood, nbad
-  INTEGER (KIND=i4), DIMENSION (n_omi_irradwvl) :: bad_idx
-  REAL    (KIND=r8), DIMENSION (n_omi_irradwvl) :: wvl_good, wvl_bad, spc_good, spc_bad
+  INTEGER (KIND=i4), DIMENSION (n_irradwvl) :: bad_idx
+  REAL    (KIND=r8), DIMENSION (n_irradwvl) :: wvl_good, wvl_bad, spc_good, spc_bad
 
   locerrstat  = pge_errstat_ok
   yn_skip_pix = .FALSE.
@@ -55,7 +55,7 @@ SUBROUTINE omi_adjust_irradiance_data ( &
   ! Assign irradiance spectrum to generic variables that are passed
   ! through the fitting routines down to the spectrum function.
   ! ---------------------------------------------------------------
-  n_sol_wvl                          = n_omi_irradwvl
+  n_sol_wvl                          = n_irradwvl
   curr_sol_spec(wvl_idx,1:n_sol_wvl) = omi_irrad_wvl(1:n_sol_wvl)
   curr_sol_spec(spc_idx,1:n_sol_wvl) = omi_irrad_spc(1:n_sol_wvl)
   omi_irrad_ccd(        1:n_sol_wvl) = (/ (i, i = imin1, imax1) /)
@@ -194,8 +194,8 @@ END SUBROUTINE omi_adjust_irradiance_data
 
 
 SUBROUTINE omi_adjust_radiance_data (                                   &
-     ccdpix_idx, ccdpix_exc, n_omi_radwvl, omi_rad_wvl, omi_rad_spc, &
-     omi_rad_ccd, n_omi_irradwvl, curr_sol_weight, n_rad_wvl, curr_rad_spec,   &
+     ccdpix_idx, ccdpix_exc, n_radwvl, omi_rad_wvl, omi_rad_spc, &
+     omi_rad_ccd, n_irradwvl, curr_sol_weight, n_rad_wvl, curr_rad_spec,   &
      rad_spec_avg, yn_skip_pix )
 
   USE OMSAO_precision_module, ONLY: i4, r8
@@ -210,11 +210,11 @@ SUBROUTINE omi_adjust_radiance_data (                                   &
   ! ---------------
   ! Input variables
   ! ---------------
-  INTEGER (KIND=i4),                             INTENT (IN) :: n_omi_radwvl, n_omi_irradwvl
+  INTEGER (KIND=i4),                             INTENT (IN) :: n_radwvl, n_irradwvl
   INTEGER (KIND=i4), DIMENSION (2),              INTENT (IN) :: ccdpix_exc
   INTEGER (KIND=i4), DIMENSION (4),              INTENT (IN) :: ccdpix_idx
-  REAL    (KIND=r8), DIMENSION (n_omi_radwvl),   INTENT (IN) :: omi_rad_wvl, omi_rad_spc
-  REAL    (KIND=r8), DIMENSION (n_omi_irradwvl), INTENT (IN) :: curr_sol_weight
+  REAL    (KIND=r8), DIMENSION (n_radwvl),   INTENT (IN) :: omi_rad_wvl, omi_rad_spc
+  REAL    (KIND=r8), DIMENSION (n_irradwvl), INTENT (IN) :: curr_sol_weight
 
   ! ----------------
   ! Output variables
@@ -222,8 +222,8 @@ SUBROUTINE omi_adjust_radiance_data (                                   &
   LOGICAL,                                                INTENT (OUT) :: yn_skip_pix
   INTEGER (KIND=i4),                                      INTENT (OUT) :: n_rad_wvl
   REAL    (KIND=r8),                                      INTENT (OUT) :: rad_spec_avg
-  INTEGER (KIND=i4),  DIMENSION (n_omi_radwvl),           INTENT (OUT) :: omi_rad_ccd
-  REAL    (KIND=r8),  DIMENSION (ccd_idx,1:n_omi_radwvl), INTENT (OUT) :: curr_rad_spec
+  INTEGER (KIND=i4),  DIMENSION (n_radwvl),           INTENT (OUT) :: omi_rad_ccd
+  REAL    (KIND=r8),  DIMENSION (ccd_idx,1:n_radwvl), INTENT (OUT) :: curr_rad_spec
 
   ! ------------------
   ! Modified variables
@@ -235,7 +235,7 @@ SUBROUTINE omi_adjust_radiance_data (                                   &
   ! ---------------
   INTEGER (KIND=i4) :: i, locerrstat, imin1, imax1, imin2, imax2, j1, j2
   LOGICAL :: have_good_window
-  REAL (KIND=r8), DIMENSION (n_omi_radwvl) :: weightsum
+  REAL (KIND=r8), DIMENSION (n_radwvl) :: weightsum
 
   locerrstat  = pge_errstat_ok
   yn_skip_pix = .FALSE.
@@ -247,7 +247,7 @@ SUBROUTINE omi_adjust_radiance_data (                                   &
   ! Assign radiance spectrum to generic variables that are passed
   ! through the fitting routines down to the spectrum function.
   ! -------------------------------------------------------------
-  n_rad_wvl                          = n_omi_radwvl
+  n_rad_wvl                          = n_radwvl
   curr_rad_spec(wvl_idx,1:n_rad_wvl) = omi_rad_wvl(1:n_rad_wvl)
   curr_rad_spec(spc_idx,1:n_rad_wvl) = omi_rad_spc(1:n_rad_wvl)
   omi_rad_ccd  (        1:n_rad_wvl) = (/ (i, i = imin1, imax1) /)
