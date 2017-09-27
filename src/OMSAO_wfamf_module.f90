@@ -1231,7 +1231,7 @@ CONTAINS
   SUBROUTINE compute_geometric_amf ( nt, nx, sza, vza, xtrange, amfgeo, amfdiag )
 
     USE OMSAO_parameters_module, ONLY: deg2rad
-    USE OMSAO_data_module, ONLY: omi_geo_amf, omi_oobview_amf
+    USE OMSAO_data_module, ONLY: geo_amf, oobview_amf
 
     IMPLICIT NONE
 
@@ -1276,9 +1276,9 @@ CONTAINS
           amfgeo(spix:epix,it) = &
                1.0_r8 / COS ( REAL(sza(spix:epix,it),KIND=r8)*deg2rad ) + &
                1.0_r8 / COS ( REAL(vza(spix:epix,it),KIND=r8)*deg2rad )
-          amfdiag(spix:epix,it) = omi_geo_amf
+          amfdiag(spix:epix,it) = geo_amf
        ELSEWHERE
-          amfdiag(spix:epix,it) = omi_oobview_amf
+          amfdiag(spix:epix,it) = oobview_amf
        ENDWHERE
     END DO
 
@@ -1619,7 +1619,7 @@ CONTAINS
   SUBROUTINE amf_diagnostic ( nt, nx, sza, vza, xtrange, &
        l2cfr, l2ctp, amfdiag )
 
-    USE OMSAO_data_module, ONLY: omi_oobview_amf, omi_bigsza_amf
+    USE OMSAO_data_module, ONLY: oobview_amf, bigsza_amf
     
     IMPLICIT NONE
 
@@ -1692,7 +1692,7 @@ CONTAINS
             ( sza(spix:epix,it) > MAXVAL(vl_sza) ) .OR. &
             ( vza(spix:epix,it) < MINVAL(vl_vza) ) .OR. &
             ( vza(spix:epix,it) > MAXVAL(vl_vza) )      )
-          amfdiag(spix:epix,it) = omi_oobview_amf
+          amfdiag(spix:epix,it) = oobview_amf
        END WHERE
 
        ! -------------------------------------------------
@@ -1730,7 +1730,7 @@ CONTAINS
        ! if we have "good" clouds
        ! ------------------------------------------------------
        WHERE ( &
-            ( amfdiag(spix:epix,it) > omi_oobview_amf ) .AND. &
+            ( amfdiag(spix:epix,it) > oobview_amf ) .AND. &
             (l2cfr(spix:epix,it) >= 0.0_r8            ) .AND. &
             (l2ctp(spix:epix,it) >= 0.0_r8            )       )
              amfdiag(spix:epix,it) = 0_i2
@@ -1742,8 +1742,8 @@ CONTAINS
        ! --------------------------------------------------
        WHERE ( &
             ( sza(spix:epix,it)     .GE. ctrvar%amf_max_sza) .AND. &
-            ( amfdiag(spix:epix,it) .GT. omi_oobview_amf ) )
-              amfdiag(spix:epix,it) = omi_bigsza_amf + amfdiag(spix:epix,it)
+            ( amfdiag(spix:epix,it) .GT. oobview_amf ) )
+              amfdiag(spix:epix,it) = bigsza_amf + amfdiag(spix:epix,it)
        END WHERE
 
     END DO

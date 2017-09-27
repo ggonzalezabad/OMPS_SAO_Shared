@@ -21,18 +21,16 @@ MODULE OMSAO_data_module
   ! --------------------------------------------------
   ! Parameters defined by the NISE snow cover approach
   ! --------------------------------------------------
-  INTEGER (KIND=i2), PARAMETER :: &
-       NISE_snowfree =   0, NISE_allsnow = 100, NISE_permice = 101, NISE_drysnow = 103, &
-       NISE_ocean    = 104, NISE_suspect = 125, NISE_error   = 127
+  INTEGER (KIND=i2), PARAMETER :: NISE_snowfree =   0, NISE_allsnow = 100, NISE_permice = 101, &
+       NISE_drysnow = 103, NISE_ocean    = 104, NISE_suspect = 125, NISE_error   = 127
 
   ! --------------------------------------------------------------------
   ! Values to go into the diagnostic array that shows how the AMF was
   ! computed, with values that indicate missing cloud products, glint,
   ! and geometric or no AMF
   ! --------------------------------------------------------------------
-  INTEGER (KIND=i2), PARAMETER :: &
-       omi_cfr_addmiss = 1000, omi_ctp_addmiss = 2000, omi_glint_add = 10000, &
-       omi_geo_amf = -1, omi_oobview_amf = -2, omi_wfmod_amf = -9, omi_bigsza_amf = -3
+  INTEGER (KIND=i2), PARAMETER :: cfr_addmiss = 1000, ctp_addmiss = 2000, glint_add = 10000, &
+       geo_amf = -1, oobview_amf = -2, wfmod_amf = -9, bigsza_amf = -3
 
   ! ------------------------------------------------------------------
   ! Arrays for L1b data (radiance, radiance reference, and irradiance)
