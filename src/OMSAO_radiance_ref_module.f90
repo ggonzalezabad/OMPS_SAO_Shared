@@ -28,8 +28,8 @@ CONTAINS
          fitvar_rad_saved, n_database_wvl, fitvar_rad, &
          pcfvar, ctrvar
     USE OMSAO_slitfunction_module, ONLY: saved_shift, saved_squeeze
-    USE OMSAO_omidata_module, ONLY: omi_nwav_irrad, irradiance_wght, &
-         omi_nwav_rad, n_omi_database_wvl, omi_cross_track_skippix, &
+    USE OMSAO_omidata_module, ONLY: nwav_irrad, irradiance_wght, &
+         nwav_rad, n_omi_database_wvl, omi_cross_track_skippix, &
          curr_xtrack_pixnum, n_omi_radwvl, max_rs_idx, omi_database, &
          omi_database_wvl, omi_sol_wav_avg, omi_solcal_pars, radref_wavl, &
          radref_spec, ccdpix_selection, radiance_ccdpix, &
@@ -114,7 +114,7 @@ CONTAINS
        IF ( omi_cross_track_skippix(ipix) ) CYCLE
 
        n_database_wvl = n_omi_database_wvl(ipix)
-       n_omi_radwvl   = omi_nwav_rad      (ipix,0)
+       n_omi_radwvl   = nwav_rad      (ipix,0)
 
        ! ---------------------------------------------------------------------------
        ! For each cross-track position we have to initialize the saved Shift&Squeeze
@@ -125,7 +125,7 @@ CONTAINS
        ! Assign number of irradiance wavelengths and the fitting weights
        ! from the solar wavelength calibration. Why? gga
        ! ------------------------------------------------------------------
-       n_solar_pts              = omi_nwav_irrad(ipix)
+       n_solar_pts              = nwav_irrad(ipix)
        solar_wgt(1:n_solar_pts) = irradiance_wght(1:n_solar_pts,ipix)
 
        ! -----------------------------------------------------
@@ -269,7 +269,7 @@ CONTAINS
        ipix, jpix, n_fincol_idx, fincol_idx, &
        target_npol, target_var, target_fit   )
 
-    USE OMSAO_omidata_module, ONLY: radref_spec, omi_database, omi_nwav_radref, nwavel_max
+    USE OMSAO_omidata_module, ONLY: radref_spec, omi_database, nwav_radref, nwavel_max
     USE OMSAO_variables_module, ONLY: refspecs_original
     USE OMSAO_median_module, ONLY: median
 
@@ -374,7 +374,7 @@ CONTAINS
 
           l = i - ipix + 1
 
-          nwvl = omi_nwav_radref(i)
+          nwvl = nwav_radref(i)
 
           IF ( yf(l) > r8_missval ) THEN
              yfloc = yf(l)
@@ -404,7 +404,7 @@ CONTAINS
 SUBROUTINE create_radiance_reference (nt, nx, nw, locerrstat)
 
   USE OMSAO_omidata_module, ONLY: &
-       ccdpix_selection, omi_nwav_radref, radref_spec, radref_wavl,     &
+       ccdpix_selection, nwav_radref, radref_spec, radref_wavl,     &
        radref_qflg, radref_sza, radref_vza, radref_wght,            &
        ccdpix_exclusion, omi_sol_wav_avg 
   USE OMSAO_variables_module, ONLY : ctrvar, pcfvar
@@ -597,7 +597,7 @@ SUBROUTINE create_radiance_reference (nt, nx, nw, locerrstat)
      imax = ccdpix_selection(ix,4)
 
      icnt = imax - imin + 1
-     omi_nwav_radref(       ix) = icnt
+     nwav_radref(       ix) = icnt
      radref_spec(1:icnt,ix) = local_radref_spec(ix,imin:imax)
      radref_wavl(1:icnt,ix) = radref_wavl_ix(imin:imax)
      radref_qflg(1:icnt,ix) = 0_i2

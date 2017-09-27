@@ -390,7 +390,7 @@ SUBROUTINE omi_create_solcomp_irradiance ( nxt )
   USE OMSAO_variables_module, ONLY: ctrvar
   USE OMSAO_solcomp_module, ONLY: soco_compute
   USE OMSAO_omidata_module, ONLY: nwavel_max, irradiance_spec, irradiance_qflg, &
-       irradiance_prec, irradiance_wavl, omi_nwav_irrad, ccdpix_selection, &
+       irradiance_prec, irradiance_wavl, nwav_irrad, ccdpix_selection, &
        ccdpix_exclusion, omi_sol_wav_avg
   
 
@@ -422,7 +422,7 @@ SUBROUTINE omi_create_solcomp_irradiance ( nxt )
 
   DO ix = 1, nxt
 
-     omi_nwav_irrad (ix) = nwvl
+     nwav_irrad (ix) = nwvl
      irradiance_wavl(1:nwvl,ix) = tmpwvl(1:nwvl)
 
      ! ---------------------------------------------------------------

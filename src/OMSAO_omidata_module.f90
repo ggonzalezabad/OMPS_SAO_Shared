@@ -77,7 +77,7 @@ MODULE OMSAO_omidata_module
   ! -----------------------------------
   ! Arrays for spectral fitting results
   ! -----------------------------------
-  REAL (KIND=r8), ALLOCATABLE, DIMENSION (:,:) :: column_amount, column_uncert, fit_rms, radfit_chisq, albedo
+  REAL (KIND=r8), ALLOCATABLE, DIMENSION (:,:) :: column_amount, column_uncert, fit_rms, radfit_chisq
   INTEGER (KIND=i2), ALLOCATABLE, DIMENSION (:,:) :: fitconv_flag, itnum_flag
 
   ! -------------------------------------------------------
@@ -103,8 +103,8 @@ MODULE OMSAO_omidata_module
   ! Dimensions for measurement swaths
   ! ---------------------------------
   INTEGER (KIND=i4) :: nwavel, ntimes_loop
-  INTEGER (KIND=i4), ALLOCATABLE, DIMENSION (:) :: omi_nwav_irrad, omi_nwav_radref
-  INTEGER (KIND=i4), ALLOCATABLE, DIMENSION (:,:) :: omi_nwav_rad, omi_nwav_rad_reference
+  INTEGER (KIND=i4), ALLOCATABLE, DIMENSION (:) :: nwav_irrad, nwav_radref
+  INTEGER (KIND=i4), ALLOCATABLE, DIMENSION (:,:) :: nwav_rad, nwav_rad_reference
 
   ! ---------------------------------------
   ! Swath attributes for measurement swaths
@@ -190,7 +190,7 @@ CONTAINS
        ALLOCATE(spacecraft_alt(0:nt-1),xtrflg(1:nx,0:nt-1),omi_instrument_flag(0:nt-1), &
             latitute(1:nx,0:nt-1),longitude(1:nx,0:nt-1), szenith(1:nx,0:nt-1), &
             sazimuth(1:nx,0:nt-1),vzenith(1:nx,0:nt-1),vazimuth(1:nx,0:nt-1), &
-            razimuth(1:nx,0:nt-1), omi_nwav_irrad(1:nx), omi_nwav_rad(1:nx,0:nt-1), &
+            razimuth(1:nx,0:nt-1), nwav_irrad(1:nx), nwav_rad(1:nx,0:nt-1), &
             irradiance_wavl(1:nw,nx),irradiance_spec(1:nw,1:nx),omi_sol_wav_avg(1:nx), &
             ccdpix_selection(nx,4), ccdpix_exclusion(nx,2), radiance_wavl(1:nw,1:nx,0:nt-1), &
             radiance_spec(1:nw,1:nx,0:nt-1), radiance_prec(1:nw,1:nx,0:nt-1), &

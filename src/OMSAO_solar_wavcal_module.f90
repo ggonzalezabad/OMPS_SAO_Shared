@@ -65,7 +65,7 @@ CONTAINS
 
        curr_xtrack_pixnum = ipix
 
-       n_omi_irradwvl = omi_nwav_irrad(ipix)
+       n_omi_irradwvl = nwav_irrad(ipix)
 
        IF ( n_omi_irradwvl <= 0 ) CYCLE
 
@@ -126,7 +126,7 @@ CONTAINS
        ! spectrum is now normalized, has bad pixels set to -1, and that the
        ! wavelength array is calibrated.
        ! ------------------------------------------------------------------------
-       omi_nwav_irrad(ipix)                  = n_sol_wvl
+       nwav_irrad(ipix)                  = n_sol_wvl
        irradiance_wavl(1:n_sol_wvl,ipix) = curr_sol_spec(wvl_idx,1:n_sol_wvl)
        irradiance_spec(1:n_sol_wvl,ipix) = curr_sol_spec(spc_idx,1:n_sol_wvl)
        irradiance_wght(1:n_sol_wvl,ipix) = curr_sol_spec(sig_idx,1:n_sol_wvl)
@@ -405,7 +405,7 @@ CONTAINS
 
     DO ipix = first_pix, last_pix
 
-       nwav        = omi_nwav_irrad(ipix)
+       nwav        = nwav_irrad(ipix)
        sol_wav_avg = omi_sol_wav_avg(ipix)
        
        tmpwav(1:nwav) = irradiance_wavl(1:nwav,ipix)

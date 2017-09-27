@@ -28,7 +28,7 @@ CONTAINS
     USE OMSAO_variables_module, ONLY: pcfvar, ctrvar
     USE OMSAO_omidata_module, ONLY: &
          nwavel_max, nxtrack_max, irradiance_spec,        &
-         irradiance_qflg, irradiance_prec, irradiance_wavl, omi_nwav_irrad, &
+         irradiance_qflg, irradiance_prec, irradiance_wavl, nwav_irrad, &
          ccdpix_selection, ccdpix_exclusion,             &
          omi_sol_wav_avg, EarthSunDistance
     USE OMSAO_indices_module, ONLY: solmonthave_lun
@@ -200,7 +200,7 @@ CONTAINS
        irradiance_spec(1:icnt,ix) = REAL(tmp_spc(imin:imax,ix), KIND=r8)
        irradiance_prec(1:icnt,ix) = REAL(tmp_prc(imin:imax,ix), KIND=r8)
        irradiance_qflg(1:icnt,ix) = tmp_flg(imin:imax,ix)
-       omi_nwav_irrad (ix) = icnt
+       nwav_irrad (ix) = icnt
        omi_sol_wav_avg(ix) = SUM( tmp_wvl(imin:imax,ix) ) / REAL(icnt, KIND=r8)
 
        ! ------------------------------------------------------------------------------

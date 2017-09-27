@@ -50,8 +50,8 @@ SUBROUTINE omps_data_to_omi_variables (OMPS_data,nt,nx,nw)
   ! Initialize variables
   ! --------------------
   nwavel         = OMPS_data%nWavel
-  omi_nwav_irrad = OMPS_data%nWavel
-  omi_nwav_rad   = OMPS_data%nWavel
+  nwav_irrad = OMPS_data%nWavel
+  nwav_rad   = OMPS_data%nWavel
 
   ! ------------------------------------------------------------
   ! Fill up pixel selection variables using the set up of the
@@ -78,7 +78,7 @@ SUBROUTINE omps_data_to_omi_variables (OMPS_data,nt,nx,nw)
      icnt = imax - imin + 1
      irradiance_wavl(1:icnt,ix) = REAL(OMPS_data%SolarFluxWavelengths(imin:imax,ix), KIND=r8)
      irradiance_spec(1:icnt,ix) = REAL(OMPS_data%SolarFlux(imin:imax,ix), KIND=r8)
-     omi_nwav_irrad (ix) = icnt
+     nwav_irrad (ix) = icnt
      omi_sol_wav_avg(ix) = SUM( OMPS_data%SolarFluxWavelengths(imin:imax,ix) ) / REAL(icnt, KIND=r8)
      
 
@@ -108,7 +108,7 @@ SUBROUTINE omps_data_to_omi_variables (OMPS_data,nt,nx,nw)
         radiance_spec(1:icnt,ix,it) = REAL ( OMPS_data%Radiance(imin:imax,ix,it+1), KIND=r8 )
         radiance_prec(1:icnt,ix,it) = REAL ( OMPS_data%RadianceError(imin:imax,ix,it+1), KIND=r8 )
         radiance_qflg(1:icnt,ix,it) = OMPS_data%PixelQualityFlags(imin:imax,ix,it+1)
-        omi_nwav_rad     (       ix,it) = icnt
+        nwav_rad     (       ix,it) = icnt
 
      END DO
   END DO

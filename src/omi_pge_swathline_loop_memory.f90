@@ -17,7 +17,7 @@ SUBROUTINE omi_pge_swathline_loop_memory (                               &
        nlines_max, nUTCdim, omi_scanline_no, omi_blockline_no,                  &
        itnum_flag, fitconv_flag, column_amount,                     &
        column_uncert, time_utc, time, latitute, fit_rms,    &
-       radiance_errstat, omi_nwav_radref, radref_spec, radref_wavl, &
+       radiance_errstat, nwav_radref, radref_spec, radref_wavl, &
        szenith, vzenith, longitude, xtrflg, height
   USE OMSAO_prefitcol_module
   USE OMSAO_errstat_module

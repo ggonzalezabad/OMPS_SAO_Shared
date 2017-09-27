@@ -12,13 +12,13 @@ SUBROUTINE xtrack_radiance_wvl_calibration (             &
        fitvar_cal_saved, pcfvar, ctrvar
   USE OMSAO_slitfunction_module, ONLY: saved_shift, saved_squeeze
   USE OMSAO_omidata_module, ONLY: nwavel_max, nxtrack_max, &
-       omi_cross_track_skippix, omi_nwav_radref, omi_radcal_itnum, &
+       omi_cross_track_skippix, nwav_radref, omi_radcal_itnum, &
        omi_radcal_xflag, omi_radcal_chisq, n_omi_database_wvl, &
        omi_solcal_pars, omi_sol_wav_avg,  &
-       omi_nwav_irrad, irradiance_wght, irradiance_wavl, &
+       nwav_irrad, irradiance_wght, irradiance_wavl, &
        irradiance_spec, omi_database, omi_database_wvl, &
        radref_spec, radref_wavl, radref_qflg, radref_wght, &
-       omi_nwav_rad, radiance_spec, radiance_wavl, radiance_qflg, &
+       nwav_rad, radiance_spec, radiance_wavl, radiance_qflg, &
        ccdpix_selection, ccdpix_exclusion, radiance_ccdpix, &
        omi_radcal_pars, curr_xtrack_pixnum, n_omi_irradwvl, n_omi_radwvl      
   USE OMSAO_errstat_module, ONLY: f_sep, omsao_s_progress, omsao_w_skippix, &
@@ -75,9 +75,9 @@ SUBROUTINE xtrack_radiance_wvl_calibration (             &
   ! -------------------------------------------------
   ! Set the number of wavelengths for the common mode
   ! -------------------------------------------------
-  n_comm_wvl_out = MAXVAL ( omi_nwav_radref(first_pix:last_pix) )
-  IF ( MAXVAL(omi_nwav_rad(first_pix:last_pix,0)) > n_comm_wvl_out ) &
-  n_comm_wvl_out = MAXVAL(omi_nwav_rad(first_pix:last_pix,0))
+  n_comm_wvl_out = MAXVAL ( nwav_radref(first_pix:last_pix) )
+  IF ( MAXVAL(nwav_rad(first_pix:last_pix,0)) > n_comm_wvl_out ) &
+  n_comm_wvl_out = MAXVAL(nwav_rad(first_pix:last_pix,0))
 
   ! ---------------------------------------------------
   ! Find a line close or nearby the center of the swath
@@ -107,8 +107,8 @@ SUBROUTINE xtrack_radiance_wvl_calibration (             &
      ! ----------------------------------------------------
      ! Assign number of radiance and irradiance wavelengths
      ! ----------------------------------------------------
-     n_omi_irradwvl = omi_nwav_irrad(ipix  )
-     n_omi_radwvl   = omi_nwav_rad  (ipix,cline)
+     n_omi_irradwvl = nwav_irrad(ipix  )
+     n_omi_radwvl   = nwav_rad  (ipix,cline)
 
      ! -----------------------------------------------------------------
      ! tpk: Should the following be "> n_fitvar_rad"??? No, because that
@@ -128,7 +128,7 @@ SUBROUTINE xtrack_radiance_wvl_calibration (             &
      ! Assign (hopefully predetermined) "reference" weights.
      ! -----------------------------------------------------
      IF ( .NOT. yn_solar_comp ) THEN
-        n_omi_irradwvl            = omi_nwav_irrad(ipix)
+        n_omi_irradwvl            = nwav_irrad(ipix)
         ref_wgt(1:n_omi_irradwvl) = irradiance_wght(1:n_omi_irradwvl,ipix)
 
        ! -----------------------------------------------------
@@ -246,7 +246,7 @@ SUBROUTINE xtrack_radiance_wvl_calibration (             &
         ref_wgt(1:n_ref_wvl) = curr_rad_spec(sig_idx,1:n_rad_wvl)
      END IF
     
-     omi_nwav_radref(ipix)                        = n_ref_wvl
+     nwav_radref(ipix)                        = n_ref_wvl
      radref_wavl(1:n_ref_wvl,ipix)            = curr_rad_spec(wvl_idx,1:n_rad_wvl)
      radref_spec(1:n_ref_wvl,ipix)            = curr_rad_spec(spc_idx,1:n_rad_wvl)
      radref_wght(1:n_rad_wvl,ipix)            = curr_rad_spec(sig_idx,1:n_rad_wvl)
@@ -349,7 +349,7 @@ SUBROUTINE xtrack_radiance_fitting_loop (                             &
   USE OMSAO_omidata_module, ONLY: nxtrack_max, n_comm_wvl, &
        column_uncert, column_amount, fit_rms, radfit_chisq, &
        itnum_flag, fitconv_flag, omi_solcal_pars, omi_sol_wav_avg, &
-       n_omi_database_wvl, omi_nwav_rad, szenith, omi_xtrackpix_no, &
+       n_omi_database_wvl, nwav_rad, szenith, omi_xtrackpix_no, &
        omi_cross_track_skippix, n_omi_radwvl, n_omi_irradwvl, &
        curr_xtrack_pixnum, o3_uncert, o3_amount, radiance_wavl, &
        ccdpix_exclusion, ccdpix_selection, omi_database, &
@@ -412,7 +412,7 @@ SUBROUTINE xtrack_radiance_fitting_loop (                             &
      locerrstat = pge_errstat_ok
 
      n_database_wvl = n_omi_database_wvl(ipix)
-     n_omi_radwvl   = omi_nwav_rad      (ipix,iloop)
+     n_omi_radwvl   = nwav_rad      (ipix,iloop)
 
      ! ---------------------------------------------------------------------------
      ! For each cross-track position we have to initialize the saved Shift&Squeeze
