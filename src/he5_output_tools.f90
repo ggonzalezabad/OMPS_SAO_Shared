@@ -438,10 +438,10 @@ SUBROUTINE he5_write_wavcal_output ( nXtloc, fpix, lpix, errstat )
        omsao_e_he5swwrfld
   USE OMSAO_omidata_module,   ONLY: &
        n_roff_dig,                                            &
-       omi_solcal_xflag,  omi_radcal_xflag, omi_radref_xflag, &
-       omi_solcal_pars,   omi_radcal_pars,  omi_radref_pars,  &
-       omi_radref_col,    omi_radref_dcol,  omi_radref_rms,   &
-       omi_radref_xtrcol
+       omi_solcal_xflag,  omi_radcal_xflag, radref_xflag, &
+       omi_solcal_pars,   omi_radcal_pars,  radref_pars,  &
+       radref_col,    radref_dcol,  radref_rms,   &
+       radref_xtrcol
   USE OMSAO_variables_module, ONLY: ctrvar
 
   IMPLICIT NONE
@@ -485,9 +485,9 @@ SUBROUTINE he5_write_wavcal_output ( nXtloc, fpix, lpix, errstat )
      CALL roundoff_1darr_r8 ( n_roff_dig, max_calfit_idx, tmpr8(1:max_calfit_idx) )
      omi_radcal_pars(1:max_calfit_idx,j) = tmpr8(1:max_calfit_idx)
 
-     tmpr8(1:max_calfit_idx) = omi_radref_pars(1:max_calfit_idx,j)
+     tmpr8(1:max_calfit_idx) = radref_pars(1:max_calfit_idx,j)
      CALL roundoff_1darr_r8 ( n_roff_dig, max_calfit_idx, tmpr8(1:max_calfit_idx) )
-     omi_radref_pars(1:max_calfit_idx,j) = tmpr8(1:max_calfit_idx)
+     radref_pars(1:max_calfit_idx,j) = tmpr8(1:max_calfit_idx)
   END DO
 
   ! --------------------------------------------------
@@ -513,7 +513,7 @@ SUBROUTINE he5_write_wavcal_output ( nXtloc, fpix, lpix, errstat )
        he5_start_2d, he5_stride_2d, he5_edge_2d, omi_radcal_xflag(1:nXtloc) )
   locerrstat = HE5_SWWRFLD (  &
        rad_reffit_he5fields(i)%Swath_ID, TRIM(ADJUSTL(rrcf_field )), &
-       he5_start_2d, he5_stride_2d, he5_edge_2d, omi_radref_xflag(1:nXtloc) )
+       he5_start_2d, he5_stride_2d, he5_edge_2d, radref_xflag(1:nXtloc) )
 
   ! --------------------------------------------------------------------------
   ! Special output for radiance wavelength calibration, and the possibility of
@@ -530,26 +530,26 @@ SUBROUTINE he5_write_wavcal_output ( nXtloc, fpix, lpix, errstat )
   ! ---------------------------------------------------------------------------
   ! Write results for column and column uncertainty from radiance reference fit
   ! ---------------------------------------------------------------------------
-  CALL roundoff_1darr_r8 ( n_roff_dig, npix, omi_radref_col   (fpix:lpix) )
-  CALL roundoff_1darr_r8 ( n_roff_dig, npix, omi_radref_dcol  (fpix:lpix) )
-  CALL roundoff_1darr_r8 ( n_roff_dig, npix, omi_radref_rms   (fpix:lpix) )
-  CALL roundoff_1darr_r8 ( n_roff_dig, npix, omi_radref_xtrcol(fpix:lpix) )
+  CALL roundoff_1darr_r8 ( n_roff_dig, npix, radref_col   (fpix:lpix) )
+  CALL roundoff_1darr_r8 ( n_roff_dig, npix, radref_dcol  (fpix:lpix) )
+  CALL roundoff_1darr_r8 ( n_roff_dig, npix, radref_rms   (fpix:lpix) )
+  CALL roundoff_1darr_r8 ( n_roff_dig, npix, radref_xtrcol(fpix:lpix) )
 
   he5_start_2d  = (/ 0, 0 /) 
   he5_stride_2d = (/ 1, 0 /)
   he5_edge_2d   = (/ INT(nXtloc,KIND=C_LONG), INT(0, KIND=C_LONG) /)
   locerrstat = HE5_SWWRFLD ( &
        rad_reffit_he5fields(i)%Swath_ID, TRIM(ADJUSTL(rrcol_field)), &
-       he5_start_2d(1), he5_stride_2d(1), he5_edge_2d(1), omi_radref_col(1:nXtloc) )
+       he5_start_2d(1), he5_stride_2d(1), he5_edge_2d(1), radref_col(1:nXtloc) )
   locerrstat = HE5_SWWRFLD ( &
        rad_reffit_he5fields(i)%Swath_ID, TRIM(ADJUSTL(rrdcol_field)), &
-       he5_start_2d(1), he5_stride_2d(1), he5_edge_2d(1), omi_radref_dcol(1:nXtloc) )
+       he5_start_2d(1), he5_stride_2d(1), he5_edge_2d(1), radref_dcol(1:nXtloc) )
   locerrstat = HE5_SWWRFLD ( &
        rad_reffit_he5fields(i)%Swath_ID, TRIM(ADJUSTL(rrxcol_field)), &
-       he5_start_2d(1), he5_stride_2d(1), he5_edge_2d(1), omi_radref_xtrcol(1:nXtloc) )
+       he5_start_2d(1), he5_stride_2d(1), he5_edge_2d(1), radref_xtrcol(1:nXtloc) )
   locerrstat = HE5_SWWRFLD ( &
        rad_reffit_he5fields(i)%Swath_ID, TRIM(ADJUSTL(rrrms_field)), &
-       he5_start_2d(1), he5_stride_2d(1), he5_edge_2d(1), omi_radref_rms(1:nXtloc) )
+       he5_start_2d(1), he5_stride_2d(1), he5_edge_2d(1), radref_rms(1:nXtloc) )
 
   ! ------------------
   ! Check error status
@@ -2192,10 +2192,10 @@ END SUBROUTINE saopge_columninfo_read
 SUBROUTINE he5_write_geolocation ( nTimes, nXtrack, &
      fpix, lpix, locerrstat)
 
-  USE OMSAO_omidata_module, ONLY: omi_auraalt, omi_instrument_flag, &
+  USE OMSAO_omidata_module, ONLY: spacecraft_alt, omi_instrument_flag, &
        omi_latitude, omi_longitude, omi_sazimuth, omi_szenith, &
-       omi_vazimuth, omi_vzenith, omi_xtrflg, omi_height, &
-       omi_snowicefraction
+       omi_vazimuth, omi_vzenith, xtrflg, height, &
+       snowicefraction
   USE OMSAO_he5_module
   USE OMSAO_errstat_module, ONLY: he5_stat_ok, omsao_e_he5swwrfld, &
        pge_errstat_ok, pge_errstat_error, vb_lev_default, error_check
@@ -2241,7 +2241,7 @@ SUBROUTINE he5_write_geolocation ( nTimes, nXtrack, &
   he5_start_2d  = (/ 0, 0 /) ;  he5_stride_2d = (/ 1, 0 /) ; he5_edge_2d = (/ nTimes, 0 /)
 
   locerrstat = HE5_SWWRFLD ( pge_swath_id, auraalt_field,   he5_start_2d, he5_stride_2d, he5_edge_2d, &
-       omi_auraalt(0:nTimes-1) )
+       spacecraft_alt(0:nTimes-1) )
   locerrstat = HE5_SWWRFLD ( pge_swath_id, extr_field,      he5_start_2d, he5_stride_2d, he5_edge_2d, &
        INT(omi_instrument_flag(0:nTimes-1), KIND=2) )
 
@@ -2260,11 +2260,11 @@ SUBROUTINE he5_write_geolocation ( nTimes, nXtrack, &
   locerrstat = HE5_SWWRFLD ( pge_swath_id, vza_field,    he5_start_2d, he5_stride_2d, he5_edge_2d, &
        omi_vzenith(1:nXtrack,0:nTimes-1) )
   locerrstat = HE5_SWWRFLD ( pge_swath_id, xtr_field,    he5_start_2d, he5_stride_2d, he5_edge_2d, &
-       omi_xtrflg(1:nXtrack,0:nTimes-1) )
+       xtrflg(1:nXtrack,0:nTimes-1) )
   locerrstat = HE5_SWWRFLD ( pge_swath_id, thgt_field,   he5_start_2d, he5_stride_2d, he5_edge_2d, &
-       omi_height(1:nXtrack,0:nTimes-1) )
+       height(1:nXtrack,0:nTimes-1) )
   locerrstat = HE5_SWWRFLD ( pge_swath_id, sif_field,    he5_start_2d, he5_stride_2d, he5_edge_2d, &
-       omi_snowicefraction(1:nXtrack,0:nTimes-1) )
+       snowicefraction(1:nXtrack,0:nTimes-1) )
 
   ! ------------------
   ! Check error status
@@ -2338,8 +2338,8 @@ END SUBROUTINE he5_write_results
 
 SUBROUTINE he5_write_solarwavcal ( nw, ip, shift, residual, locerrstat)
 
-  USE OMSAO_omidata_module, ONLY: omi_irradiance_wavl, &
-       omi_irradiance_spec, omi_irradiance_wght, &
+  USE OMSAO_omidata_module, ONLY: irradiance_wavl, &
+       irradiance_spec, irradiance_wght, &
        omi_solcal_xflag
   USE OMSAO_he5_module
   USE OMSAO_errstat_module, ONLY: he5_stat_ok, omsao_e_he5swwrfld, &
@@ -2378,11 +2378,11 @@ SUBROUTINE he5_write_solarwavcal ( nw, ip, shift, residual, locerrstat)
   locerrstat = HE5_SWWRFLD ( pge_swath_id, swres_field,    he5_start_2d, he5_stride_2d, he5_edge_2d, &
        residual(1:nw) )
   locerrstat = HE5_SWWRFLD ( pge_swath_id, swwav_field,    he5_start_2d, he5_stride_2d, he5_edge_2d, &
-       omi_irradiance_wavl(1:nw,ip) )
+       irradiance_wavl(1:nw,ip) )
   locerrstat = HE5_SWWRFLD ( pge_swath_id, swirr_field,    he5_start_2d, he5_stride_2d, he5_edge_2d, &
-       omi_irradiance_spec(1:nw,ip) )
+       irradiance_spec(1:nw,ip) )
   locerrstat = HE5_SWWRFLD ( pge_swath_id, swwei_field,    he5_start_2d, he5_stride_2d, he5_edge_2d, &
-       omi_irradiance_wght(1:nw,ip) )
+       irradiance_wght(1:nw,ip) )
 
   ! ------------------
   ! Check error status

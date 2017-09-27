@@ -9,7 +9,7 @@ MODULE OMSAO_pixelcorner_module
   USE OMSAO_precision_module
   USE OMSAO_errstat_module
   USE OMSAO_parameters_module, ONLY: r8_missval
-  USE OMSAO_omidata_module,    ONLY: nlines_max, gzoom_spix, gzoom_epix
+  USE OMSAO_omidata_module,    ONLY: nlines_max
   USE OMSAO_he5_module
 
   IMPLICIT NONE

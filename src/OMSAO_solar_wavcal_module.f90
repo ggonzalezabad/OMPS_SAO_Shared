@@ -77,9 +77,9 @@ CONTAINS
        CALL omi_adjust_irradiance_data ( &           ! Set up generic fitting arrays
             select_idx(1:4), exclud_idx(1:2),             &
             n_omi_irradwvl,                               &
-            omi_irradiance_wavl  (1:n_omi_irradwvl,ipix), &
-            omi_irradiance_spec  (1:n_omi_irradwvl,ipix), &
-            omi_irradiance_ccdpix(1:n_omi_irradwvl,ipix), &
+            irradiance_wavl  (1:n_omi_irradwvl,ipix), &
+            irradiance_spec  (1:n_omi_irradwvl,ipix), &
+            irradiance_ccdpix(1:n_omi_irradwvl,ipix), &
             n_sol_wvl, curr_sol_spec(wvl_idx:ccd_idx,1:n_omi_irradwvl), &
             yn_skip_pix, locerrstat )
 
@@ -127,9 +127,9 @@ CONTAINS
        ! wavelength array is calibrated.
        ! ------------------------------------------------------------------------
        omi_nwav_irrad(ipix)                  = n_sol_wvl
-       omi_irradiance_wavl(1:n_sol_wvl,ipix) = curr_sol_spec(wvl_idx,1:n_sol_wvl)
-       omi_irradiance_spec(1:n_sol_wvl,ipix) = curr_sol_spec(spc_idx,1:n_sol_wvl)
-       omi_irradiance_wght(1:n_sol_wvl,ipix) = curr_sol_spec(sig_idx,1:n_sol_wvl)
+       irradiance_wavl(1:n_sol_wvl,ipix) = curr_sol_spec(wvl_idx,1:n_sol_wvl)
+       irradiance_spec(1:n_sol_wvl,ipix) = curr_sol_spec(spc_idx,1:n_sol_wvl)
+       irradiance_wght(1:n_sol_wvl,ipix) = curr_sol_spec(sig_idx,1:n_sol_wvl)
 
        addmsg = ''
        WRITE (addmsg, '(A,I2,4(A,1PE10.3),2(A,I5))') 'SOLAR FIT          #', ipix, &
@@ -408,8 +408,8 @@ CONTAINS
        nwav        = omi_nwav_irrad(ipix)
        sol_wav_avg = omi_sol_wav_avg(ipix)
        
-       tmpwav(1:nwav) = omi_irradiance_wavl(1:nwav,ipix)
-       modspe(1:nwav) = omi_irradiance_spec(1:nwav,ipix)
+       tmpwav(1:nwav) = irradiance_wavl(1:nwav,ipix)
+       modspe(1:nwav) = irradiance_spec(1:nwav,ipix)
        del(1:nwav)    = tmpwav(1:nwav) - sol_wav_avg
 
        ! Add baseline parameters
@@ -437,8 +437,8 @@ CONTAINS
        ! Add "albedo"
        modspe(1:nwav) = modspe(1:nwav) / omi_solcal_pars(sin_idx,ipix)
 
-       ! Saving the inverse calibrated spectra in the omi_irradiance_spec
-       omi_irradiance_spec(1:nwav, ipix) = modspe(1:nwav)
+       ! Saving the inverse calibrated spectra in the irradiance_spec
+       irradiance_spec(1:nwav, ipix) = modspe(1:nwav)
 
   
 

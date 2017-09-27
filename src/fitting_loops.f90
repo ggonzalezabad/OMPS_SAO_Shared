@@ -15,11 +15,11 @@ SUBROUTINE xtrack_radiance_wvl_calibration (             &
        omi_cross_track_skippix, omi_nwav_radref, omi_radcal_itnum, &
        omi_radcal_xflag, omi_radcal_chisq, n_omi_database_wvl, &
        omi_solcal_pars, omi_sol_wav_avg,  &
-       omi_nwav_irrad, omi_irradiance_wght, omi_irradiance_wavl, &
-       omi_irradiance_spec, omi_database, omi_database_wvl, &
-       omi_radref_spec, omi_radref_wavl, omi_radref_qflg, omi_radref_wght, &
-       omi_nwav_rad, omi_radiance_spec, omi_radiance_wavl, omi_radiance_qflg, &
-       omi_ccdpix_selection, omi_ccdpix_exclusion, omi_radiance_ccdpix, &
+       omi_nwav_irrad, irradiance_wght, irradiance_wavl, &
+       irradiance_spec, omi_database, omi_database_wvl, &
+       radref_spec, radref_wavl, radref_qflg, radref_wght, &
+       omi_nwav_rad, radiance_spec, radiance_wavl, radiance_qflg, &
+       omi_ccdpix_selection, omi_ccdpix_exclusion, radiance_ccdpix, &
        omi_radcal_pars, curr_xtrack_pixnum, n_omi_irradwvl, n_omi_radwvl      
   USE OMSAO_errstat_module, ONLY: f_sep, omsao_s_progress, omsao_w_skippix, &
        pge_errstat_error,pge_errstat_ok, pge_errstat_warning, vb_lev_default, &
@@ -129,7 +129,7 @@ SUBROUTINE xtrack_radiance_wvl_calibration (             &
      ! -----------------------------------------------------
      IF ( .NOT. yn_solar_comp ) THEN
         n_omi_irradwvl            = omi_nwav_irrad(ipix)
-        ref_wgt(1:n_omi_irradwvl) = omi_irradiance_wght(1:n_omi_irradwvl,ipix)
+        ref_wgt(1:n_omi_irradwvl) = irradiance_wght(1:n_omi_irradwvl,ipix)
 
        ! -----------------------------------------------------
        ! Catch the possibility that N_OMI_RADWVL > N_OMI_IRRADWVL
@@ -151,13 +151,13 @@ SUBROUTINE xtrack_radiance_wvl_calibration (             &
      ! performe the calibration with it.
      ! -----------------------------------------------------------------
      IF ( yn_radiance_reference ) THEN
-        calibration_wavl(1:n_omi_radwvl) = omi_radref_wavl(1:n_omi_radwvl,ipix)
-        calibration_spec(1:n_omi_radwvl) = omi_radref_spec(1:n_omi_radwvl,ipix)
-        calibration_qflg(1:n_omi_radwvl) = omi_radref_qflg(1:n_omi_radwvl,ipix)
+        calibration_wavl(1:n_omi_radwvl) = radref_wavl(1:n_omi_radwvl,ipix)
+        calibration_spec(1:n_omi_radwvl) = radref_spec(1:n_omi_radwvl,ipix)
+        calibration_qflg(1:n_omi_radwvl) = radref_qflg(1:n_omi_radwvl,ipix)
      ELSE
-        calibration_wavl(1:n_omi_radwvl) = omi_radiance_wavl(1:n_omi_radwvl,ipix,cline)
-        calibration_spec(1:n_omi_radwvl) = omi_radiance_spec(1:n_omi_radwvl,ipix,cline)
-        calibration_qflg(1:n_omi_radwvl) = omi_radiance_qflg(1:n_omi_radwvl,ipix,cline)
+        calibration_wavl(1:n_omi_radwvl) = radiance_wavl(1:n_omi_radwvl,ipix,cline)
+        calibration_spec(1:n_omi_radwvl) = radiance_spec(1:n_omi_radwvl,ipix,cline)
+        calibration_qflg(1:n_omi_radwvl) = radiance_qflg(1:n_omi_radwvl,ipix,cline)
      END IF
 
      ! ---------------------------------------------------------------------------
@@ -173,7 +173,7 @@ SUBROUTINE xtrack_radiance_wvl_calibration (             &
           n_omi_radwvl,                                &
           calibration_wavl   (1:n_omi_radwvl),         &
           calibration_spec   (1:n_omi_radwvl),         &
-          omi_radiance_ccdpix(1:n_omi_radwvl,ipix,0),  &
+          radiance_ccdpix(1:n_omi_radwvl,ipix,0),  &
           n_omi_irradwvl, ref_wgt(1:n_omi_irradwvl),   &
           n_rad_wvl, curr_rad_spec(wvl_idx:ccd_idx,1:n_omi_radwvl), rad_spec_avg, &
           yn_skip_pix )
@@ -236,9 +236,9 @@ SUBROUTINE xtrack_radiance_wvl_calibration (             &
 
      IF ( .NOT. (yn_radiance_reference) ) THEN
         n_ref_wvl = n_omi_irradwvl
-        ref_wvl(1:n_ref_wvl) = omi_irradiance_wavl(1:n_ref_wvl,ipix)
-        ref_spc(1:n_ref_wvl) = omi_irradiance_spec(1:n_ref_wvl,ipix)
-        ref_wgt(1:n_ref_wvl) = omi_irradiance_wght(1:n_ref_wvl,ipix)
+        ref_wvl(1:n_ref_wvl) = irradiance_wavl(1:n_ref_wvl,ipix)
+        ref_spc(1:n_ref_wvl) = irradiance_spec(1:n_ref_wvl,ipix)
+        ref_wgt(1:n_ref_wvl) = irradiance_wght(1:n_ref_wvl,ipix)
      ELSE
         n_ref_wvl = n_rad_wvl
         ref_wvl(1:n_ref_wvl) = curr_rad_spec(wvl_idx,1:n_rad_wvl)
@@ -247,10 +247,10 @@ SUBROUTINE xtrack_radiance_wvl_calibration (             &
      END IF
     
      omi_nwav_radref(ipix)                        = n_ref_wvl
-     omi_radref_wavl(1:n_ref_wvl,ipix)            = curr_rad_spec(wvl_idx,1:n_rad_wvl)
-     omi_radref_spec(1:n_ref_wvl,ipix)            = curr_rad_spec(spc_idx,1:n_rad_wvl)
-     omi_radref_wght(1:n_rad_wvl,ipix)            = curr_rad_spec(sig_idx,1:n_rad_wvl)
-     omi_radref_wght(n_rad_wvl+1:nwavel_max,ipix) = downweight
+     radref_wavl(1:n_ref_wvl,ipix)            = curr_rad_spec(wvl_idx,1:n_rad_wvl)
+     radref_spec(1:n_ref_wvl,ipix)            = curr_rad_spec(spc_idx,1:n_rad_wvl)
+     radref_wght(1:n_rad_wvl,ipix)            = curr_rad_spec(sig_idx,1:n_rad_wvl)
+     radref_wght(n_rad_wvl+1:nwavel_max,ipix) = downweight
 
      CALL he5_write_radiancewavcal ( n_rad_wvl, ipix, fitvar_cal(shi_idx), fitres_out(1:n_rad_wvl), locerrstat)
 
@@ -291,11 +291,11 @@ SUBROUTINE xtrack_radiance_wvl_calibration (             &
         ! Prevent failure of interpolation by finding the maximum wavelength
         ! of the irradiance wavelength array.
         ! ------------------------------------------------------------------
-        imax = MAXVAL ( MAXLOC ( omi_irradiance_wavl(1:n_omi_irradwvl,ipix) ) )
+        imax = MAXVAL ( MAXLOC ( irradiance_wavl(1:n_omi_irradwvl,ipix) ) )
 
         CALL interpolation ( &
-             imax, omi_irradiance_wavl(1:imax,ipix),                     &
-             omi_irradiance_spec(1:imax,ipix),                           &
+             imax, irradiance_wavl(1:imax,ipix),                     &
+             irradiance_spec(1:imax,ipix),                           &
              n_rad_wvl, omi_database_wvl(1:n_rad_wvl,ipix),              &
              omi_database(solar_idx,1:n_rad_wvl,ipix),                   &
              'endpoints', 0.0_r8, yn_full_range, locerrstat )
@@ -351,10 +351,10 @@ SUBROUTINE xtrack_radiance_fitting_loop (                             &
        omi_itnum_flag, omi_fitconv_flag, omi_solcal_pars, omi_sol_wav_avg, &
        n_omi_database_wvl, omi_nwav_rad, omi_szenith, omi_xtrackpix_no, &
        omi_cross_track_skippix, n_omi_radwvl, n_omi_irradwvl, &
-       curr_xtrack_pixnum, omi_o3_uncert, omi_o3_amount, omi_radiance_wavl, &
+       curr_xtrack_pixnum, omi_o3_uncert, omi_o3_amount, radiance_wavl, &
        omi_ccdpix_exclusion, omi_ccdpix_selection, omi_database, &
-       omi_database_wvl, max_rs_idx, omi_radiance_spec, omi_radiance_ccdpix, &
-       omi_radref_wght
+       omi_database_wvl, max_rs_idx, radiance_spec, radiance_ccdpix, &
+       radref_wght
   USE OMSAO_errstat_module, ONLY: pge_errstat_ok
      
   IMPLICIT NONE
@@ -433,7 +433,7 @@ SUBROUTINE xtrack_radiance_fitting_loop (                             &
      CALL check_wavelength_overlap ( &
           n_fitvar_rad,                                                &
           n_solar_pts,          solar_wvl (1:n_solar_pts),             &
-          n_omi_radwvl, omi_radiance_wavl (1:n_omi_radwvl,ipix,iloop), &
+          n_omi_radwvl, radiance_wavl (1:n_omi_radwvl,ipix,iloop), &
           yn_cycle_this_pix )
 
      IF ( yn_cycle_this_pix                .OR. &
@@ -466,10 +466,10 @@ SUBROUTINE xtrack_radiance_fitting_loop (                             &
      CALL omi_adjust_radiance_data ( &           ! Set up generic fitting arrays
           select_idx(1:4), exclud_idx(1:2),                        &
           n_omi_radwvl,                                            &
-          omi_radiance_wavl  (1:n_omi_radwvl,ipix,iloop),          &
-          omi_radiance_spec  (1:n_omi_radwvl,ipix,iloop),          &
-          omi_radiance_ccdpix(1:n_omi_radwvl,ipix,iloop),          &
-          n_omi_radwvl, omi_radref_wght(1:n_omi_radwvl,ipix),      &
+          radiance_wavl  (1:n_omi_radwvl,ipix,iloop),          &
+          radiance_spec  (1:n_omi_radwvl,ipix,iloop),          &
+          radiance_ccdpix(1:n_omi_radwvl,ipix,iloop),          &
+          n_omi_radwvl, radref_wght(1:n_omi_radwvl,ipix),      &
           n_rad_wvl, curr_rad_spec(wvl_idx:ccd_idx,1:n_omi_radwvl),&
           rad_spec_avg, yn_skip_pix )
 

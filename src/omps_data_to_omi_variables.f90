@@ -32,8 +32,8 @@ SUBROUTINE omps_data_to_omi_variables (OMPS_data,nt,nx,nw)
   ! complete as the OMI l1b files and I don't have
   ! good documentation on the OMPS files
   ! ------------------------------------------------
-  omi_auraalt(0:nt-1) = REAL(OMPS_data%SpacecraftAltitude(1:nt),KIND=4)
-  omi_xtrflg(1:nx,0:nt-1) = OMPS_data%GroundPixelQualityFlags(1:nx,1:nt)
+  spacecraft_alt(0:nt-1) = REAL(OMPS_data%SpacecraftAltitude(1:nt),KIND=4)
+  xtrflg(1:nx,0:nt-1) = OMPS_data%GroundPixelQualityFlags(1:nx,1:nt)
   omi_instrument_flag(0:nt-1) = OMPS_data%InstrumentQualityFlags(1:nt)
 
   omi_latitude(1:nx,0:nt-1)        = OMPS_data%Latitude(1:nx,1:nt)
@@ -76,8 +76,8 @@ SUBROUTINE omps_data_to_omi_variables (OMPS_data,nt,nx,nw)
      imax = omi_ccdpix_selection(ix,4)
 
      icnt = imax - imin + 1
-     omi_irradiance_wavl(1:icnt,ix) = REAL(OMPS_data%SolarFluxWavelengths(imin:imax,ix), KIND=r8)
-     omi_irradiance_spec(1:icnt,ix) = REAL(OMPS_data%SolarFlux(imin:imax,ix), KIND=r8)
+     irradiance_wavl(1:icnt,ix) = REAL(OMPS_data%SolarFluxWavelengths(imin:imax,ix), KIND=r8)
+     irradiance_spec(1:icnt,ix) = REAL(OMPS_data%SolarFlux(imin:imax,ix), KIND=r8)
      omi_nwav_irrad (ix) = icnt
      omi_sol_wav_avg(ix) = SUM( OMPS_data%SolarFluxWavelengths(imin:imax,ix) ) / REAL(icnt, KIND=r8)
      
@@ -85,10 +85,10 @@ SUBROUTINE omps_data_to_omi_variables (OMPS_data,nt,nx,nw)
      omi_ccdpix_exclusion(ix,1:2) = -1
      IF ( MINVAL(ctrvar%fit_winexc_lim(1:2)) > 0.0_r8 ) THEN
         CALL array_locate_r8 ( &
-             nw, omi_irradiance_wavl(1:nw,ix), REAL(ctrvar%fit_winexc_lim(1),KIND=r8), 'GE', &
+             nw, irradiance_wavl(1:nw,ix), REAL(ctrvar%fit_winexc_lim(1),KIND=r8), 'GE', &
              omi_ccdpix_exclusion(ix,1) )
         CALL array_locate_r8 ( &
-             nw, omi_irradiance_wavl(1:nw,ix), REAL(ctrvar%fit_winexc_lim(2),KIND=r8), 'LE', &
+             nw, irradiance_wavl(1:nw,ix), REAL(ctrvar%fit_winexc_lim(2),KIND=r8), 'LE', &
              omi_ccdpix_exclusion(ix,2) )
      END IF
   END DO
@@ -104,10 +104,10 @@ SUBROUTINE omps_data_to_omi_variables (OMPS_data,nt,nx,nw)
         imin = omi_ccdpix_selection(ix,1)
         imax = omi_ccdpix_selection(ix,4)
         icnt = imax - imin + 1
-        omi_radiance_wavl(1:icnt,ix,it) = REAL ( OMPS_data%BandCenterWavelengths(imin:imax,ix,it+1), KIND=r8 )
-        omi_radiance_spec(1:icnt,ix,it) = REAL ( OMPS_data%Radiance(imin:imax,ix,it+1), KIND=r8 )
-        omi_radiance_prec(1:icnt,ix,it) = REAL ( OMPS_data%RadianceError(imin:imax,ix,it+1), KIND=r8 )
-        omi_radiance_qflg(1:icnt,ix,it) = OMPS_data%PixelQualityFlags(imin:imax,ix,it+1)
+        radiance_wavl(1:icnt,ix,it) = REAL ( OMPS_data%BandCenterWavelengths(imin:imax,ix,it+1), KIND=r8 )
+        radiance_spec(1:icnt,ix,it) = REAL ( OMPS_data%Radiance(imin:imax,ix,it+1), KIND=r8 )
+        radiance_prec(1:icnt,ix,it) = REAL ( OMPS_data%RadianceError(imin:imax,ix,it+1), KIND=r8 )
+        radiance_qflg(1:icnt,ix,it) = OMPS_data%PixelQualityFlags(imin:imax,ix,it+1)
         omi_nwav_rad     (       ix,it) = icnt
 
      END DO

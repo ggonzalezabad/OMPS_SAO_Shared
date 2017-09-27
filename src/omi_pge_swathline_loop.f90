@@ -13,7 +13,7 @@ SUBROUTINE omi_pge_swathline_loop ( &
   USE OMSAO_omidata_module,    ONLY:  &
        nlines_max, nUTCdim, omi_scanline_no, &
        omi_itnum_flag, omi_fitconv_flag, omi_column_amount, &
-       omi_column_uncert, omi_time_utc, omi_fit_rms,  &
+       omi_column_uncert, time_utc, omi_fit_rms,  &
        nwavel_max
   USE OMSAO_prefitcol_module
   USE OMSAO_errstat_module
@@ -85,7 +85,7 @@ SUBROUTINE omi_pge_swathline_loop ( &
   omi_column_amount(1:nx,     0:nt-1) = r8_missval
   omi_column_uncert(1:nx,     0:nt-1) = r8_missval
   omi_fit_rms      (1:nx,     0:nt-1) = r8_missval
-  omi_time_utc     (1:nUTCdim,0:nt-1) = i2_missval
+  time_utc     (1:nUTCdim,0:nt-1) = i2_missval
 
   ! ---------------
   ! Loop over lines

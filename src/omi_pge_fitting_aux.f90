@@ -389,8 +389,8 @@ SUBROUTINE omi_create_solcomp_irradiance ( nxt )
   USE OMSAO_parameters_module, ONLY: i2, i4, r8
   USE OMSAO_variables_module, ONLY: ctrvar
   USE OMSAO_solcomp_module, ONLY: soco_compute
-  USE OMSAO_omidata_module, ONLY: nwavel_max, omi_irradiance_spec, omi_irradiance_qflg, &
-       omi_irradiance_prec, omi_irradiance_wavl, omi_nwav_irrad, omi_ccdpix_selection, &
+  USE OMSAO_omidata_module, ONLY: nwavel_max, irradiance_spec, irradiance_qflg, &
+       irradiance_prec, irradiance_wavl, omi_nwav_irrad, omi_ccdpix_selection, &
        omi_ccdpix_exclusion, omi_sol_wav_avg
   
 
@@ -423,7 +423,7 @@ SUBROUTINE omi_create_solcomp_irradiance ( nxt )
   DO ix = 1, nxt
 
      omi_nwav_irrad (ix) = nwvl
-     omi_irradiance_wavl(1:nwvl,ix) = tmpwvl(1:nwvl)
+     irradiance_wavl(1:nwvl,ix) = tmpwvl(1:nwvl)
 
      ! ---------------------------------------------------------------
      ! Compute the solar spectrum. Note that we are not requesting the
@@ -434,12 +434,12 @@ SUBROUTINE omi_create_solcomp_irradiance ( nxt )
      ! ---------------------------------------------------------------
      CALL soco_compute ( &
           .FALSE., ix, nwvl, &
-          omi_irradiance_wavl(1:nwvl,ix), omi_irradiance_spec(1:nwvl,ix) )
+          irradiance_wavl(1:nwvl,ix), irradiance_spec(1:nwvl,ix) )
 
-     omi_irradiance_prec(1:nwvl,ix) = 0.0_r8
-     omi_irradiance_qflg(1:nwvl,ix) = 0_i2
+     irradiance_prec(1:nwvl,ix) = 0.0_r8
+     irradiance_qflg(1:nwvl,ix) = 0_i2
 
-     omi_sol_wav_avg(ix) = omi_irradiance_wavl(nwvl/2,ix)
+     omi_sol_wav_avg(ix) = irradiance_wavl(nwvl/2,ix)
 
 
      ! ------------------------------------------------------------------------------
@@ -1048,7 +1048,7 @@ SUBROUTINE convert_2bytes_to_16bits ( nbits, ndim, byte_num, bit_num )
   RETURN
 END SUBROUTINE convert_2bytes_to_16bits
 
-SUBROUTINE omi_radiance_wvl_smoothing ( nxt, nwl, omi_radiance_wavl )
+SUBROUTINE radiance_wvl_smoothing ( nxt, nwl, radiance_wavl )
 
   USE OMSAO_precision_module, ONLY: i4, r4, r8
 
@@ -1060,7 +1060,7 @@ SUBROUTINE omi_radiance_wvl_smoothing ( nxt, nwl, omi_radiance_wavl )
   ! ------------------
   ! Modified Variables
   ! ------------------
-  REAL (KIND=r4), DIMENSION(nwl,nxt), INTENT (INOUT) :: omi_radiance_wavl
+  REAL (KIND=r4), DIMENSION(nwl,nxt), INTENT (INOUT) :: radiance_wavl
 
   ! ------------------------------
   ! Local Variables and Parameters
@@ -1076,13 +1076,13 @@ SUBROUTINE omi_radiance_wvl_smoothing ( nxt, nwl, omi_radiance_wavl )
   eps      = 0.0_r8
 
   DO i = 1, nwl
-     y(1:nxt) = omi_radiance_wavl(i,1:nxt)
+     y(1:nxt) = radiance_wavl(i,1:nxt)
      CALL dpolft (nxt, x, y, w, max_deg, ndeg, eps, yf, ierr, a)
-     omi_radiance_wavl(i,1:nxt) = yf(1:nxt)
+     radiance_wavl(i,1:nxt) = yf(1:nxt)
   END DO
 
   RETURN
-END SUBROUTINE omi_radiance_wvl_smoothing
+END SUBROUTINE radiance_wvl_smoothing
 
 SUBROUTINE compact_fitting_spectrum ( n_fit_wvl, curr_fit_spec )
 

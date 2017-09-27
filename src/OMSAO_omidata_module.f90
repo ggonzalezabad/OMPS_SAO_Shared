@@ -5,23 +5,9 @@ MODULE OMSAO_omidata_module
   USE OMSAO_indices_module, ONLY: n_max_fitpars, max_rs_idx, max_calfit_idx, o3_t1_idx, o3_t3_idx
   IMPLICIT NONE
 
-  ! ------------------------------------------------------------
-  ! Boundary wavelengths (approximate) for UV-2 and VIS channels
-  ! ------------------------------------------------------------
-  REAL (KIND=r4), PARAMETER :: uv2_upper_wvl = 385.0_r4, vis_lower_wvl = 350.0_r4
-
-  ! ---------------------------------------
-  ! Minimum OMI spectral resolution (in nm)
-  ! ---------------------------------------
-  REAL (KIND=r8), PARAMETER :: omi_min_specres = 0.3_r8
-
   ! ---------------------------------
   ! Maximum OMI data/swath dimensions
   ! ---------------------------------
-!!$  INTEGER (KIND=i4), PARAMETER :: &
-!!$       nxtrack_max    =  60, nwavel_max = 1024, &
-!!$       nwavelcoef_max =   5, nlines_max = 1000, &
-!!$       nUTCdim        =   6
   INTEGER (KIND=i4), PARAMETER :: &
        nxtrack_max    =  60, nwavel_max = 300, &
        nwavelcoef_max =   5, nlines_max = 500, &
@@ -48,70 +34,44 @@ MODULE OMSAO_omidata_module
        omi_cfr_addmiss = 1000, omi_ctp_addmiss = 2000, omi_glint_add = 10000, &
        omi_geo_amf = -1, omi_oobview_amf = -2, omi_wfmod_amf = -9, omi_bigsza_amf = -3
 
-  ! -----------------------
-  ! Arrays for OMI L1b data
-  ! -----------------------
-  REAL    (KIND=r4), DIMENSION (0:nlines_max-1)                        :: omi_auraalt
-  REAL    (KIND=r8), DIMENSION (0:nlines_max-1)                        :: omi_time
-  INTEGER (KIND=i4), DIMENSION (0:nlines_max-1)                        :: omi_radiance_errstat, omi_instrument_flag
-  INTEGER (KIND=i1), DIMENSION (nxtrack_max,0:nlines_max-1)            :: omi_xtrflg_l1b
-  INTEGER (KIND=i2), DIMENSION (nxtrack_max,0:nlines_max-1)            :: omi_geoflg, omi_xtrflg
-  REAL    (KIND=r4), DIMENSION (nxtrack_max,0:nlines_max-1)            :: omi_height, land_water_flg, &
-       omi_snowicefraction
-  REAL    (KIND=r4), DIMENSION (nxtrack_max,0:nlines_max-1)            :: omi_latitude, omi_longitude
-  REAL    (KIND=r4), DIMENSION (nxtrack_max,0:nlines_max-1)            :: omi_szenith, omi_sazimuth
-  REAL    (KIND=r4), DIMENSION (nxtrack_max,0:nlines_max-1)            :: omi_vzenith, omi_vazimuth
-  REAL    (KIND=r8), DIMENSION (nwavel_max,nxtrack_max,0:nlines_max-1) :: omi_radiance_spec, omi
-  REAL    (KIND=r8), DIMENSION (nwavel_max,nxtrack_max,0:nlines_max-1) :: omi_radiance_prec
-  REAL    (KIND=r8), DIMENSION (nwavel_max,nxtrack_max,0:nlines_max-1) :: omi_radiance_wavl
-  INTEGER (KIND=i2), DIMENSION (nwavel_max,nxtrack_max,0:nlines_max-1) :: omi_radiance_qflg
-  INTEGER (KIND=i4), DIMENSION (nwavel_max,nxtrack_max,0:nlines_max-1) :: omi_radiance_ccdpix
-  INTEGER (KIND=i2), DIMENSION (nUTCdim,0:nlines_max-1)                :: omi_time_utc
-
-  ! ---------------------------------
-  ! Arrays for OMI reference L1b data
-  ! ---------------------------------
-  REAL    (KIND=r4), DIMENSION (0:nlines_max-1)                        :: omi_auraalt_reference
-  REAL    (KIND=r8), DIMENSION (0:nlines_max-1)                        :: omi_time_reference
-  INTEGER (KIND=i4), DIMENSION (0:nlines_max-1)                        :: omi_radiance_errstat_reference, &
-       omi_instrument_flag_reference
-  INTEGER (KIND=i1), DIMENSION (nxtrack_max,0:nlines_max-1)            :: omi_xtrflg_l1b_reference
-  INTEGER (KIND=i2), DIMENSION (nxtrack_max,0:nlines_max-1)            :: omi_geoflg_reference, omi_xtrflg_reference
-  INTEGER (KIND=i2), DIMENSION (nxtrack_max,0:nlines_max-1)            :: omi_height_reference, &
-       land_water_flg_reference
-  REAL    (KIND=r4), DIMENSION (nxtrack_max,0:nlines_max-1)            :: omi_latitude_reference, &
+  ! ------------------------------------------------------------------
+  ! Arrays for L1b data (radiance, radiance reference, and irradiance)
+  ! ------------------------------------------------------------------
+  REAL    (KIND=r4), ALLOCATABLE, DIMENSION (:) :: spacecraft_alt, spacecraft_alt_reference
+  REAL    (KIND=r8), ALLOCATABLE, DIMENSION (:) :: time, time_reference
+  INTEGER (KIND=i4), ALLOCATABLE, DIMENSION (:) :: radiance_errstat, omi_instrument_flag, &
+       radiance_errstat_reference, omi_instrument_flag_reference
+  INTEGER (KIND=i1), ALLOCATABLE, DIMENSION (:,:) :: xtrflg_l1b, xtrflg_l1b_reference
+  INTEGER (KIND=i2), ALLOCATABLE, DIMENSION (:,:) :: geoflg, xtrflg, geoflg_reference, xtrflg_reference
+  REAL    (KIND=r4), ALLOCATABLE, DIMENSION (:,:) :: height, land_water_flg, snowicefraction, &
+       height_reference, land_water_flg_reference, snowicefraction_reference
+  REAL    (KIND=r4), ALLOCATABLE, DIMENSION (:,:) :: omi_latitude, omi_longitude, omi_latitude_reference, &
        omi_longitude_reference
-  REAL    (KIND=r4), DIMENSION (nxtrack_max,0:nlines_max-1)            :: omi_szenith_reference, &
+  REAL    (KIND=r4), ALLOCATABLE, DIMENSION (:,:) :: omi_szenith, omi_sazimuth, omi_szenith_reference, &
        omi_sazimuth_reference
-  REAL    (KIND=r4), DIMENSION (nxtrack_max,0:nlines_max-1)            :: omi_vzenith_reference, &
+  REAL    (KIND=r4), ALLOCATABLE, DIMENSION (:,:) :: omi_vzenith, omi_vazimuth,  omi_vzenith_reference, &
        omi_vazimuth_reference
-  REAL    (KIND=r8), DIMENSION (nwavel_max,nxtrack_max,0:nlines_max-1) :: omi_radiance_spec_reference
-  REAL    (KIND=r8), DIMENSION (nwavel_max,nxtrack_max,0:nlines_max-1) :: omi_radiance_prec_reference
-  REAL    (KIND=r8), DIMENSION (nwavel_max,nxtrack_max,0:nlines_max-1) :: omi_radiance_wavl_reference
-  INTEGER (KIND=i2), DIMENSION (nwavel_max,nxtrack_max,0:nlines_max-1) :: omi_radiance_qflg_reference
-  INTEGER (KIND=i4), DIMENSION (nwavel_max,nxtrack_max,0:nlines_max-1) :: omi_radiance_ccdpix_reference
-  INTEGER (KIND=i2), DIMENSION (nUTCdim,0:nlines_max-1)                :: omi_time_utc_reference
+  REAL    (KIND=r4), ALLOCATABLE, DIMENSION (:,:) :: omi_razimuth, azimuth_reference
+  REAL    (KIND=r8), ALLOCATABLE, DIMENSION (:,:,:) :: radiance_spec, radiance_spec_reference
+  REAL    (KIND=r8), ALLOCATABLE, DIMENSION (:,:,:) :: radiance_prec, radiance_prec_reference
+  REAL    (KIND=r8), ALLOCATABLE, DIMENSION (:,:,:) :: radiance_wavl, radiance_wavl_reference
+  INTEGER (KIND=i2), ALLOCATABLE, DIMENSION (:,:,:) :: radiance_qflg, radiance_qflg_reference
+  INTEGER (KIND=i4), ALLOCATABLE, DIMENSION (:,:,:) :: radiance_ccdpix, radiance_ccdpix_reference
+  INTEGER (KIND=i2), ALLOCATABLE, DIMENSION (:,:) :: time_utc, time_utc_reference
+  REAL    (KIND=r8), ALLOCATABLE, DIMENSION (:,:) :: irradiance_prec, irradiance_wavl, irradiance_spec, &
+       irradiance_wght, radref_spec, radref_wavl, radref_wght
 
   ! ---------------------------------------------------------------
   ! Snow/Ice and Glint flags are used in the AMF computation module 
   ! outside the "nlines_max" loops and hence need to be defined on
   ! the maximum swath dimensions.
   ! ---------------------------------------------------------------
-  INTEGER (KIND=i4), DIMENSION (nwavel_max,nxtrack_max) :: omi_irradiance_ccdpix
-  INTEGER (KIND=i2), DIMENSION (nwavel_max,nxtrack_max) :: omi_irradiance_qflg, omi_radref_qflg
-  REAL    (KIND=r8), DIMENSION (nwavel_max,nxtrack_max) :: &
-       omi_irradiance_prec, omi_irradiance_wavl, omi_irradiance_spec, omi_irradiance_wght, &
-       omi_radref_spec, omi_radref_wavl, omi_radref_wght
-  REAL    (KIND=r4), DIMENSION (nxtrack_max) :: omi_radref_sza, omi_radref_vza
+  INTEGER (KIND=i4), DIMENSION (nwavel_max,nxtrack_max) :: irradiance_ccdpix
+  INTEGER (KIND=i2), DIMENSION (nwavel_max,nxtrack_max) :: irradiance_qflg, radref_qflg
+  REAL    (KIND=r4), DIMENSION (nxtrack_max) :: radref_sza, radref_vza
 
-  ! ---------------------------------------------------------------
-  ! Scene Albedo, from OMCLDO2, for Wavelength-Modified AMF lookup
-  ! ---------------------------------------------------------------
-  REAL (KIND=r4), DIMENSION (nxtrack_max) :: omi_scene_albedo
-
-
-  INTEGER (KIND=i4), DIMENSION (nxtrack_max,4) :: omi_ccdpix_selection
-  INTEGER (KIND=i4), DIMENSION (nxtrack_max,2) :: omi_ccdpix_exclusion
+  INTEGER (KIND=i4), ALLOCATABLE, DIMENSION(:,:) :: omi_ccdpix_selection
+  INTEGER (KIND=i4), ALLOCATABLE, DIMENSION(:,:) :: omi_ccdpix_exclusion
 
   ! ----------------------------------------
   ! Arrays for fitting and/or derived output
@@ -123,7 +83,6 @@ MODULE OMSAO_omidata_module
   REAL    (KIND=r8), DIMENSION (nxtrack_max,0:nlines_max-1) :: &
        omi_column_amount, omi_column_uncert, &
        omi_fit_rms, omi_radfit_chisq, omi_albedo
-  REAL    (KIND=r4), DIMENSION (nxtrack_max,0:nlines_max-1) :: omi_razimuth
   INTEGER (KIND=i2), DIMENSION (nxtrack_max,0:nlines_max-1) :: omi_fitconv_flag
   INTEGER (KIND=i2), DIMENSION (nxtrack_max,0:nlines_max-1) :: omi_itnum_flag
 
@@ -145,10 +104,9 @@ MODULE OMSAO_omidata_module
   ! ---------------------------------
   ! Dimensions for measurement swaths
   ! ---------------------------------
-  !INTEGER (KIND=i4) :: ntimes, ntimessmallpixel, nxtrack, nwavel, ntimes_loop, nwavel_ccd
-  INTEGER (KIND=i4) :: ntimessmallpixel, nwavel, ntimes_loop
-  INTEGER (KIND=i4), DIMENSION (nxtrack_max)                  :: omi_nwav_irrad, omi_nwav_radref
-  INTEGER (KIND=i4), DIMENSION (nxtrack_max,0:nlines_max-1)   :: omi_nwav_rad, omi_nwav_rad_reference
+  INTEGER (KIND=i4) :: nwavel, ntimes_loop
+  INTEGER (KIND=i4), ALLOCATABLE, DIMENSION (:) :: omi_nwav_irrad, omi_nwav_radref
+  INTEGER (KIND=i4), ALLOCATABLE, DIMENSION (:,:) :: omi_nwav_rad, omi_nwav_rad_reference
 
   ! ---------------------------------------
   ! Swath attributes for measurement swaths
@@ -158,17 +116,17 @@ MODULE OMSAO_omidata_module
 
   INTEGER (KIND=i4), DIMENSION (nxtrack_max)                         :: n_omi_database_wvl
   INTEGER (KIND=i2), DIMENSION (nxtrack_max)                         :: &
-       omi_solcal_itnum, omi_radcal_itnum, omi_radref_itnum,            &
-       omi_solcal_xflag, omi_radcal_xflag, omi_radref_xflag
+       omi_solcal_itnum, omi_radcal_itnum, radref_itnum,            &
+       omi_solcal_xflag, omi_radcal_xflag, radref_xflag
   REAL    (KIND=r8), DIMENSION (max_calfit_idx, nxtrack_max)         :: &
-       omi_solcal_pars,  omi_radcal_pars,  omi_radref_pars
+       omi_solcal_pars,  omi_radcal_pars,  radref_pars
   REAL    (KIND=r8), DIMENSION (max_rs_idx, nwavel_max, nxtrack_max) :: omi_database
   REAL    (KIND=r8), DIMENSION (            nwavel_max, nxtrack_max) :: omi_database_wvl
-  REAL    (KIND=r8), DIMENSION (nxtrack_max)                         :: omi_sol_wav_avg
+  REAL    (KIND=r8), ALLOCATABLE, DIMENSION (:) :: omi_sol_wav_avg
   REAL    (KIND=r8), DIMENSION (nxtrack_max)                         :: &
-       omi_solcal_chisq, omi_radcal_chisq, omi_radref_chisq, &
-       omi_radref_col,   omi_radref_dcol,  omi_radref_rms,   &
-       omi_radref_xtrcol
+       omi_solcal_chisq, omi_radcal_chisq, radref_chisq, &
+       radref_col,   radref_dcol,  radref_rms,   &
+       radref_xtrcol
   REAL    (KIND=r8), DIMENSION (2,nxtrack_max,0:nlines_max-1)        :: omi_wavwin_rad, omi_fitwin_rad
   REAL    (KIND=r8), DIMENSION (2,nxtrack_max)                       :: omi_wavwin_sol, omi_fitwin_sol
 
@@ -199,7 +157,7 @@ MODULE OMSAO_omidata_module
   ! course of the processing.
   ! ------------------------------------------------------
   INTEGER (KIND=i4) :: &
-       n_omi_radwvl, n_omi_radrefwvl, n_omi_irradwvl,  &
+       n_omi_radwvl, n_radrefwvl, n_omi_irradwvl,  &
        nwavelcoef_irrad, nwavelcoef_rad,               &
        ntimes_smapix_irrad, ntimes_smpix_rad, nclenfit
 
@@ -215,19 +173,32 @@ MODULE OMSAO_omidata_module
   ! ------------------------------------
   INTEGER (KIND=i4), PARAMETER :: n_roff_dig = 5
 
-  ! ----------------------------------------------------------
-  ! Variables and parameters associated with Spatial Zoom data
-  ! ----------------------------------------------------------
-  CHARACTER (LEN=16), PARAMETER :: uv1_glob_swath = 'Earth UV-1 Swath'
-  CHARACTER (LEN=10), PARAMETER ::    &
-       uv1_zoom_swath = '(60x159x4)', &
-       uv2_zoom_swath = '(60x557x4)', &
-       vis_zoom_swath = '(60x751x4)'
+CONTAINS
 
-  INTEGER (KIND=i4), PARAMETER :: gzoom_spix = 16, gzoom_epix = 45, gzoom_npix = 30
-  INTEGER (KIND=i1), PARAMETER :: global_mode = 8_i1, szoom_mode = 4_i1
-  INTEGER (KIND=i1)            :: truezoom, fullswath
+  SUBROUTINE allocate_radiance_variables (nx,nt,nw,errstat)
 
-  INTEGER (KIND=i4) :: omi_l1b_idx
+    IMPLICIT NONE
+
+    ! ---------------
+    ! Input variables
+    ! ---------------
+    INTEGER(KIND=i4), INTENT(IN) :: nx,nt,nw
+    ! Modified varaible
+    INTEGER(KIND=i4), INTENT(INOUT) :: errstat
+
+    errstat = 0
+    IF (.NOT. ALLOCATED(spacecraft_alt)) THEN
+       print*, 'Allocating...'
+       ALLOCATE(spacecraft_alt(0:nt-1),xtrflg(1:nx,0:nt-1),omi_instrument_flag(0:nt-1), &
+            omi_latitude(1:nx,0:nt-1),omi_longitude(1:nx,0:nt-1), omi_szenith(1:nx,0:nt-1), &
+            omi_sazimuth(1:nx,0:nt-1),omi_vzenith(1:nx,0:nt-1),omi_vazimuth(1:nx,0:nt-1), &
+            omi_razimuth(1:nx,0:nt-1), omi_nwav_irrad(1:nx), omi_nwav_rad(1:nx,0:nt-1), &
+            irradiance_wavl(1:nw,nx),irradiance_spec(1:nw,1:nx),omi_sol_wav_avg(1:nx), &
+            omi_ccdpix_selection(nx,4), omi_ccdpix_exclusion(nx,2), radiance_wavl(1:nw,1:nx,0:nt-1), &
+            radiance_spec(1:nw,1:nx,0:nt-1), radiance_prec(1:nw,1:nx,0:nt-1), &
+            radiance_qflg(1:nw,1:nx,0:nt-1), stat=errstat)
+    ENDIF
+
+  END SUBROUTINE allocate_radiance_variables  
 
 END MODULE OMSAO_omidata_module

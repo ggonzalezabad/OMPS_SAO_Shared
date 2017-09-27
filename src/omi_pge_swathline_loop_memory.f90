@@ -16,9 +16,9 @@ SUBROUTINE omi_pge_swathline_loop_memory (                               &
   USE OMSAO_omidata_module,    ONLY:  &
        nlines_max, nUTCdim, omi_scanline_no, omi_blockline_no,                  &
        omi_itnum_flag, omi_fitconv_flag, omi_column_amount,                     &
-       omi_column_uncert, omi_time_utc, omi_time, omi_latitude, omi_fit_rms,    &
-       omi_radiance_errstat, omi_nwav_radref, omi_radref_spec, omi_radref_wavl, &
-       omi_szenith, omi_vzenith, omi_longitude, omi_xtrflg, omi_height
+       omi_column_uncert, time_utc, time, omi_latitude, omi_fit_rms,    &
+       radiance_errstat, omi_nwav_radref, radref_spec, radref_wavl, &
+       omi_szenith, omi_vzenith, omi_longitude, xtrflg, height
   USE OMSAO_prefitcol_module
   USE OMSAO_errstat_module
   USE OMSAO_radiance_ref_module, ONLY: remove_target_from_radiance
@@ -130,7 +130,7 @@ SUBROUTINE omi_pge_swathline_loop_memory (                               &
      omi_column_amount(1:nx,     0:nblock-1) = r8_missval
      omi_column_uncert(1:nx,     0:nblock-1) = r8_missval
      omi_fit_rms      (1:nx,     0:nblock-1) = r8_missval
-     omi_time_utc     (1:nUTCdim,0:nblock-1) = i2_missval
+     time_utc     (1:nUTCdim,0:nblock-1) = i2_missval
 
      ! -----------------------------------------
      ! Skip if we don't have anything to process
@@ -179,7 +179,7 @@ SUBROUTINE omi_pge_swathline_loop_memory (                               &
         WRITE (addmsg,'(A,I5)') 'Working on scan line', omi_scanline_no
         estat = OMI_SMF_setmsg ( OMSAO_S_PROGRESS, TRIM(ADJUSTL(addmsg)), " ", vb_lev_omidebug )
 
-        IF ( omi_radiance_errstat(iloop) /= pge_errstat_error ) THEN
+        IF ( radiance_errstat(iloop) /= pge_errstat_error ) THEN
 
            fpix = xtrange(omi_scanline_no,1)
            lpix = xtrange(omi_scanline_no,2)
@@ -240,8 +240,8 @@ SUBROUTINE omi_pge_swathline_loop_memory (                               &
            mem_sza(fpix:lpix,omi_scanline_no)                = omi_szenith(fpix:lpix,iloop)
            mem_vza(fpix:lpix,omi_scanline_no)                = omi_vzenith(fpix:lpix,iloop)
            mem_fit_flag(fpix:lpix,omi_scanline_no)           = omi_fitconv_flag(fpix:lpix,iloop)
-           mem_xtrflg(fpix:lpix,omi_scanline_no)             = omi_xtrflg(fpix:lpix,iloop)
-           mem_height(fpix:lpix,omi_scanline_no)             = REAL(omi_height(fpix:lpix,iloop), KIND = r4)
+           mem_xtrflg(fpix:lpix,omi_scanline_no)             = xtrflg(fpix:lpix,iloop)
+           mem_height(fpix:lpix,omi_scanline_no)             = REAL(height(fpix:lpix,iloop), KIND = r4)
 
         END IF
 
@@ -249,7 +249,7 @@ SUBROUTINE omi_pge_swathline_loop_memory (                               &
         ! Convert TAI to UTC time
         ! -----------------------
         CALL convert_tai_to_utc ( &
-             nUTCdim, omi_time(iloop), omi_time_utc(1:nUTCdim,iloop) )
+             nUTCdim, time(iloop), time_utc(1:nUTCdim,iloop) )
 
      END DO ScanLineBlock
 

@@ -28,15 +28,15 @@ CONTAINS
          fitvar_rad_saved, n_database_wvl, fitvar_rad, &
          pcfvar, ctrvar
     USE OMSAO_slitfunction_module, ONLY: saved_shift, saved_squeeze
-    USE OMSAO_omidata_module, ONLY: omi_nwav_irrad, omi_irradiance_wght, &
+    USE OMSAO_omidata_module, ONLY: omi_nwav_irrad, irradiance_wght, &
          omi_nwav_rad, n_omi_database_wvl, omi_cross_track_skippix, &
          curr_xtrack_pixnum, n_omi_radwvl, max_rs_idx, omi_database, &
-         omi_database_wvl, omi_sol_wav_avg, omi_solcal_pars, omi_radref_wavl, &
-         omi_radref_spec, omi_ccdpix_selection, omi_radiance_ccdpix, &
-         omi_ccdpix_exclusion, omi_xtrackpix_no, omi_radref_wght, &
-         omi_radref_pars, max_calfit_idx, omi_radref_xflag, omi_radref_itnum, &
-         omi_radref_chisq, omi_radref_col, omi_radref_rms, omi_radref_dcol, &
-         omi_radref_xtrcol
+         omi_database_wvl, omi_sol_wav_avg, omi_solcal_pars, radref_wavl, &
+         radref_spec, omi_ccdpix_selection, radiance_ccdpix, &
+         omi_ccdpix_exclusion, omi_xtrackpix_no, radref_wght, &
+         radref_pars, max_calfit_idx, radref_xflag, radref_itnum, &
+         radref_chisq, radref_col, radref_rms, radref_dcol, &
+         radref_xtrcol
 
     IMPLICIT NONE
 
@@ -86,14 +86,14 @@ CONTAINS
     ! In that case, however, we write the results to file
     ! before the second call.
     ! ---------------------------------------------------
-    omi_radref_pars  (1:max_calfit_idx,1:nx) = r8_missval
-    omi_radref_xflag (1:nx)                  = i2_missval
-    omi_radref_itnum (1:nx)                  = i2_missval
-    omi_radref_chisq (1:nx)                  = r8_missval
-    omi_radref_col   (1:nx)                  = r8_missval
-    omi_radref_dcol  (1:nx)                  = r8_missval
-    omi_radref_rms   (1:nx)                  = r8_missval
-    omi_radref_xtrcol(1:nx)                  = r8_missval
+    radref_pars  (1:max_calfit_idx,1:nx) = r8_missval
+    radref_xflag (1:nx)                  = i2_missval
+    radref_itnum (1:nx)                  = i2_missval
+    radref_chisq (1:nx)                  = r8_missval
+    radref_col   (1:nx)                  = r8_missval
+    radref_dcol  (1:nx)                  = r8_missval
+    radref_rms   (1:nx)                  = r8_missval
+    radref_xtrcol(1:nx)                  = r8_missval
 
     XTrackPix: DO jpix = fpix, lpix
 
@@ -126,7 +126,7 @@ CONTAINS
        ! from the solar wavelength calibration. Why? gga
        ! ------------------------------------------------------------------
        n_solar_pts              = omi_nwav_irrad(ipix)
-       solar_wgt(1:n_solar_pts) = omi_irradiance_wght(1:n_solar_pts,ipix)
+       solar_wgt(1:n_solar_pts) = irradiance_wght(1:n_solar_pts,ipix)
 
        ! -----------------------------------------------------
        ! Catch the possibility that N_OMI_RADWVL > N_SOLAR_PTS
@@ -162,9 +162,9 @@ CONTAINS
           CALL omi_adjust_radiance_data ( &           ! Set up generic fitting arrays
                select_idx(1:4), exclud_idx(1:2),            &
                n_omi_radwvl,                                &
-               omi_radref_wavl(1:n_omi_radwvl,ipix),        &
-               omi_radref_spec(1:n_omi_radwvl,ipix),        &
-               omi_radiance_ccdpix (1:n_omi_radwvl,ipix,0), &
+               radref_wavl(1:n_omi_radwvl,ipix),        &
+               radref_spec(1:n_omi_radwvl,ipix),        &
+               radiance_ccdpix (1:n_omi_radwvl,ipix,0), &
                n_solar_pts, solar_wgt(1:n_solar_pts),       &
                n_rad_wvl, curr_rad_spec(wvl_idx:ccd_idx,1:n_omi_radwvl), rad_spec_avg, &
                yn_skip_pix )
@@ -172,7 +172,7 @@ CONTAINS
           ! --------------------------------------------------------------------
           ! Update the weights for the Reference/Wavelength Calibration Radiance
           ! --------------------------------------------------------------------
-          omi_radref_wght(1:n_omi_radwvl,ipix) = curr_rad_spec(sig_idx,1:n_omi_radwvl)
+          radref_wght(1:n_omi_radwvl,ipix) = curr_rad_spec(sig_idx,1:n_omi_radwvl)
 
           ! --------------------
           ! The radiance fitting
@@ -218,19 +218,19 @@ CONTAINS
           ! -----------------------------------
           ! Assign pixel values to final arrays
           ! -----------------------------------
-          omi_radref_pars (1:max_calfit_idx,ipix) = fitvar_rad(1:max_calfit_idx)
-          omi_radref_xflag(ipix)                  = INT (radfit_exval, KIND=i2)
-          omi_radref_itnum(ipix)                  = INT (radfit_itnum, KIND=i2)
-          omi_radref_chisq(ipix)                  = chisquav
-          omi_radref_col  (ipix)                  = fitcol
-          omi_radref_dcol (ipix)                  = dfitcol
-          omi_radref_rms  (ipix)                  = rms
+          radref_pars (1:max_calfit_idx,ipix) = fitvar_rad(1:max_calfit_idx)
+          radref_xflag(ipix)                  = INT (radfit_exval, KIND=i2)
+          radref_itnum(ipix)                  = INT (radfit_itnum, KIND=i2)
+          radref_chisq(ipix)                  = chisquav
+          radref_col  (ipix)                  = fitcol
+          radref_dcol (ipix)                  = dfitcol
+          radref_rms  (ipix)                  = rms
 
           ! -------------------------------------------------------------------------
           ! Remember weights for the reference radiance, to be used as starting point
           ! in the regular radiance fitting
           ! -------------------------------------------------------------------------
-          omi_radref_wght(1:n_rad_wvl,ipix) = curr_rad_spec(sig_idx,1:n_rad_wvl)
+          radref_wght(1:n_rad_wvl,ipix) = curr_rad_spec(sig_idx,1:n_rad_wvl)
 
        END IF
       
@@ -247,7 +247,7 @@ CONTAINS
        ! ----------------------------------------------------------------
        CALL remove_target_from_radiance (                              &
             fpix, lpix, ctrvar%n_fincol_idx, ctrvar%fincol_idx(1:2,1:ctrvar%n_fincol_idx),  &
-            ctrvar%target_npol, target_var(1:ctrvar%n_fincol_idx,fpix:lpix), omi_radref_xtrcol(fpix:lpix) )
+            ctrvar%target_npol, target_var(1:ctrvar%n_fincol_idx,fpix:lpix), radref_xtrcol(fpix:lpix) )
        
     END IF
 
@@ -255,7 +255,7 @@ CONTAINS
     ! Update the solar spectrum entry in OMI_DATABASE
     ! -----------------------------------------------
     IF ( yn_radiance_reference ) &
-         omi_database (solar_idx,1:n_rad_wvl,fpix:lpix) = omi_radref_spec(1:n_rad_wvl,fpix:lpix)
+         omi_database (solar_idx,1:n_rad_wvl,fpix:lpix) = radref_spec(1:n_rad_wvl,fpix:lpix)
 
 
 
@@ -269,7 +269,7 @@ CONTAINS
        ipix, jpix, n_fincol_idx, fincol_idx, &
        target_npol, target_var, target_fit   )
 
-    USE OMSAO_omidata_module, ONLY: omi_radref_spec, omi_database, omi_nwav_radref, nwavel_max
+    USE OMSAO_omidata_module, ONLY: radref_spec, omi_database, omi_nwav_radref, nwavel_max
     USE OMSAO_variables_module, ONLY: refspecs_original
     USE OMSAO_median_module, ONLY: median
 
@@ -390,7 +390,7 @@ CONTAINS
              tmpexp = MINEXPONENT(1.0_r8) + 1.0_r8
           ENDWHERE
 
-          omi_radref_spec(1:nwvl,i) = omi_radref_spec(1:nwvl,i) * &
+          radref_spec(1:nwvl,i) = radref_spec(1:nwvl,i) * &
                EXP(+tmpexp(1:nwvl))
 
           target_fit(i) = target_fit(i) + yfloc/refspecs_original(k)%NormFactor
@@ -404,8 +404,8 @@ CONTAINS
 SUBROUTINE create_radiance_reference (nt, nx, nw, locerrstat)
 
   USE OMSAO_omidata_module, ONLY: &
-       omi_ccdpix_selection, omi_nwav_radref, omi_radref_spec, omi_radref_wavl,     &
-       omi_radref_qflg, omi_radref_sza, omi_radref_vza, omi_radref_wght,            &
+       omi_ccdpix_selection, omi_nwav_radref, radref_spec, radref_wavl,     &
+       radref_qflg, radref_sza, radref_vza, radref_wght,            &
        omi_ccdpix_exclusion, omi_sol_wav_avg 
   USE OMSAO_variables_module, ONLY : ctrvar, pcfvar
   USE OMSAO_omps_reader, ONLY: omps_nmev_type, omps_nmev_reader
@@ -433,7 +433,7 @@ SUBROUTINE create_radiance_reference (nt, nx, nw, locerrstat)
   REAL    (KIND=r4), DIMENSION(nx)           :: szacount
   REAL    (KIND=r8)                          :: specsum
   REAL    (KIND=r8), DIMENSION(nw)           :: cntr8, radref_wavl_ix
-  REAL    (KIND=r8), DIMENSION(nx,nw)        :: radref_spec, radref_wavl
+  REAL    (KIND=r8), DIMENSION(nx,nw)        :: local_radref_spec, local_radref_wavl
   REAL    (KIND=r8), DIMENSION(nx,nw)        :: allcount, dumcount
   REAL    (KIND=r8), DIMENSION(nw,nx,0:nt-1) :: tmp_radiance_spec, tmp_radiance_wavl
   INTEGER (KIND=i4), DIMENSION(0:nt-1,2)     :: xtrange
@@ -499,8 +499,8 @@ SUBROUTINE create_radiance_reference (nt, nx, nw, locerrstat)
   ! the block of swath lines in multiples of NLINES_MAX (100 by default)
   ! --------------------------------------------------------------------
   allcount       = 0.0_r8  ; dumcount       = 0.0_r8 ;  szacount = 0.0_r4
-  radref_wavl    = 0.0_r8  ; radref_spec    = 0.0_r8
-  omi_radref_sza = 0.0_r4  ; omi_radref_vza = 0.0_r4
+  local_radref_wavl    = 0.0_r8  ; local_radref_spec    = 0.0_r8
+  radref_sza = 0.0_r4  ; radref_vza = 0.0_r4
 
   DO iline = radiance_reference_lnums(1), radiance_reference_lnums(2)
 
@@ -535,17 +535,17 @@ SUBROUTINE create_radiance_reference (nt, nx, nw, locerrstat)
            
            specsum = 1.0_r8
            
-           radref_spec(ix,1:nw) = &
-                radref_spec(ix,1:nw) + tmp_radiance_spec(1:nw,ix,iline)/specsum
-           radref_wavl(ix,1:nw) = &
-                radref_wavl(ix,1:nw) + tmp_radiance_wavl(1:nw,ix,iline)
+           local_radref_spec(ix,1:nw) = &
+                local_radref_spec(ix,1:nw) + tmp_radiance_spec(1:nw,ix,iline)/specsum
+           local_radref_wavl(ix,1:nw) = &
+                local_radref_wavl(ix,1:nw) + tmp_radiance_wavl(1:nw,ix,iline)
            allcount(ix,1:nw) = allcount(ix,1:nw) + cntr8(1:nw)
            dumcount(ix,1:nw) = dumcount(ix,1:nw) + 1.0_r8
            
            IF ( tmp_szenith(ix,iline) /= r4_missval .AND. &
                 tmp_vzenith(ix,iline) /= r4_missval         ) THEN
-              omi_radref_sza(ix) = omi_radref_sza(ix) + tmp_szenith(ix,iline)
-              omi_radref_vza(ix) = omi_radref_vza(ix) + tmp_vzenith(ix,iline)
+              radref_sza(ix) = radref_sza(ix) + tmp_szenith(ix,iline)
+              radref_vza(ix) = radref_vza(ix) + tmp_vzenith(ix,iline)
               szacount      (ix) = szacount(ix) + 1.0_r4
            END IF
            
@@ -563,27 +563,27 @@ SUBROUTINE create_radiance_reference (nt, nx, nw, locerrstat)
      ! Average the wavelengths and spectra
      ! -----------------------------------
      WHERE ( allcount(ix,1:nw) /= 0.0_r8 )
-        radref_spec(ix,1:nw) = radref_spec(ix,1:nw) / allcount(ix,1:nw)
+        local_radref_spec(ix,1:nw) = local_radref_spec(ix,1:nw) / allcount(ix,1:nw)
      END WHERE
      WHERE ( dumcount(ix,1:nw) /= 0.0_r8 )
-        radref_wavl(ix,1:nw) = radref_wavl(ix,1:nw) / dumcount(ix,1:nw)
+        local_radref_wavl(ix,1:nw) = local_radref_wavl(ix,1:nw) / dumcount(ix,1:nw)
      END WHERE
 
      ! -------------------------------------------
      ! Average the Solar and Viewing Zenith Angles
      ! -------------------------------------------
      IF ( szacount(ix) > 0.0_r4 ) THEN
-        omi_radref_sza(ix) = omi_radref_sza(ix) / szacount(ix)
-        omi_radref_vza(ix) = omi_radref_vza(ix) / szacount(ix)
+        radref_sza(ix) = radref_sza(ix) / szacount(ix)
+        radref_vza(ix) = radref_vza(ix) / szacount(ix)
      ELSE
-        omi_radref_sza(ix) = r4_missval
-        omi_radref_vza(ix) = r4_missval             
+        radref_sza(ix) = r4_missval
+        radref_vza(ix) = r4_missval             
      END IF
 
      ! -------------------------------------------------------------------------------
      ! Determine the CCD pixel numbers based on the selected wavelength fitting window
      ! -------------------------------------------------------------------------------
-     radref_wavl_ix = radref_wavl(ix,1:nw)
+     radref_wavl_ix = local_radref_wavl(ix,1:nw)
      DO j1 = 1, 3, 2
         CALL array_locate_r8 ( &
              nw, radref_wavl_ix, REAL(ctrvar%fit_winwav_lim(j1  ),KIND=r8), 'LE', &
@@ -598,24 +598,24 @@ SUBROUTINE create_radiance_reference (nt, nx, nw, locerrstat)
 
      icnt = imax - imin + 1
      omi_nwav_radref(       ix) = icnt
-     omi_radref_spec(1:icnt,ix) = radref_spec(ix,imin:imax)
-     omi_radref_wavl(1:icnt,ix) = radref_wavl_ix(imin:imax)
-     omi_radref_qflg(1:icnt,ix) = 0_i2
-     omi_radref_wght(1:icnt,ix) = normweight
+     radref_spec(1:icnt,ix) = local_radref_spec(ix,imin:imax)
+     radref_wavl(1:icnt,ix) = radref_wavl_ix(imin:imax)
+     radref_qflg(1:icnt,ix) = 0_i2
+     radref_wght(1:icnt,ix) = normweight
 
      ! -----------------------------------------------------------------
      ! Re-assign the average solar wavelength variable, sinfe from here
      ! on we are concerned with radiances.
      ! -----------------------------------------------------------------
-     omi_sol_wav_avg(ix) =  SUM( omi_radref_wavl(1:icnt,ix) ) / REAL(icnt, KIND=r8)
+     omi_sol_wav_avg(ix) =  SUM( radref_wavl(1:icnt,ix) ) / REAL(icnt, KIND=r8)
 
      ! ------------------------------------------------------------------
      ! Set weights and quality flags to "bad" for missing spectral points
      ! ------------------------------------------------------------------
      allcount(ix,1:icnt) = allcount(ix,imin:imax)
      WHERE ( allcount(ix,1:icnt) == 0.0_r8 )
-        omi_radref_qflg(1:icnt,ix) = 7_i2
-        omi_radref_wght(1:icnt,ix) = downweight
+        radref_qflg(1:icnt,ix) = 7_i2
+        radref_wght(1:icnt,ix) = downweight
      END WHERE
 
      ! ------------------------------------------------------------------------------

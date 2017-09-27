@@ -2,6 +2,7 @@ SUBROUTINE omi_pge_fitting_process ( pge_idx, n_max_rspec,             &
                                      pge_error_status )
 
   USE OMSAO_precision_module, ONLY: i4
+  USE OMSAO_omidata_module, ONLY: allocate_radiance_variables
   USE OMSAO_errstat_module, ONLY: pge_errstat_ok, pge_errstat_error, &
        pge_errstat_fatal, error_check, f_sep, omsao_f_subroutine, &
        vb_lev_default, pge_error_status_exit
@@ -41,14 +42,20 @@ SUBROUTINE omi_pge_fitting_process ( pge_idx, n_max_rspec,             &
   pge_error_status = pge_errstat_ok
   ! ----------------------------------------------------------------------------------
   ! Since the OMPS NM files are not that big I'm going to read here the whole file and
-  ! assign the values needed to the significant variables. After this no more reading
-  ! will be needed.
+  ! assign the values needed to the significant variables.
   ! ----------------------------------------------------------------------------------
   omps_reader_status = OMPS_NMEV_READER(omps_data,TRIM(ADJUSTL(pcfvar%l1b_rad_fname)))
   CALL error_check ( INT(omps_reader_status,KIND=i4), pge_errstat_ok, pge_errstat_fatal, OMSAO_F_SUBROUTINE, &
        modulename//f_sep//"Read OMPS radiance data.", vb_lev_default, pge_error_status )
   IF ( pge_error_status >= pge_errstat_error ) GOTO 666
 
+  ! Allocate program variables
+  CALL allocate_radiance_variables (omps_data%nxtrack,omps_data%nlines,omps_data%nwavel,errstat)
+  CALL error_check ( errstat, pge_errstat_ok, pge_errstat_fatal, OMSAO_F_SUBROUTINE, &
+       modulename//f_sep//"Allocate radiance variables.", vb_lev_default, pge_error_status )
+  IF (pge_error_status >= pge_errstat_error ) GO TO 666
+
+  stop
   omps_reader_status = OMPS_NMEV_READER(omps_data_radiance_reference,TRIM(ADJUSTL(pcfvar%l1b_radref_fname)))
   CALL error_check ( INT(omps_reader_status,KIND=i4), pge_errstat_ok, pge_errstat_fatal, OMSAO_F_SUBROUTINE, &
        modulename//f_sep//"Read OMPS radiance reference data.", vb_lev_default, pge_error_status )
@@ -122,7 +129,7 @@ SUBROUTINE omi_fitting (                                  &
        omi_cross_track_skippix, omi_radcal_itnum, omi_radcal_xflag, &
        omi_solcal_itnum, omi_solcal_xflag, &
        omi_longitude, omi_column_uncert, n_comm_wvl, omi_szenith, &
-       omi_fit_rms, omi_vzenith, omi_fitconv_flag, omi_height
+       omi_fit_rms, omi_vzenith, omi_fitconv_flag, height
   USE OMSAO_he5_module, ONLY:  pge_swath_name
   USE OMSAO_he5_datafields_module
   USE OMSAO_solar_wavcal_module, ONLY: xtrack_solar_calibration_loop
@@ -481,7 +488,7 @@ SUBROUTINE omi_fitting (                                  &
        omi_column_uncert(1:nXtrackRad,0:nTimesRad-1),        &
        saoamf(1:nXtrackRad,0:nTimesRad-1),                   &
        amfflg(1:nXtrackRad,0:nTimesRad-1),                   &
-       omi_height(1:nXtrackRad,0:nTimesRad-1), .TRUE.,       &
+       height(1:nXtrackRad,0:nTimesRad-1), .TRUE.,       &
        errstat)       
 
   ! -------------------------------------------------------------
@@ -556,7 +563,7 @@ SUBROUTINE omi_fitting (                                  &
           omi_column_uncert(1:nXtrackRadRR,0:nTimesRadRR-1),           &
           refamf(1:nXtrackRadRR,0:nTimesRadRR-1),                      &
           refamfflg(1:nXtrackRadRR,0:nTimesRadRR-1),                   &
-          omi_height(1:nXtrackRadRR,0:nTimesRadRR-1), .FALSE.,         &
+          height(1:nXtrackRadRR,0:nTimesRadRR-1), .FALSE.,         &
           errstat)       
 
      ! ---------------------------

@@ -27,8 +27,8 @@ CONTAINS
 
     USE OMSAO_variables_module, ONLY: pcfvar, ctrvar
     USE OMSAO_omidata_module, ONLY: &
-         nwavel_max, nxtrack_max, omi_irradiance_spec,        &
-         omi_irradiance_qflg, omi_irradiance_prec, omi_irradiance_wavl, omi_nwav_irrad, &
+         nwavel_max, nxtrack_max, irradiance_spec,        &
+         irradiance_qflg, irradiance_prec, irradiance_wavl, omi_nwav_irrad, &
          omi_ccdpix_selection, omi_ccdpix_exclusion,             &
          omi_sol_wav_avg, EarthSunDistance
     USE OMSAO_indices_module, ONLY: solmonthave_lun
@@ -168,10 +168,10 @@ CONTAINS
     ! ----------------------------
     ! Initialize irradiance arrays
     ! ----------------------------
-    omi_irradiance_spec (1:nwavel,1:nxtrack) = 0.0_r8 ! Irradiance
-    omi_irradiance_prec (1:nwavel,1:nxtrack) = 0.0_r8 ! Irradiance precision
-    omi_irradiance_qflg (1:nwavel,1:nxtrack) = 0_i2   ! Irradiance quality flag
-    omi_irradiance_wavl (1:nwavel,1:nxtrack) = 0.0_r8 ! Irradiance wavelengths
+    irradiance_spec (1:nwavel,1:nxtrack) = 0.0_r8 ! Irradiance
+    irradiance_prec (1:nwavel,1:nxtrack) = 0.0_r8 ! Irradiance precision
+    irradiance_qflg (1:nwavel,1:nxtrack) = 0_i2   ! Irradiance quality flag
+    irradiance_wavl (1:nwavel,1:nxtrack) = 0.0_r8 ! Irradiance wavelengths
 
     ! ----------------------------------------------------
     ! Limit irradiance arrays to fitting window. Check for
@@ -196,10 +196,10 @@ CONTAINS
        imax = omi_ccdpix_selection(ix,4)
 
        icnt = imax - imin + 1
-       omi_irradiance_wavl(1:icnt,ix) = REAL(tmp_wvl(imin:imax,ix), KIND=r8)
-       omi_irradiance_spec(1:icnt,ix) = REAL(tmp_spc(imin:imax,ix), KIND=r8)
-       omi_irradiance_prec(1:icnt,ix) = REAL(tmp_prc(imin:imax,ix), KIND=r8)
-       omi_irradiance_qflg(1:icnt,ix) = tmp_flg(imin:imax,ix)
+       irradiance_wavl(1:icnt,ix) = REAL(tmp_wvl(imin:imax,ix), KIND=r8)
+       irradiance_spec(1:icnt,ix) = REAL(tmp_spc(imin:imax,ix), KIND=r8)
+       irradiance_prec(1:icnt,ix) = REAL(tmp_prc(imin:imax,ix), KIND=r8)
+       irradiance_qflg(1:icnt,ix) = tmp_flg(imin:imax,ix)
        omi_nwav_irrad (ix) = icnt
        omi_sol_wav_avg(ix) = SUM( tmp_wvl(imin:imax,ix) ) / REAL(icnt, KIND=r8)
 
