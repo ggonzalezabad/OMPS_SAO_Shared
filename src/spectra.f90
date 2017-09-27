@@ -184,7 +184,7 @@ SUBROUTINE spectrum_earthshine ( &
   USE OMSAO_parameters_module, ONLY: max_spec_pts, downweight
   USE OMSAO_variables_module, ONLY: n_database_wvl, curr_sol_spec, &
        fitvar_rad, mask_fitvar_rad, fitweights, ctrvar
-  USE OMSAO_omidata_module,      ONLY: curr_xtrack_pixnum, omi_solcal_pars
+  USE OMSAO_omidata_module,      ONLY: curr_xtrack_pixnum, solcal_pars
   USE OMSAO_slitfunction_module, ONLY: saved_shift, saved_squeeze
   USE OMSAO_radiance_ref_module, ONLY: yn_reference_fit
   USE OMSAO_errstat_module
@@ -256,7 +256,7 @@ SUBROUTINE spectrum_earthshine ( &
   IF ( ( ctrvar%yn_solar_comp .AND. (.NOT. ctrvar%yn_radiance_reference) ) .OR. &
        ( ctrvar%yn_solar_comp .AND. (ctrvar%yn_radiance_reference .AND. yn_reference_fit) ) ) THEN
      yn_solsynth = .TRUE.
-     soco_shi = -omi_solcal_pars(shi_idx,curr_xtrack_pixnum)
+     soco_shi = -solcal_pars(shi_idx,curr_xtrack_pixnum)
   ELSE
      yn_solsynth = .FALSE.
      soco_shi = 0.0_r8
@@ -484,7 +484,7 @@ SUBROUTINE spectrum_earthshine_o3exp ( &
        n_database_wvl, curr_sol_spec, fitvar_rad, mask_fitvar_rad, fitweights, &
        ctrvar
   USE OMSAO_prefitcol_module,  ONLY: prefit_fitidx, prefit_var
-  USE OMSAO_omidata_module,      ONLY: curr_xtrack_pixnum, omi_solcal_pars
+  USE OMSAO_omidata_module,      ONLY: curr_xtrack_pixnum, solcal_pars
   USE OMSAO_slitfunction_module, ONLY: saved_shift, saved_squeeze
   USE OMSAO_radiance_ref_module, ONLY: yn_reference_fit
   USE OMSAO_errstat_module
@@ -556,7 +556,7 @@ SUBROUTINE spectrum_earthshine_o3exp ( &
   IF ( ( ctrvar%yn_solar_comp .AND. (.NOT. ctrvar%yn_radiance_reference) ) .OR. &
        ( ctrvar%yn_solar_comp .AND. (ctrvar%yn_radiance_reference .AND. yn_reference_fit) ) ) THEN
      yn_solsynth = .TRUE.
-     soco_shi = -omi_solcal_pars(shi_idx,curr_xtrack_pixnum)
+     soco_shi = -solcal_pars(shi_idx,curr_xtrack_pixnum)
   ELSE
      yn_solsynth = .FALSE.
      soco_shi = 0.0_r8

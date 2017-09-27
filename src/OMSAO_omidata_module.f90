@@ -109,17 +109,16 @@ MODULE OMSAO_omidata_module
   ! ---------------------------------------
   ! Swath attributes for measurement swaths
   ! ---------------------------------------
-  INTEGER (KIND=i4), DIMENSION (nxtrack_max)                         :: n_omi_database_wvl
-  INTEGER (KIND=i2), DIMENSION (nxtrack_max)                         :: &
-       omi_solcal_itnum, omi_radcal_itnum, radref_itnum,            &
-       omi_solcal_xflag, omi_radcal_xflag, radref_xflag
+  INTEGER (KIND=i4), ALLOCATABLE, DIMENSION (:) :: n_ins_database_wvl
+  INTEGER (KIND=i2), ALLOCATABLE, DIMENSION (:) :: solcal_itnum, omi_radcal_itnum, radref_itnum, &
+       solcal_xflag, omi_radcal_xflag, radref_xflag
   REAL    (KIND=r8), DIMENSION (max_calfit_idx, nxtrack_max)         :: &
-       omi_solcal_pars,  omi_radcal_pars,  radref_pars
-  REAL    (KIND=r8), DIMENSION (max_rs_idx, nwavel_max, nxtrack_max) :: omi_database
-  REAL    (KIND=r8), DIMENSION (            nwavel_max, nxtrack_max) :: omi_database_wvl
+       solcal_pars,  omi_radcal_pars,  radref_pars
+  REAL    (KIND=r8), DIMENSION (max_rs_idx, nwavel_max, nxtrack_max) :: ins_database
+  REAL    (KIND=r8), DIMENSION (            nwavel_max, nxtrack_max) :: ins_database_wvl
   REAL    (KIND=r8), ALLOCATABLE, DIMENSION (:) :: omi_sol_wav_avg
   REAL    (KIND=r8), DIMENSION (nxtrack_max)                         :: &
-       omi_solcal_chisq, omi_radcal_chisq, radref_chisq, &
+       solcal_chisq, omi_radcal_chisq, radref_chisq, &
        radref_col,   radref_dcol,  radref_rms,   &
        radref_xtrcol
   REAL    (KIND=r8), DIMENSION (2,nxtrack_max,0:nlines_max-1)        :: omi_wavwin_rad, omi_fitwin_rad

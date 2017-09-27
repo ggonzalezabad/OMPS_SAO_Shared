@@ -29,9 +29,9 @@ CONTAINS
          pcfvar, ctrvar
     USE OMSAO_slitfunction_module, ONLY: saved_shift, saved_squeeze
     USE OMSAO_omidata_module, ONLY: nwav_irrad, irradiance_wght, &
-         nwav_rad, n_omi_database_wvl, omi_cross_track_skippix, &
-         curr_xtrack_pixnum, n_omi_radwvl, max_rs_idx, omi_database, &
-         omi_database_wvl, omi_sol_wav_avg, omi_solcal_pars, radref_wavl, &
+         nwav_rad, n_ins_database_wvl, omi_cross_track_skippix, &
+         curr_xtrack_pixnum, n_omi_radwvl, max_rs_idx, ins_database, &
+         ins_database_wvl, omi_sol_wav_avg, solcal_pars, radref_wavl, &
          radref_spec, ccdpix_selection, radiance_ccdpix, &
          ccdpix_exclusion, omi_xtrackpix_no, radref_wght, &
          radref_pars, max_calfit_idx, radref_xflag, radref_itnum, &
@@ -113,7 +113,7 @@ CONTAINS
        ! ---------------------------------------------------------------------
        IF ( omi_cross_track_skippix(ipix) ) CYCLE
 
-       n_database_wvl = n_omi_database_wvl(ipix)
+       n_database_wvl = n_ins_database_wvl(ipix)
        n_omi_radwvl   = nwav_rad      (ipix,0)
 
        ! ---------------------------------------------------------------------------
@@ -142,16 +142,16 @@ CONTAINS
           ! ----------------------------------------------
           ! Restore DATABASE from OMI_DATABASE (see above)
           ! ----------------------------------------------
-          database (1:max_rs_idx,1:n_database_wvl) = omi_database (1:max_rs_idx,1:n_database_wvl,ipix)
+          database (1:max_rs_idx,1:n_database_wvl) = ins_database (1:max_rs_idx,1:n_database_wvl,ipix)
 
           ! -----------------------------------------------------------------------
           ! Restore solar fitting variables for across-track reference in Earthshine fitting
           ! --------------------------------------------------------------------------------
           sol_wav_avg                             = omi_sol_wav_avg(ipix)
-          hw1e                                    = omi_solcal_pars(hwe_idx,ipix)
-          e_asym                                  = omi_solcal_pars(asy_idx,ipix)
-          curr_sol_spec(wvl_idx,1:n_database_wvl) = omi_database_wvl(1:n_database_wvl,ipix)
-          curr_sol_spec(spc_idx,1:n_database_wvl) = omi_database    (solar_idx,1:n_database_wvl,ipix)
+          hw1e                                    = solcal_pars(hwe_idx,ipix)
+          e_asym                                  = solcal_pars(asy_idx,ipix)
+          curr_sol_spec(wvl_idx,1:n_database_wvl) = ins_database_wvl(1:n_database_wvl,ipix)
+          curr_sol_spec(spc_idx,1:n_database_wvl) = ins_database    (solar_idx,1:n_database_wvl,ipix)
           ! --------------------------------------------------------------------------------
 
           omi_xtrackpix_no = ipix
@@ -255,7 +255,7 @@ CONTAINS
     ! Update the solar spectrum entry in OMI_DATABASE
     ! -----------------------------------------------
     IF ( yn_radiance_reference ) &
-         omi_database (solar_idx,1:n_rad_wvl,fpix:lpix) = radref_spec(1:n_rad_wvl,fpix:lpix)
+         ins_database (solar_idx,1:n_rad_wvl,fpix:lpix) = radref_spec(1:n_rad_wvl,fpix:lpix)
 
 
 
@@ -269,7 +269,7 @@ CONTAINS
        ipix, jpix, n_fincol_idx, fincol_idx, &
        target_npol, target_var, target_fit   )
 
-    USE OMSAO_omidata_module, ONLY: radref_spec, omi_database, nwav_radref, nwavel_max
+    USE OMSAO_omidata_module, ONLY: radref_spec, ins_database, nwav_radref, nwavel_max
     USE OMSAO_variables_module, ONLY: refspecs_original
     USE OMSAO_median_module, ONLY: median
 
@@ -382,7 +382,7 @@ CONTAINS
              yfloc = 0.0_r8
           END IF
 
-          tmpexp(1:nwvl) = yfloc * omi_database(k,1:nwvl,i)
+          tmpexp(1:nwvl) = yfloc * ins_database(k,1:nwvl,i)
           WHERE ( tmpexp >= MAXEXPONENT(1.0_r8) )
              tmpexp = MAXEXPONENT(1.0_r8) - 1.0_r8
           ENDWHERE

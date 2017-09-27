@@ -38,7 +38,7 @@ CONTAINS
     ! ---------------
     ! Local variables
     ! ---------------
-    INTEGER   (KIND=i2)                     :: solcal_itnum
+    INTEGER   (KIND=i2)                     :: local_solcal_itnum
     INTEGER   (KIND=i4)                     :: locerrstat, ipix, solcal_exval, n_sol_wvl
     CHARACTER (LEN=maxchlen)                :: addmsg
     REAL      (KIND=r8)                     :: chisquav
@@ -52,7 +52,7 @@ CONTAINS
     ! ------------------------------
     CHARACTER (LEN=29), PARAMETER :: modulename = 'xtrack_solar_calibration_loop'
 
-    omi_solcal_chisq = r8_missval
+    solcal_chisq = r8_missval
 
     fitvar_cal_saved(1:max_calfit_idx) = ctrvar%fitvar_sol_init(1:max_calfit_idx)
 
@@ -98,7 +98,7 @@ CONTAINS
        yn_bad_pixel   = .FALSE.
        CALL solar_fit ( &                              ! Solar wavelength calibration
             ctrvar%n_fitres_loop(solcal_idx), ctrvar%fitres_range(solcal_idx), n_sol_wvl,                       &
-            curr_sol_spec(wvl_idx:ccd_idx,1:n_sol_wvl), hw1e, e_asym, solcal_exval, solcal_itnum, &
+            curr_sol_spec(wvl_idx:ccd_idx,1:n_sol_wvl), hw1e, e_asym, solcal_exval, local_solcal_itnum, &
             chisquav, yn_bad_pixel, fitres_out(1:n_sol_wvl), locerrstat )
        ! ------------------------------------------------------------------------------------------
        IF ( yn_bad_pixel .OR. locerrstat >= pge_errstat_error ) THEN
@@ -116,10 +116,10 @@ CONTAINS
        ! Save crucial variables for across-track reference in Earthshine fitting
        ! -----------------------------------------------------------------------
        omi_sol_wav_avg (ipix)                     = sol_wav_avg
-       omi_solcal_chisq(ipix)                     = chisquav
-       omi_solcal_pars (1:max_calfit_idx,ipix)    = fitvar_cal(1:max_calfit_idx)
-       omi_solcal_xflag(ipix)                     = INT (solcal_exval, KIND=i2)
-       omi_solcal_itnum(ipix)                     = INT (solcal_itnum, KIND=i2)
+       solcal_chisq(ipix)                     = chisquav
+       solcal_pars (1:max_calfit_idx,ipix)    = fitvar_cal(1:max_calfit_idx)
+       solcal_xflag(ipix)                     = INT (solcal_exval, KIND=i2)
+       solcal_itnum(ipix)                     = INT (local_solcal_itnum, KIND=i2)
        
        ! ------------------------------------------------------------------------
        ! Save the processed solar spectrum in its original array. Note that the
@@ -135,7 +135,7 @@ CONTAINS
        WRITE (addmsg, '(A,I2,4(A,1PE10.3),2(A,I5))') 'SOLAR FIT          #', ipix, &
             ': hw 1/e = ', hw1e, '; e_asy = ', e_asym, '; shift = ', &
             fitvar_cal(shi_idx), '; squeeze = ', fitvar_cal(squ_idx), '; exit val = ', &
-            solcal_exval, '; iter num = ', solcal_itnum
+            solcal_exval, '; iter num = ', local_solcal_itnum
        CALL error_check ( &
             0, 1, pge_errstat_ok, OMSAO_S_PROGRESS, TRIM(ADJUSTL(addmsg)), &
             vb_lev_omidebug, errstat )
@@ -153,7 +153,7 @@ CONTAINS
 
   SUBROUTINE solar_fit ( &
        n_fitres_loop, fitres_range, n_sol_wvl,                            &
-       curr_sol_spec, hw1e, e_asym, solcal_exval, solcal_itnum, chisquav, &
+       curr_sol_spec, hw1e, e_asym, solcal_exval, local_solcal_itnum, chisquav, &
        yn_bad_pixel, fitres_out, errstat )
 
     ! ***************************************************************
@@ -175,7 +175,7 @@ CONTAINS
     ! ----------------
     REAL    (KIND=r8), INTENT (OUT)   :: hw1e, e_asym, chisquav
     INTEGER (KIND=i4), INTENT (OUT)   :: solcal_exval
-    INTEGER (KIND=i2), INTENT (OUT)   :: solcal_itnum
+    INTEGER (KIND=i2), INTENT (OUT)   :: local_solcal_itnum
 
     ! ------------------
     ! Modified variables
@@ -204,7 +204,7 @@ CONTAINS
     locerrstat = pge_errstat_ok
 
     solcal_exval = i4_missval
-    solcal_itnum = i2_missval
+    local_solcal_itnum = i2_missval
 
     chisquav = r8_missval
 
@@ -259,7 +259,7 @@ CONTAINS
     ! ------------------------------------------
     ! Assign iteration number from the first fit
     ! ------------------------------------------
-    solcal_itnum = INT ( locitnum, KIND=i2 )
+    local_solcal_itnum = INT ( locitnum, KIND=i2 )
 
     ! ---------------------------------------------------------------------
     ! Attempt to standardize the re-iteration with spectral points excluded
@@ -335,7 +335,7 @@ CONTAINS
           ! -----------------------------
           ! Add any subsequent iterations
           ! -----------------------------
-          solcal_itnum = solcal_itnum + INT ( locitnum, KIND=i2 )
+          local_solcal_itnum = local_solcal_itnum + INT ( locitnum, KIND=i2 )
 
           ! --------------------------------------------------------------
           ! Exit iteration loop if fitting residual is within contstraints
@@ -416,8 +416,8 @@ CONTAINS
        tmpspe(1:nwav) = 0.0_r8
        delx(1:nwav)   = 1.0_r8
        DO ivar = bl0_idx, bl5_idx
-          IF (omi_solcal_pars(ivar,ipix) .NE. 0.0_r4) THEN
-             tmpspe(1:nwav) = tmpspe(1:nwav) + omi_solcal_pars(ivar,ipix) * delx(1:nwav)
+          IF (solcal_pars(ivar,ipix) .NE. 0.0_r4) THEN
+             tmpspe(1:nwav) = tmpspe(1:nwav) + solcal_pars(ivar,ipix) * delx(1:nwav)
           END IF
           delx(1:nwav) = delx(1:nwav) * del(1:nwav)
        END DO
@@ -427,15 +427,15 @@ CONTAINS
        tmpspe(1:nwav) = 0.0_r8
        delx(1:nwav)   = 1.0_r8
        DO ivar = sc0_idx, sc5_idx
-          IF (omi_solcal_pars(ivar,ipix) .NE. 0.0_r4) THEN
-             tmpspe(1:nwav) = tmpspe(1:nwav) + omi_solcal_pars(ivar,ipix) * delx(1:nwav)
+          IF (solcal_pars(ivar,ipix) .NE. 0.0_r4) THEN
+             tmpspe(1:nwav) = tmpspe(1:nwav) + solcal_pars(ivar,ipix) * delx(1:nwav)
           END IF
           delx(1:nwav) = delx(1:nwav) * del(1:nwav)
        END DO
        modspe(1:nwav) = modspe(1:nwav) / tmpspe
 
        ! Add "albedo"
-       modspe(1:nwav) = modspe(1:nwav) / omi_solcal_pars(sin_idx,ipix)
+       modspe(1:nwav) = modspe(1:nwav) / solcal_pars(sin_idx,ipix)
 
        ! Saving the inverse calibrated spectra in the irradiance_spec
        irradiance_spec(1:nwav, ipix) = modspe(1:nwav)

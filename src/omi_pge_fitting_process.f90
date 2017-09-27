@@ -127,7 +127,7 @@ SUBROUTINE omi_fitting (                                  &
   USE OMSAO_variables_module, ONLY: ctrvar, pcfvar
   USE OMSAO_omidata_module, ONLY: latitute, column_amount, &
        omi_cross_track_skippix, omi_radcal_itnum, omi_radcal_xflag, &
-       omi_solcal_itnum, omi_solcal_xflag, &
+       solcal_itnum, solcal_xflag, &
        longitude, column_uncert, n_comm_wvl, szenith, &
        fit_rms, vzenith, fitconv_flag, height
   USE OMSAO_he5_module, ONLY:  pge_swath_name
@@ -295,7 +295,7 @@ SUBROUTINE omi_fitting (                                  &
   ! solar spectrum to avoid un-initialized variables. However, no
   ! actual fitting is performed in the latter case.
   ! ---------------------------------------------------------------
-  omi_solcal_itnum = i2_missval ; omi_solcal_xflag = i2_missval
+  solcal_itnum = i2_missval ; solcal_xflag = i2_missval
   CALL xtrack_solar_calibration_loop ( first_wc_pix, last_wc_pix, errstat )
   pge_error_status = MAX ( pge_error_status, errstat )
   IF ( pge_error_status >= pge_errstat_error )  GO TO 666

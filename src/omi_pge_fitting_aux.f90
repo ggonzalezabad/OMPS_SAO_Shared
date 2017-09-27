@@ -1393,7 +1393,7 @@ SUBROUTINE compute_common_mode ( &
        common_mode_spec,                &
        refspecs_original, ctrvar
   USE OMSAO_omidata_module,   ONLY:                                           &
-       common_spc, common_wvl, common_cnt, n_omi_database_wvl, omi_database,  &
+       common_spc, common_wvl, common_cnt, n_ins_database_wvl, ins_database,  &
        ccdpix_selection, omi_scanline_no, latitute, n_comm_wvl
 
   IMPLICIT NONE
@@ -1421,7 +1421,7 @@ SUBROUTINE compute_common_mode ( &
      ctrvar%lo_radbnd      (i) = ctrvar%common_fitvar(2)
      ctrvar%up_radbnd      (i) = ctrvar%common_fitvar(3)
      DO i = 1, xti  ! NOTE: "xti == nxtrack" for this call
-        j = n_omi_database_wvl(i)
+        j = n_ins_database_wvl(i)
 
         ! ------------------------------------------
         ! Average the wavelength and spectrum arrays
@@ -1447,7 +1447,7 @@ SUBROUTINE compute_common_mode ( &
         ! -------------------------------------------------
         ! Assign the common mode to the OMI data base array
         ! -------------------------------------------------
-        omi_database(comm_idx,1:j,i) = common_mode_spec%RefSpecData(i,1:j)
+        ins_database(comm_idx,1:j,i) = common_mode_spec%RefSpecData(i,1:j)
 
         ! --------------------------------------------------------------
         ! Now assign a normalization factor to the original data base of

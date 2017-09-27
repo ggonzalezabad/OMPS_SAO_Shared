@@ -18,7 +18,7 @@ SUBROUTINE dataspline ( xtrack_pix, n_radwvl, curr_rad_wvl, n_max_rspec, errstat
        solar_i0_scd, yn_i0_spc
   USE OMSAO_variables_module, ONLY: refspecs_original, common_mode_spec, &
        database, ctrvar
-  USE OMSAO_omidata_module, ONLY : omi_solcal_pars
+  USE OMSAO_omidata_module, ONLY : solcal_pars
   USE OMSAO_errstat_module, ONLY: pge_errstat_ok, pge_errstat_warning, &
        pge_errstat_error, omsao_w_interpol_range, omsao_e_interpol_refspec, &
        vb_lev_default, vb_lev_develop, f_sep, error_check
@@ -69,7 +69,7 @@ SUBROUTINE dataspline ( xtrack_pix, n_radwvl, curr_rad_wvl, n_max_rspec, errstat
      solar_spc(1:nsol) = refspecs_original(idx)%RefSpecData(1:nsol)
      CALL convolve_data (                                                              &
           xtrack_pix, nsol,  solar_wvl(1:nsol), solar_spc(1:nsol), ctrvar%yn_use_labslitfunc, &
-          omi_solcal_pars(hwe_idx,xtrack_pix), omi_solcal_pars(asy_idx,xtrack_pix),    &
+          solcal_pars(hwe_idx,xtrack_pix), solcal_pars(asy_idx,xtrack_pix),    &
           solar_conv(1:nsol), errstat )
   END IF
   
@@ -144,7 +144,7 @@ SUBROUTINE dataspline ( xtrack_pix, n_radwvl, curr_rad_wvl, n_max_rspec, errstat
            ! ------------------------------
            CALL convolve_data (                                                            &
                 xtrack_pix, nsol, solar_wvl(1:nsol), tmp_spec(1:nsol), ctrvar%yn_use_labslitfunc, &
-                omi_solcal_pars(hwe_idx,xtrack_pix), omi_solcal_pars(asy_idx,xtrack_pix),  &
+                solcal_pars(hwe_idx,xtrack_pix), solcal_pars(asy_idx,xtrack_pix),  &
                 xsec_i0_spc(1:nsol), errstat )
            ! -----------------------------------
            ! 5: Compute corrected cross sections
@@ -173,7 +173,7 @@ SUBROUTINE dataspline ( xtrack_pix, n_radwvl, curr_rad_wvl, n_max_rspec, errstat
            ELSE
               CALL convolve_data (                                                           &
                    xtrack_pix, npts, tmp_wavl(1:npts), tmp_spec(1:npts), ctrvar%yn_use_labslitfunc, &
-                   omi_solcal_pars(hwe_idx,xtrack_pix), omi_solcal_pars(asy_idx,xtrack_pix), &
+                   solcal_pars(hwe_idx,xtrack_pix), solcal_pars(asy_idx,xtrack_pix), &
                    tmp_spec(1:npts), errstat )
            END IF
         END IF

@@ -13,10 +13,10 @@ SUBROUTINE xtrack_radiance_wvl_calibration (             &
   USE OMSAO_slitfunction_module, ONLY: saved_shift, saved_squeeze
   USE OMSAO_omidata_module, ONLY: nwavel_max, nxtrack_max, &
        omi_cross_track_skippix, nwav_radref, omi_radcal_itnum, &
-       omi_radcal_xflag, omi_radcal_chisq, n_omi_database_wvl, &
-       omi_solcal_pars, omi_sol_wav_avg,  &
+       omi_radcal_xflag, omi_radcal_chisq, n_ins_database_wvl, &
+       solcal_pars, omi_sol_wav_avg,  &
        nwav_irrad, irradiance_wght, irradiance_wavl, &
-       irradiance_spec, omi_database, omi_database_wvl, &
+       irradiance_spec, ins_database, ins_database_wvl, &
        radref_spec, radref_wavl, radref_qflg, radref_wght, &
        nwav_rad, radiance_spec, radiance_wavl, radiance_qflg, &
        ccdpix_selection, ccdpix_exclusion, radiance_ccdpix, &
@@ -121,8 +121,8 @@ SUBROUTINE xtrack_radiance_wvl_calibration (             &
      ! Earthshine fitting. Use the Radiance References if appropriate.
      ! ---------------------------------------------------------------
      sol_wav_avg = omi_sol_wav_avg(ipix)
-     hw1e        = omi_solcal_pars(hwe_idx,ipix)
-     e_asym      = omi_solcal_pars(asy_idx,ipix)
+     hw1e        = solcal_pars(hwe_idx,ipix)
+     e_asym      = solcal_pars(asy_idx,ipix)
 
      ! -----------------------------------------------------
      ! Assign (hopefully predetermined) "reference" weights.
@@ -267,9 +267,9 @@ SUBROUTINE xtrack_radiance_wvl_calibration (             &
      ! ---------------------------------------------------------
      ! Save DATABASE in OMI_DATABASE for radiance fitting loops.
      ! ---------------------------------------------------------
-     omi_database      (1:max_rs_idx,1:n_rad_wvl,ipix) = database     (1:max_rs_idx,1:n_rad_wvl)
-     omi_database_wvl  (             1:n_rad_wvl,ipix) = curr_rad_spec(     wvl_idx,1:n_rad_wvl)
-     n_omi_database_wvl(                         ipix) = n_rad_wvl
+     ins_database      (1:max_rs_idx,1:n_rad_wvl,ipix) = database     (1:max_rs_idx,1:n_rad_wvl)
+     ins_database_wvl  (             1:n_rad_wvl,ipix) = curr_rad_spec(     wvl_idx,1:n_rad_wvl)
+     n_ins_database_wvl(                         ipix) = n_rad_wvl
      
      ! ----------------------------------------------------------------------
      ! Update the radiance reference with the wavelength calibrated values.
@@ -296,8 +296,8 @@ SUBROUTINE xtrack_radiance_wvl_calibration (             &
         CALL interpolation ( &
              imax, irradiance_wavl(1:imax,ipix),                     &
              irradiance_spec(1:imax,ipix),                           &
-             n_rad_wvl, omi_database_wvl(1:n_rad_wvl,ipix),              &
-             omi_database(solar_idx,1:n_rad_wvl,ipix),                   &
+             n_rad_wvl, ins_database_wvl(1:n_rad_wvl,ipix),              &
+             ins_database(solar_idx,1:n_rad_wvl,ipix),                   &
              'endpoints', 0.0_r8, yn_full_range, locerrstat )
 
         IF ( locerrstat >= pge_errstat_error ) THEN
@@ -318,9 +318,9 @@ SUBROUTINE xtrack_radiance_wvl_calibration (             &
   ! CCM Write splined/convolved databases if necessary
   IF( ctrvar%yn_diagnostic_run ) THEN
      
-     ! omi_database maybe omi_database_wvl?
-     CALL he5_write_omi_database(omi_database(1:max_rs_idx,1:n_rad_wvl,1:nxtrack_max), &
-          omi_database_wvl(1:n_rad_wvl, 1:nxtrack_max), &
+     ! ins_database maybe ins_database_wvl?
+     CALL he5_write_ins_database(ins_database(1:max_rs_idx,1:n_rad_wvl,1:nxtrack_max), &
+          ins_database_wvl(1:n_rad_wvl, 1:nxtrack_max), &
           max_rs_idx, n_rad_wvl, nxtrack_max, errstat)
      
   ENDIF
@@ -348,12 +348,12 @@ SUBROUTINE xtrack_radiance_fitting_loop (                             &
   USE OMSAO_slitfunction_module, ONLY: saved_shift, saved_squeeze
   USE OMSAO_omidata_module, ONLY: nxtrack_max, n_comm_wvl, &
        column_uncert, column_amount, fit_rms, radfit_chisq, &
-       itnum_flag, fitconv_flag, omi_solcal_pars, omi_sol_wav_avg, &
-       n_omi_database_wvl, nwav_rad, szenith, omi_xtrackpix_no, &
+       itnum_flag, fitconv_flag, solcal_pars, omi_sol_wav_avg, &
+       n_ins_database_wvl, nwav_rad, szenith, omi_xtrackpix_no, &
        omi_cross_track_skippix, n_omi_radwvl, n_omi_irradwvl, &
        curr_xtrack_pixnum, o3_uncert, o3_amount, radiance_wavl, &
-       ccdpix_exclusion, ccdpix_selection, omi_database, &
-       omi_database_wvl, max_rs_idx, radiance_spec, radiance_ccdpix, &
+       ccdpix_exclusion, ccdpix_selection, ins_database, &
+       ins_database_wvl, max_rs_idx, radiance_spec, radiance_ccdpix, &
        radref_wght
   USE OMSAO_errstat_module, ONLY: pge_errstat_ok
      
@@ -411,7 +411,7 @@ SUBROUTINE xtrack_radiance_fitting_loop (                             &
     
      locerrstat = pge_errstat_ok
 
-     n_database_wvl = n_omi_database_wvl(ipix)
+     n_database_wvl = n_ins_database_wvl(ipix)
      n_omi_radwvl   = nwav_rad      (ipix,iloop)
 
      ! ---------------------------------------------------------------------------
@@ -424,10 +424,10 @@ SUBROUTINE xtrack_radiance_fitting_loop (                             &
      ! and can be taken from there no matter which case - YN_SOLAR_COMP and/or
      ! YN_RADIANCE_REFRENCE we are processing.
      ! ----------------------------------------------------------------------------
-     n_solar_pts              = n_omi_database_wvl(ipix)
+     n_solar_pts              = n_ins_database_wvl(ipix)
      if (n_solar_pts < 1) cycle  ! JED fix
 
-     solar_wvl(1:n_solar_pts) = omi_database_wvl  (1:n_solar_pts, ipix)
+     solar_wvl(1:n_solar_pts) = ins_database_wvl  (1:n_solar_pts, ipix)
      n_omi_irradwvl           = n_solar_pts
 
      CALL check_wavelength_overlap ( &
@@ -443,7 +443,7 @@ SUBROUTINE xtrack_radiance_fitting_loop (                             &
      ! ----------------------------------------------
      ! Restore DATABASE from OMI_DATABASE (see above)
      ! ----------------------------------------------
-     database (1:max_rs_idx,1:n_database_wvl) = omi_database (1:max_rs_idx,1:n_database_wvl,ipix)
+     database (1:max_rs_idx,1:n_database_wvl) = ins_database (1:max_rs_idx,1:n_database_wvl,ipix)
                  
      ! ---------------------------------------------------------------------------------
      ! Restore solar fitting variables for across-track reference in Earthshine fitting.
@@ -451,10 +451,10 @@ SUBROUTINE xtrack_radiance_fitting_loop (                             &
      ! in the XTRACK_RADIANCE_WAVCAL loop.
      ! ---------------------------------------------------------------------------------
      sol_wav_avg                             = omi_sol_wav_avg(ipix)
-     hw1e                                    = omi_solcal_pars(hwe_idx,ipix)
-     e_asym                                  = omi_solcal_pars(asy_idx,ipix)
-     curr_sol_spec(wvl_idx,1:n_database_wvl) = omi_database_wvl(1:n_database_wvl,ipix)
-     curr_sol_spec(spc_idx,1:n_database_wvl) = omi_database    (solar_idx,1:n_database_wvl,ipix)
+     hw1e                                    = solcal_pars(hwe_idx,ipix)
+     e_asym                                  = solcal_pars(asy_idx,ipix)
+     curr_sol_spec(wvl_idx,1:n_database_wvl) = ins_database_wvl(1:n_database_wvl,ipix)
+     curr_sol_spec(spc_idx,1:n_database_wvl) = ins_database    (solar_idx,1:n_database_wvl,ipix)
      ! --------------------------------------------------------------------------------
 
      omi_xtrackpix_no = ipix
