@@ -34,7 +34,7 @@ SUBROUTINE omps_data_to_omi_variables (OMPS_data,nt,nx,nw)
   ! ------------------------------------------------
   spacecraft_alt(0:nt-1) = REAL(OMPS_data%SpacecraftAltitude(1:nt),KIND=4)
   xtrflg(1:nx,0:nt-1) = OMPS_data%GroundPixelQualityFlags(1:nx,1:nt)
-  omi_instrument_flag(0:nt-1) = OMPS_data%InstrumentQualityFlags(1:nt)
+  instrument_flag(0:nt-1) = OMPS_data%InstrumentQualityFlags(1:nt)
 
   latitute(1:nx,0:nt-1)        = OMPS_data%Latitude(1:nx,1:nt)
   longitude(1:nx,0:nt-1)       = OMPS_data%Longitude(1:nx,1:nt)

@@ -39,8 +39,8 @@ MODULE OMSAO_omidata_module
   ! ------------------------------------------------------------------
   REAL    (KIND=r4), ALLOCATABLE, DIMENSION (:) :: spacecraft_alt, spacecraft_alt_reference
   REAL    (KIND=r8), ALLOCATABLE, DIMENSION (:) :: time, time_reference
-  INTEGER (KIND=i4), ALLOCATABLE, DIMENSION (:) :: radiance_errstat, omi_instrument_flag, &
-       radiance_errstat_reference, omi_instrument_flag_reference
+  INTEGER (KIND=i4), ALLOCATABLE, DIMENSION (:) :: radiance_errstat, instrument_flag, &
+       radiance_errstat_reference, instrument_flag_reference
   INTEGER (KIND=i1), ALLOCATABLE, DIMENSION (:,:) :: xtrflg_l1b, xtrflg_l1b_reference
   INTEGER (KIND=i2), ALLOCATABLE, DIMENSION (:,:) :: geoflg, xtrflg, geoflg_reference, xtrflg_reference
   REAL    (KIND=r4), ALLOCATABLE, DIMENSION (:,:) :: height, land_water_flg, snowicefraction, &
@@ -177,7 +177,7 @@ CONTAINS
     errstat = 0
     IF (.NOT. ALLOCATED(spacecraft_alt)) THEN
        print*, 'Allocating...'
-       ALLOCATE(spacecraft_alt(0:nt-1),xtrflg(1:nx,0:nt-1),omi_instrument_flag(0:nt-1), &
+       ALLOCATE(spacecraft_alt(0:nt-1),xtrflg(1:nx,0:nt-1),instrument_flag(0:nt-1), &
             latitute(1:nx,0:nt-1),longitude(1:nx,0:nt-1), szenith(1:nx,0:nt-1), &
             sazimuth(1:nx,0:nt-1),vzenith(1:nx,0:nt-1),vazimuth(1:nx,0:nt-1), &
             razimuth(1:nx,0:nt-1), nwav_irrad(1:nx), nwav_rad(1:nx,0:nt-1), &

@@ -2192,7 +2192,7 @@ END SUBROUTINE saopge_columninfo_read
 SUBROUTINE he5_write_geolocation ( nTimes, nXtrack, &
      fpix, lpix, locerrstat)
 
-  USE OMSAO_omidata_module, ONLY: spacecraft_alt, omi_instrument_flag, &
+  USE OMSAO_omidata_module, ONLY: spacecraft_alt, instrument_flag, &
        latitute, longitude, sazimuth, szenith, &
        vazimuth, vzenith, xtrflg, height, &
        snowicefraction
@@ -2243,7 +2243,7 @@ SUBROUTINE he5_write_geolocation ( nTimes, nXtrack, &
   locerrstat = HE5_SWWRFLD ( pge_swath_id, auraalt_field,   he5_start_2d, he5_stride_2d, he5_edge_2d, &
        spacecraft_alt(0:nTimes-1) )
   locerrstat = HE5_SWWRFLD ( pge_swath_id, extr_field,      he5_start_2d, he5_stride_2d, he5_edge_2d, &
-       INT(omi_instrument_flag(0:nTimes-1), KIND=2) )
+       INT(instrument_flag(0:nTimes-1), KIND=2) )
 
   he5_start_2d = (/ 0, 0 /) ;  he5_stride_2d = (/ 1, 1 /) ; he5_edge_2d = (/ nXtrack, nTimes /)
 
