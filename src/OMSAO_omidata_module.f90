@@ -109,9 +109,6 @@ MODULE OMSAO_omidata_module
   ! ---------------------------------------
   ! Swath attributes for measurement swaths
   ! ---------------------------------------
-  INTEGER (KIND=i2) :: ImageBinningFactor, BinnedImageRows, StopColumn
-  INTEGER (KIND=i4) :: NumTimes, NumTimesSmallPixel
-
   INTEGER (KIND=i4), DIMENSION (nxtrack_max)                         :: n_omi_database_wvl
   INTEGER (KIND=i2), DIMENSION (nxtrack_max)                         :: &
        omi_solcal_itnum, omi_radcal_itnum, radref_itnum,            &
@@ -154,10 +151,7 @@ MODULE OMSAO_omidata_module
   ! Finally some variables that will be initialized in the
   ! course of the processing.
   ! ------------------------------------------------------
-  INTEGER (KIND=i4) :: &
-       n_omi_radwvl, n_radrefwvl, n_omi_irradwvl,  &
-       nwavelcoef_irrad, nwavelcoef_rad,               &
-       ntimes_smapix_irrad, ntimes_smpix_rad, nclenfit
+  INTEGER (KIND=i4) :: n_omi_radwvl, n_radrefwvl, n_omi_irradwvl, nclenfit
 
   ! --------------------------------
   ! Current cross-track pixel number
