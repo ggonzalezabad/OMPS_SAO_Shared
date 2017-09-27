@@ -129,7 +129,7 @@ SUBROUTINE omi_fitting (                                  &
        omi_cross_track_skippix, omi_radcal_itnum, omi_radcal_xflag, &
        omi_solcal_itnum, omi_solcal_xflag, &
        longitude, column_uncert, n_comm_wvl, szenith, &
-       fit_rms, vzenith, omi_fitconv_flag, height
+       fit_rms, vzenith, fitconv_flag, height
   USE OMSAO_he5_module, ONLY:  pge_swath_name
   USE OMSAO_he5_datafields_module
   USE OMSAO_solar_wavcal_module, ONLY: xtrack_solar_calibration_loop
@@ -508,14 +508,14 @@ SUBROUTINE omi_fitting (                                  &
        column_amount(1:nXtrackRad,0:nTimesRad-1), &
        column_uncert(1:nXtrackRad,0:nTimesRad-1), &
        fit_rms(1:nXtrackRad,0:nTimesRad-1), &
-       omi_fitconv_flag(1:nXtrackRad,0:nTimesRad-1), &
+       fitconv_flag(1:nXtrackRad,0:nTimesRad-1), &
        saomqf(1:nXtrackRad,0:nTimesRad-1), .TRUE., errstat)  
 
   ! -------------------------------------------------------------
   ! Write to L2 file results:
   !   column_amount(r8) -------> Column Amount(r8)
   !   column_uncertainty(r8) --> Column Uncertainty(r8)
-  !   omi_fitconv_flag(i2) --------> Fit Convergence Flag(i2)
+  !   fitconv_flag(i2) --------> Fit Convergence Flag(i2)
   !   fit_rms(r8) -------------> Fitting RMS(r8)
   ! -------------------------------------------------------------
   CALL he5_write_results ( nTimesRad, nXtrackRad, errstat)
@@ -574,7 +574,7 @@ SUBROUTINE omi_fitting (                                  &
           column_amount(1:nXtrackRadRR,0:nTimesRadRR-1), &
           column_uncert(1:nXtrackRadRR,0:nTimesRadRR-1), &
           fit_rms(1:nXtrackRadRR,0:nTimesRadRR-1), &
-          omi_fitconv_flag(1:nXtrackRadRR,0:nTimesRadRR-1), &
+          fitconv_flag(1:nXtrackRadRR,0:nTimesRadRR-1), &
           refmqf(1:nXtrackRadRR,0:nTimesRadRR-1), .FALSE., errstat)
 
      CALL Reference_sector_Correction ( nTimesRad, nXtrackRad, nTimesRadRR, nXtrackRadRR, &

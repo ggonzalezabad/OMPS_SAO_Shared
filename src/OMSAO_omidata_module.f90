@@ -78,8 +78,7 @@ MODULE OMSAO_omidata_module
   INTEGER (KIND=i4), DIMENSION (nxtrack_max)                :: common_cnt
   REAL (KIND=r8), DIMENSION (nxtrack_max,max_spec_pts)   :: common_spc, common_wvl
   REAL (KIND=r8), DIMENSION (nxtrack_max,0:nlines_max-1) :: column_amount, column_uncert, fit_rms, radfit_chisq, albedo
-  INTEGER (KIND=i2), DIMENSION (nxtrack_max,0:nlines_max-1) :: omi_fitconv_flag
-  INTEGER (KIND=i2), DIMENSION (nxtrack_max,0:nlines_max-1) :: omi_itnum_flag
+  INTEGER (KIND=i2), DIMENSION (nxtrack_max,0:nlines_max-1) :: fitconv_flag, itnum_flag
 
   ! ----------------------------------------------------------------------------
   ! Correlations with main output product. Due to a bug in the HDF-EOS5 routines
@@ -93,8 +92,7 @@ MODULE OMSAO_omidata_module
   ! --------------------------------------------------------
   ! Ozone is a special case: We can have up to 3 temperatues
   ! --------------------------------------------------------
-  REAL (KIND=r8), DIMENSION (o3_t1_idx:o3_t3_idx, nxtrack_max,0:nlines_max-1) :: &
-       omi_o3_amount, omi_o3_uncert
+  REAL (KIND=r8), DIMENSION (o3_t1_idx:o3_t3_idx, nxtrack_max,0:nlines_max-1) :: o3_amount, o3_uncert
 
   ! ---------------------------------
   ! Dimensions for measurement swaths

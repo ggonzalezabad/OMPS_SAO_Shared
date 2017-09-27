@@ -15,7 +15,7 @@ SUBROUTINE omi_pge_swathline_loop_memory (                               &
        n_fincol_idx, fincol_idx, n_rad_wvl, pcfvar
   USE OMSAO_omidata_module,    ONLY:  &
        nlines_max, nUTCdim, omi_scanline_no, omi_blockline_no,                  &
-       omi_itnum_flag, omi_fitconv_flag, column_amount,                     &
+       itnum_flag, fitconv_flag, column_amount,                     &
        column_uncert, time_utc, time, latitute, fit_rms,    &
        radiance_errstat, omi_nwav_radref, radref_spec, radref_wavl, &
        szenith, vzenith, longitude, xtrflg, height
@@ -125,8 +125,8 @@ SUBROUTINE omi_pge_swathline_loop_memory (                               &
      ! ------------------------------------------
      ! Initialize output fields with MissingValue
      ! ------------------------------------------
-     omi_itnum_flag   (1:nx,     0:nblock-1) = i2_missval
-     omi_fitconv_flag (1:nx,     0:nblock-1) = i2_missval
+     itnum_flag   (1:nx,     0:nblock-1) = i2_missval
+     fitconv_flag (1:nx,     0:nblock-1) = i2_missval
      column_amount(1:nx,     0:nblock-1) = r8_missval
      column_uncert(1:nx,     0:nblock-1) = r8_missval
      fit_rms      (1:nx,     0:nblock-1) = r8_missval
@@ -195,7 +195,7 @@ SUBROUTINE omi_pge_swathline_loop_memory (                               &
            addmsg = ''
            WRITE (addmsg,'(I5, I3,1P(3E15.5),I5)') omi_scanline_no, ipix, &
                 column_amount(ipix, iloop), column_uncert(ipix, iloop), &
-                fit_rms   (ipix, iloop), MAX(-1,omi_itnum_flag(ipix, iloop))
+                fit_rms   (ipix, iloop), MAX(-1,itnum_flag(ipix, iloop))
            estat = OMI_SMF_setmsg ( OMSAO_S_PROGRESS, TRIM(addmsg), " ", vb_lev_omidebug )
            IF ( pcfvar%verb_thresh_lev >= vb_lev_screen ) WRITE (*, '(A)') TRIM(addmsg)
 
@@ -215,7 +215,7 @@ SUBROUTINE omi_pge_swathline_loop_memory (                               &
            IF ( yn_radiance_reference .AND. yn_remove_target ) THEN
               DO ipix = fpix, lpix
                  IF ( &
-                      ( omi_fitconv_flag (ipix,iloop) > 0_i2       ) .AND. &
+                      ( fitconv_flag (ipix,iloop) > 0_i2       ) .AND. &
                       ( column_amount(ipix,iloop) > r8_missval ) .AND. &
                       ( column_amount(ipix,iloop) + &
                       2.0_r8*column_uncert(ipix,iloop) >= 0.0_r8 )  ) THEN
@@ -239,7 +239,7 @@ SUBROUTINE omi_pge_swathline_loop_memory (                               &
            mem_longitude(fpix:lpix,omi_scanline_no)          = longitude(fpix:lpix,iloop)
            mem_sza(fpix:lpix,omi_scanline_no)                = szenith(fpix:lpix,iloop)
            mem_vza(fpix:lpix,omi_scanline_no)                = vzenith(fpix:lpix,iloop)
-           mem_fit_flag(fpix:lpix,omi_scanline_no)           = omi_fitconv_flag(fpix:lpix,iloop)
+           mem_fit_flag(fpix:lpix,omi_scanline_no)           = fitconv_flag(fpix:lpix,iloop)
            mem_xtrflg(fpix:lpix,omi_scanline_no)             = xtrflg(fpix:lpix,iloop)
            mem_height(fpix:lpix,omi_scanline_no)             = REAL(height(fpix:lpix,iloop), KIND = r4)
 

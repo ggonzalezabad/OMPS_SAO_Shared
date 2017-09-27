@@ -348,10 +348,10 @@ SUBROUTINE xtrack_radiance_fitting_loop (                             &
   USE OMSAO_slitfunction_module, ONLY: saved_shift, saved_squeeze
   USE OMSAO_omidata_module, ONLY: nxtrack_max, n_comm_wvl, &
        column_uncert, column_amount, fit_rms, radfit_chisq, &
-       omi_itnum_flag, omi_fitconv_flag, omi_solcal_pars, omi_sol_wav_avg, &
+       itnum_flag, fitconv_flag, omi_solcal_pars, omi_sol_wav_avg, &
        n_omi_database_wvl, omi_nwav_rad, szenith, omi_xtrackpix_no, &
        omi_cross_track_skippix, n_omi_radwvl, n_omi_irradwvl, &
-       curr_xtrack_pixnum, omi_o3_uncert, omi_o3_amount, radiance_wavl, &
+       curr_xtrack_pixnum, o3_uncert, o3_amount, radiance_wavl, &
        ccdpix_exclusion, ccdpix_selection, omi_database, &
        omi_database_wvl, max_rs_idx, radiance_spec, radiance_ccdpix, &
        radref_wght
@@ -503,8 +503,8 @@ SUBROUTINE xtrack_radiance_fitting_loop (                             &
      ! -----------------------------------
      ! Assign pixel values to final arrays
      ! -----------------------------------
-     omi_fitconv_flag (ipix,iloop) = INT (radfit_exval, KIND=i2)
-     omi_itnum_flag   (ipix,iloop) = INT (radfit_itnum, KIND=i2)
+     fitconv_flag (ipix,iloop) = INT (radfit_exval, KIND=i2)
+     itnum_flag   (ipix,iloop) = INT (radfit_itnum, KIND=i2)
      radfit_chisq (ipix,iloop) = chisquav
      fit_rms      (ipix,iloop) = rms
      column_amount(ipix,iloop) = fitcol
@@ -517,8 +517,8 @@ SUBROUTINE xtrack_radiance_fitting_loop (                             &
      fitspc_out(1:n_rad_wvl,ipix,4) = curr_rad_spec(sig_idx,1:n_rad_wvl)
 
      IF ( pge_idx == pge_o3_idx ) THEN
-        omi_o3_amount(o3_t1_idx:o3_t3_idx,ipix,iloop) = o3fit_cols (o3_t1_idx:o3_t3_idx)
-        omi_o3_uncert(o3_t1_idx:o3_t3_idx,ipix,iloop) = o3fit_dcols(o3_t1_idx:o3_t3_idx)
+        o3_amount(o3_t1_idx:o3_t3_idx,ipix,iloop) = o3fit_cols (o3_t1_idx:o3_t3_idx)
+        o3_uncert(o3_t1_idx:o3_t3_idx,ipix,iloop) = o3fit_dcols(o3_t1_idx:o3_t3_idx)
      END IF
 
   END DO XTrackPix

@@ -574,7 +574,7 @@ SUBROUTINE he5_write_radfit_output ( &
        spcres_didx
   USE OMSAO_variables_module,  ONLY: ctrvar
   USE OMSAO_omidata_module, ONLY: nxtrack_max, n_roff_dig, nwavel_max, &
-       omi_itnum_flag
+       itnum_flag
   USE OMSAO_he5_module
   USE OMSAO_errstat_module, ONLY: pge_errstat_ok, pge_errstat_error, he5_stat_ok, &
        error_check, vb_lev_default, omsao_e_he5swwrfld
@@ -645,7 +645,7 @@ SUBROUTINE he5_write_radfit_output ( &
      
      IF( yn_output_diag( itnum_didx ) ) THEN 
         locerrstat = HE5_SWWRFLD ( pge_swath_id, TRIM(ADJUSTL(itnum_field)), &
-             he5_start_2d, he5_stride_2d, he5_edge_2d, omi_itnum_flag(1:nXtrack,iline) )
+             he5_start_2d, he5_stride_2d, he5_edge_2d, itnum_flag(1:nXtrack,iline) )
      ENDIF
    
      DO i = 1, n_fitvar_rad
@@ -2279,7 +2279,7 @@ END SUBROUTINE he5_write_geolocation
 SUBROUTINE he5_write_results ( nTimes, nXtrack, locerrstat)
 
   USE OMSAO_omidata_module, ONLY: column_amount, column_uncert, &
-       omi_fitconv_flag, fit_rms     
+       fitconv_flag, fit_rms     
   USE OMSAO_he5_module
   USE OMSAO_errstat_module, ONLY: he5_stat_ok, omsao_e_he5swwrfld, &
        pge_errstat_ok, pge_errstat_error, vb_lev_default, error_check
@@ -2320,7 +2320,7 @@ SUBROUTINE he5_write_results ( nTimes, nXtrack, locerrstat)
        column_uncert(1:nXtrack,0:nTimes-1) )
   locerrstat = HE5_SWWRFLD ( pge_swath_id, fitcon_field, &
        he5_start_2d, he5_stride_2d, he5_edge_2d, &
-       omi_fitconv_flag(1:nXtrack,0:nTimes-1) )
+       fitconv_flag(1:nXtrack,0:nTimes-1) )
   locerrstat = HE5_SWWRFLD ( pge_swath_id, fitrms_field, &
        he5_start_2d, he5_stride_2d, he5_edge_2d, &
        fit_rms(1:nXtrack,0:nTimes-1) )
