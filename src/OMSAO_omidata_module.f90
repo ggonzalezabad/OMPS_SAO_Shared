@@ -118,8 +118,6 @@ MODULE OMSAO_omidata_module
   REAL    (KIND=r8), ALLOCATABLE, DIMENSION (:) :: omi_sol_wav_avg
   REAL    (KIND=r8), ALLOCATABLE, DIMENSION (:) :: solcal_chisq, radcal_chisq, radref_chisq, &
        radref_col, radref_dcol, radref_rms, radref_xtrcol
-  REAL    (KIND=r8), DIMENSION (2,nxtrack_max,0:nlines_max-1)        :: omi_wavwin_rad, omi_fitwin_rad
-  REAL    (KIND=r8), DIMENSION (2,nxtrack_max)                       :: omi_wavwin_sol, omi_fitwin_sol
 
   ! ------------------------------
   ! Distance between Earth and Sun
