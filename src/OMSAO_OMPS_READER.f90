@@ -1,18 +1,13 @@
-!! MODULE to READ OMPS data
-!!
-! Created by gga January 2014
-!!
-! All he5 internals are done by the belgium (BIRA) module ReadH5dataset
-! with small modifications
-!!
-
 MODULE OMSAO_omps_reader
 
   USE ReadH5dataset, ONLY: H5ReadDataset, H5ReadAttribute, ErrorFlag, &
        ErrorMessage ! Contains the generic HDF5 reading routines
 
+  IMPLICIT NONE
+
   PRIVATE
-  PUBLIC :: omps_nmev_type, omps_nmto3_type, omps_nmev_reader, omps_nmto3_reader
+  PUBLIC :: omps_nmev_type, omps_nmto3_type, &
+       omps_nmev_reader, omps_nmto3_reader
   INTEGER (KIND = 4), PARAMETER :: MAX_NAME_LENGTH = 256
 
   TYPE omps_nmev_type
@@ -116,7 +111,7 @@ CONTAINS
     IMPLICIT NONE
 
     CHARACTER (LEN=*) :: filename
-    TYPE (OMPS_NMEV_type), INTENT(INOUT) :: this
+    TYPE(omps_nmev_type), INTENT(INOUT) :: this
     INTEGER(KIND=4) :: status, ierr
     
     ! -------------------------------------
@@ -790,6 +785,5 @@ CONTAINS
     status = 2
     RETURN
   END FUNCTION omps_nmto3_reader
-
 
 END MODULE OMSAO_omps_reader

@@ -1,8 +1,8 @@
 MODULE OMSAO_omidata_module
 
-  USE OMSAO_precision_module
+  USE OMSAO_precision_module, ONLY: i1, i2, i4, r4, r8
   USE OMSAO_parameters_module, ONLY: maxchlen, max_spec_pts
-  USE OMSAO_indices_module,    ONLY: n_max_fitpars, max_rs_idx, max_calfit_idx, o3_t1_idx, o3_t3_idx
+  USE OMSAO_indices_module, ONLY: n_max_fitpars, max_rs_idx, max_calfit_idx, o3_t1_idx, o3_t3_idx
   IMPLICIT NONE
 
   ! ------------------------------------------------------------
