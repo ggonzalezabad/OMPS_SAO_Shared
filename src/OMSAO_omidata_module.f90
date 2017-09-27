@@ -58,27 +58,32 @@ MODULE OMSAO_omidata_module
   REAL    (KIND=r8), ALLOCATABLE, DIMENSION (:,:) :: irradiance_prec, irradiance_wavl, irradiance_spec, &
        irradiance_wght, radref_spec, radref_wavl, radref_wght
 
-  ! ---------------------------------------------------------------
-  ! Snow/Ice and Glint flags are used in the AMF computation module 
-  ! outside the "nlines_max" loops and hence need to be defined on
-  ! the maximum swath dimensions.
-  ! ---------------------------------------------------------------
-  INTEGER (KIND=i4), DIMENSION (nwavel_max,nxtrack_max) :: irradiance_ccdpix
-  INTEGER (KIND=i2), DIMENSION (nwavel_max,nxtrack_max) :: irradiance_qflg, radref_qflg
-  REAL    (KIND=r4), DIMENSION (nxtrack_max) :: radref_sza, radref_vza
-
+  ! -------------------------------------------------------------------
+  ! Arrays for irradiance or radiance reference and ccd pixel selection
+  ! -------------------------------------------------------------------
+  INTEGER (KIND=i4), ALLOCATABLE, DIMENSION (:,:) :: irradiance_ccdpix
+  INTEGER (KIND=i2), ALLOCATABLE, DIMENSION (:,:) :: irradiance_qflg, radref_qflg
+  REAL    (KIND=r4), ALLOCATABLE, DIMENSION (:) :: radref_sza, radref_vza
   INTEGER (KIND=i4), ALLOCATABLE, DIMENSION(:,:) :: ccdpix_selection
   INTEGER (KIND=i4), ALLOCATABLE, DIMENSION(:,:) :: ccdpix_exclusion
 
-  ! ----------------------------------------
-  ! Arrays for fitting and/or derived output
-  ! ----------------------------------------
-  REAL    (KIND=r8), PARAMETER                              :: d_comm_wvl = 0.01_r8
-  INTEGER (KIND=i4)                                         :: n_comm_wvl
-  INTEGER (KIND=i4), DIMENSION (nxtrack_max)                :: common_cnt
-  REAL (KIND=r8), DIMENSION (nxtrack_max,max_spec_pts)   :: common_spc, common_wvl
-  REAL (KIND=r8), DIMENSION (nxtrack_max,0:nlines_max-1) :: column_amount, column_uncert, fit_rms, radfit_chisq, albedo
-  INTEGER (KIND=i2), DIMENSION (nxtrack_max,0:nlines_max-1) :: fitconv_flag, itnum_flag
+  ! ----------------------------------
+  ! Arrays for common mode calculation
+  ! ----------------------------------
+  INTEGER (KIND=i4) :: n_comm_wvl
+  INTEGER (KIND=i4), ALLOCATABLE, DIMENSION (:) :: common_cnt
+  REAL (KIND=r8), ALLOCATABLE, DIMENSION (:,:) :: common_spc, common_wvl
+
+  ! -----------------------------------
+  ! Arrays for spectral fitting results
+  ! -----------------------------------
+  REAL (KIND=r8), ALLOCATABLE, DIMENSION (:,:) :: column_amount, column_uncert, fit_rms, radfit_chisq, albedo
+  INTEGER (KIND=i2), ALLOCATABLE, DIMENSION (:,:) :: fitconv_flag, itnum_flag
+
+  ! -------------------------------------------------------
+  ! Albedo array (to be put together with other AMF arrays)
+  ! -------------------------------------------------------
+  REAL (KIND=r8), ALLOCATABLE, DIMENSION (:,:) :: albedo
 
   ! ----------------------------------------------------------------------------
   ! Correlations with main output product. Due to a bug in the HDF-EOS5 routines
