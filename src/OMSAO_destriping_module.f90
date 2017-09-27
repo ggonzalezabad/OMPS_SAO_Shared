@@ -3,7 +3,7 @@ MODULE OMSAO_destriping_module
   USE OMSAO_indices_module,  ONLY: pge_bro_idx, pge_o3_idx, xtrcor_didx
   USE OMSAO_parameters_module, ONLY: &
        r8_missval, normweight, downweight, elsunc_less_is_noise, elsunc_infloop_eval
-  USE OMSAO_omidata_module, ONLY: nxtrack_max, nlines_max
+  USE OMSAO_data_module, ONLY: nxtrack_max, nlines_max
   USE OMSAO_variables_module, ONLY: num_fitfunc_calls, num_fitfunc_jacobi, ctrvar
   USE OMSAO_median_module, ONLY: median
   USE OMSAO_he5_module

@@ -10,7 +10,7 @@ SUBROUTINE omi_pge_swathline_loop ( &
   USE OMSAO_variables_module,  ONLY:  &
        n_fitvar_rad, fitvar_rad_saved, &
        pcfvar, ctrvar
-  USE OMSAO_omidata_module,    ONLY:  &
+  USE OMSAO_data_module,    ONLY:  &
        nlines_max, nUTCdim, scanline_no, &
        itnum_flag, fitconv_flag, column_amount, &
        column_uncert, time_utc, fit_rms,  &

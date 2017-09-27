@@ -329,7 +329,7 @@ SUBROUTINE read_commonmode_spec ( &
   USE OMSAO_precision_module,   ONLY: r8
   USE OMSAO_parameters_module,  ONLY: maxchlen, max_spec_pts
   USE OMSAO_variables_module,   ONLY: CommonModeSpectrum
-  USE OMSAO_omidata_module,     ONLY: nxtrack_max
+  USE OMSAO_data_module,     ONLY: nxtrack_max
   USE OMSAO_errstat_module
   
   IMPLICIT NONE

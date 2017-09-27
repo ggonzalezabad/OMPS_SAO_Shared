@@ -6,7 +6,7 @@ MODULE OMSAO_control_file_module
        radfit_strings, mxs_idx, hwe_idx, refspec_strings, icf_idx, pge_static_input_luns, &
        us1_idx, us2_idx, solcal_idx, radcal_idx, radref_idx, radfit_idx, comm_idx, ctrstr
   USE OMSAO_variables_module, ONLY: pcfvar, ctrvar
-  USE OMSAO_omidata_module, ONLY: nxtrack_max
+  USE OMSAO_data_module, ONLY: nxtrack_max
   USE OMSAO_casestring_module, ONLY: lower_case
   USE OMSAO_errstat_module, ONLY: vb_lev_default, pgsd_io_gen_rseqfrm, pgs_smf_mask_lev_s, &
        pge_errstat_warning, pge_errstat_ok, pge_errstat_fatal, pge_errstat_error, &
@@ -592,7 +592,7 @@ SUBROUTINE find_radiance_fitting_variables ( errstat )
        n_fitvar_rad, all_radfit_idx, mask_fitvar_rad, &
        ctrvar
   USE OMSAO_parameters_module, ONLY: maxchlen
-  USE OMSAO_omidata_module, ONLY: &
+  USE OMSAO_data_module, ONLY: &
        correlation_names, correlation_names_concat, nclenfit
 
   IMPLICIT NONE

@@ -11,7 +11,7 @@ MODULE OMSAO_Reference_sector_module
   USE OMSAO_parameters_module,   ONLY: maxchlen, r8_missval, r4_missval, &
        i4_missval, i2_missval, i1_missval
   USE OMSAO_variables_module, ONLY: pcfvar
-  USE OMSAO_omidata_module,      ONLY: column_amount, &
+  USE OMSAO_data_module,      ONLY: column_amount, &
        column_uncert, latitute, longitude
   USE OMSAO_he5_module,          ONLY: granule_month, lat_field
 
@@ -348,7 +348,7 @@ MODULE OMSAO_Reference_sector_module
          nt, nx, column, rscdiag, errstat)
 
       USE OMSAO_he5_module
-      USE OMSAO_omidata_module, ONLY: n_roff_dig
+      USE OMSAO_data_module, ONLY: n_roff_dig
 
       IMPLICIT NONE
 

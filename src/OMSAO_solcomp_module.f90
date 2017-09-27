@@ -8,7 +8,7 @@ MODULE OMSAO_solcomp_module
   ! =================================================================
 
   USE OMSAO_precision_module,  ONLY: i4, r8, C_LONG
-  USE OMSAO_omidata_module, ONLY: nxtrack_max
+  USE OMSAO_data_module, ONLY: nxtrack_max
   USE OMSAO_he5_module, ONLY: maxchlen, he5f_acc_rdonly
   USE OMSAO_errstat_module, ONLY: pge_errstat_ok, pge_errstat_warning, &
        pge_errstat_error, omsao_e_he5swattach, omi_s_success, he5_stat_fail, &

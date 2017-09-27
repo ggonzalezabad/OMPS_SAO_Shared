@@ -9,7 +9,7 @@ MODULE OMSAO_slitfunction_module
   ! =================================================================
 
   USE OMSAO_precision_module,  ONLY: i4, r8
-  USE OMSAO_omidata_module,    ONLY: nxtrack_max
+  USE OMSAO_data_module,    ONLY: nxtrack_max
   USE OMSAO_OMPS_SLIT_READER
   USE OMSAO_errstat_module
 

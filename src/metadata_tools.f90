@@ -1270,7 +1270,7 @@ SUBROUTINE set_automatic_quality_flag ( PercentGoodOutputSamples )
 
   USE OMSAO_precision_module
   USE OMSAO_metadata_module, ONLY: AutomaticQualityFlag, AutomaticQualityFlagExplanation
-  USE OMSAO_omidata_module,  ONLY: qa_percent_passed, qa_percent_suspect
+  USE OMSAO_data_module,  ONLY: qa_percent_passed, qa_percent_suspect
 
   IMPLICIT NONE
 

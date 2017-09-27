@@ -1051,7 +1051,7 @@ CONTAINS
   SUBROUTINE write_solar_calibration(ip, nw, fit_res_out, flag)
 
     USE OMSAO_variables_module,  ONLY: fitvar_cal
-    USE OMSAO_omidata_module
+    USE OMSAO_data_module
     USE OMSAO_indices_module,    ONLY: shi_idx
 
   

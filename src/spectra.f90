@@ -9,7 +9,7 @@ SUBROUTINE spectrum_solar ( &
   USE OMSAO_variables_module,  ONLY: &
        refspecs_original, solar_spec_convolved, &
        fitvar_cal, mask_fitvar_cal, ctrvar
-  USE OMSAO_omidata_module,  ONLY: curr_xtrack_pixnum
+  USE OMSAO_data_module,  ONLY: curr_xtrack_pixnum
   USE OMSAO_slitfunction_module
   USE OMSAO_errstat_module
   USE OMSAO_solcomp_module
@@ -184,7 +184,7 @@ SUBROUTINE spectrum_earthshine ( &
   USE OMSAO_parameters_module, ONLY: max_spec_pts, downweight
   USE OMSAO_variables_module, ONLY: n_database_wvl, curr_sol_spec, &
        fitvar_rad, mask_fitvar_rad, fitweights, ctrvar
-  USE OMSAO_omidata_module,      ONLY: curr_xtrack_pixnum, solcal_pars
+  USE OMSAO_data_module,      ONLY: curr_xtrack_pixnum, solcal_pars
   USE OMSAO_slitfunction_module, ONLY: saved_shift, saved_squeeze
   USE OMSAO_radiance_ref_module, ONLY: yn_reference_fit
   USE OMSAO_errstat_module
@@ -484,7 +484,7 @@ SUBROUTINE spectrum_earthshine_o3exp ( &
        n_database_wvl, curr_sol_spec, fitvar_rad, mask_fitvar_rad, fitweights, &
        ctrvar
   USE OMSAO_prefitcol_module,  ONLY: prefit_fitidx, prefit_var
-  USE OMSAO_omidata_module,      ONLY: curr_xtrack_pixnum, solcal_pars
+  USE OMSAO_data_module,      ONLY: curr_xtrack_pixnum, solcal_pars
   USE OMSAO_slitfunction_module, ONLY: saved_shift, saved_squeeze
   USE OMSAO_radiance_ref_module, ONLY: yn_reference_fit
   USE OMSAO_errstat_module

@@ -8,7 +8,7 @@ MODULE OMSAO_prefitcol_module
   ! =================================================================
 
   USE OMSAO_precision_module, ONLY: i4, r8
-  USE OMSAO_omidata_module, ONLY: nxtrack_max, nlines_max
+  USE OMSAO_data_module, ONLY: nxtrack_max, nlines_max
   USE OMSAO_parameters_module, ONLY: maxchlen
   USE OMSAO_variables_module, ONLY: ctrvar
   
@@ -168,7 +168,7 @@ CONTAINS
        mcol_len,  molcol_field, col_mol, mdcol_len,          &
        moldcol_field, dcol_mol, yn_read_amf, errstat )
 
-    USE OMSAO_omidata_module
+    USE OMSAO_data_module
     USE OMSAO_he5_module
     USE OMSAO_errstat_module
 

@@ -11,7 +11,7 @@ SUBROUTINE xtrack_radiance_wvl_calibration (             &
        n_rad_wvl, curr_rad_spec, sol_wav_avg, database, fitvar_cal, &
        fitvar_cal_saved, pcfvar, ctrvar
   USE OMSAO_slitfunction_module, ONLY: saved_shift, saved_squeeze
-  USE OMSAO_omidata_module, ONLY: nwavel_max, nxtrack_max, &
+  USE OMSAO_data_module, ONLY: nwavel_max, nxtrack_max, &
        cross_track_skippix, nwav_radref, radcal_itnum, &
        radcal_xflag, radcal_chisq, n_ins_database_wvl, &
        solcal_pars, omi_sol_wav_avg,  &
@@ -346,7 +346,7 @@ SUBROUTINE xtrack_radiance_fitting_loop (                             &
        curr_rad_spec, sol_wav_avg, hw1e, e_asym, n_database_wvl, ctrvar
   USE OMSAO_radiance_ref_module, ONLY: yn_reference_fit
   USE OMSAO_slitfunction_module, ONLY: saved_shift, saved_squeeze
-  USE OMSAO_omidata_module, ONLY: nxtrack_max, n_comm_wvl, &
+  USE OMSAO_data_module, ONLY: nxtrack_max, n_comm_wvl, &
        column_uncert, column_amount, fit_rms, radfit_chisq, &
        itnum_flag, fitconv_flag, solcal_pars, omi_sol_wav_avg, &
        n_ins_database_wvl, nwav_rad, szenith, xtrackpix_no, &

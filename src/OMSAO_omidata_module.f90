@@ -1,4 +1,4 @@
-MODULE OMSAO_omidata_module
+MODULE OMSAO_data_module
 
   USE OMSAO_precision_module, ONLY: i1, i2, i4, r4, r8
   USE OMSAO_parameters_module, ONLY: maxchlen, max_spec_pts
@@ -187,4 +187,4 @@ CONTAINS
 
   END SUBROUTINE allocate_radiance_variables  
 
-END MODULE OMSAO_omidata_module
+END MODULE OMSAO_data_module

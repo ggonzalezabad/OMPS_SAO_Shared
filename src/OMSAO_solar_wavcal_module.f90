@@ -12,7 +12,7 @@ MODULE OMSAO_solar_wavcal_module
        mask_fitvar_cal, n_fitvar_cal, lobnd, upbnd,&
        fitwavs, fitweights, currspec, refspecs_original,    &
        pcfvar, ctrvar
-  USE OMSAO_omidata_module
+  USE OMSAO_data_module
   USE OMSAO_errstat_module
   USE OMSAO_he5_module
 

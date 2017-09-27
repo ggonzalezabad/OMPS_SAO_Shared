@@ -6,7 +6,7 @@ SUBROUTINE omps_data_to_omi_variables (OMPS_data,nt,nx,nw)
   ! ------------------------------------------------
   ! Modules containing the variables to be filled up
   ! ------------------------------------------------
-  USE OMSAO_omidata_module
+  USE OMSAO_data_module
   USE OMSAO_OMPS_READER
   USE OMSAO_he5_module, ONLY: granule_month
   USE OMSAO_variables_module, ONLY: ctrvar

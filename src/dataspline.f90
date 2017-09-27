@@ -18,7 +18,7 @@ SUBROUTINE dataspline ( xtrack_pix, n_radwvl, curr_rad_wvl, n_max_rspec, errstat
        solar_i0_scd, yn_i0_spc
   USE OMSAO_variables_module, ONLY: refspecs_original, common_mode_spec, &
        database, ctrvar
-  USE OMSAO_omidata_module, ONLY : solcal_pars
+  USE OMSAO_data_module, ONLY : solcal_pars
   USE OMSAO_errstat_module, ONLY: pge_errstat_ok, pge_errstat_warning, &
        pge_errstat_error, omsao_w_interpol_range, omsao_e_interpol_refspec, &
        vb_lev_default, vb_lev_develop, f_sep, error_check

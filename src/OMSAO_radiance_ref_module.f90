@@ -28,7 +28,7 @@ CONTAINS
          fitvar_rad_saved, n_database_wvl, fitvar_rad, &
          pcfvar, ctrvar
     USE OMSAO_slitfunction_module, ONLY: saved_shift, saved_squeeze
-    USE OMSAO_omidata_module, ONLY: nwav_irrad, irradiance_wght, &
+    USE OMSAO_data_module, ONLY: nwav_irrad, irradiance_wght, &
          nwav_rad, n_ins_database_wvl, cross_track_skippix, &
          curr_xtrack_pixnum, n_radwvl, max_rs_idx, ins_database, &
          ins_database_wvl, omi_sol_wav_avg, solcal_pars, radref_wavl, &
@@ -269,7 +269,7 @@ CONTAINS
        ipix, jpix, n_fincol_idx, fincol_idx, &
        target_npol, target_var, target_fit   )
 
-    USE OMSAO_omidata_module, ONLY: radref_spec, ins_database, nwav_radref, nwavel_max
+    USE OMSAO_data_module, ONLY: radref_spec, ins_database, nwav_radref, nwavel_max
     USE OMSAO_variables_module, ONLY: refspecs_original
     USE OMSAO_median_module, ONLY: median
 
@@ -403,7 +403,7 @@ CONTAINS
 
 SUBROUTINE create_radiance_reference (nt, nx, nw, locerrstat)
 
-  USE OMSAO_omidata_module, ONLY: &
+  USE OMSAO_data_module, ONLY: &
        ccdpix_selection, nwav_radref, radref_spec, radref_wavl,     &
        radref_qflg, radref_sza, radref_vza, radref_wght,            &
        ccdpix_exclusion, omi_sol_wav_avg 

@@ -2,7 +2,7 @@ SUBROUTINE omi_pge_fitting_process ( pge_idx, n_max_rspec,             &
                                      pge_error_status )
 
   USE OMSAO_precision_module, ONLY: i4
-  USE OMSAO_omidata_module, ONLY: allocate_radiance_variables
+  USE OMSAO_data_module, ONLY: allocate_radiance_variables
   USE OMSAO_errstat_module, ONLY: pge_errstat_ok, pge_errstat_error, &
        pge_errstat_fatal, error_check, f_sep, omsao_f_subroutine, &
        vb_lev_default, pge_error_status_exit
@@ -125,7 +125,7 @@ SUBROUTINE omi_fitting (                                  &
   USE OMSAO_indices_module, ONLY: sao_molecule_names
   USE OMSAO_parameters_module, ONLY: i2_missval
   USE OMSAO_variables_module, ONLY: ctrvar, pcfvar
-  USE OMSAO_omidata_module, ONLY: latitute, column_amount, &
+  USE OMSAO_data_module, ONLY: latitute, column_amount, &
        cross_track_skippix, radcal_itnum, radcal_xflag, &
        solcal_itnum, solcal_xflag, &
        longitude, column_uncert, n_comm_wvl, szenith, &

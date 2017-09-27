@@ -5,7 +5,7 @@ MODULE OMSAO_wfamf_module
   ! nt AMF calculations and contains necessary subroutines to read files
   ! and calculate them
   ! ====================================================================
-  USE OMSAO_omidata_module, ONLY: n_roff_dig
+  USE OMSAO_data_module, ONLY: n_roff_dig
   USE OMSAO_errstat_module, ONLY: pge_errstat_ok, pge_errstat_warning, &
        pge_errstat_error, pge_errstat_fatal, &
        vb_lev_default, vb_lev_screen, he5_stat_fail, omi_s_success, &
@@ -128,7 +128,7 @@ CONTAINS
     !     - GEOS Chem climatology
     !     - VLIDORT calculated scattering weights
     ! =================================================================
-    USE OMSAO_omidata_module, ONLY: albedo
+    USE OMSAO_data_module, ONLY: albedo
     IMPLICIT NONE
 
     ! ---------------
@@ -1231,7 +1231,7 @@ CONTAINS
   SUBROUTINE compute_geometric_amf ( nt, nx, sza, vza, xtrange, amfgeo, amfdiag )
 
     USE OMSAO_parameters_module, ONLY: deg2rad
-    USE OMSAO_omidata_module, ONLY: omi_geo_amf, omi_oobview_amf
+    USE OMSAO_data_module, ONLY: omi_geo_amf, omi_oobview_amf
 
     IMPLICIT NONE
 
@@ -1619,7 +1619,7 @@ CONTAINS
   SUBROUTINE amf_diagnostic ( nt, nx, sza, vza, xtrange, &
        l2cfr, l2ctp, amfdiag )
 
-    USE OMSAO_omidata_module, ONLY: omi_oobview_amf, omi_bigsza_amf
+    USE OMSAO_data_module, ONLY: omi_oobview_amf, omi_bigsza_amf
     
     IMPLICIT NONE
 

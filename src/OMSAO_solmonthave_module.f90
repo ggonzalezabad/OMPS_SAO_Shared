@@ -5,7 +5,7 @@ MODULE OMSAO_solmonthave_module
   ! solar spectrum and contains necessary subroutines to read and use it
   ! ====================================================================
   USE OMSAO_precision_module, ONLY: i2, i4, r4, r8, C_LONG
-  USE OMSAO_omidata_module, ONLY: nxtrack_max
+  USE OMSAO_data_module, ONLY: nxtrack_max
   USE OMSAO_errstat_module, ONLY: pge_errstat_ok, pge_errstat_warning, &
        pge_errstat_error, file_read_ok, omsao_e_open_solmonave_file, &
        omsao_e_read_solmonave_file, omsao_w_close_solmonave_file, &
@@ -26,7 +26,7 @@ CONTAINS
     ! ---------------------------------------------------------------------
 
     USE OMSAO_variables_module, ONLY: pcfvar, ctrvar
-    USE OMSAO_omidata_module, ONLY: &
+    USE OMSAO_data_module, ONLY: &
          nwavel_max, nxtrack_max, irradiance_spec,        &
          irradiance_qflg, irradiance_prec, irradiance_wavl, nwav_irrad, &
          ccdpix_selection, ccdpix_exclusion,             &

@@ -17,7 +17,7 @@ FUNCTION he5_init_swath ( file_name, swath_name, nTimes, nXtrack, nSwLevels ) RE
   !------------------------------------------------------------------------------
 
   USE OMSAO_indices_module,   ONLY: max_calfit_idx, max_rs_idx
-  USE OMSAO_omidata_module,   ONLY: nclenfit, nUTCdim, nwavel_max
+  USE OMSAO_data_module,   ONLY: nclenfit, nUTCdim, nwavel_max
   USE OMSAO_he5_module
   USE OMSAO_errstat_module
   USE OMSAO_variables_module, ONLY: n_fitvar_rad, ctrvar
@@ -123,7 +123,7 @@ FUNCTION he5_define_fields ( pge_idx, swath_name, nTimes, nXtrack, nSwLevels ) R
   USE OMSAO_indices_module, ONLY: sao_molecule_names
   USE OMSAO_parameters_module, ONLY: maxchlen
   USE OMSAO_variables_module, ONLY: ctrvar
-  USE OMSAO_omidata_module, ONLY: n_field_maxdim
+  USE OMSAO_data_module, ONLY: n_field_maxdim
   USE OMSAO_he5_module
   USE OMSAO_he5_datafields_module, ONLY: geo_he5fields, sol_calfit_he5fields, &
        rad_calfit_he5fields, rad_reffit_he5fields, comdata_he5fields, &
@@ -436,7 +436,7 @@ SUBROUTINE he5_write_wavcal_output ( nXtloc, fpix, lpix, errstat )
   USE OMSAO_errstat_module, ONLY: pge_errstat_ok, pge_errstat_error, &
        he5_stat_ok, error_check, vb_lev_default, &
        omsao_e_he5swwrfld
-  USE OMSAO_omidata_module,   ONLY: &
+  USE OMSAO_data_module,   ONLY: &
        n_roff_dig,                                            &
        solcal_xflag,  radcal_xflag, radref_xflag, &
        solcal_pars,   radcal_pars,  radref_pars,  &
@@ -573,7 +573,7 @@ SUBROUTINE he5_write_radfit_output ( &
        fitwt_didx, posobs_didx,  spcobs_didx,  spcfit_didx, &
        spcres_didx
   USE OMSAO_variables_module,  ONLY: ctrvar
-  USE OMSAO_omidata_module, ONLY: nxtrack_max, n_roff_dig, nwavel_max, &
+  USE OMSAO_data_module, ONLY: nxtrack_max, n_roff_dig, nwavel_max, &
        itnum_flag
   USE OMSAO_he5_module
   USE OMSAO_errstat_module, ONLY: pge_errstat_ok, pge_errstat_error, he5_stat_ok, &
@@ -762,7 +762,7 @@ SUBROUTINE he5_write_common_mode ( nXtrack, npts, errstat )
   USE OMSAO_indices_module,   ONLY: commcnt_didx, commspc_didx, &
        commwvl_didx, ccdpix_didx
   USE OMSAO_variables_module, ONLY: common_mode_spec, ctrvar
-  USE OMSAO_omidata_module,   ONLY: n_roff_dig
+  USE OMSAO_data_module,   ONLY: n_roff_dig
 
   IMPLICIT NONE
 
@@ -950,7 +950,7 @@ SUBROUTINE he5_write_fitting_statistics ( &
        omsao_e_he5swwrfld, error_check, vb_lev_default
   USE OMSAO_parameters_module, ONLY: maxchlen
   USE OMSAO_variables_module, ONLY: ctrvar
-  USE OMSAO_omidata_module, ONLY: correlation_names_concat, nclenfit, nlines_max
+  USE OMSAO_data_module, ONLY: correlation_names_concat, nclenfit, nlines_max
 
   IMPLICIT NONE
 
@@ -1718,7 +1718,7 @@ FUNCTION he5_write_swath_attributes ( pge_idx ) RESULT ( he5stat )
   USE OMSAO_he5_module
   USE OMSAO_errstat_module, ONLY: pge_errstat_error, omsao_e_he5swwrattr, &
        vb_lev_default, he5_stat_ok, pge_errstat_ok, error_check
-  USE OMSAO_omidata_module, ONLY: EarthSunDistance
+  USE OMSAO_data_module, ONLY: EarthSunDistance
   IMPLICIT NONE
 
   ! ------------------------------
@@ -1774,7 +1774,7 @@ SUBROUTINE he5_check_for_compressibility ( &
   USE OMSAO_he5_module
   USE OMSAO_errstat_module
   USE OMSAO_variables_module, ONLY: n_fitvar_rad
-  USE OMSAO_omidata_module,   ONLY: nclenfit, nUTCdim, n_field_maxdim, &
+  USE OMSAO_data_module,   ONLY: nclenfit, nUTCdim, n_field_maxdim, &
        nwavel_max
 
 
@@ -2026,7 +2026,7 @@ SUBROUTINE saopge_geofield_read ( &
      ntimes, nxtrack, geodata_field, geodata, errstat )
 
   USE OMSAO_precision_module, ONLY: i2, i4, r4
-  USE OMSAO_omidata_module,   ONLY: nlines_max
+  USE OMSAO_data_module,   ONLY: nlines_max
   USE OMSAO_he5_module
   USE OMSAO_errstat_module, ONLY: pge_errstat_ok
   
@@ -2099,7 +2099,7 @@ SUBROUTINE saopge_columninfo_read (              &
 
   USE OMSAO_precision_module,  ONLY: i2, i4
   USE OMSAO_parameters_module, ONLY: r8_missval, i2_missval
-  USE OMSAO_omidata_module,    ONLY: nlines_max
+  USE OMSAO_data_module,    ONLY: nlines_max
   USE OMSAO_he5_module
   USE OMSAO_errstat_module, ONLY: pge_errstat_ok, error_check
 
@@ -2192,7 +2192,7 @@ END SUBROUTINE saopge_columninfo_read
 SUBROUTINE he5_write_geolocation ( nTimes, nXtrack, &
      fpix, lpix, locerrstat)
 
-  USE OMSAO_omidata_module, ONLY: spacecraft_alt, instrument_flag, &
+  USE OMSAO_data_module, ONLY: spacecraft_alt, instrument_flag, &
        latitute, longitude, sazimuth, szenith, &
        vazimuth, vzenith, xtrflg, height, &
        snowicefraction
@@ -2278,7 +2278,7 @@ END SUBROUTINE he5_write_geolocation
 
 SUBROUTINE he5_write_results ( nTimes, nXtrack, locerrstat)
 
-  USE OMSAO_omidata_module, ONLY: column_amount, column_uncert, &
+  USE OMSAO_data_module, ONLY: column_amount, column_uncert, &
        fitconv_flag, fit_rms     
   USE OMSAO_he5_module
   USE OMSAO_errstat_module, ONLY: he5_stat_ok, omsao_e_he5swwrfld, &
@@ -2338,7 +2338,7 @@ END SUBROUTINE he5_write_results
 
 SUBROUTINE he5_write_solarwavcal ( nw, ip, shift, residual, locerrstat)
 
-  USE OMSAO_omidata_module, ONLY: irradiance_wavl, &
+  USE OMSAO_data_module, ONLY: irradiance_wavl, &
        irradiance_spec, irradiance_wght, &
        solcal_xflag
   USE OMSAO_he5_module
@@ -2396,7 +2396,7 @@ END SUBROUTINE he5_write_solarwavcal
 
 SUBROUTINE he5_write_radiancewavcal ( nw, ip, shift, residual, locerrstat)
 
-  USE OMSAO_omidata_module, ONLY: radcal_xflag
+  USE OMSAO_data_module, ONLY: radcal_xflag
   USE OMSAO_he5_module
   USE OMSAO_errstat_module, ONLY: pge_errstat_ok, pge_errstat_error, &
        omsao_e_he5swwrfld, he5_stat_ok, vb_lev_default, error_check

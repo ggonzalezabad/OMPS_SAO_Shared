@@ -22,7 +22,7 @@ SUBROUTINE radiance_fit ( &
        lobnd, upbnd, fitweights, currspec, fitwavs, &
        fit_winwav_idx, mask_fitvar_rad, refspecs_original, &
        all_radfit_idx, ctrvar
-  USE OMSAO_omidata_module
+  USE OMSAO_data_module
 
   IMPLICIT NONE
 

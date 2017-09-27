@@ -389,7 +389,7 @@ SUBROUTINE omi_create_solcomp_irradiance ( nxt )
   USE OMSAO_parameters_module, ONLY: i2, i4, r8
   USE OMSAO_variables_module, ONLY: ctrvar
   USE OMSAO_solcomp_module, ONLY: soco_compute
-  USE OMSAO_omidata_module, ONLY: nwavel_max, irradiance_spec, irradiance_qflg, &
+  USE OMSAO_data_module, ONLY: nwavel_max, irradiance_spec, irradiance_qflg, &
        irradiance_prec, irradiance_wavl, nwav_irrad, ccdpix_selection, &
        ccdpix_exclusion, omi_sol_wav_avg
   
@@ -1392,7 +1392,7 @@ SUBROUTINE compute_common_mode ( &
   USE OMSAO_variables_module, ONLY:                                           &
        common_mode_spec,                &
        refspecs_original, ctrvar
-  USE OMSAO_omidata_module,   ONLY:                                           &
+  USE OMSAO_data_module,   ONLY:                                           &
        common_spc, common_wvl, common_cnt, n_ins_database_wvl, ins_database,  &
        ccdpix_selection, scanline_no, latitute, n_comm_wvl
 
