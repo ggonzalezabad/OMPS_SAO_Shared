@@ -438,8 +438,8 @@ SUBROUTINE he5_write_wavcal_output ( nXtloc, fpix, lpix, errstat )
        omsao_e_he5swwrfld
   USE OMSAO_omidata_module,   ONLY: &
        n_roff_dig,                                            &
-       solcal_xflag,  omi_radcal_xflag, radref_xflag, &
-       solcal_pars,   omi_radcal_pars,  radref_pars,  &
+       solcal_xflag,  radcal_xflag, radref_xflag, &
+       solcal_pars,   radcal_pars,  radref_pars,  &
        radref_col,    radref_dcol,  radref_rms,   &
        radref_xtrcol
   USE OMSAO_variables_module, ONLY: ctrvar
@@ -481,9 +481,9 @@ SUBROUTINE he5_write_wavcal_output ( nXtloc, fpix, lpix, errstat )
      CALL roundoff_1darr_r8 ( n_roff_dig, max_calfit_idx, tmpr8(1:max_calfit_idx) )
      solcal_pars(1:max_calfit_idx,j) = tmpr8(1:max_calfit_idx)
 
-     tmpr8(1:max_calfit_idx) = omi_radcal_pars(1:max_calfit_idx,j)
+     tmpr8(1:max_calfit_idx) = radcal_pars(1:max_calfit_idx,j)
      CALL roundoff_1darr_r8 ( n_roff_dig, max_calfit_idx, tmpr8(1:max_calfit_idx) )
-     omi_radcal_pars(1:max_calfit_idx,j) = tmpr8(1:max_calfit_idx)
+     radcal_pars(1:max_calfit_idx,j) = tmpr8(1:max_calfit_idx)
 
      tmpr8(1:max_calfit_idx) = radref_pars(1:max_calfit_idx,j)
      CALL roundoff_1darr_r8 ( n_roff_dig, max_calfit_idx, tmpr8(1:max_calfit_idx) )
@@ -510,7 +510,7 @@ SUBROUTINE he5_write_wavcal_output ( nXtloc, fpix, lpix, errstat )
        he5_start_2d, he5_stride_2d, he5_edge_2d, solcal_xflag(1:nXtloc) )
   locerrstat = HE5_SWWRFLD (  &
        rad_calfit_he5fields(i)%Swath_ID, TRIM(ADJUSTL(rwccf_field)), &
-       he5_start_2d, he5_stride_2d, he5_edge_2d, omi_radcal_xflag(1:nXtloc) )
+       he5_start_2d, he5_stride_2d, he5_edge_2d, radcal_xflag(1:nXtloc) )
   locerrstat = HE5_SWWRFLD (  &
        rad_reffit_he5fields(i)%Swath_ID, TRIM(ADJUSTL(rrcf_field )), &
        he5_start_2d, he5_stride_2d, he5_edge_2d, radref_xflag(1:nXtloc) )
@@ -2396,7 +2396,7 @@ END SUBROUTINE he5_write_solarwavcal
 
 SUBROUTINE he5_write_radiancewavcal ( nw, ip, shift, residual, locerrstat)
 
-  USE OMSAO_omidata_module, ONLY: omi_radcal_xflag
+  USE OMSAO_omidata_module, ONLY: radcal_xflag
   USE OMSAO_he5_module
   USE OMSAO_errstat_module, ONLY: pge_errstat_ok, pge_errstat_error, &
        omsao_e_he5swwrfld, he5_stat_ok, vb_lev_default, error_check
@@ -2429,7 +2429,7 @@ SUBROUTINE he5_write_radiancewavcal ( nw, ip, shift, residual, locerrstat)
   locerrstat = HE5_SWWRFLD ( pge_swath_id, rwshi_field, he5_start_2d, he5_stride_2d, he5_edge_2d, &
        shift ) 
   locerrstat = HE5_SWWRFLD ( pge_swath_id, rwccf_field, he5_start_2d, he5_stride_2d, he5_edge_2d, &
-       omi_radcal_xflag(ip) )
+       radcal_xflag(ip) )
 
 
   he5_start_2d = (/ ip-1, 0 /) ;  he5_stride_2d = (/ 1, 1 /) ; he5_edge_2d = (/ 1, nw /)

@@ -12,15 +12,15 @@ SUBROUTINE xtrack_radiance_wvl_calibration (             &
        fitvar_cal_saved, pcfvar, ctrvar
   USE OMSAO_slitfunction_module, ONLY: saved_shift, saved_squeeze
   USE OMSAO_omidata_module, ONLY: nwavel_max, nxtrack_max, &
-       omi_cross_track_skippix, nwav_radref, omi_radcal_itnum, &
-       omi_radcal_xflag, omi_radcal_chisq, n_ins_database_wvl, &
+       omi_cross_track_skippix, nwav_radref, radcal_itnum, &
+       radcal_xflag, radcal_chisq, n_ins_database_wvl, &
        solcal_pars, omi_sol_wav_avg,  &
        nwav_irrad, irradiance_wght, irradiance_wavl, &
        irradiance_spec, ins_database, ins_database_wvl, &
        radref_spec, radref_wavl, radref_qflg, radref_wght, &
        nwav_rad, radiance_spec, radiance_wavl, radiance_qflg, &
        ccdpix_selection, ccdpix_exclusion, radiance_ccdpix, &
-       omi_radcal_pars, curr_xtrack_pixnum, n_omi_irradwvl, n_omi_radwvl      
+       radcal_pars, curr_xtrack_pixnum, n_omi_irradwvl, n_omi_radwvl      
   USE OMSAO_errstat_module, ONLY: f_sep, omsao_s_progress, omsao_w_skippix, &
        pge_errstat_error,pge_errstat_ok, pge_errstat_warning, vb_lev_default, &
        vb_lev_omidebug, vb_lev_screen, error_check
@@ -49,7 +49,7 @@ SUBROUTINE xtrack_radiance_wvl_calibration (             &
   ! ---------------
   ! Local variables
   ! ---------------
-  INTEGER   (KIND=i2)      :: radcal_itnum
+  INTEGER   (KIND=i2)      :: local_radcal_itnum
   INTEGER   (KIND=i4)      :: locerrstat, ipix, radcal_exval, i, imax, n_ref_wvl, cline
   REAL      (KIND=r8)      :: chisquav, rad_spec_avg
   LOGICAL                  :: yn_skip_pix, yn_bad_pixel, yn_full_range
@@ -200,7 +200,7 @@ SUBROUTINE xtrack_radiance_wvl_calibration (             &
      CALL radiance_wavcal ( &                       ! Radiance wavelength calibration
           ipix, ctrvar%n_fitres_loop(radcal_idx), ctrvar%fitres_range(radcal_idx),       &
           n_rad_wvl, curr_rad_spec(wvl_idx:ccd_idx,1:n_rad_wvl),           &
-          radcal_exval, radcal_itnum, chisquav, yn_bad_pixel, fitres_out(1:n_rad_wvl), locerrstat )
+          radcal_exval, local_radcal_itnum, chisquav, yn_bad_pixel, fitres_out(1:n_rad_wvl), locerrstat )
 
      IF ( yn_bad_pixel .OR. locerrstat >= pge_errstat_error ) THEN
         errstat = MAX ( errstat, locerrstat )
@@ -218,7 +218,7 @@ SUBROUTINE xtrack_radiance_wvl_calibration (             &
      WRITE (addmsg, '(A,I2,4(A,1PE10.3),2(A,I5))') 'RADIANCE Wavcal    #', ipix, &
           ': hw 1/e = ', hw1e, '; e_asy = ', e_asym, '; shift = ', &
           fitvar_cal(shi_idx), '; squeeze = ', fitvar_cal(squ_idx), &
-         '; exit val = ', radcal_exval, '; iter num = ', radcal_itnum
+         '; exit val = ', radcal_exval, '; iter num = ', local_radcal_itnum
      CALL error_check ( &
           0, 1, pge_errstat_ok, OMSAO_S_PROGRESS, TRIM(ADJUSTL(addmsg)), &
           vb_lev_omidebug, locerrstat )
@@ -227,10 +227,10 @@ SUBROUTINE xtrack_radiance_wvl_calibration (             &
      ! ---------------------------------
      ! Save crucial variables for output
      ! ---------------------------------
-     omi_radcal_pars (1:max_calfit_idx,ipix) = fitvar_cal(1:max_calfit_idx)
-     omi_radcal_xflag(ipix)                  = INT (radcal_exval, KIND=i2)
-     omi_radcal_itnum(ipix)                  = INT (radcal_itnum, KIND=i2)
-     omi_radcal_chisq(ipix)                  = chisquav
+     radcal_pars (1:max_calfit_idx,ipix) = fitvar_cal(1:max_calfit_idx)
+     radcal_xflag(ipix)                  = INT (radcal_exval, KIND=i2)
+     radcal_itnum(ipix)                  = INT (local_radcal_itnum, KIND=i2)
+     radcal_chisq(ipix)                  = chisquav
 
      ! -----------------------------------------------------------------------
 

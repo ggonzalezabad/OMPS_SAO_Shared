@@ -126,7 +126,7 @@ SUBROUTINE omi_fitting (                                  &
   USE OMSAO_parameters_module, ONLY: i2_missval
   USE OMSAO_variables_module, ONLY: ctrvar, pcfvar
   USE OMSAO_omidata_module, ONLY: latitute, column_amount, &
-       omi_cross_track_skippix, omi_radcal_itnum, omi_radcal_xflag, &
+       omi_cross_track_skippix, radcal_itnum, radcal_xflag, &
        solcal_itnum, solcal_xflag, &
        longitude, column_uncert, n_comm_wvl, szenith, &
        fit_rms, vzenith, fitconv_flag, height
@@ -312,7 +312,7 @@ SUBROUTINE omi_fitting (                                  &
   ! -----------------------------------------------------
   ! Across-track loop for radiance wavelength calibration
   ! -----------------------------------------------------
-  omi_radcal_itnum = i2_missval ; omi_radcal_xflag = i2_missval
+  radcal_itnum = i2_missval ; radcal_xflag = i2_missval
   CALL xtrack_radiance_wvl_calibration (                          &
        ctrvar%yn_radiance_reference, ctrvar%yn_solar_comp,                      &
        first_wc_pix, last_wc_pix, n_max_rspec, n_comm_wvl, errstat )
