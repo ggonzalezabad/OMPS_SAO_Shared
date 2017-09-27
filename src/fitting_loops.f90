@@ -349,7 +349,7 @@ SUBROUTINE xtrack_radiance_fitting_loop (                             &
   USE OMSAO_omidata_module, ONLY: nxtrack_max, n_comm_wvl, &
        omi_column_uncert, omi_column_amount, omi_fit_rms, omi_radfit_chisq, &
        omi_itnum_flag, omi_fitconv_flag, omi_solcal_pars, omi_sol_wav_avg, &
-       n_omi_database_wvl, omi_nwav_rad, omi_szenith, omi_xtrackpix_no, &
+       n_omi_database_wvl, omi_nwav_rad, szenith, omi_xtrackpix_no, &
        omi_cross_track_skippix, n_omi_radwvl, n_omi_irradwvl, &
        curr_xtrack_pixnum, omi_o3_uncert, omi_o3_amount, radiance_wavl, &
        omi_ccdpix_exclusion, omi_ccdpix_selection, omi_database, &
@@ -407,7 +407,7 @@ SUBROUTINE xtrack_radiance_fitting_loop (                             &
      ! If we already determined that this cross track pixel position carries
      ! an error, we don't even have to start processing.
      ! ---------------------------------------------------------------------
-     IF ( omi_cross_track_skippix(ipix) .OR. ctrvar%szamax < omi_szenith(ipix,iloop) ) CYCLE
+     IF ( omi_cross_track_skippix(ipix) .OR. ctrvar%szamax < szenith(ipix,iloop) ) CYCLE
     
      locerrstat = pge_errstat_ok
 

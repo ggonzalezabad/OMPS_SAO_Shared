@@ -12,7 +12,7 @@ MODULE OMSAO_Reference_sector_module
        i4_missval, i2_missval, i1_missval
   USE OMSAO_variables_module, ONLY: pcfvar
   USE OMSAO_omidata_module,      ONLY: omi_column_amount, &
-       omi_column_uncert, omi_latitude, omi_longitude
+       omi_column_uncert, latitute, longitude
   USE OMSAO_he5_module,          ONLY: granule_month, lat_field
 
   IMPLICIT NONE
@@ -91,8 +91,8 @@ MODULE OMSAO_Reference_sector_module
       ! ------------------------------------------------
       CALL compute_background_median_and_correction(ntimesrr, nxtrackrr,               &
            omi_column_amount(1:nxtrackrr,0:ntimesrr-1),                                &
-           refamf(1:nxtrackrr,0:ntimesrr-1), omi_latitude(1:nxtrackrr,0:ntimesrr-1),   &
-           omi_longitude(1:nxtrackrr,0:ntimesrr-1), refmqf(1:nxtrackrr,0:ntimesrr-1),  &
+           refamf(1:nxtrackrr,0:ntimesrr-1), latitute(1:nxtrackrr,0:ntimesrr-1),   &
+           longitude(1:nxtrackrr,0:ntimesrr-1), refmqf(1:nxtrackrr,0:ntimesrr-1),  &
            amfflg(1:nxtrackrr,0:ntimesrr-1), locerrstat)
       ! --------------------------------------------------------------------
       ! Now I have to recover the vcd columns and the amf for the granule of

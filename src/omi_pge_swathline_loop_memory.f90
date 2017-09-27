@@ -16,9 +16,9 @@ SUBROUTINE omi_pge_swathline_loop_memory (                               &
   USE OMSAO_omidata_module,    ONLY:  &
        nlines_max, nUTCdim, omi_scanline_no, omi_blockline_no,                  &
        omi_itnum_flag, omi_fitconv_flag, omi_column_amount,                     &
-       omi_column_uncert, time_utc, time, omi_latitude, omi_fit_rms,    &
+       omi_column_uncert, time_utc, time, latitute, omi_fit_rms,    &
        radiance_errstat, omi_nwav_radref, radref_spec, radref_wavl, &
-       omi_szenith, omi_vzenith, omi_longitude, xtrflg, height
+       szenith, vzenith, longitude, xtrflg, height
   USE OMSAO_prefitcol_module
   USE OMSAO_errstat_module
   USE OMSAO_radiance_ref_module, ONLY: remove_target_from_radiance
@@ -235,10 +235,10 @@ SUBROUTINE omi_pge_swathline_loop_memory (                               &
            mem_column_amount(fpix:lpix,omi_scanline_no)      = omi_column_amount(fpix:lpix,iloop)
            mem_column_uncertainty(fpix:lpix,omi_scanline_no) = omi_column_uncert(fpix:lpix,iloop)
            mem_rms(fpix:lpix,omi_scanline_no)                = omi_fit_rms(fpix:lpix,iloop)
-           mem_latitude(fpix:lpix,omi_scanline_no)           = omi_latitude(fpix:lpix,iloop)
-           mem_longitude(fpix:lpix,omi_scanline_no)          = omi_longitude(fpix:lpix,iloop)
-           mem_sza(fpix:lpix,omi_scanline_no)                = omi_szenith(fpix:lpix,iloop)
-           mem_vza(fpix:lpix,omi_scanline_no)                = omi_vzenith(fpix:lpix,iloop)
+           mem_latitude(fpix:lpix,omi_scanline_no)           = latitute(fpix:lpix,iloop)
+           mem_longitude(fpix:lpix,omi_scanline_no)          = longitude(fpix:lpix,iloop)
+           mem_sza(fpix:lpix,omi_scanline_no)                = szenith(fpix:lpix,iloop)
+           mem_vza(fpix:lpix,omi_scanline_no)                = vzenith(fpix:lpix,iloop)
            mem_fit_flag(fpix:lpix,omi_scanline_no)           = omi_fitconv_flag(fpix:lpix,iloop)
            mem_xtrflg(fpix:lpix,omi_scanline_no)             = xtrflg(fpix:lpix,iloop)
            mem_height(fpix:lpix,omi_scanline_no)             = REAL(height(fpix:lpix,iloop), KIND = r4)

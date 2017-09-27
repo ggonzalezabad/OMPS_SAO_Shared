@@ -2193,8 +2193,8 @@ SUBROUTINE he5_write_geolocation ( nTimes, nXtrack, &
      fpix, lpix, locerrstat)
 
   USE OMSAO_omidata_module, ONLY: spacecraft_alt, omi_instrument_flag, &
-       omi_latitude, omi_longitude, omi_sazimuth, omi_szenith, &
-       omi_vazimuth, omi_vzenith, xtrflg, height, &
+       latitute, longitude, sazimuth, szenith, &
+       vazimuth, vzenith, xtrflg, height, &
        snowicefraction
   USE OMSAO_he5_module
   USE OMSAO_errstat_module, ONLY: he5_stat_ok, omsao_e_he5swwrfld, &
@@ -2248,17 +2248,17 @@ SUBROUTINE he5_write_geolocation ( nTimes, nXtrack, &
   he5_start_2d = (/ 0, 0 /) ;  he5_stride_2d = (/ 1, 1 /) ; he5_edge_2d = (/ nXtrack, nTimes /)
 
   locerrstat = HE5_SWWRFLD ( pge_swath_id, lat_field,    he5_start_2d, he5_stride_2d, he5_edge_2d, &
-       omi_latitude(1:nXtrack,0:nTimes-1) )
+       latitute(1:nXtrack,0:nTimes-1) )
   locerrstat = HE5_SWWRFLD ( pge_swath_id, lon_field,    he5_start_2d, he5_stride_2d, he5_edge_2d, &
-       omi_longitude(1:nXtrack,0:nTimes-1) )
+       longitude(1:nXtrack,0:nTimes-1) )
   locerrstat = HE5_SWWRFLD ( pge_swath_id, saa_field,    he5_start_2d, he5_stride_2d, he5_edge_2d, &
-       omi_sazimuth(1:nXtrack,0:nTimes-1) )
+       sazimuth(1:nXtrack,0:nTimes-1) )
   locerrstat = HE5_SWWRFLD ( pge_swath_id, sza_field,    he5_start_2d, he5_stride_2d, he5_edge_2d, &
-       omi_szenith(1:nXtrack,0:nTimes-1) )
+       szenith(1:nXtrack,0:nTimes-1) )
   locerrstat = HE5_SWWRFLD ( pge_swath_id, vaa_field,    he5_start_2d, he5_stride_2d, he5_edge_2d, &
-       omi_vazimuth(1:nXtrack,0:nTimes-1) )
+       vazimuth(1:nXtrack,0:nTimes-1) )
   locerrstat = HE5_SWWRFLD ( pge_swath_id, vza_field,    he5_start_2d, he5_stride_2d, he5_edge_2d, &
-       omi_vzenith(1:nXtrack,0:nTimes-1) )
+       vzenith(1:nXtrack,0:nTimes-1) )
   locerrstat = HE5_SWWRFLD ( pge_swath_id, xtr_field,    he5_start_2d, he5_stride_2d, he5_edge_2d, &
        xtrflg(1:nXtrack,0:nTimes-1) )
   locerrstat = HE5_SWWRFLD ( pge_swath_id, thgt_field,   he5_start_2d, he5_stride_2d, he5_edge_2d, &

@@ -36,12 +36,12 @@ SUBROUTINE omps_data_to_omi_variables (OMPS_data,nt,nx,nw)
   xtrflg(1:nx,0:nt-1) = OMPS_data%GroundPixelQualityFlags(1:nx,1:nt)
   omi_instrument_flag(0:nt-1) = OMPS_data%InstrumentQualityFlags(1:nt)
 
-  omi_latitude(1:nx,0:nt-1)        = OMPS_data%Latitude(1:nx,1:nt)
-  omi_longitude(1:nx,0:nt-1)       = OMPS_data%Longitude(1:nx,1:nt)
-  omi_szenith(1:nx,0:nt-1)         = OMPS_data%SolarZenithAngle(1:nx,1:nt)
-  omi_sazimuth(1:nx,0:nt-1)        = OMPS_data%SolarAzimuth(1:nx,1:nt)
-  omi_vzenith(1:nx,0:nt-1)         = OMPS_data%SatelliteZenithAngle(1:nx,1:nt)
-  omi_vazimuth(1:nx,0:nt-1)        = OMPS_data%SatelliteAzimuth(1:nx,1:nt)
+  latitute(1:nx,0:nt-1)        = OMPS_data%Latitude(1:nx,1:nt)
+  longitude(1:nx,0:nt-1)       = OMPS_data%Longitude(1:nx,1:nt)
+  szenith(1:nx,0:nt-1)         = OMPS_data%SolarZenithAngle(1:nx,1:nt)
+  sazimuth(1:nx,0:nt-1)        = OMPS_data%SolarAzimuth(1:nx,1:nt)
+  vzenith(1:nx,0:nt-1)         = OMPS_data%SatelliteZenithAngle(1:nx,1:nt)
+  vazimuth(1:nx,0:nt-1)        = OMPS_data%SatelliteAzimuth(1:nx,1:nt)
   
   dummy = TRIM(OMPS_DATA%UTC_CCSDS_A(1))
   read(dummy(6:7),'(i2)') granule_month

@@ -45,13 +45,10 @@ MODULE OMSAO_omidata_module
   INTEGER (KIND=i2), ALLOCATABLE, DIMENSION (:,:) :: geoflg, xtrflg, geoflg_reference, xtrflg_reference
   REAL    (KIND=r4), ALLOCATABLE, DIMENSION (:,:) :: height, land_water_flg, snowicefraction, &
        height_reference, land_water_flg_reference, snowicefraction_reference
-  REAL    (KIND=r4), ALLOCATABLE, DIMENSION (:,:) :: omi_latitude, omi_longitude, omi_latitude_reference, &
-       omi_longitude_reference
-  REAL    (KIND=r4), ALLOCATABLE, DIMENSION (:,:) :: omi_szenith, omi_sazimuth, omi_szenith_reference, &
-       omi_sazimuth_reference
-  REAL    (KIND=r4), ALLOCATABLE, DIMENSION (:,:) :: omi_vzenith, omi_vazimuth,  omi_vzenith_reference, &
-       omi_vazimuth_reference
-  REAL    (KIND=r4), ALLOCATABLE, DIMENSION (:,:) :: omi_razimuth, azimuth_reference
+  REAL    (KIND=r4), ALLOCATABLE, DIMENSION (:,:) :: latitute, longitude, latitute_reference, longitude_reference
+  REAL    (KIND=r4), ALLOCATABLE, DIMENSION (:,:) :: szenith, sazimuth, szenith_reference, sazimuth_reference
+  REAL    (KIND=r4), ALLOCATABLE, DIMENSION (:,:) :: vzenith, vazimuth, vzenith_reference, vazimuth_reference
+  REAL    (KIND=r4), ALLOCATABLE, DIMENSION (:,:) :: razimuth, azimuth_reference
   REAL    (KIND=r8), ALLOCATABLE, DIMENSION (:,:,:) :: radiance_spec, radiance_spec_reference
   REAL    (KIND=r8), ALLOCATABLE, DIMENSION (:,:,:) :: radiance_prec, radiance_prec_reference
   REAL    (KIND=r8), ALLOCATABLE, DIMENSION (:,:,:) :: radiance_wavl, radiance_wavl_reference
@@ -190,9 +187,9 @@ CONTAINS
     IF (.NOT. ALLOCATED(spacecraft_alt)) THEN
        print*, 'Allocating...'
        ALLOCATE(spacecraft_alt(0:nt-1),xtrflg(1:nx,0:nt-1),omi_instrument_flag(0:nt-1), &
-            omi_latitude(1:nx,0:nt-1),omi_longitude(1:nx,0:nt-1), omi_szenith(1:nx,0:nt-1), &
-            omi_sazimuth(1:nx,0:nt-1),omi_vzenith(1:nx,0:nt-1),omi_vazimuth(1:nx,0:nt-1), &
-            omi_razimuth(1:nx,0:nt-1), omi_nwav_irrad(1:nx), omi_nwav_rad(1:nx,0:nt-1), &
+            latitute(1:nx,0:nt-1),longitude(1:nx,0:nt-1), szenith(1:nx,0:nt-1), &
+            sazimuth(1:nx,0:nt-1),vzenith(1:nx,0:nt-1),vazimuth(1:nx,0:nt-1), &
+            razimuth(1:nx,0:nt-1), omi_nwav_irrad(1:nx), omi_nwav_rad(1:nx,0:nt-1), &
             irradiance_wavl(1:nw,nx),irradiance_spec(1:nw,1:nx),omi_sol_wav_avg(1:nx), &
             omi_ccdpix_selection(nx,4), omi_ccdpix_exclusion(nx,2), radiance_wavl(1:nw,1:nx,0:nt-1), &
             radiance_spec(1:nw,1:nx,0:nt-1), radiance_prec(1:nw,1:nx,0:nt-1), &

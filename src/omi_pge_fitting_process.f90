@@ -125,11 +125,11 @@ SUBROUTINE omi_fitting (                                  &
   USE OMSAO_indices_module, ONLY: sao_molecule_names
   USE OMSAO_parameters_module, ONLY: i2_missval
   USE OMSAO_variables_module, ONLY: ctrvar, pcfvar
-  USE OMSAO_omidata_module, ONLY: omi_latitude, omi_column_amount, &
+  USE OMSAO_omidata_module, ONLY: latitute, omi_column_amount, &
        omi_cross_track_skippix, omi_radcal_itnum, omi_radcal_xflag, &
        omi_solcal_itnum, omi_solcal_xflag, &
-       omi_longitude, omi_column_uncert, n_comm_wvl, omi_szenith, &
-       omi_fit_rms, omi_vzenith, omi_fitconv_flag, height
+       longitude, omi_column_uncert, n_comm_wvl, szenith, &
+       omi_fit_rms, vzenith, omi_fitconv_flag, height
   USE OMSAO_he5_module, ONLY:  pge_swath_name
   USE OMSAO_he5_datafields_module
   USE OMSAO_solar_wavcal_module, ONLY: xtrack_solar_calibration_loop
@@ -286,8 +286,8 @@ SUBROUTINE omi_fitting (                                  &
   ! Work out pixel corners so we can plot and write them to L2 file
   ! ---------------------------------------------------------------
   CALL compute_pixel_corners (nTimesRad, nXtrackRad, &
-       omi_latitude(1:nXtrackRad, 0:nTimesRad-1),    &
-       omi_longitude(1:nXtrackRad, 0:nTimesRad-1),   &
+       latitute(1:nXtrackRad, 0:nTimesRad-1),    &
+       longitude(1:nXtrackRad, 0:nTimesRad-1),   &
        errstat)
 
   ! ---------------------------------------------------------------
@@ -371,10 +371,10 @@ SUBROUTINE omi_fitting (                                  &
   ! read, particularly since the current algorithm settings would
   ! require it anyway.
   ! -----------------------------------------------------------------
-  ! For OMPS it is enough to copy the values of omi_latitude in
+  ! For OMPS it is enough to copy the values of latitute in
   ! l1b_latitudes
   ! -----------------------------------------------------------
-  l1b_latitudes(1:nXtrackRad,0:nTimesRad-1) = omi_latitude(1:nXtrackRad,0:nTimesRad-1)
+  l1b_latitudes(1:nXtrackRad,0:nTimesRad-1) = latitute(1:nXtrackRad,0:nTimesRad-1)
 
   ! -----------------------------------------------------------------
   ! Now we enter the on-line computation of the common mode spectrum.
@@ -479,10 +479,10 @@ SUBROUTINE omi_fitting (                                  &
   ! ---------------------------
   CALL amf_calculation_bis ( pge_idx, pcfvar%cld_fname, &
        nTimesRad, nXtrackRad,                                &
-       omi_latitude(1:nXtrackRad,0:nTimesRad-1),             &
-       omi_longitude(1:nXtrackRad,0:nTimesRad-1),            &
-       omi_szenith(1:nXtrackRad,0:nTimesRad-1),              &
-       omi_vzenith(1:nXtrackRad,0:nTimesRad-1),              &
+       latitute(1:nXtrackRad,0:nTimesRad-1),             &
+       longitude(1:nXtrackRad,0:nTimesRad-1),            &
+       szenith(1:nXtrackRad,0:nTimesRad-1),              &
+       vzenith(1:nXtrackRad,0:nTimesRad-1),              &
        omi_xtrpix_range(0:nTimesRad-1,1:2),                  &
        omi_column_amount(1:nXtrackRad,0:nTimesRad-1),        &
        omi_column_uncert(1:nXtrackRad,0:nTimesRad-1),        &
@@ -554,10 +554,10 @@ SUBROUTINE omi_fitting (                                  &
      
      CALL amf_calculation_bis ( pge_idx, pcfvar%refsec_cld_fname, &
           nTimesRadRR, nXtrackRadRR,                                   &
-          omi_latitude(1:nXtrackRadRR,0:nTimesRadRR-1),                &
-          omi_longitude(1:nXtrackRadRR,0:nTimesRadRR-1),               &
-          omi_szenith(1:nXtrackRadRR,0:nTimesRadRR-1),                 &
-          omi_vzenith(1:nXtrackRadRR,0:nTimesRadRR-1),                 &
+          latitute(1:nXtrackRadRR,0:nTimesRadRR-1),                &
+          longitude(1:nXtrackRadRR,0:nTimesRadRR-1),               &
+          szenith(1:nXtrackRadRR,0:nTimesRadRR-1),                 &
+          vzenith(1:nXtrackRadRR,0:nTimesRadRR-1),                 &
           omi_xtrpix_range(0:nTimesRadRR-1,1:2),                       &
           omi_column_amount(1:nXtrackRadRR,0:nTimesRadRR-1),           &
           omi_column_uncert(1:nXtrackRadRR,0:nTimesRadRR-1),           &
