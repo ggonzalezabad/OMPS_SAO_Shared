@@ -29,7 +29,7 @@ CONTAINS
     USE OMSAO_omidata_module, ONLY: &
          nwavel_max, nxtrack_max, irradiance_spec,        &
          irradiance_qflg, irradiance_prec, irradiance_wavl, omi_nwav_irrad, &
-         omi_ccdpix_selection, omi_ccdpix_exclusion,             &
+         ccdpix_selection, ccdpix_exclusion,             &
          omi_sol_wav_avg, EarthSunDistance
     USE OMSAO_indices_module, ONLY: solmonthave_lun
 
@@ -185,15 +185,15 @@ CONTAINS
        DO j = 1, 3, 2
           CALL array_locate_r4 ( &
                nwavel, tmp_wvl(1:nwavel,ix), REAL(ctrvar%fit_winwav_lim(j  ),KIND=r4), 'LE', &
-               omi_ccdpix_selection(ix,j  ) )
+               ccdpix_selection(ix,j  ) )
           CALL array_locate_r4 ( &
                nwavel, tmp_wvl(1:nwavel,ix), REAL(ctrvar%fit_winwav_lim(j+1),KIND=r4), 'GE', &
-               omi_ccdpix_selection(ix,j+1) )
+               ccdpix_selection(ix,j+1) )
        END DO
 
 
-       imin = omi_ccdpix_selection(ix,1)
-       imax = omi_ccdpix_selection(ix,4)
+       imin = ccdpix_selection(ix,1)
+       imax = ccdpix_selection(ix,4)
 
        icnt = imax - imin + 1
        irradiance_wavl(1:icnt,ix) = REAL(tmp_wvl(imin:imax,ix), KIND=r8)
@@ -208,12 +208,12 @@ CONTAINS
        ! after the array assignements above because we need to know which indices to
        ! exclude from the final arrays, not the complete ones read from the HE4 file.
        ! ------------------------------------------------------------------------------
-       omi_ccdpix_exclusion(ix,1:2) = -1
+       ccdpix_exclusion(ix,1:2) = -1
        IF ( MINVAL(ctrvar%fit_winexc_lim(1:2)) > 0.0_r8 ) THEN
           CALL array_locate_r4 ( &
-               nwavel, tmp_wvl(1:nwavel,ix), REAL(ctrvar%fit_winexc_lim(1),KIND=r4), 'GE', omi_ccdpix_exclusion(ix,1) )
+               nwavel, tmp_wvl(1:nwavel,ix), REAL(ctrvar%fit_winexc_lim(1),KIND=r4), 'GE', ccdpix_exclusion(ix,1) )
           CALL array_locate_r4 ( &
-               nwavel, tmp_wvl(1:nwavel,ix), REAL(ctrvar%fit_winexc_lim(2),KIND=r4), 'LE', omi_ccdpix_exclusion(ix,2) )
+               nwavel, tmp_wvl(1:nwavel,ix), REAL(ctrvar%fit_winexc_lim(2),KIND=r4), 'LE', ccdpix_exclusion(ix,2) )
        END IF
 
     END DO

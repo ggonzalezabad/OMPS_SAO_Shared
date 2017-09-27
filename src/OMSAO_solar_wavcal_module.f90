@@ -72,8 +72,8 @@ CONTAINS
        saved_shift = -1.0e+30_r8 ; saved_squeeze = -1.0e+30_r8
 
        ! -------------------------------------------------------------------------
-       select_idx(1:4) = omi_ccdpix_selection(ipix,1:4)
-       exclud_idx(1:2) = omi_ccdpix_exclusion(ipix,1:2)
+       select_idx(1:4) = ccdpix_selection(ipix,1:4)
+       exclud_idx(1:2) = ccdpix_exclusion(ipix,1:2)
        CALL omi_adjust_irradiance_data ( &           ! Set up generic fitting arrays
             select_idx(1:4), exclud_idx(1:2),             &
             n_omi_irradwvl,                               &

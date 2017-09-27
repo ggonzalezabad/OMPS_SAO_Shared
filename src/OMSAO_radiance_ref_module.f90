@@ -32,8 +32,8 @@ CONTAINS
          omi_nwav_rad, n_omi_database_wvl, omi_cross_track_skippix, &
          curr_xtrack_pixnum, n_omi_radwvl, max_rs_idx, omi_database, &
          omi_database_wvl, omi_sol_wav_avg, omi_solcal_pars, radref_wavl, &
-         radref_spec, omi_ccdpix_selection, radiance_ccdpix, &
-         omi_ccdpix_exclusion, omi_xtrackpix_no, radref_wght, &
+         radref_spec, ccdpix_selection, radiance_ccdpix, &
+         ccdpix_exclusion, omi_xtrackpix_no, radref_wght, &
          radref_pars, max_calfit_idx, radref_xflag, radref_itnum, &
          radref_chisq, radref_col, radref_rms, radref_dcol, &
          radref_xtrcol
@@ -156,8 +156,8 @@ CONTAINS
 
           omi_xtrackpix_no = ipix
           ! -------------------------------------------------------------------------
-          select_idx(1:4) = omi_ccdpix_selection(ipix,1:4)
-          exclud_idx(1:2) = omi_ccdpix_exclusion(ipix,1:2)
+          select_idx(1:4) = ccdpix_selection(ipix,1:4)
+          exclud_idx(1:2) = ccdpix_exclusion(ipix,1:2)
 
           CALL omi_adjust_radiance_data ( &           ! Set up generic fitting arrays
                select_idx(1:4), exclud_idx(1:2),            &
@@ -404,9 +404,9 @@ CONTAINS
 SUBROUTINE create_radiance_reference (nt, nx, nw, locerrstat)
 
   USE OMSAO_omidata_module, ONLY: &
-       omi_ccdpix_selection, omi_nwav_radref, radref_spec, radref_wavl,     &
+       ccdpix_selection, omi_nwav_radref, radref_spec, radref_wavl,     &
        radref_qflg, radref_sza, radref_vza, radref_wght,            &
-       omi_ccdpix_exclusion, omi_sol_wav_avg 
+       ccdpix_exclusion, omi_sol_wav_avg 
   USE OMSAO_variables_module, ONLY : ctrvar, pcfvar
   USE OMSAO_omps_reader, ONLY: omps_nmev_type, omps_nmev_reader
 
@@ -587,14 +587,14 @@ SUBROUTINE create_radiance_reference (nt, nx, nw, locerrstat)
      DO j1 = 1, 3, 2
         CALL array_locate_r8 ( &
              nw, radref_wavl_ix, REAL(ctrvar%fit_winwav_lim(j1  ),KIND=r8), 'LE', &
-             omi_ccdpix_selection(ix,j1  ) )
+             ccdpix_selection(ix,j1  ) )
         CALL array_locate_r8 ( &
              nw, radref_wavl_ix, REAL(ctrvar%fit_winwav_lim(j1+1),KIND=r8), 'GE', &
-             omi_ccdpix_selection(ix,j1+1) )
+             ccdpix_selection(ix,j1+1) )
      END DO
 
-     imin = omi_ccdpix_selection(ix,1)
-     imax = omi_ccdpix_selection(ix,4)
+     imin = ccdpix_selection(ix,1)
+     imax = ccdpix_selection(ix,4)
 
      icnt = imax - imin + 1
      omi_nwav_radref(       ix) = icnt
@@ -623,14 +623,14 @@ SUBROUTINE create_radiance_reference (nt, nx, nw, locerrstat)
      ! after the array assignements above because we need to know which indices to
      ! exclude from the final arrays, not the complete ones read from the HE4 file.
      ! ------------------------------------------------------------------------------
-     omi_ccdpix_exclusion(ix,1:2) = -1
+     ccdpix_exclusion(ix,1:2) = -1
      IF ( MINVAL(ctrvar%fit_winexc_lim(1:2)) > 0.0_r8 ) THEN
         CALL array_locate_r8 ( &
              nw, radref_wavl_ix, REAL(ctrvar%fit_winexc_lim(1),KIND=r8), 'GE', &
-             omi_ccdpix_exclusion(ix,1) )
+             ccdpix_exclusion(ix,1) )
         CALL array_locate_r8 ( &
              nw, radref_wavl_ix, REAL(ctrvar%fit_winexc_lim(2),KIND=r8), 'LE', &
-             omi_ccdpix_exclusion(ix,2) )
+             ccdpix_exclusion(ix,2) )
      END IF
      
   END DO

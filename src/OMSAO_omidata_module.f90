@@ -67,8 +67,8 @@ MODULE OMSAO_omidata_module
   INTEGER (KIND=i2), DIMENSION (nwavel_max,nxtrack_max) :: irradiance_qflg, radref_qflg
   REAL    (KIND=r4), DIMENSION (nxtrack_max) :: radref_sza, radref_vza
 
-  INTEGER (KIND=i4), ALLOCATABLE, DIMENSION(:,:) :: omi_ccdpix_selection
-  INTEGER (KIND=i4), ALLOCATABLE, DIMENSION(:,:) :: omi_ccdpix_exclusion
+  INTEGER (KIND=i4), ALLOCATABLE, DIMENSION(:,:) :: ccdpix_selection
+  INTEGER (KIND=i4), ALLOCATABLE, DIMENSION(:,:) :: ccdpix_exclusion
 
   ! ----------------------------------------
   ! Arrays for fitting and/or derived output
@@ -191,7 +191,7 @@ CONTAINS
             sazimuth(1:nx,0:nt-1),vzenith(1:nx,0:nt-1),vazimuth(1:nx,0:nt-1), &
             razimuth(1:nx,0:nt-1), omi_nwav_irrad(1:nx), omi_nwav_rad(1:nx,0:nt-1), &
             irradiance_wavl(1:nw,nx),irradiance_spec(1:nw,1:nx),omi_sol_wav_avg(1:nx), &
-            omi_ccdpix_selection(nx,4), omi_ccdpix_exclusion(nx,2), radiance_wavl(1:nw,1:nx,0:nt-1), &
+            ccdpix_selection(nx,4), ccdpix_exclusion(nx,2), radiance_wavl(1:nw,1:nx,0:nt-1), &
             radiance_spec(1:nw,1:nx,0:nt-1), radiance_prec(1:nw,1:nx,0:nt-1), &
             radiance_qflg(1:nw,1:nx,0:nt-1), stat=errstat)
     ENDIF

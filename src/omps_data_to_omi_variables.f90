@@ -55,7 +55,7 @@ SUBROUTINE omps_data_to_omi_variables (OMPS_data,nt,nx,nw)
 
   ! ------------------------------------------------------------
   ! Fill up pixel selection variables using the set up of the
-  ! control file (omi_ccdpix_selection and omi_ccdpix_exclusion)
+  ! control file (ccdpix_selection and ccdpix_exclusion)
   ! Limit the pixels used to the fitting window.
   ! Radiance and irradiance
   ! ------------------------------------------------------------
@@ -66,14 +66,14 @@ SUBROUTINE omps_data_to_omi_variables (OMPS_data,nt,nx,nw)
      DO j = 1, 3, 2
         CALL array_locate_r8 ( &
              nw, tmp_wvl_irra(1:nw,ix), REAL(ctrvar%fit_winwav_lim(j  ),KIND=r8), 'LE', &
-             omi_ccdpix_selection(ix,j  ) )
+             ccdpix_selection(ix,j  ) )
         CALL array_locate_r8 ( &
              nw, tmp_wvl_irra(1:nw,ix), REAL(ctrvar%fit_winwav_lim(j+1),KIND=r8), 'GE', &
-             omi_ccdpix_selection(ix,j+1) )
+             ccdpix_selection(ix,j+1) )
      END DO
 
-     imin = omi_ccdpix_selection(ix,1)
-     imax = omi_ccdpix_selection(ix,4)
+     imin = ccdpix_selection(ix,1)
+     imax = ccdpix_selection(ix,4)
 
      icnt = imax - imin + 1
      irradiance_wavl(1:icnt,ix) = REAL(OMPS_data%SolarFluxWavelengths(imin:imax,ix), KIND=r8)
@@ -82,27 +82,27 @@ SUBROUTINE omps_data_to_omi_variables (OMPS_data,nt,nx,nw)
      omi_sol_wav_avg(ix) = SUM( OMPS_data%SolarFluxWavelengths(imin:imax,ix) ) / REAL(icnt, KIND=r8)
      
 
-     omi_ccdpix_exclusion(ix,1:2) = -1
+     ccdpix_exclusion(ix,1:2) = -1
      IF ( MINVAL(ctrvar%fit_winexc_lim(1:2)) > 0.0_r8 ) THEN
         CALL array_locate_r8 ( &
              nw, irradiance_wavl(1:nw,ix), REAL(ctrvar%fit_winexc_lim(1),KIND=r8), 'GE', &
-             omi_ccdpix_exclusion(ix,1) )
+             ccdpix_exclusion(ix,1) )
         CALL array_locate_r8 ( &
              nw, irradiance_wavl(1:nw,ix), REAL(ctrvar%fit_winexc_lim(2),KIND=r8), 'LE', &
-             omi_ccdpix_exclusion(ix,2) )
+             ccdpix_exclusion(ix,2) )
      END IF
   END DO
 
   ! ------------------------------------------
   ! Now the radiances, xtrack and ntimes loops
   ! We don't need to work out again the 
-  ! omi_ccdpix_selection arrays
+  ! ccdpix_selection arrays
   ! ------------------------------------------
   DO it = 0, nt-1
      DO ix = 1, nx
 
-        imin = omi_ccdpix_selection(ix,1)
-        imax = omi_ccdpix_selection(ix,4)
+        imin = ccdpix_selection(ix,1)
+        imax = ccdpix_selection(ix,4)
         icnt = imax - imin + 1
         radiance_wavl(1:icnt,ix,it) = REAL ( OMPS_data%BandCenterWavelengths(imin:imax,ix,it+1), KIND=r8 )
         radiance_spec(1:icnt,ix,it) = REAL ( OMPS_data%Radiance(imin:imax,ix,it+1), KIND=r8 )

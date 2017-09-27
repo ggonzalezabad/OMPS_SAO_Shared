@@ -19,7 +19,7 @@ SUBROUTINE xtrack_radiance_wvl_calibration (             &
        irradiance_spec, omi_database, omi_database_wvl, &
        radref_spec, radref_wavl, radref_qflg, radref_wght, &
        omi_nwav_rad, radiance_spec, radiance_wavl, radiance_qflg, &
-       omi_ccdpix_selection, omi_ccdpix_exclusion, radiance_ccdpix, &
+       ccdpix_selection, ccdpix_exclusion, radiance_ccdpix, &
        omi_radcal_pars, curr_xtrack_pixnum, n_omi_irradwvl, n_omi_radwvl      
   USE OMSAO_errstat_module, ONLY: f_sep, omsao_s_progress, omsao_w_skippix, &
        pge_errstat_error,pge_errstat_ok, pge_errstat_warning, vb_lev_default, &
@@ -165,8 +165,8 @@ SUBROUTINE xtrack_radiance_wvl_calibration (             &
      ! 3-dim with the last dimension being the scan line numbers. For the radiance
      ! wavelength calibration we only have one scan line at index "0".
      ! ---------------------------------------------------------------------------
-     select_idx(1:4) = omi_ccdpix_selection(ipix,1:4)
-     exclud_idx(1:2) = omi_ccdpix_exclusion(ipix,1:2)
+     select_idx(1:4) = ccdpix_selection(ipix,1:4)
+     exclud_idx(1:2) = ccdpix_exclusion(ipix,1:2)
 
      CALL omi_adjust_radiance_data ( &           ! Set up generic fitting arrays
           select_idx(1:4), exclud_idx(1:2),            &
@@ -352,7 +352,7 @@ SUBROUTINE xtrack_radiance_fitting_loop (                             &
        n_omi_database_wvl, omi_nwav_rad, szenith, omi_xtrackpix_no, &
        omi_cross_track_skippix, n_omi_radwvl, n_omi_irradwvl, &
        curr_xtrack_pixnum, omi_o3_uncert, omi_o3_amount, radiance_wavl, &
-       omi_ccdpix_exclusion, omi_ccdpix_selection, omi_database, &
+       ccdpix_exclusion, ccdpix_selection, omi_database, &
        omi_database_wvl, max_rs_idx, radiance_spec, radiance_ccdpix, &
        radref_wght
   USE OMSAO_errstat_module, ONLY: pge_errstat_ok
@@ -460,8 +460,8 @@ SUBROUTINE xtrack_radiance_fitting_loop (                             &
      omi_xtrackpix_no = ipix
 
      ! -------------------------------------------------------------------------
-     select_idx(1:4) = omi_ccdpix_selection(ipix,1:4)
-     exclud_idx(1:2) = omi_ccdpix_exclusion(ipix,1:2)
+     select_idx(1:4) = ccdpix_selection(ipix,1:4)
+     exclud_idx(1:2) = ccdpix_exclusion(ipix,1:2)
 
      CALL omi_adjust_radiance_data ( &           ! Set up generic fitting arrays
           select_idx(1:4), exclud_idx(1:2),                        &

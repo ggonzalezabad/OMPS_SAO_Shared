@@ -1,5 +1,5 @@
 SUBROUTINE omi_adjust_irradiance_data ( &
-     omi_ccdpix_idx, omi_ccdpix_exc, n_omi_irradwvl, omi_irrad_wvl, omi_irrad_spc, &
+     ccdpix_idx, ccdpix_exc, n_omi_irradwvl, omi_irrad_wvl, omi_irrad_spc, &
      omi_irrad_ccd, n_sol_wvl, curr_sol_spec, yn_skip_pix, errstat )
   USE OMSAO_precision_module, ONLY: i4, r8
   USE OMSAO_indices_module, ONLY: wvl_idx, spc_idx, sig_idx, ccd_idx
@@ -13,8 +13,8 @@ SUBROUTINE omi_adjust_irradiance_data ( &
   ! Input variables
   ! ---------------
   INTEGER (KIND=i4),                             INTENT (IN) :: n_omi_irradwvl
-  INTEGER (KIND=i4), DIMENSION (2),              INTENT (IN) :: omi_ccdpix_exc
-  INTEGER (KIND=i4), DIMENSION (4),              INTENT (IN) :: omi_ccdpix_idx
+  INTEGER (KIND=i4), DIMENSION (2),              INTENT (IN) :: ccdpix_exc
+  INTEGER (KIND=i4), DIMENSION (4),              INTENT (IN) :: ccdpix_idx
   REAL    (KIND=r8), DIMENSION (n_omi_irradwvl), INTENT (IN) :: omi_irrad_wvl, omi_irrad_spc
 
   ! ----------------
@@ -48,8 +48,8 @@ SUBROUTINE omi_adjust_irradiance_data ( &
   locerrstat  = pge_errstat_ok
   yn_skip_pix = .FALSE.
 
-  imin1 = omi_ccdpix_idx(1) ; imax1 = omi_ccdpix_idx(4)  ! The total window
-  imin2 = omi_ccdpix_idx(2) ; imax2 = omi_ccdpix_idx(3)  ! The fitting window
+  imin1 = ccdpix_idx(1) ; imax1 = ccdpix_idx(4)  ! The total window
+  imin2 = ccdpix_idx(2) ; imax2 = ccdpix_idx(3)  ! The fitting window
 
   ! ---------------------------------------------------------------
   ! Assign irradiance spectrum to generic variables that are passed
@@ -183,7 +183,7 @@ SUBROUTINE omi_adjust_irradiance_data ( &
   ! ------------------------------------------------------------------------
   ! Also any window excluded by the user (specified in fitting control file)
   ! ------------------------------------------------------------------------
-  j1 = omi_ccdpix_exc(1) ; j2 = omi_ccdpix_exc(2)
+  j1 = ccdpix_exc(1) ; j2 = ccdpix_exc(2)
   j1 = j1 - imin1 + 1    ; j2 = j2 - imin1 + 1
   IF ( j1 >= 1 .AND. j2 <= n_sol_wvl ) curr_sol_spec(sig_idx,j1:j2) = downweight
 
@@ -194,7 +194,7 @@ END SUBROUTINE omi_adjust_irradiance_data
 
 
 SUBROUTINE omi_adjust_radiance_data (                                   &
-     omi_ccdpix_idx, omi_ccdpix_exc, n_omi_radwvl, omi_rad_wvl, omi_rad_spc, &
+     ccdpix_idx, ccdpix_exc, n_omi_radwvl, omi_rad_wvl, omi_rad_spc, &
      omi_rad_ccd, n_omi_irradwvl, curr_sol_weight, n_rad_wvl, curr_rad_spec,   &
      rad_spec_avg, yn_skip_pix )
 
@@ -211,8 +211,8 @@ SUBROUTINE omi_adjust_radiance_data (                                   &
   ! Input variables
   ! ---------------
   INTEGER (KIND=i4),                             INTENT (IN) :: n_omi_radwvl, n_omi_irradwvl
-  INTEGER (KIND=i4), DIMENSION (2),              INTENT (IN) :: omi_ccdpix_exc
-  INTEGER (KIND=i4), DIMENSION (4),              INTENT (IN) :: omi_ccdpix_idx
+  INTEGER (KIND=i4), DIMENSION (2),              INTENT (IN) :: ccdpix_exc
+  INTEGER (KIND=i4), DIMENSION (4),              INTENT (IN) :: ccdpix_idx
   REAL    (KIND=r8), DIMENSION (n_omi_radwvl),   INTENT (IN) :: omi_rad_wvl, omi_rad_spc
   REAL    (KIND=r8), DIMENSION (n_omi_irradwvl), INTENT (IN) :: curr_sol_weight
 
@@ -240,8 +240,8 @@ SUBROUTINE omi_adjust_radiance_data (                                   &
   locerrstat  = pge_errstat_ok
   yn_skip_pix = .FALSE.
 
-  imin1 = omi_ccdpix_idx(1) ; imax1 = omi_ccdpix_idx(4)  ! The total window
-  imin2 = omi_ccdpix_idx(2) ; imax2 = omi_ccdpix_idx(3)  ! The fitting window
+  imin1 = ccdpix_idx(1) ; imax1 = ccdpix_idx(4)  ! The total window
+  imin2 = ccdpix_idx(2) ; imax2 = ccdpix_idx(3)  ! The fitting window
 
   ! -------------------------------------------------------------
   ! Assign radiance spectrum to generic variables that are passed
@@ -280,8 +280,8 @@ SUBROUTINE omi_adjust_radiance_data (                                   &
   ! ----------------------------------------------------------------------
   ! (2) Any window excluded by the user (specified in fitting control file
   ! ----------------------------------------------------------------------
-  IF ( ALL ( omi_ccdpix_exc(1:2) > 0 ) ) THEN
-     j1 = omi_ccdpix_exc(1) - imin1 + 1 ; j2 = omi_ccdpix_exc(2) - imin1 + 1
+  IF ( ALL ( ccdpix_exc(1:2) > 0 ) ) THEN
+     j1 = ccdpix_exc(1) - imin1 + 1 ; j2 = ccdpix_exc(2) - imin1 + 1
      IF ( j1 >= 1 .AND. j2 <= n_rad_wvl ) curr_rad_spec(sig_idx,j1:j2) = downweight
   END IF
   
@@ -390,8 +390,8 @@ SUBROUTINE omi_create_solcomp_irradiance ( nxt )
   USE OMSAO_variables_module, ONLY: ctrvar
   USE OMSAO_solcomp_module, ONLY: soco_compute
   USE OMSAO_omidata_module, ONLY: nwavel_max, irradiance_spec, irradiance_qflg, &
-       irradiance_prec, irradiance_wavl, omi_nwav_irrad, omi_ccdpix_selection, &
-       omi_ccdpix_exclusion, omi_sol_wav_avg
+       irradiance_prec, irradiance_wavl, omi_nwav_irrad, ccdpix_selection, &
+       ccdpix_exclusion, omi_sol_wav_avg
   
 
   IMPLICIT NONE
@@ -447,20 +447,20 @@ SUBROUTINE omi_create_solcomp_irradiance ( nxt )
      ! that further down the line of the fitting this doesn't screw up things by
      ! introducing incompatible indices into the radiance CCD positions.
      ! ------------------------------------------------------------------------------
-     omi_ccdpix_selection(ix,1:4) = -1
-     omi_ccdpix_exclusion(ix,1:2) = -1
+     ccdpix_selection(ix,1:4) = -1
+     ccdpix_exclusion(ix,1:2) = -1
      DO j = 1, 3, 2
         CALL array_locate_r8 ( &
-             nwvl, tmpwvl(1:nwvl), ctrvar%fit_winwav_lim(j  ), 'LE', omi_ccdpix_selection(ix,j  ) )
+             nwvl, tmpwvl(1:nwvl), ctrvar%fit_winwav_lim(j  ), 'LE', ccdpix_selection(ix,j  ) )
         CALL array_locate_r8 ( &
-             nwvl, tmpwvl(1:nwvl), ctrvar%fit_winwav_lim(j+1), 'GE', omi_ccdpix_selection(ix,j+1) )
+             nwvl, tmpwvl(1:nwvl), ctrvar%fit_winwav_lim(j+1), 'GE', ccdpix_selection(ix,j+1) )
      END DO
 
      IF ( MINVAL(ctrvar%fit_winexc_lim(1:2)) > 0.0_r8 ) THEN
         CALL array_locate_r8 ( &
-             nwvl, tmpwvl(1:nwvl), ctrvar%fit_winexc_lim(1), 'GE', omi_ccdpix_exclusion(ix,1) )
+             nwvl, tmpwvl(1:nwvl), ctrvar%fit_winexc_lim(1), 'GE', ccdpix_exclusion(ix,1) )
         CALL array_locate_r8 ( &
-             nwvl, tmpwvl(1:nwvl), ctrvar%fit_winexc_lim(2), 'LE', omi_ccdpix_exclusion(ix,2) )
+             nwvl, tmpwvl(1:nwvl), ctrvar%fit_winexc_lim(2), 'LE', ccdpix_exclusion(ix,2) )
      END IF
 
   END DO
@@ -1394,7 +1394,7 @@ SUBROUTINE compute_common_mode ( &
        refspecs_original, ctrvar
   USE OMSAO_omidata_module,   ONLY:                                           &
        common_spc, common_wvl, common_cnt, n_omi_database_wvl, omi_database,  &
-       omi_ccdpix_selection, omi_scanline_no, latitute, n_comm_wvl
+       ccdpix_selection, omi_scanline_no, latitute, n_comm_wvl
 
   IMPLICIT NONE
 
@@ -1498,8 +1498,8 @@ SUBROUTINE compute_common_mode ( &
      common_mode_spec%RefSpecData  = 0.0_r8
      common_mode_spec%RefSpecCount = 0
 
-     common_mode_spec%CCDPixel(xti,1) = INT(omi_ccdpix_selection(xti,1), KIND=i2)
-     common_mode_spec%CCDPixel(xti,2) = INT(omi_ccdpix_selection(xti,4), KIND=i2)
+     common_mode_spec%CCDPixel(xti,1) = INT(ccdpix_selection(xti,1), KIND=i2)
+     common_mode_spec%CCDPixel(xti,2) = INT(ccdpix_selection(xti,4), KIND=i2)
   ELSE
      ! --------------------------------------------------------
      ! The Reguar Fitting branch updates the spectrum and count
