@@ -347,7 +347,7 @@ SUBROUTINE xtrack_radiance_fitting_loop (                             &
   USE OMSAO_radiance_ref_module, ONLY: yn_reference_fit
   USE OMSAO_slitfunction_module, ONLY: saved_shift, saved_squeeze
   USE OMSAO_omidata_module, ONLY: nxtrack_max, n_comm_wvl, &
-       omi_column_uncert, omi_column_amount, omi_fit_rms, omi_radfit_chisq, &
+       column_uncert, column_amount, fit_rms, radfit_chisq, &
        omi_itnum_flag, omi_fitconv_flag, omi_solcal_pars, omi_sol_wav_avg, &
        n_omi_database_wvl, omi_nwav_rad, szenith, omi_xtrackpix_no, &
        omi_cross_track_skippix, n_omi_radwvl, n_omi_irradwvl, &
@@ -505,10 +505,10 @@ SUBROUTINE xtrack_radiance_fitting_loop (                             &
      ! -----------------------------------
      omi_fitconv_flag (ipix,iloop) = INT (radfit_exval, KIND=i2)
      omi_itnum_flag   (ipix,iloop) = INT (radfit_itnum, KIND=i2)
-     omi_radfit_chisq (ipix,iloop) = chisquav
-     omi_fit_rms      (ipix,iloop) = rms
-     omi_column_amount(ipix,iloop) = fitcol
-     omi_column_uncert(ipix,iloop) = dfitcol
+     radfit_chisq (ipix,iloop) = chisquav
+     fit_rms      (ipix,iloop) = rms
+     column_amount(ipix,iloop) = fitcol
+     column_uncert(ipix,iloop) = dfitcol
 
      ! CCM assign fit residual
      fitspc_out(1:n_rad_wvl,ipix,1) = fitspc(1:n_rad_wvl)

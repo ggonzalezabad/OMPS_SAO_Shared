@@ -125,11 +125,11 @@ SUBROUTINE omi_fitting (                                  &
   USE OMSAO_indices_module, ONLY: sao_molecule_names
   USE OMSAO_parameters_module, ONLY: i2_missval
   USE OMSAO_variables_module, ONLY: ctrvar, pcfvar
-  USE OMSAO_omidata_module, ONLY: latitute, omi_column_amount, &
+  USE OMSAO_omidata_module, ONLY: latitute, column_amount, &
        omi_cross_track_skippix, omi_radcal_itnum, omi_radcal_xflag, &
        omi_solcal_itnum, omi_solcal_xflag, &
-       longitude, omi_column_uncert, n_comm_wvl, szenith, &
-       omi_fit_rms, vzenith, omi_fitconv_flag, height
+       longitude, column_uncert, n_comm_wvl, szenith, &
+       fit_rms, vzenith, omi_fitconv_flag, height
   USE OMSAO_he5_module, ONLY:  pge_swath_name
   USE OMSAO_he5_datafields_module
   USE OMSAO_solar_wavcal_module, ONLY: xtrack_solar_calibration_loop
@@ -484,8 +484,8 @@ SUBROUTINE omi_fitting (                                  &
        szenith(1:nXtrackRad,0:nTimesRad-1),              &
        vzenith(1:nXtrackRad,0:nTimesRad-1),              &
        omi_xtrpix_range(0:nTimesRad-1,1:2),                  &
-       omi_column_amount(1:nXtrackRad,0:nTimesRad-1),        &
-       omi_column_uncert(1:nXtrackRad,0:nTimesRad-1),        &
+       column_amount(1:nXtrackRad,0:nTimesRad-1),        &
+       column_uncert(1:nXtrackRad,0:nTimesRad-1),        &
        saoamf(1:nXtrackRad,0:nTimesRad-1),                   &
        amfflg(1:nXtrackRad,0:nTimesRad-1),                   &
        height(1:nXtrackRad,0:nTimesRad-1), .TRUE.,       &
@@ -505,18 +505,18 @@ SUBROUTINE omi_fitting (                                  &
   ! ---------------------------
   CALL compute_fitting_statistics (pge_idx, nTimesRad, nXtrackRad, &
        omi_xtrpix_range(0:nTimesRad-1,1:2), &
-       omi_column_amount(1:nXtrackRad,0:nTimesRad-1), &
-       omi_column_uncert(1:nXtrackRad,0:nTimesRad-1), &
-       omi_fit_rms(1:nXtrackRad,0:nTimesRad-1), &
+       column_amount(1:nXtrackRad,0:nTimesRad-1), &
+       column_uncert(1:nXtrackRad,0:nTimesRad-1), &
+       fit_rms(1:nXtrackRad,0:nTimesRad-1), &
        omi_fitconv_flag(1:nXtrackRad,0:nTimesRad-1), &
        saomqf(1:nXtrackRad,0:nTimesRad-1), .TRUE., errstat)  
 
   ! -------------------------------------------------------------
   ! Write to L2 file results:
-  !   omi_column_amount(r8) -------> Column Amount(r8)
-  !   omi_column_uncertainty(r8) --> Column Uncertainty(r8)
+  !   column_amount(r8) -------> Column Amount(r8)
+  !   column_uncertainty(r8) --> Column Uncertainty(r8)
   !   omi_fitconv_flag(i2) --------> Fit Convergence Flag(i2)
-  !   omi_fit_rms(r8) -------------> Fitting RMS(r8)
+  !   fit_rms(r8) -------------> Fitting RMS(r8)
   ! -------------------------------------------------------------
   CALL he5_write_results ( nTimesRad, nXtrackRad, errstat)
 
@@ -559,8 +559,8 @@ SUBROUTINE omi_fitting (                                  &
           szenith(1:nXtrackRadRR,0:nTimesRadRR-1),                 &
           vzenith(1:nXtrackRadRR,0:nTimesRadRR-1),                 &
           omi_xtrpix_range(0:nTimesRadRR-1,1:2),                       &
-          omi_column_amount(1:nXtrackRadRR,0:nTimesRadRR-1),           &
-          omi_column_uncert(1:nXtrackRadRR,0:nTimesRadRR-1),           &
+          column_amount(1:nXtrackRadRR,0:nTimesRadRR-1),           &
+          column_uncert(1:nXtrackRadRR,0:nTimesRadRR-1),           &
           refamf(1:nXtrackRadRR,0:nTimesRadRR-1),                      &
           refamfflg(1:nXtrackRadRR,0:nTimesRadRR-1),                   &
           height(1:nXtrackRadRR,0:nTimesRadRR-1), .FALSE.,         &
@@ -571,9 +571,9 @@ SUBROUTINE omi_fitting (                                  &
      ! ---------------------------
      CALL compute_fitting_statistics (pge_idx, nTimesRadRR, nXtrackRadRR, &
           omi_xtrpix_range(0:nTimesRadRR-1,1:2), &
-          omi_column_amount(1:nXtrackRadRR,0:nTimesRadRR-1), &
-          omi_column_uncert(1:nXtrackRadRR,0:nTimesRadRR-1), &
-          omi_fit_rms(1:nXtrackRadRR,0:nTimesRadRR-1), &
+          column_amount(1:nXtrackRadRR,0:nTimesRadRR-1), &
+          column_uncert(1:nXtrackRadRR,0:nTimesRadRR-1), &
+          fit_rms(1:nXtrackRadRR,0:nTimesRadRR-1), &
           omi_fitconv_flag(1:nXtrackRadRR,0:nTimesRadRR-1), &
           refmqf(1:nXtrackRadRR,0:nTimesRadRR-1), .FALSE., errstat)
 

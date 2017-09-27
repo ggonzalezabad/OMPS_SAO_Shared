@@ -12,8 +12,8 @@ SUBROUTINE omi_pge_swathline_loop ( &
        pcfvar, ctrvar
   USE OMSAO_omidata_module,    ONLY:  &
        nlines_max, nUTCdim, omi_scanline_no, &
-       omi_itnum_flag, omi_fitconv_flag, omi_column_amount, &
-       omi_column_uncert, time_utc, omi_fit_rms,  &
+       omi_itnum_flag, omi_fitconv_flag, column_amount, &
+       column_uncert, time_utc, fit_rms,  &
        nwavel_max
   USE OMSAO_prefitcol_module
   USE OMSAO_errstat_module
@@ -82,9 +82,9 @@ SUBROUTINE omi_pge_swathline_loop ( &
   ! ------------------------------------------
   omi_itnum_flag   (1:nx,     0:nt-1) = i2_missval
   omi_fitconv_flag (1:nx,     0:nt-1) = i2_missval
-  omi_column_amount(1:nx,     0:nt-1) = r8_missval
-  omi_column_uncert(1:nx,     0:nt-1) = r8_missval
-  omi_fit_rms      (1:nx,     0:nt-1) = r8_missval
+  column_amount(1:nx,     0:nt-1) = r8_missval
+  column_uncert(1:nx,     0:nt-1) = r8_missval
+  fit_rms      (1:nx,     0:nt-1) = r8_missval
   time_utc     (1:nUTCdim,0:nt-1) = i2_missval
 
   ! ---------------
@@ -136,8 +136,8 @@ SUBROUTINE omi_pge_swathline_loop ( &
      ipix = (fpix+lpix)/2
      addmsg = ''
      WRITE (addmsg,'(I5, I3,1P,(3E15.5),I5)') omi_scanline_no, ipix, &
-          omi_column_amount(ipix, iline), omi_column_uncert(ipix, iline), &
-          omi_fit_rms   (ipix, iline), MAX(INT(-1,KIND=2),omi_itnum_flag(ipix, iline))
+          column_amount(ipix, iline), column_uncert(ipix, iline), &
+          fit_rms   (ipix, iline), MAX(INT(-1,KIND=2),omi_itnum_flag(ipix, iline))
      estat = OMI_SMF_setmsg ( OMSAO_S_PROGRESS, TRIM(addmsg), " ", vb_lev_omidebug )
      IF ( pcfvar%verb_thresh_lev >= vb_lev_screen ) WRITE (*, '(A)') TRIM(addmsg)
      

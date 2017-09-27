@@ -15,8 +15,8 @@ SUBROUTINE omi_pge_swathline_loop_memory (                               &
        n_fincol_idx, fincol_idx, n_rad_wvl, pcfvar
   USE OMSAO_omidata_module,    ONLY:  &
        nlines_max, nUTCdim, omi_scanline_no, omi_blockline_no,                  &
-       omi_itnum_flag, omi_fitconv_flag, omi_column_amount,                     &
-       omi_column_uncert, time_utc, time, latitute, omi_fit_rms,    &
+       omi_itnum_flag, omi_fitconv_flag, column_amount,                     &
+       column_uncert, time_utc, time, latitute, fit_rms,    &
        radiance_errstat, omi_nwav_radref, radref_spec, radref_wavl, &
        szenith, vzenith, longitude, xtrflg, height
   USE OMSAO_prefitcol_module
@@ -127,9 +127,9 @@ SUBROUTINE omi_pge_swathline_loop_memory (                               &
      ! ------------------------------------------
      omi_itnum_flag   (1:nx,     0:nblock-1) = i2_missval
      omi_fitconv_flag (1:nx,     0:nblock-1) = i2_missval
-     omi_column_amount(1:nx,     0:nblock-1) = r8_missval
-     omi_column_uncert(1:nx,     0:nblock-1) = r8_missval
-     omi_fit_rms      (1:nx,     0:nblock-1) = r8_missval
+     column_amount(1:nx,     0:nblock-1) = r8_missval
+     column_uncert(1:nx,     0:nblock-1) = r8_missval
+     fit_rms      (1:nx,     0:nblock-1) = r8_missval
      time_utc     (1:nUTCdim,0:nblock-1) = i2_missval
 
      ! -----------------------------------------
@@ -194,8 +194,8 @@ SUBROUTINE omi_pge_swathline_loop_memory (                               &
            ipix = (fpix+lpix)/2
            addmsg = ''
            WRITE (addmsg,'(I5, I3,1P(3E15.5),I5)') omi_scanline_no, ipix, &
-                omi_column_amount(ipix, iloop), omi_column_uncert(ipix, iloop), &
-                omi_fit_rms   (ipix, iloop), MAX(-1,omi_itnum_flag(ipix, iloop))
+                column_amount(ipix, iloop), column_uncert(ipix, iloop), &
+                fit_rms   (ipix, iloop), MAX(-1,omi_itnum_flag(ipix, iloop))
            estat = OMI_SMF_setmsg ( OMSAO_S_PROGRESS, TRIM(addmsg), " ", vb_lev_omidebug )
            IF ( pcfvar%verb_thresh_lev >= vb_lev_screen ) WRITE (*, '(A)') TRIM(addmsg)
 
@@ -216,15 +216,15 @@ SUBROUTINE omi_pge_swathline_loop_memory (                               &
               DO ipix = fpix, lpix
                  IF ( &
                       ( omi_fitconv_flag (ipix,iloop) > 0_i2       ) .AND. &
-                      ( omi_column_amount(ipix,iloop) > r8_missval ) .AND. &
-                      ( omi_column_amount(ipix,iloop) + &
-                      2.0_r8*omi_column_uncert(ipix,iloop) >= 0.0_r8 )  ) THEN
+                      ( column_amount(ipix,iloop) > r8_missval ) .AND. &
+                      ( column_amount(ipix,iloop) + &
+                      2.0_r8*column_uncert(ipix,iloop) >= 0.0_r8 )  ) THEN
                     targsum(1:n_fincol_idx,ipix) = &
                          targsum(1:n_fincol_idx,ipix) + target_var(1:n_fincol_idx,ipix)
                     targcnt(1:n_fincol_idx,ipix) = &
                          targcnt(1:n_fincol_idx,ipix) + 1.0_r8
 
-                    target_col(ipix) = target_col(ipix) + omi_column_amount(ipix,iloop)
+                    target_col(ipix) = target_col(ipix) + column_amount(ipix,iloop)
                  END IF
               END DO
            END IF
@@ -232,9 +232,9 @@ SUBROUTINE omi_pge_swathline_loop_memory (                               &
            ! --------------------------------------------
            ! Keeping the results of the fitting in memory
            ! --------------------------------------------
-           mem_column_amount(fpix:lpix,omi_scanline_no)      = omi_column_amount(fpix:lpix,iloop)
-           mem_column_uncertainty(fpix:lpix,omi_scanline_no) = omi_column_uncert(fpix:lpix,iloop)
-           mem_rms(fpix:lpix,omi_scanline_no)                = omi_fit_rms(fpix:lpix,iloop)
+           mem_column_amount(fpix:lpix,omi_scanline_no)      = column_amount(fpix:lpix,iloop)
+           mem_column_uncertainty(fpix:lpix,omi_scanline_no) = column_uncert(fpix:lpix,iloop)
+           mem_rms(fpix:lpix,omi_scanline_no)                = fit_rms(fpix:lpix,iloop)
            mem_latitude(fpix:lpix,omi_scanline_no)           = latitute(fpix:lpix,iloop)
            mem_longitude(fpix:lpix,omi_scanline_no)          = longitude(fpix:lpix,iloop)
            mem_sza(fpix:lpix,omi_scanline_no)                = szenith(fpix:lpix,iloop)

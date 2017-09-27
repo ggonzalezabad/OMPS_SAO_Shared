@@ -128,7 +128,7 @@ CONTAINS
     !     - GEOS Chem climatology
     !     - VLIDORT calculated scattering weights
     ! =================================================================
-    USE OMSAO_omidata_module, ONLY: omi_albedo
+    USE OMSAO_omidata_module, ONLY: albedo
     IMPLICIT NONE
 
     ! ---------------
@@ -154,7 +154,7 @@ CONTAINS
     INTEGER (KIND=i4) :: locerrstat, itt, spixx, epixx
     REAL (KIND=r8), DIMENSION (1:nx,0:nt-1) :: amfgeo
     REAL (KIND=r8), DIMENSION (1:nx,0:nt-1) :: l2cfr, l2ctp
-    REAL (KIND=r8), DIMENSION (1:nx,0:nt-1) :: albedo, cli_psurface
+    REAL (KIND=r8), DIMENSION (1:nx,0:nt-1) :: local_albedo, cli_psurface
     REAL (KIND=r8), DIMENSION (1:nx,0:nt-1,CmETA) :: climatology, cli_temperature, &
          cli_heights
     REAL (KIND=r8), DIMENSION (1:nx,0:nt-1,CmETA) :: scattw
@@ -164,7 +164,7 @@ CONTAINS
     ! ------------------------------------
     ! Initialize variables that are output
     ! ------------------------------------
-    albedo       = r8_missval
+    local_albedo       = r8_missval
     climatology  = r8_missval
     cli_heights  = r8_missval
     cli_psurface = r8_missval
@@ -202,8 +202,8 @@ CONTAINS
        ! ---------------------------------------
        ! Write the albedo to the output file he5
        ! ---------------------------------------
-       albedo(1:nx,0:nt-1) = omi_albedo(1:nx,0:nt-1)
-       IF (yn_write) CALL write_albedo_he5 ( albedo, nt, nx, locerrstat)
+       local_albedo(1:nx,0:nt-1) = albedo(1:nx,0:nt-1)
+       IF (yn_write) CALL write_albedo_he5 ( local_albedo, nt, nx, locerrstat)
        
        ! ------------------------------
        ! Read the OMPS L2 cloud product
@@ -245,7 +245,7 @@ CONTAINS
        ! Compute Scattering weights in the look up table grid but
        ! with the correct albedo. amfdiag is used to skip pixel
        ! ---------------------------------------------------------
-       CALL compute_scatt ( nt, nx, albedo, sza, vza, l2ctp, l2cfr, terrain_height, cli_heights, amfdiag, &
+       CALL compute_scatt ( nt, nx, local_albedo, sza, vza, l2ctp, l2cfr, terrain_height, cli_heights, amfdiag, &
             scattw)
 
        ! ----------------------------
