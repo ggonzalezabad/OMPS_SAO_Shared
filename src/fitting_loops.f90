@@ -12,7 +12,7 @@ SUBROUTINE xtrack_radiance_wvl_calibration (             &
        fitvar_cal_saved, pcfvar, ctrvar
   USE OMSAO_slitfunction_module, ONLY: saved_shift, saved_squeeze
   USE OMSAO_omidata_module, ONLY: nwavel_max, nxtrack_max, &
-       omi_cross_track_skippix, nwav_radref, radcal_itnum, &
+       cross_track_skippix, nwav_radref, radcal_itnum, &
        radcal_xflag, radcal_chisq, n_ins_database_wvl, &
        solcal_pars, omi_sol_wav_avg,  &
        nwav_irrad, irradiance_wght, irradiance_wavl, &
@@ -97,7 +97,7 @@ SUBROUTINE xtrack_radiance_wvl_calibration (             &
      ! If we already determined that this cross track pixel position carries
      ! an error, we don't even have to start processing.
      ! ---------------------------------------------------------------------
-     IF ( omi_cross_track_skippix(ipix) ) CYCLE
+     IF ( cross_track_skippix(ipix) ) CYCLE
 
      ! ---------------------------------------------------------------------------
      ! For each cross-track position we have to initialize the saved Shift&Squeeze
@@ -181,7 +181,7 @@ SUBROUTINE xtrack_radiance_wvl_calibration (             &
      ! ------------------------------------------------------------------------------------
      IF ( yn_skip_pix .OR. locerrstat >= pge_errstat_error ) THEN
         errstat = MAX ( errstat, locerrstat )
-        omi_cross_track_skippix (ipix) = .TRUE.
+        cross_track_skippix (ipix) = .TRUE.
         addmsg = ''
         WRITE (addmsg, '(A,I2)') 'SKIPPING cross track pixel #', ipix
         CALL error_check ( 0, 1, pge_errstat_warning, OMSAO_W_SKIPPIX, &
@@ -204,7 +204,7 @@ SUBROUTINE xtrack_radiance_wvl_calibration (             &
 
      IF ( yn_bad_pixel .OR. locerrstat >= pge_errstat_error ) THEN
         errstat = MAX ( errstat, locerrstat )
-        omi_cross_track_skippix (ipix) = .TRUE.
+        cross_track_skippix (ipix) = .TRUE.
         addmsg = ''
         WRITE (addmsg, '(A,I2)') 'SKIPPING cross track pixel #', ipix
         CALL error_check ( 0, 1, pge_errstat_warning, OMSAO_W_SKIPPIX, &
@@ -302,7 +302,7 @@ SUBROUTINE xtrack_radiance_wvl_calibration (             &
 
         IF ( locerrstat >= pge_errstat_error ) THEN
            errstat = MAX ( errstat, locerrstat )
-           omi_cross_track_skippix (ipix) = .TRUE.
+           cross_track_skippix (ipix) = .TRUE.
            addmsg = ''
            WRITE (addmsg, '(A,I2)') 'SKIPPING cross track pixel #', ipix
            CALL error_check ( 0, 1, pge_errstat_warning, OMSAO_W_SKIPPIX, &
@@ -349,8 +349,8 @@ SUBROUTINE xtrack_radiance_fitting_loop (                             &
   USE OMSAO_omidata_module, ONLY: nxtrack_max, n_comm_wvl, &
        column_uncert, column_amount, fit_rms, radfit_chisq, &
        itnum_flag, fitconv_flag, solcal_pars, omi_sol_wav_avg, &
-       n_ins_database_wvl, nwav_rad, szenith, omi_xtrackpix_no, &
-       omi_cross_track_skippix, n_omi_radwvl, n_omi_irradwvl, &
+       n_ins_database_wvl, nwav_rad, szenith, xtrackpix_no, &
+       cross_track_skippix, n_omi_radwvl, n_omi_irradwvl, &
        curr_xtrack_pixnum, o3_uncert, o3_amount, radiance_wavl, &
        ccdpix_exclusion, ccdpix_selection, ins_database, &
        ins_database_wvl, max_rs_idx, radiance_spec, radiance_ccdpix, &
@@ -407,7 +407,7 @@ SUBROUTINE xtrack_radiance_fitting_loop (                             &
      ! If we already determined that this cross track pixel position carries
      ! an error, we don't even have to start processing.
      ! ---------------------------------------------------------------------
-     IF ( omi_cross_track_skippix(ipix) .OR. ctrvar%szamax < szenith(ipix,iloop) ) CYCLE
+     IF ( cross_track_skippix(ipix) .OR. ctrvar%szamax < szenith(ipix,iloop) ) CYCLE
     
      locerrstat = pge_errstat_ok
 
@@ -457,7 +457,7 @@ SUBROUTINE xtrack_radiance_fitting_loop (                             &
      curr_sol_spec(spc_idx,1:n_database_wvl) = ins_database    (solar_idx,1:n_database_wvl,ipix)
      ! --------------------------------------------------------------------------------
 
-     omi_xtrackpix_no = ipix
+     xtrackpix_no = ipix
 
      ! -------------------------------------------------------------------------
      select_idx(1:4) = ccdpix_selection(ipix,1:4)

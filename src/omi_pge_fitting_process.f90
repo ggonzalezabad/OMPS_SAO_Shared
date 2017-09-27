@@ -126,7 +126,7 @@ SUBROUTINE omi_fitting (                                  &
   USE OMSAO_parameters_module, ONLY: i2_missval
   USE OMSAO_variables_module, ONLY: ctrvar, pcfvar
   USE OMSAO_omidata_module, ONLY: latitute, column_amount, &
-       omi_cross_track_skippix, radcal_itnum, radcal_xflag, &
+       cross_track_skippix, radcal_itnum, radcal_xflag, &
        solcal_itnum, solcal_xflag, &
        longitude, column_uncert, n_comm_wvl, szenith, &
        fit_rms, vzenith, fitconv_flag, height
@@ -322,7 +322,7 @@ SUBROUTINE omi_fitting (                                  &
   ! --------------------------------------------------------------
   ! Terminate on not having any cross-track pixels left to process
   ! --------------------------------------------------------------
-  IF ( ALL ( omi_cross_track_skippix ) ) THEN
+  IF ( ALL ( cross_track_skippix ) ) THEN
      CALL error_check ( 0, 1, pge_errstat_warning, OMSAO_W_NOPIXEL, &
           modulename, vb_lev_default, errstat )
      GO TO 666

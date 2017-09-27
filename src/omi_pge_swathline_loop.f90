@@ -11,7 +11,7 @@ SUBROUTINE omi_pge_swathline_loop ( &
        n_fitvar_rad, fitvar_rad_saved, &
        pcfvar, ctrvar
   USE OMSAO_omidata_module,    ONLY:  &
-       nlines_max, nUTCdim, omi_scanline_no, &
+       nlines_max, nUTCdim, scanline_no, &
        itnum_flag, fitconv_flag, column_amount, &
        column_uncert, time_utc, fit_rms,  &
        nwavel_max
@@ -107,24 +107,24 @@ SUBROUTINE omi_pge_swathline_loop ( &
      ! current line in the data block and the absolute swath line number.
      ! Both values are initialized here.
      ! --------------------------------------------------------------------
-     omi_scanline_no  = iline
+     scanline_no  = iline
 
-     IF ( omi_scanline_no > nt-1 ) EXIT ScanLines
+     IF ( scanline_no > nt-1 ) EXIT ScanLines
 
      ! ----------------------------------------------------------
      ! Skip this line if it isn't in the list of those to process
      ! ----------------------------------------------------------
-     IF ( .NOT. yn_process(omi_scanline_no) ) CYCLE
+     IF ( .NOT. yn_process(scanline_no) ) CYCLE
 
      ! ------------------
      ! Report on progress
      ! ------------------
      addmsg = ''
-     WRITE (addmsg,'(A,I5)') 'Working on scan line', omi_scanline_no
+     WRITE (addmsg,'(A,I5)') 'Working on scan line', scanline_no
      estat = OMI_SMF_setmsg ( OMSAO_S_PROGRESS, TRIM(ADJUSTL(addmsg)), " ", vb_lev_omidebug )
 
-     fpix = xtrange(omi_scanline_no,1)
-     lpix = xtrange(omi_scanline_no,2)
+     fpix = xtrange(scanline_no,1)
+     lpix = xtrange(scanline_no,2)
      
      CALL xtrack_radiance_fitting_loop (                         &
           n_max_rspec, fpix, lpix, pge_idx, iline,               &
@@ -135,7 +135,7 @@ SUBROUTINE omi_pge_swathline_loop ( &
           target_var(1:ctrvar%n_fincol_idx,fpix:lpix), locerrstat, fitspc_tmp, nwavel_max )
      ipix = (fpix+lpix)/2
      addmsg = ''
-     WRITE (addmsg,'(I5, I3,1P,(3E15.5),I5)') omi_scanline_no, ipix, &
+     WRITE (addmsg,'(I5, I3,1P,(3E15.5),I5)') scanline_no, ipix, &
           column_amount(ipix, iline), column_uncert(ipix, iline), &
           fit_rms   (ipix, iline), MAX(INT(-1,KIND=2),itnum_flag(ipix, iline))
      estat = OMI_SMF_setmsg ( OMSAO_S_PROGRESS, TRIM(addmsg), " ", vb_lev_omidebug )

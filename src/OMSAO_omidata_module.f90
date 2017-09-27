@@ -5,17 +5,17 @@ MODULE OMSAO_omidata_module
   USE OMSAO_indices_module, ONLY: n_max_fitpars, max_rs_idx, max_calfit_idx, o3_t1_idx, o3_t3_idx
   IMPLICIT NONE
 
-  ! ---------------------------------
-  ! Maximum OMI data/swath dimensions
-  ! ---------------------------------
+  ! -----------------------------
+  ! Maximum data/swath dimensions
+  ! -----------------------------
   INTEGER (KIND=i4), PARAMETER :: &
        nxtrack_max    =  60, nwavel_max = 300, &
        nwavelcoef_max =   5, nlines_max = 500, &
        nUTCdim        =   27
 
-  ! -------------------------------------------------------
-  ! Maximum dimension of OMI data fields in SAO L2 products
-  ! -------------------------------------------------------
+  ! ---------------------------------------------------
+  ! Maximum dimension of data fields in SAO L2 products
+  ! ---------------------------------------------------
   INTEGER (KIND=i4), PARAMETER :: n_field_maxdim = 3
 
   ! --------------------------------------------------
@@ -127,12 +127,12 @@ MODULE OMSAO_omidata_module
   REAL (KIND=r4) :: EarthSunDistance
 
   ! ---------------------------------------------------------
-  ! OMI scan line, block line, and across-track pixel numbers
+  ! Scan line, block line, and across-track pixel numbers
   ! ---------------------------------------------------------
-  INTEGER (KIND=i4) :: omi_scanline_no, omi_blockline_no, omi_xtrackpix_no
+  INTEGER (KIND=i4) :: scanline_no, blockline_no, xtrackpix_no
 
-  ! ---------------------------
-  ! OMI L2 output data QA flags
+  ! -----------------------
+  ! L2 output data QA flags
   ! ----------------------------------------------------------------
   ! Per Centages of output column data that are used to classify the
   ! scientific data quality:
@@ -154,7 +154,7 @@ MODULE OMSAO_omidata_module
   ! --------------------------------
   INTEGER (KIND=i4) :: curr_xtrack_pixnum
 
-  LOGICAL, DIMENSION (nxtrack_max) ::  omi_cross_track_skippix = .FALSE.
+  LOGICAL, DIMENSION (nxtrack_max) ::  cross_track_skippix = .FALSE.
 
   ! ------------------------------------
   ! Number of significant digits to keep

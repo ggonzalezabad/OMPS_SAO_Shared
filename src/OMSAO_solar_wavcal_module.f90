@@ -86,7 +86,7 @@ CONTAINS
        ! -------------------------------------------------------------------------
        IF ( yn_skip_pix .OR. locerrstat >= pge_errstat_error ) THEN
           errstat = MAX ( errstat, locerrstat )
-          omi_cross_track_skippix (ipix) = .TRUE.
+          cross_track_skippix (ipix) = .TRUE.
           addmsg = ''
           WRITE (addmsg, '(A,I2)') 'SKIPPING cross track pixel #', ipix
           CALL error_check ( 0, 1, pge_errstat_warning, OMSAO_W_SKIPPIX, &
@@ -103,7 +103,7 @@ CONTAINS
        ! ------------------------------------------------------------------------------------------
        IF ( yn_bad_pixel .OR. locerrstat >= pge_errstat_error ) THEN
           errstat = MAX ( errstat, locerrstat )
-          omi_cross_track_skippix (ipix) = .TRUE.
+          cross_track_skippix (ipix) = .TRUE.
           addmsg = ''
           WRITE (addmsg, '(A,I2)') 'SKIPPING cross track pixel #', ipix
           CALL error_check ( 0, 1, pge_errstat_warning, OMSAO_W_SKIPPIX, &

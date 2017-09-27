@@ -29,11 +29,11 @@ CONTAINS
          pcfvar, ctrvar
     USE OMSAO_slitfunction_module, ONLY: saved_shift, saved_squeeze
     USE OMSAO_omidata_module, ONLY: nwav_irrad, irradiance_wght, &
-         nwav_rad, n_ins_database_wvl, omi_cross_track_skippix, &
+         nwav_rad, n_ins_database_wvl, cross_track_skippix, &
          curr_xtrack_pixnum, n_omi_radwvl, max_rs_idx, ins_database, &
          ins_database_wvl, omi_sol_wav_avg, solcal_pars, radref_wavl, &
          radref_spec, ccdpix_selection, radiance_ccdpix, &
-         ccdpix_exclusion, omi_xtrackpix_no, radref_wght, &
+         ccdpix_exclusion, xtrackpix_no, radref_wght, &
          radref_pars, max_calfit_idx, radref_xflag, radref_itnum, &
          radref_chisq, radref_col, radref_rms, radref_dcol, &
          radref_xtrcol
@@ -111,7 +111,7 @@ CONTAINS
        ! If we already determined that this cross track pixel position carries
        ! an error, we don't even have to start processing.
        ! ---------------------------------------------------------------------
-       IF ( omi_cross_track_skippix(ipix) ) CYCLE
+       IF ( cross_track_skippix(ipix) ) CYCLE
 
        n_database_wvl = n_ins_database_wvl(ipix)
        n_omi_radwvl   = nwav_rad      (ipix,0)
@@ -154,7 +154,7 @@ CONTAINS
           curr_sol_spec(spc_idx,1:n_database_wvl) = ins_database    (solar_idx,1:n_database_wvl,ipix)
           ! --------------------------------------------------------------------------------
 
-          omi_xtrackpix_no = ipix
+          xtrackpix_no = ipix
           ! -------------------------------------------------------------------------
           select_idx(1:4) = ccdpix_selection(ipix,1:4)
           exclud_idx(1:2) = ccdpix_exclusion(ipix,1:2)

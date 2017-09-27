@@ -1394,7 +1394,7 @@ SUBROUTINE compute_common_mode ( &
        refspecs_original, ctrvar
   USE OMSAO_omidata_module,   ONLY:                                           &
        common_spc, common_wvl, common_cnt, n_ins_database_wvl, ins_database,  &
-       ccdpix_selection, omi_scanline_no, latitute, n_comm_wvl
+       ccdpix_selection, scanline_no, latitute, n_comm_wvl
 
   IMPLICIT NONE
 
@@ -1504,8 +1504,8 @@ SUBROUTINE compute_common_mode ( &
      ! --------------------------------------------------------
      ! The Reguar Fitting branch updates the spectrum and count
      ! --------------------------------------------------------
-     IF ( latitute(xti,omi_scanline_no) >= ctrvar%common_latrange(1) .AND. &
-          latitute(xti,omi_scanline_no) <= ctrvar%common_latrange(2)         )  THEN
+     IF ( latitute(xti,scanline_no) >= ctrvar%common_latrange(1) .AND. &
+          latitute(xti,scanline_no) <= ctrvar%common_latrange(2)         )  THEN
 
         comnorm = 1.0_r8
         IF ( nwvl > 0 ) THEN
