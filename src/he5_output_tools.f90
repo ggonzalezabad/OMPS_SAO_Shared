@@ -1,26 +1,30 @@
-FUNCTION he5_init_swath ( file_name, swath_name, nTimes, nXtrack, nSwLevels ) RESULT ( he5stat )
+FUNCTION he5_init_swath ( file_name ) RESULT ( he5stat )
 
   !------------------------------------------------------------------------------
   ! This function initializes the HE5 output swath.
   !
   ! Input:
-  !   file_name  - Name of HE5 output file
-  !   swath_name - Name of swath to be created
-  !   nXtrack    - Number of cross-track positions (mind spatial zoom mode!)
+  !   file_name  - Name of HE5 output file 
   !
   ! Return: he5stat
   !
   ! Variables passed through MODULE:
+  !   ntime_rad         - Number of lines
+  !   nXtrack_rad       - Number of cross-track positions
+  !   nwav_rad          - Number of radiance wavelengths
+  !   CmETA             - Number of climatology levels
+  !   pge_swath_name    - name for swath (OMSAO_he5_module)
   !   pge_swath_file_id - id number for HE5 output file (required for closing it)
   !   pge_swath_id      - id number for swath (required for writing to swath)
   !
   !------------------------------------------------------------------------------
 
-  USE OMSAO_indices_module,   ONLY: max_calfit_idx, max_rs_idx
-  USE OMSAO_data_module,   ONLY: nclenfit, nUTCdim, nwavel_max
+  USE OMSAO_indices_module, ONLY: max_calfit_idx, max_rs_idx
+  USE OMSAO_data_module, ONLY: nclenfit, nUTCdim, ntime_rad, nxtrack_rad, nwav_rad
   USE OMSAO_he5_module
   USE OMSAO_errstat_module
   USE OMSAO_variables_module, ONLY: n_fitvar_rad, ctrvar
+  USE OMSAO_wfamf_module, ONLY: CmETA
 
   IMPLICIT NONE
 
@@ -32,8 +36,7 @@ FUNCTION he5_init_swath ( file_name, swath_name, nTimes, nXtrack, nSwLevels ) RE
   ! ---------------
   ! Input variables
   ! ---------------
-  INTEGER   (KIND=i4),      INTENT(IN) :: nTimes, nXtrack, nSwLevels
-  CHARACTER (LEN=maxchlen), INTENT(IN) :: file_name, swath_name
+  CHARACTER (LEN=*), INTENT(IN) :: file_name
 
   ! ---------------
   ! Result variable
@@ -44,7 +47,7 @@ FUNCTION he5_init_swath ( file_name, swath_name, nTimes, nXtrack, nSwLevels ) RE
   ! Local variables
   ! ---------------
   INTEGER (KIND=C_LONG), PARAMETER :: onecl = 1, twocl = 2, fourcl = 4
-  INTEGER   (KIND=i4) :: errstat
+  INTEGER  (KIND=i4) :: errstat
 
   he5stat = pge_errstat_ok
   errstat = pge_errstat_ok
@@ -62,7 +65,7 @@ FUNCTION he5_init_swath ( file_name, swath_name, nTimes, nXtrack, nSwLevels ) RE
   ! ------------------------------------------------------
   ! Create HE5 swath and check PGE_SWATH_ID ( -1 if error)
   ! ------------------------------------------------------
-  pge_swath_id = HE5_SWcreate ( pge_swath_file_id, TRIM(ADJUSTL(swath_name)) )
+  pge_swath_id = HE5_SWcreate ( pge_swath_file_id, TRIM(ADJUSTL(pge_swath_name)) )
   IF ( pge_swath_id == he5_stat_fail ) THEN
      CALL error_check ( &
           0, 1, pge_errstat_fatal, OMSAO_F_HE5SWCREATE, modulename, vb_lev_default, he5stat )
@@ -72,39 +75,45 @@ FUNCTION he5_init_swath ( file_name, swath_name, nTimes, nXtrack, nSwLevels ) RE
   ! ---------------------------------------------------------
   ! Define new dimensions in HE5 swath and check error status
   ! ---------------------------------------------------------
-  errstat = HE5_SWdefdim  ( pge_swath_id, ntc,   INT(nTimes,     KIND=C_LONG) )
-  errstat = HE5_SWdefdim  ( pge_swath_id, nxc,   INT(nXtrack,    KIND=C_LONG) )
-  errstat = HE5_SWdefdim  ( pge_swath_id, nlc,   INT(nSwLevels,  KIND=C_LONG) )
-  errstat = HE5_SWdefdim  ( pge_swath_id, ntcp1, INT(nTimes+1,   KIND=C_LONG) )
-  errstat = HE5_SWdefdim  ( pge_swath_id, nxcp1, INT(nXtrack+1,  KIND=C_LONG) )
-  errstat = HE5_SWDefdim  ( pge_swath_id, nutcd, INT(nUTCdim,    KIND=C_LONG) )
-  errstat = HE5_SWDefdim  ( pge_swath_id, "1",   onecl                        )
-  errstat = HE5_SWDefdim  ( pge_swath_id, "2",   twocl                        )
-  errstat = HE5_SWDefdim  ( pge_swath_id, "4",   fourcl                       )
-  errstat = HE5_SWdefdim  ( pge_swath_id, nwalm, INT(nwavel_max, KIND=C_LONG) )
-
+  errstat = HE5_SWdefdim  ( pge_swath_id, ntc,   INT(ntime_rad, KIND=C_LONG) )
+  he5stat=MIN(he5stat,errstat)
+  errstat = HE5_SWdefdim  ( pge_swath_id, nxc,   INT(nxtrack_rad,KIND=C_LONG) )
+  he5stat=MIN(he5stat,errstat)
+  errstat = HE5_SWdefdim  ( pge_swath_id, nlc,   INT(CmETA, KIND=C_LONG) )
+  he5stat=MIN(he5stat,errstat)
+  errstat = HE5_SWdefdim  ( pge_swath_id, nwalm, INT(MAXVAL(nwav_rad), KIND=C_LONG) )
+  he5stat=MIN(he5stat,errstat)
+  errstat = HE5_SWDefdim  ( pge_swath_id, nutcd, INT(nUTCdim, KIND=C_LONG) )
+  he5stat=MIN(he5stat,errstat)
   ! ---------------------------------------------------------
   ! Dimensions for Diagnostic Fields
   ! ---------------------------------------------------------
   IF ( ctrvar%yn_diagnostic_run ) THEN
      errstat = HE5_SWdefdim  ( pge_swath_id, nfv,   INT(n_fitvar_rad,   KIND=C_LONG) )
+     he5stat=MIN(he5stat,errstat)
      errstat = HE5_SWDefdim  ( pge_swath_id, ncv,   INT(nclenfit,       KIND=C_LONG) )
+     he5stat=MIN(he5stat,errstat)
      errstat = HE5_SWdefdim  ( pge_swath_id, nwcp,  INT(max_calfit_idx, KIND=C_LONG) )
-
+     he5stat=MIN(he5stat,errstat)
      ! CCM for refspec database
      errstat = HE5_SWdefdim  ( pge_swath_id, nrspc, INT(max_rs_idx,     KIND=C_LONG) )
+     he5stat=MIN(he5stat,errstat)
   END IF
-
+  errstat = HE5_SWDefdim  ( pge_swath_id, "1",   onecl )
+  he5stat=MIN(he5stat,errstat)
+  errstat = HE5_SWDefdim  ( pge_swath_id, "2",   twocl )
+  he5stat=MIN(he5stat,errstat)
+  errstat = HE5_SWDefdim  ( pge_swath_id, "4",   fourcl )
+  he5stat=MIN(he5stat,errstat)
+  IF (he5stat < 0) errstat = 1
   CALL error_check ( &
        errstat, he5_stat_ok, pge_errstat_fatal, OMSAO_F_HE5SWDEFDIM, &
        modulename, vb_lev_default, he5stat )
-  IF ( he5stat >= pge_errstat_error ) RETURN
-
-
   RETURN
+
 END FUNCTION he5_init_swath
 
-FUNCTION he5_define_fields ( pge_idx, swath_name, nTimes, nXtrack, nSwLevels ) RESULT ( he5stat )
+FUNCTION he5_define_fields ( pge_idx, nTimes, nXtrack, nSwLevels ) RESULT ( he5stat )
 
   !------------------------------------------------------------------------------
   ! This function defines fields in the HE5 output swath.
@@ -115,13 +124,13 @@ FUNCTION he5_define_fields ( pge_idx, swath_name, nTimes, nXtrack, nSwLevels ) R
   ! Return: he5stat
   !
   ! Variables passed through MODULE:
+  !   pge_swath_name    - name for swath (OMSAO_he5_module)
   !   pge_swath_file_id - id number for HE5 output file (required for closing it)
   !   pge_swath_id      - id number for swath (required for writing to swath)
   !
   !------------------------------------------------------------------------------
 
   USE OMSAO_indices_module, ONLY: sao_molecule_names
-  USE OMSAO_parameters_module, ONLY: maxchlen
   USE OMSAO_variables_module, ONLY: ctrvar
   USE OMSAO_data_module, ONLY: n_field_maxdim
   USE OMSAO_he5_module
@@ -143,7 +152,6 @@ FUNCTION he5_define_fields ( pge_idx, swath_name, nTimes, nXtrack, nSwLevels ) R
   ! Input variables
   ! ---------------
   INTEGER   (KIND=i4),      INTENT(IN) :: pge_idx, nTimes, nXtrack, nSwLevels
-  CHARACTER (LEN=maxchlen), INTENT(IN) :: swath_name
 
   ! ---------------
   ! Result variable
@@ -419,7 +427,7 @@ FUNCTION he5_define_fields ( pge_idx, swath_name, nTimes, nXtrack, nSwLevels ) R
   ! Detach from and re-attach to created swath (recommended before adding to swath)
   ! -------------------------------------------------------------------------------
   errstat       = HE5_SWdetach ( pge_swath_id )
-  pge_swath_id  = HE5_SWattach ( pge_swath_file_id, TRIM(ADJUSTL(swath_name)) )
+  pge_swath_id  = HE5_SWattach ( pge_swath_file_id, TRIM(ADJUSTL(pge_swath_name)) )
   IF ( pge_swath_id == he5_stat_fail ) CALL error_check ( &
        0, 1, pge_errstat_fatal, OMSAO_E_HE5SWATTACH, modulename, vb_lev_default, he5stat )
 
