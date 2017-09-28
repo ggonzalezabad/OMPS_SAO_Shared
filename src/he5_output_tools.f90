@@ -1311,15 +1311,6 @@ FUNCTION he5_write_global_attributes ( ) RESULT ( he5stat )
        locerr, HE5_STAT_OK, pge_errstat_warning, OMSAO_W_HE5EHWRGLATT, &
        modulename//f_sep//TRIM(ADJUSTL(parname)), vb_lev_default, he5stat )
 
-  ! -------------------------------------
-  ! Finally the TAI time of 0z of Granule
-  ! -------------------------------------
-  parname = tai_attr
-  locerr = HE5_EHwrglatt ( pge_swath_file_id, TRIM(ADJUSTL(parname)), HE5T_NATIVE_DOUBLE, onecl, TAI93At0zOfGranule )
-  CALL error_check ( &
-       locerr, HE5_STAT_OK, pge_errstat_warning, OMSAO_W_HE5EHWRGLATT, &
-       modulename//f_sep//TRIM(ADJUSTL(parname)), vb_lev_default, he5stat )
-
   ! ------------------------------------------------------------------------
   ! Now the Global Attributes that are set by the PGE: PGE statistics mostly
   ! ------------------------------------------------------------------------

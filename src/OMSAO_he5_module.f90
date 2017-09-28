@@ -17,8 +17,7 @@ MODULE OMSAO_he5_module
 
   IMPLICIT NONE
 
-
-  CHARACTER (LEN=12), PARAMETER :: aushar = "Aura-Shared ", omspec = "OMI-Specific"
+  CHARACTER (LEN=12), PARAMETER :: omspec = "OMI-Specific"
 
   ! -----------------------------------------------------------------
   ! Blank strings of various lengths.
@@ -63,6 +62,12 @@ MODULE OMSAO_he5_module
   ! ----------------------------------------------
   INTEGER (KIND=i4) :: pge_swath_file_id, pge_swath_id
 
+  ! -----------------------------------------------
+  ! Variables that will hold Global File Attributes
+  ! -----------------------------------------------
+  CHARACTER (LEN=maxchlen) :: &
+       pge_swath_name, process_level, instrument_name, pge_version, l1b_orbitdata
+
   ! --------------------------------------------------------------
   ! Swath IDs for pre-fitted BrO and O3 HE5 swaths and swath files
   ! --------------------------------------------------------------
@@ -86,15 +91,7 @@ MODULE OMSAO_he5_module
   ! ----------------------------------
   ! Strings for Global File Attributes
   ! ----------------------------------
-  CHARACTER (LEN=18), PARAMETER :: tai_attr = "TAI93At0zOfGranule"
-
-  ! -----------------------------------------------
-  ! Variables that will hold Global File Attributes
-  ! -----------------------------------------------
-  CHARACTER (LEN=maxchlen) :: &
-       pge_swath_name, process_level, instrument_name, pge_version, l1b_orbitdata
   INTEGER   (KIND=i4)      :: granule_day, granule_month, granule_year
-  REAL      (KIND=r8)      :: TAI93At0zOfGranule
 
   ! ----------------------
   ! Swath Level Attributes
@@ -106,12 +103,9 @@ MODULE OMSAO_he5_module
   ! ----------------
   CHARACTER (LEN= 6), PARAMETER :: ntc   = "nTimes"
   CHARACTER (LEN= 7), PARAMETER :: nxc   = "nXtrack"
-  CHARACTER (LEN= 7), PARAMETER :: nlc   = "nLevels"    ! GGA
-  CHARACTER (LEN= 8), PARAMETER :: ntcp1 = "nTimes+1"   ! GGA
-  CHARACTER (LEN= 9), PARAMETER :: nxcp1 = "nXtrack+1"  ! GGA
+  CHARACTER (LEN= 7), PARAMETER :: nlc   = "nLevels"
   CHARACTER (LEN=12), PARAMETER :: nfv   = "nFitElements"
   CHARACTER (LEN=19), PARAMETER :: ncv   = "nCharLenFitElements"
-  CHARACTER (LEN=11), PARAMETER :: ncwvl = "nCommonWavl"
   CHARACTER (LEN= 7), PARAMETER :: nutcd = "nUTCdim"
   CHARACTER (LEN=11), PARAMETER :: nwcp  = "nWavCalPars"
   CHARACTER (LEN=14), PARAMETER :: nxtc  = nxc//","//ntc
@@ -119,9 +113,10 @@ MODULE OMSAO_he5_module
   CHARACTER (LEN=19), PARAMETER :: nxwcp = nwcp//","//nxc
   CHARACTER (LEN=22), PARAMETER :: nxtlc = nxc//","//ntc//","//nlc !GGA
 
-    ! CCM Add one for the refspec database
-    CHARACTER (LEN= 7), PARAMETER :: nrspc = "nRfSpec"
-    CHARACTER (LEN=10), PARAMETER :: nwalm = "nwavel_max"
+  ! CCM Add one for the refspec database
+  CHARACTER (LEN=7), PARAMETER :: nrspc = "nRfSpec"
+  CHARACTER (LEN=6), PARAMETER :: nwalm = "nWaves"
+
   ! ------------------------
   ! Swath geolocation fields
   ! ------------------------

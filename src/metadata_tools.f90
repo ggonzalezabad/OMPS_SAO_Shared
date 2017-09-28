@@ -8,13 +8,12 @@ SUBROUTINE init_metadata ( errstat )
        prefit_lun, cld_lun
   USE OMSAO_metadata_module
   USE OMSAO_errstat_module, ONLY: f_sep, omsao_e_getattr, omsao_f_metinit, &
-       omsao_w_getattr, omsao_w_tai93, pge_errstat_error, pge_errstat_fatal, &
+       omsao_w_getattr, pge_errstat_error, pge_errstat_fatal, &
        pge_errstat_ok, pge_errstat_warning, pgs_s_success, vb_lev_default, &
-       error_check, PGSTD_E_NO_LEAP_SECS
+       error_check
   USE OMSAO_parameters_module, ONLY: str_missval, int16_missval, r8_missval
   USE OMSAO_variables_module,  ONLY: pcfvar, ctrvar, l1br_opf_version
-  USE OMSAO_he5_module, ONLY: granule_day, granule_month, granule_year, &
-       TAI93At0zOfGranule, l1b_orbitdata
+  USE OMSAO_he5_module, ONLY: granule_day, granule_month, granule_year, l1b_orbitdata
   IMPLICIT NONE
 
   ! ------------------------------
@@ -33,7 +32,7 @@ SUBROUTINE init_metadata ( errstat )
   CHARACTER (LEN=3)                         :: mdata_typ, mdata_loc
   CHARACTER (LEN=PGSd_MET_MAX_STRING_SET_L) :: tmp_string, metadata_type
   INTEGER   (KIND=i4)                       :: &
-       imd, version, estat, md_stat, locerrstat, mdata_index, jday
+       imd, version, md_stat, locerrstat, mdata_index, jday
 
   ! ------------------
   ! External functions
@@ -133,18 +132,6 @@ SUBROUTINE init_metadata ( errstat )
                  READ ( mdata_string_values(imd), '(I4,1X,I2,1X,I2)') &
                       granule_year, granule_month, granule_day
                  jday = day_of_year ( granule_year, granule_month, granule_day )
-
-                 ! ------------------------------------------------------------
-                 ! Since we are here, compute Granule Time in seconds; this is
-                 ! one of the global file attributes that we need to write out.
-                 ! ------------------------------------------------------------
-                 tmp_string = ""
-                 tmp_string = TRIM(ADJUSTL(mdata_string_values(imd))) //"T00:00:00.000Z"
-                 estat = PGS_TD_UTCtoTAI ( TRIM(ADJUSTL(tmp_string)), TAI93At0zOfGranule )
-                 IF ( estat /= PGS_S_SUCCESS .AND. estat /= PGSTD_E_NO_LEAP_SECS ) &
-                      CALL error_check ( 0, 1, pge_errstat_warning, OMSAO_W_TAI93, &
-                      modulename, vb_lev_default, errstat )
-                 ! ------------------------------------------------------------
               ELSE 
                  granule_year = 0 ; granule_month = 0 ; granule_day = 0 ; jday = 0
               END IF
