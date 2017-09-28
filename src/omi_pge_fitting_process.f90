@@ -56,10 +56,9 @@ SUBROUTINE omi_pge_fitting_process ( pge_idx, n_max_rspec,             &
   IF (pge_error_status >= pge_errstat_error ) GO TO 666
 
   ! Copy and assing values to data variables from omps_data
-  CALL omps_data_to_omi_variables ( omps_data, &
+  CALL omps_to_data_variables ( omps_data, &
        omps_data%nlines, omps_data%nxtrack, omps_data%nwavel)
 
-  stop
   omps_reader_status = OMPS_NMEV_READER(omps_data_radiance_reference,TRIM(ADJUSTL(pcfvar%l1b_radref_fname)))
   CALL error_check ( INT(omps_reader_status,KIND=i4), pge_errstat_ok, pge_errstat_fatal, OMSAO_F_SUBROUTINE, &
        modulename//f_sep//"Read OMPS radiance reference data.", vb_lev_default, pge_error_status )
@@ -86,8 +85,6 @@ SUBROUTINE omi_pge_fitting_process ( pge_idx, n_max_rspec,             &
   nXtrackRadRR         = omps_data_radiance_reference%nXtrack
   nWvlCCD              = omps_data%nWavel  
   nWvlCCDrr            = omps_data_radiance_reference%nWavel  
-
-  stop
 
   CALL omi_fitting (                                  &
        pge_idx, omps_data_radiance_reference,         &
@@ -180,12 +177,10 @@ SUBROUTINE omi_fitting (                                  &
   ! ----------------------------------------------------------
   INTEGER (KIND=i1), DIMENSION (0:nTimesRad-1)   :: omi_binfac
   INTEGER (KIND=i4), DIMENSION (0:nTimesRad-1,2) :: omi_xtrpix_range
-  LOGICAL,           DIMENSION (0:nTimesRad-1)   :: &
-       omi_yn_szoom, yn_common_range, yn_radfit_range
+  LOGICAL,           DIMENSION (0:nTimesRad-1)   :: yn_common_range, yn_radfit_range
 
   INTEGER (KIND=i1), DIMENSION (0:nTimesRadRR-1)   :: omi_binfac_rr
   INTEGER (KIND=i4), DIMENSION (0:nTimesRadRR-1,2) :: omi_xtrpix_range_rr
-  LOGICAL,           DIMENSION (0:nTimesRadRR-1)   :: omi_yn_szoom_rr
 
   ! ----------------------------------------------------------
   ! OMI L1b latitudes
@@ -216,12 +211,9 @@ SUBROUTINE omi_fitting (                                  &
   ! --------------------------------
   ! Name of the main output molecule
   ! --------------------------------
+  print*, pge_idx
   molname = sao_molecule_names(pge_idx)
-
-  ! ------------------------------------
-  ! For OMPS we are never in a zoom mode
-  ! ------------------------------------
-  omi_yn_szoom = .FALSE.
+  print*, molname
 
   ! -------------------------------------------------------------------
   ! Range of cross-track pixels to fit. This is based on the selection
@@ -236,7 +228,7 @@ SUBROUTINE omi_fitting (                                  &
      nTimesRad, nXtrackRad, ctrvar%pixnum_lim(3:4), &
      omi_xtrpix_range(0:nTimesRad-1,1:2), &
      first_wc_pix, last_wc_pix, errstat )
-
+  stop
   ! --------------------------------------------------------------------
   ! If the radiance reference is obtained from the same L1b file, we can
   ! simply copy the variables we have just read to the corresponding 
@@ -252,7 +244,6 @@ SUBROUTINE omi_fitting (                                  &
      IF ( pge_error_status >= pge_errstat_error )  GO TO 666
   ELSE
      omi_binfac_rr      (0:nTimesRad-1)       = omi_binfac      (0:nTimesRad-1)
-     omi_yn_szoom_rr    (0:nTimesRadRR-1)     = omi_yn_szoom    (0:nTimesRad-1)
      omi_xtrpix_range_rr(0:nTimesRadRR-1,1:2) = omi_xtrpix_range(0:nTimesRad-1,1:2)
   END IF
 

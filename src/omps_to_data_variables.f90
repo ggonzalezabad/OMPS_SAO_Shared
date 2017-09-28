@@ -1,4 +1,4 @@
-SUBROUTINE omps_data_to_omi_variables (omps_data,nt,nx,nw)
+SUBROUTINE omps_to_data_variables (omps_data,nt,nx,nw)
 
   ! -----------------
   ! gga Febraury 2014
@@ -128,4 +128,4 @@ SUBROUTINE omps_data_to_omi_variables (omps_data,nt,nx,nw)
      END DO
   END DO
 
-END SUBROUTINE omps_data_to_omi_variables
+END SUBROUTINE omps_to_data_variables
