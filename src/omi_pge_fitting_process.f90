@@ -120,7 +120,6 @@ SUBROUTINE omi_fitting (                                  &
   USE OMSAO_errstat_module, ONLY: pge_errstat_ok, pge_errstat_fatal, &
        pge_errstat_warning, pge_errstat_error, f_sep, omsao_w_nopixel, &
        omsao_w_subroutine, vb_lev_default, error_check
-  USE OMSAO_indices_module, ONLY: sao_molecule_names
   USE OMSAO_parameters_module, ONLY: i2_missval
   USE OMSAO_variables_module, ONLY: ctrvar, pcfvar
   USE OMSAO_data_module, ONLY: latitude, column_amount, &
@@ -155,8 +154,7 @@ SUBROUTINE omi_fitting (                                  &
   ! -------------------------
   ! Local variables (for now)
   ! -------------------------
-  INTEGER   (KIND=i4) ::                                                 &
-       iline, first_line, last_line, errstat, first_wc_pix, last_wc_pix, &
+  INTEGER   (KIND=i4) :: iline, first_line, last_line, errstat, first_wc_pix, last_wc_pix, &
        first_pix, last_pix
   REAl (KIND=r8), DIMENSION (1) :: zerovec = 0.0_r8
   INTEGER (KIND=i2), DIMENSION (1:nXtrackRad,0:nTimesRad-1)     :: saomqf
@@ -166,20 +164,13 @@ SUBROUTINE omi_fitting (                                  &
   INTEGER (KIND=i2), DIMENSION (1:nXtrackRadRR,0:nTimesRadRR-1) :: amfflg
   INTEGER (KIND=i2), DIMENSION (1:nXtrackRadRR,0:nTimesRadRR-1) :: refamfflg
 
-  ! ----------------------------------------------------------------------
-  ! Swath dimensions and variables that aren't passed from calling routine
-  ! ----------------------------------------------------------------------
-  CHARACTER (LEN=maxchlen) :: molname
-
   ! ----------------------------------------------------------
   ! Variables and parameters associated with Spatial Zoom data
   ! and Common Mode spectrum
   ! ----------------------------------------------------------
-  INTEGER (KIND=i1), DIMENSION (0:nTimesRad-1)   :: omi_binfac
   INTEGER (KIND=i4), DIMENSION (0:nTimesRad-1,2) :: omi_xtrpix_range
   LOGICAL,           DIMENSION (0:nTimesRad-1)   :: yn_common_range, yn_radfit_range
 
-  INTEGER (KIND=i1), DIMENSION (0:nTimesRadRR-1)   :: omi_binfac_rr
   INTEGER (KIND=i4), DIMENSION (0:nTimesRadRR-1,2) :: omi_xtrpix_range_rr
 
   ! ----------------------------------------------------------
@@ -200,25 +191,11 @@ SUBROUTINE omi_fitting (                                  &
        he5_set_field_attributes, he5_write_global_attributes,    &
        he5_write_swath_attributes, he5_open_readwrite
 
-  ! ---------------------------------------------------------------
-  ! Some initializations that will save us headaches in cases where 
-  ! a proper set-up of those variables failes or is bypassed.
-  ! ---------------------------------------------------------------
-  first_pix = 1 ; last_pix = 1
-
   errstat = pge_errstat_ok
-
-  ! --------------------------------
-  ! Name of the main output molecule
-  ! --------------------------------
-  print*, pge_idx
-  molname = sao_molecule_names(pge_idx)
-  print*, molname
 
   ! -------------------------------------------------------------------
   ! Range of cross-track pixels to fit. This is based on the selection
-  ! in the fitting control file and whether the granule being processed
-  ! is in global or spatial zoom mode, or even a mixture thereof.
+  ! in the fitting control file.
   !
   ! NOTE that we set OMI_XTRPIX_RANGE for all swath lines because the
   ! choice of swath lines to process may not contain the radiance 
@@ -228,7 +205,10 @@ SUBROUTINE omi_fitting (                                  &
      nTimesRad, nXtrackRad, ctrvar%pixnum_lim(3:4), &
      omi_xtrpix_range(0:nTimesRad-1,1:2), &
      first_wc_pix, last_wc_pix, errstat )
-  stop
+  CALL error_check ( errstat, pge_errstat_ok, pge_errstat_fatal, OMSAO_F_SUBROUTINE, &
+       modulename//f_sep//"omi_set_xtrpix_range", vb_lev_default, pge_error_status )
+  IF (pge_error_status >= pge_errstat_error ) GO TO 666
+ 
   ! --------------------------------------------------------------------
   ! If the radiance reference is obtained from the same L1b file, we can
   ! simply copy the variables we have just read to the corresponding 
@@ -243,7 +223,6 @@ SUBROUTINE omi_fitting (                                  &
      pge_error_status = MAX ( pge_error_status, errstat )
      IF ( pge_error_status >= pge_errstat_error )  GO TO 666
   ELSE
-     omi_binfac_rr      (0:nTimesRad-1)       = omi_binfac      (0:nTimesRad-1)
      omi_xtrpix_range_rr(0:nTimesRadRR-1,1:2) = omi_xtrpix_range(0:nTimesRad-1,1:2)
   END IF
 
@@ -483,15 +462,6 @@ SUBROUTINE omi_fitting (                                  &
        height(1:nXtrackRad,0:nTimesRad-1), .TRUE.,       &
        errstat)       
 
-  ! -------------------------------------------------------------
-  ! Here is the place to jump to in case some error has occurred.
-  ! Naturally, we also reach here when everything executed as it
-  ! was supposed to, but that doesn't matter, since we are not
-  ! taking any particular action at this point.
-  ! -------------------------------------------------------------
-666 CONTINUE
-  IF ( pge_error_status >= pge_errstat_fatal ) RETURN
-
   ! ---------------------------
   ! Work out fitting statistics
   ! ---------------------------
@@ -602,4 +572,13 @@ SUBROUTINE omi_fitting (                                  &
        modulename//f_sep//"HE5_CLOSE_OUTPUT_FILE", vb_lev_default, pge_error_status )
 
   RETURN
+  ! -------------------------------------------------------------
+  ! Here is the place to jump to in case some error has occurred.
+  ! Naturally, we also reach here when everything executed as it
+  ! was supposed to, but that doesn't matter, since we are not
+  ! taking any particular action at this point.
+  ! -------------------------------------------------------------
+666 CONTINUE
+  IF ( pge_error_status >= pge_errstat_error ) RETURN
+
 END SUBROUTINE omi_fitting

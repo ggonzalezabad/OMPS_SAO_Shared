@@ -1180,7 +1180,7 @@ SUBROUTINE omi_set_xtrpix_range ( &
      errstat )
 
   USE OMSAO_precision_module, ONLY: i4
-  USE OMSAO_errstat_module, ONLY: pge_errstat_ok
+  USE OMSAO_errstat_module, ONLY: pge_errstat_ok, pge_errstat_fatal
 
   IMPLICIT NONE
 
@@ -1190,30 +1190,12 @@ SUBROUTINE omi_set_xtrpix_range ( &
   !
   !    Set first and last cross track pixel position to process
   !
-  ! The problem:
-  !
-  !    The usual approach to fit all cross-track pixel, or a subset
-  !    of them that has been specified in the fitting control file,
-  !    fails for granules that contain spatial zoom data, since those
-  !    have the center 30 cross-track positions 16-45 stored with the
-  !    rest missing.
   !
   ! The approach:
   !
   !    For each swath line we define first and last cross track pixel
-  !    based on whether it is global or spatial zoom. Data are stored
-  !    as usual (1:60, respectively 16:45) but the "first" and "last"
-  !    cross-track pixel to process is adjusted in cases of spatial
-  !    zoom mode to avoid needless checking of boundaries.
-  !
-  !    "Mixed Mode" cases are conceivable but pathological. They are
-  !    not considered here.
-  !
-  !    For the radiance fits, an array with first/last pixel and shift is
-  !    set up for each swath line.
-  !
+  !    based 
   ! =======================================================================
-
 
   ! ===================================================================
   !
@@ -1222,8 +1204,6 @@ SUBROUTINE omi_set_xtrpix_range ( &
   !  nTimes .............. number of swath lines
   !  nXtrack ............. number of cross track ("XT") positions
   !  pixnum_limits ....... constraints on XT pixels
-  !  omy_binfac .......... Binning factor for each scan line, either
-  !                           szoom_mode or global_mode.
   !
   !  first_wc_pix ........ first XT position for wavelengh calibration
   !  last_wc_pix ......... last XT position for wavelengh calibration
@@ -1252,7 +1232,7 @@ SUBROUTINE omi_set_xtrpix_range ( &
   ! ---------------
   ! Local variables
   ! ---------------
-  INTEGER (KIND=i4)          :: first_pix, last_pix, i, locerrstat
+  INTEGER (KIND=i4) :: i, locerrstat
 
   ! ---------------------------
   ! Initialize return variables
@@ -1266,10 +1246,14 @@ SUBROUTINE omi_set_xtrpix_range ( &
   ! ------------------------------------------
   ! Find the range of XT pixels to process
   ! ------------------------------------------
-  first_pix = MAX (                                  1, pixnum_limits(1) )
-  last_pix  = MAX ( MIN ( nXtrack,  pixnum_limits(2) ), first_pix        )
-  first_wc_pix = first_pix
-  last_wc_pix  = last_pix
+  IF (pixnum_limits(1) < 1 .OR. pixnum_limits(2) < 2) THEN
+     first_wc_pix = 1
+     last_wc_pix = nXtrack
+  ELSE
+     first_wc_pix = MAX (                                  1, pixnum_limits(1) )
+     last_wc_pix  = MAX ( MIN ( nXtrack,  pixnum_limits(2) ), first_wc_pix     )
+  END IF
+
   ! --------------------------------------------------------------------
   ! We go through the pixels one-by-one. Lots of redundancy, and no
   ! guarantee that we are actually doing the right thing. Proceed with
@@ -1280,7 +1264,9 @@ SUBROUTINE omi_set_xtrpix_range ( &
      omi_xtrpix_range(i,2) = last_wc_pix
   END DO
 
+  IF ( ANY(omi_xtrpix_range .LT. 1) .OR. ANY(omi_xtrpix_range .GT. nXtrack)) locerrstat = pge_errstat_fatal
   errstat = MAX ( errstat, locerrstat )
+
   RETURN
 END SUBROUTINE omi_set_xtrpix_range
 
