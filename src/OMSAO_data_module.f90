@@ -100,7 +100,7 @@ MODULE OMSAO_data_module
   ! ---------------------------------
   ! Dimensions for measurement swaths
   ! ---------------------------------
-  INTEGER (KIND=i4) :: nwavel, ntimes_loop
+  INTEGER (KIND=i4) :: nxtrack_rad, ntime_rad, ntimes_loop
   INTEGER (KIND=i4), ALLOCATABLE, DIMENSION (:) :: nwav_irrad, nwav_radref
   INTEGER (KIND=i4), ALLOCATABLE, DIMENSION (:,:) :: nwav_rad, nwav_rad_reference
 
@@ -172,7 +172,6 @@ CONTAINS
 
     errstat = 0
     IF (.NOT. ALLOCATED(spacecraft_alt)) THEN
-       print*, 'Allocating...'
        ALLOCATE(spacecraft_alt(0:nt-1),time(0:nt-1),xtrflg(1:nx,0:nt-1),instrument_flag(0:nt-1), &
             latitude(1:nx,0:nt-1),longitude(1:nx,0:nt-1), szenith(1:nx,0:nt-1), &
             sazimuth(1:nx,0:nt-1),vzenith(1:nx,0:nt-1),vazimuth(1:nx,0:nt-1), &

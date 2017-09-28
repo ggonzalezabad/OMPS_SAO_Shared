@@ -9,12 +9,12 @@ SUBROUTINE omps_to_data_variables (omps_data,nt,nx,nw)
   USE OMSAO_precision_module, ONLY: i4, r8
   USE OMSAO_data_module, ONLY: spacecraft_alt, time, xtrflg, instrument_flag, &
        latitude, longitude, szenith, sazimuth, vzenith, vazimuth, vzenith, &
-       vazimuth, razimuth, nwavel, nwav_irrad, nwav_rad, ccdpix_selection, &
+       vazimuth, razimuth, nwav_irrad, nwav_rad, ccdpix_selection, &
        radiance_wavl, radiance_spec, radiance_prec, radiance_qflg, nwav_rad, &
        omi_sol_wav_avg, irradiance_wavl, irradiance_spec, ccdpix_exclusion, &
-       EarthSunDistance, yn_process_pixel
+       EarthSunDistance, yn_process_pixel, ntime_rad, nxtrack_rad
   USE OMSAO_OMPS_READER, ONLY: omps_nmev_type
-  USE OMSAO_he5_module, ONLY: granule_month
+  USE OMSAO_he5_module, ONLY: granule_day, granule_month, granule_year
   USE OMSAO_variables_module, ONLY: ctrvar
 
   IMPLICIT NONE
@@ -38,6 +38,8 @@ SUBROUTINE omps_to_data_variables (omps_data,nt,nx,nw)
   ! complete as the OMI l1b files and I don't have
   ! good documentation on the OMPS files
   ! ------------------------------------------------
+  ntime_rad = nt
+  nxtrack_rad = nx
   spacecraft_alt(0:nt-1) = REAL(omps_data%SpacecraftAltitude(1:nt),KIND=4)
   time(0:nt-1) = REAL(omps_data%ImageMidPoint_TAI93(1:nt),KIND=4)
   xtrflg(1:nx,0:nt-1) = OMPS_data%GroundPixelQualityFlags(1:nx,1:nt)
@@ -62,12 +64,13 @@ SUBROUTINE omps_to_data_variables (omps_data,nt,nx,nw)
   earthsundistance = REAL(OMPS_data%SunEarthDistance,KIND=4)
 
   dummy = TRIM(OMPS_DATA%UTC_CCSDS_A(FLOOR(REAL(nt)/2.0)))
+  read(dummy(9:10),'(i2)') granule_day
   read(dummy(6:7),'(i2)') granule_month
+  read(dummy(1:4),'(i4)') granule_year
 
   ! --------------------
   ! Initialize variables
   ! --------------------
-  nwavel = OMPS_data%nWavel
   nwav_irrad = OMPS_data%nWavel
   nwav_rad = OMPS_data%nWavel
 
