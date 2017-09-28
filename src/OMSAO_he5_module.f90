@@ -123,6 +123,8 @@ MODULE OMSAO_he5_module
   ! ------------------------
   CHARACTER (LEN= 8), PARAMETER ::  lat_field   = "Latitude"
   CHARACTER (LEN= 9), PARAMETER ::  lon_field   = "Longitude"
+  CHARACTER (LEN=14), PARAMETER ::  latcor_field= "LatitudeCorner"
+  CHARACTER (LEN=15), PARAMETER ::  loncor_field= "LongitudeCorner"
   CHARACTER (LEN=17), PARAMETER ::  saa_field   = "SolarAzimuthAngle"
   CHARACTER (LEN=16), PARAMETER ::  sza_field   = "SolarZenithAngle"
   CHARACTER (LEN=19), PARAMETER ::  vaa_field   = "ViewingAzimuthAngle"
@@ -241,11 +243,13 @@ MODULE OMSAO_he5_module
   ! ------------------
   ! Geolocation fields
   ! ------------------
-  INTEGER (KIND=i4), PARAMETER :: n_gfields = 12
+  INTEGER (KIND=i4), PARAMETER :: n_gfields = 14
   CHARACTER (LEN=41), DIMENSION (2,n_gfields), PARAMETER ::  &
        geo_field_names = RESHAPE ( (/ &
        "Latitude                                  ","Geodetic Latitude                         ",    &
        "Longitude                                 ","Geodetic Longitude                        ",    &
+       "LatitudeCorner                            ","Geodetic Latitude of Corner Points        ",    &
+       "LongitudeCorner                           ","Geodetic Longitude of Corner Points       ",    &
        "SolarAzimuthAngle                         ","Solar Azimuth Angle                       ",    &
        "SolarZenithAngle                          ","Solar Zenith Angle                        ",    &
        "ViewingAzimuthAngle                       ","Viewing Azimuth Angle                     ",    &
@@ -257,23 +261,27 @@ MODULE OMSAO_he5_module
        "TAI93                                     ","TAI93 Image Midpoint Time                 ",    &
        "TimeUTC                                   ","UTC Image Midpoint Time                   "  /),&
        (/ 2, n_gfields /) )
-  CHARACTER (LEN=14), DIMENSION (4,n_gfields), PARAMETER ::  &
+  CHARACTER (LEN=16), DIMENSION (4,n_gfields), PARAMETER ::  &
        geo_field_specs = RESHAPE ( (/ &
-       "deg           ","nXtrack,nTimes","              ","r4            ",    &
-       "deg           ","nXtrack,nTimes","              ","r4            ",    &
-       "deg           ","nXtrack,nTimes","              ","r4            ",    &
-       "deg           ","nXtrack,nTimes","              ","r4            ",    &
-       "deg           ","nXtrack,nTimes","              ","r4            ",    &
-       "deg           ","nXtrack,nTimes","              ","r4            ",    &
-       "deg           ","nXtrack,nTimes","              ","r4            ",    &
-       "              ","nXtrack,nTimes","              ","i2            ",    &
-       "              ","nTimes        ","              ","i4            ",    &
-       "m             ","nTimes        ","              ","r4            ",    &
-       "Seconds       ","nTimes        ","              ","r4            ",    &
-       "              ","nTimes,nUTCdim","              ","ch            "  /),&
+       "deg             ","nXtrack,nTimes  ","                ","r4              ",    &
+       "deg             ","nXtrack,nTimes  ","                ","r4              ",    &
+       "deg             ","nXtrack,nTimes,4","                ","r4              ",    &
+       "deg             ","nXtrack,nTimes,4","                ","r4              ",    &
+       "deg             ","nXtrack,nTimes  ","                ","r4              ",    &
+       "deg             ","nXtrack,nTimes  ","                ","r4              ",    &
+       "deg             ","nXtrack,nTimes  ","                ","r4              ",    &
+       "deg             ","nXtrack,nTimes  ","                ","r4              ",    &
+       "deg             ","nXtrack,nTimes  ","                ","r4              ",    &
+       "                ","nXtrack,nTimes  ","                ","i2              ",    &
+       "                ","nTimes          ","                ","i4              ",    &
+       "m               ","nTimes          ","                ","r4              ",    &
+       "Seconds         ","nTimes          ","                ","r4              ",    &
+       "                ","nTimes,nUTCdim  ","                ","ch              "  /),&
        (/ 4, n_gfields /) )
   REAL (KIND=r8), DIMENSION ( 2, n_gfields ), PARAMETER :: &
        geo_valids = RESHAPE (       (/  &
+       -90.0_r8,     +90.0_r8,     & !Latitude
+       -180.0_r8,   +180.0_r8,     & !Longitude
        -90.0_r8,     +90.0_r8,     & !Latitude
        -180.0_r8,   +180.0_r8,     & !Longitude
        -180.0_r8,   +180.0_r8,     & !SAA
@@ -304,10 +312,10 @@ MODULE OMSAO_he5_module
   CHARACTER (LEN=18), DIMENSION ( 4, n_solcal_fields ), PARAMETER :: &
        solcal_field_specs = RESHAPE ( (/ &
        "NoUnits           ","nXtrack           ","OMI-Specific      ","i2                " ,&
-       "NoUnits           ","nXtrack,nwavel_max","OMI-Specific      ","r8                " ,&
-       "NoUnits           ","nXtrack,nwavel_max","OMI-Specific      ","r8                " ,&
-       "NoUnits           ","nXtrack,nwavel_max","OMI-Specific      ","r8                ", &
-       "NoUnits           ","nXtrack,nwavel_max","OMI-Specific      ","r8                ", &
+       "NoUnits           ","nXtrack,nWaves    ","OMI-Specific      ","r8                " ,&
+       "NoUnits           ","nXtrack,nWaves    ","OMI-Specific      ","r8                " ,&
+       "NoUnits           ","nXtrack,nWaves    ","OMI-Specific      ","r8                ", &
+       "NoUnits           ","nXtrack,nWaves    ","OMI-Specific      ","r8                ", &
        "NoUnits           ","nXtrack           ","OMI-Specific      ","r8                " /), &
        (/ 4, n_solcal_fields /) )
   REAL (KIND=r8), DIMENSION ( 2, n_solcal_fields ), PARAMETER :: &
@@ -339,10 +347,10 @@ MODULE OMSAO_he5_module
   CHARACTER (LEN=18), DIMENSION ( 4, n_radcal_fields ), PARAMETER :: &
        radcal_field_specs = RESHAPE ( (/ &
        "NoUnits           ","nXtrack           ","OMI-Specific      ","i2                ", &
-       "NoUnits           ","nXtrack,nwavel_max","OMI-Specific      ","r8                ", &
-       "NoUnits           ","nXtrack,nwavel_max","OMI-Specific      ","r8                ", &
-       "NoUnits           ","nXtrack,nwavel_max","OMI-Specific      ","r8                ", &
-       "NoUnits           ","nXtrack,nwavel_max","OMI-Specific      ","r8                ", &
+       "NoUnits           ","nXtrack,nWaves    ","OMI-Specific      ","r8                ", &
+       "NoUnits           ","nXtrack,nWaves    ","OMI-Specific      ","r8                ", &
+       "NoUnits           ","nXtrack,nWaves    ","OMI-Specific      ","r8                ", &
+       "NoUnits           ","nXtrack,nWaves    ","OMI-Specific      ","r8                ", &
        "NoUnits           ","nXtrack           ","OMI-Specific      ","r8                " /), &
        (/ 4, n_radcal_fields /) )
   REAL (KIND=r8), DIMENSION ( 2, n_radcal_fields ), PARAMETER :: &
@@ -493,23 +501,23 @@ MODULE OMSAO_he5_module
        diagnostic_field_specs = RESHAPE ( (/ &
        "NoUnits                    ","nXtrack,2                  ","OMI-Specific               ","i2                         ",   &
        "NoUnits                    ","nXtrack                    ","OMI-Specific               ","i4                         ",   &
-       "NoUnits                    ","nXtrack,nwavel_max         ","OMI-Specific               ","r8                         ",   &
-       "nm                         ","nXtrack,nwavel_max         ","OMI-Specific               ","r4                         ",   &
+       "NoUnits                    ","nXtrack,nWaves             ","OMI-Specific               ","r8                         ",   &
+       "nm                         ","nXtrack,nWaves             ","OMI-Specific               ","r4                         ",   &
        "NoUnit                     ","nXtrack,nTimes             ","OMI-Specific               ","r8                         ",   &
        "NoUnits                    ","nFitElements,nXtrack,nTimes","OMI-Specific               ","r8                         ",   &
        "NoUnits                    ","nFitElements,nXtrack,nTimes","OMI-Specific               ","r8                         ",   &
-       "NoUnits                    ","nwavel_max,nXtrack,nTimes  ","OMI-Specific               ","r8                         ",   &
-       "NoUnits                    ","nwavel_max,nXtrack,nTimes  ","OMI-Specific               ","r8                         ",   &
-       "NoUnits                    ","nwavel_max,nXtrack,nTimes  ","OMI-Specific               ","r8                         ",   &
-       "NoUnits                    ","nwavel_max,nXtrack,nTimes  ","OMI-Specific               ","r8                         ",   &
+       "NoUnits                    ","nWaves,nXtrack,nTimes      ","OMI-Specific               ","r8                         ",   &
+       "NoUnits                    ","nWaves,nXtrack,nTimes      ","OMI-Specific               ","r8                         ",   &
+       "NoUnits                    ","nWaves,nXtrack,nTimes      ","OMI-Specific               ","r8                         ",   &
+       "NoUnits                    ","nWaves,nXtrack,nTimes      ","OMI-Specific               ","r8                         ",   &
        "NoUnits                    ","nCharLenFitElements        ","OMI-Specific               ","ch                         ",   &
        "NoUnits                    ","nFitElements,nXtrack,nTimes","OMI-Specific               ","r8                         ",   &
-       "NoUnits                    ","nRfSpec,nwavel_max,nXtrack ","OMI-Specific               ","r8                         ",   &
-       "nm                         ","nwavel_max,nXtrack         ","OMI-Specific               ","r8                         ",   &
+       "NoUnits                    ","nRfSpec,nWaves,nXtrack     ","OMI-Specific               ","r8                         ",   &
+       "nm                         ","nWaves,nXtrack             ","OMI-Specific               ","r8                         ",   &
        "NoUnits                    ","nRfSpec                    ","OMI-Specific               ","r8                         ",   &
        "NoUnits                    ","nRfSpec                    ","OMI-Specific               ","ch                         ",   &
        "NoUnits                    ","nXtrack,nTimes             ","OMI-Specific               ","i2                         ",   &
-       "NoUnits                    ","nwavel_max,nXtrack,nTimes  ","OMI-Specific               ","r8                         " /),&
+       "NoUnits                    ","nWaves,nXtrack,nTimes      ","OMI-Specific               ","r8                         " /),&
        (/ 4, n_diag_fields /) )
        
   ! Output control logicals CCM
