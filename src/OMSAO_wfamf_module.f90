@@ -430,7 +430,7 @@ CONTAINS
 
   END SUBROUTINE omi_climatology
 
-  SUBROUTINE omi_read_climatology(errstat)
+  SUBROUTINE read_climatology(errstat)
     
     ! ==========================================================
     ! This subroutine reads in the climatology from GEOS-Chem or
@@ -471,7 +471,7 @@ CONTAINS
     ! ------------------------------
     ! Name of this module/subroutine
     ! ------------------------------
-    CHARACTER (LEN=35), PARAMETER :: modulename = 'omi_read_climatology' 
+    CHARACTER (LEN=16), PARAMETER :: modulename = 'read_climatology' 
 
     ! ----------------------
     ! Subroutine starts here
@@ -668,7 +668,7 @@ CONTAINS
     Psurface     = Psurface     * scale_Psurf
     Gas_profiles = Gas_profiles * scale_gas
 
-  END SUBROUTINE omi_read_climatology
+  END SUBROUTINE read_climatology
 
   SUBROUTINE omi_omler_albedo( lat, lon, albedo, nt, nx,  &
                                errstat)
@@ -1023,7 +1023,6 @@ CONTAINS
     INTEGER (KIND=C_LONG), DIMENSION(0:maxdim) :: dim_arraycl
     CHARACTER (LEN=10*maxdim) :: dim_chars
 
-
     ! ---------------------------
     ! Initialize output variables
     ! ---------------------------
@@ -1076,7 +1075,6 @@ CONTAINS
        CASE DEFAULT
           ! Whatever. Nothing to be done here.
        END SELECT
-
     END DO getdims
 
     RETURN
