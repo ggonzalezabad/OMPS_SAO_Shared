@@ -12,7 +12,7 @@ MODULE OMSAO_Reference_sector_module
        i4_missval, i2_missval, i1_missval
   USE OMSAO_variables_module, ONLY: pcfvar
   USE OMSAO_data_module,      ONLY: column_amount, &
-       column_uncert, latitute, longitude
+       column_uncert, latitude, longitude
   USE OMSAO_he5_module,          ONLY: granule_month, lat_field
 
   IMPLICIT NONE
@@ -91,7 +91,7 @@ MODULE OMSAO_Reference_sector_module
       ! ------------------------------------------------
       CALL compute_background_median_and_correction(ntimesrr, nxtrackrr,               &
            column_amount(1:nxtrackrr,0:ntimesrr-1),                                &
-           refamf(1:nxtrackrr,0:ntimesrr-1), latitute(1:nxtrackrr,0:ntimesrr-1),   &
+           refamf(1:nxtrackrr,0:ntimesrr-1), latitude(1:nxtrackrr,0:ntimesrr-1),   &
            longitude(1:nxtrackrr,0:ntimesrr-1), refmqf(1:nxtrackrr,0:ntimesrr-1),  &
            amfflg(1:nxtrackrr,0:ntimesrr-1), locerrstat)
       ! --------------------------------------------------------------------

@@ -2193,7 +2193,7 @@ SUBROUTINE he5_write_geolocation ( nTimes, nXtrack, &
      fpix, lpix, locerrstat)
 
   USE OMSAO_data_module, ONLY: spacecraft_alt, instrument_flag, &
-       latitute, longitude, sazimuth, szenith, &
+       latitude, longitude, sazimuth, szenith, &
        vazimuth, vzenith, xtrflg, height, &
        snowicefraction
   USE OMSAO_he5_module
@@ -2248,7 +2248,7 @@ SUBROUTINE he5_write_geolocation ( nTimes, nXtrack, &
   he5_start_2d = (/ 0, 0 /) ;  he5_stride_2d = (/ 1, 1 /) ; he5_edge_2d = (/ nXtrack, nTimes /)
 
   locerrstat = HE5_SWWRFLD ( pge_swath_id, lat_field,    he5_start_2d, he5_stride_2d, he5_edge_2d, &
-       latitute(1:nXtrack,0:nTimes-1) )
+       latitude(1:nXtrack,0:nTimes-1) )
   locerrstat = HE5_SWWRFLD ( pge_swath_id, lon_field,    he5_start_2d, he5_stride_2d, he5_edge_2d, &
        longitude(1:nXtrack,0:nTimes-1) )
   locerrstat = HE5_SWWRFLD ( pge_swath_id, saa_field,    he5_start_2d, he5_stride_2d, he5_edge_2d, &

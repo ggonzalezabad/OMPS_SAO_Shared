@@ -49,11 +49,15 @@ SUBROUTINE omi_pge_fitting_process ( pge_idx, n_max_rspec,             &
        modulename//f_sep//"Read OMPS radiance data.", vb_lev_default, pge_error_status )
   IF ( pge_error_status >= pge_errstat_error ) GOTO 666
 
-  ! Allocate program variables
+  ! Allocate data variables
   CALL allocate_radiance_variables (omps_data%nxtrack,omps_data%nlines,omps_data%nwavel,errstat)
   CALL error_check ( errstat, pge_errstat_ok, pge_errstat_fatal, OMSAO_F_SUBROUTINE, &
        modulename//f_sep//"Allocate radiance variables.", vb_lev_default, pge_error_status )
   IF (pge_error_status >= pge_errstat_error ) GO TO 666
+
+  ! Copy and assing values to data variables from omps_data
+  CALL omps_data_to_omi_variables ( omps_data, &
+       omps_data%nlines, omps_data%nxtrack, omps_data%nwavel)
 
   stop
   omps_reader_status = OMPS_NMEV_READER(omps_data_radiance_reference,TRIM(ADJUSTL(pcfvar%l1b_radref_fname)))
@@ -82,9 +86,6 @@ SUBROUTINE omi_pge_fitting_process ( pge_idx, n_max_rspec,             &
   nXtrackRadRR         = omps_data_radiance_reference%nXtrack
   nWvlCCD              = omps_data%nWavel  
   nWvlCCDrr            = omps_data_radiance_reference%nWavel  
-
-  CALL omps_data_to_omi_variables ( omps_data, &
-       nTimesRad, nXtrackRad, nWvlCCD)
 
   stop
 
@@ -125,7 +126,7 @@ SUBROUTINE omi_fitting (                                  &
   USE OMSAO_indices_module, ONLY: sao_molecule_names
   USE OMSAO_parameters_module, ONLY: i2_missval
   USE OMSAO_variables_module, ONLY: ctrvar, pcfvar
-  USE OMSAO_data_module, ONLY: latitute, column_amount, &
+  USE OMSAO_data_module, ONLY: latitude, column_amount, &
        cross_track_skippix, radcal_itnum, radcal_xflag, &
        solcal_itnum, solcal_xflag, &
        longitude, column_uncert, n_comm_wvl, szenith, &
@@ -286,7 +287,7 @@ SUBROUTINE omi_fitting (                                  &
   ! Work out pixel corners so we can plot and write them to L2 file
   ! ---------------------------------------------------------------
   CALL compute_pixel_corners (nTimesRad, nXtrackRad, &
-       latitute(1:nXtrackRad, 0:nTimesRad-1),    &
+       latitude(1:nXtrackRad, 0:nTimesRad-1),    &
        longitude(1:nXtrackRad, 0:nTimesRad-1),   &
        errstat)
 
@@ -371,10 +372,10 @@ SUBROUTINE omi_fitting (                                  &
   ! read, particularly since the current algorithm settings would
   ! require it anyway.
   ! -----------------------------------------------------------------
-  ! For OMPS it is enough to copy the values of latitute in
+  ! For OMPS it is enough to copy the values of latitude in
   ! l1b_latitudes
   ! -----------------------------------------------------------
-  l1b_latitudes(1:nXtrackRad,0:nTimesRad-1) = latitute(1:nXtrackRad,0:nTimesRad-1)
+  l1b_latitudes(1:nXtrackRad,0:nTimesRad-1) = latitude(1:nXtrackRad,0:nTimesRad-1)
 
   ! -----------------------------------------------------------------
   ! Now we enter the on-line computation of the common mode spectrum.
@@ -479,7 +480,7 @@ SUBROUTINE omi_fitting (                                  &
   ! ---------------------------
   CALL amf_calculation_bis ( pge_idx, pcfvar%cld_fname, &
        nTimesRad, nXtrackRad,                                &
-       latitute(1:nXtrackRad,0:nTimesRad-1),             &
+       latitude(1:nXtrackRad,0:nTimesRad-1),             &
        longitude(1:nXtrackRad,0:nTimesRad-1),            &
        szenith(1:nXtrackRad,0:nTimesRad-1),              &
        vzenith(1:nXtrackRad,0:nTimesRad-1),              &
@@ -554,7 +555,7 @@ SUBROUTINE omi_fitting (                                  &
      
      CALL amf_calculation_bis ( pge_idx, pcfvar%refsec_cld_fname, &
           nTimesRadRR, nXtrackRadRR,                                   &
-          latitute(1:nXtrackRadRR,0:nTimesRadRR-1),                &
+          latitude(1:nXtrackRadRR,0:nTimesRadRR-1),                &
           longitude(1:nXtrackRadRR,0:nTimesRadRR-1),               &
           szenith(1:nXtrackRadRR,0:nTimesRadRR-1),                 &
           vzenith(1:nXtrackRadRR,0:nTimesRadRR-1),                 &

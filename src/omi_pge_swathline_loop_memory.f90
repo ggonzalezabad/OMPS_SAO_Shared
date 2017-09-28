@@ -16,7 +16,7 @@ SUBROUTINE omi_pge_swathline_loop_memory (                               &
   USE OMSAO_data_module,    ONLY:  &
        nlines_max, nUTCdim, scanline_no, blockline_no,                  &
        itnum_flag, fitconv_flag, column_amount,                     &
-       column_uncert, time_utc, time, latitute, fit_rms,    &
+       column_uncert, time_utc, time, latitude, fit_rms,    &
        radiance_errstat, nwav_radref, radref_spec, radref_wavl, &
        szenith, vzenith, longitude, xtrflg, height
   USE OMSAO_prefitcol_module
@@ -235,7 +235,7 @@ SUBROUTINE omi_pge_swathline_loop_memory (                               &
            mem_column_amount(fpix:lpix,scanline_no)      = column_amount(fpix:lpix,iloop)
            mem_column_uncertainty(fpix:lpix,scanline_no) = column_uncert(fpix:lpix,iloop)
            mem_rms(fpix:lpix,scanline_no)                = fit_rms(fpix:lpix,iloop)
-           mem_latitude(fpix:lpix,scanline_no)           = latitute(fpix:lpix,iloop)
+           mem_latitude(fpix:lpix,scanline_no)           = latitude(fpix:lpix,iloop)
            mem_longitude(fpix:lpix,scanline_no)          = longitude(fpix:lpix,iloop)
            mem_sza(fpix:lpix,scanline_no)                = szenith(fpix:lpix,iloop)
            mem_vza(fpix:lpix,scanline_no)                = vzenith(fpix:lpix,iloop)

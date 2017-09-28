@@ -3,6 +3,7 @@ MODULE OMSAO_data_module
   USE OMSAO_precision_module, ONLY: i1, i2, i4, r4, r8
   USE OMSAO_parameters_module, ONLY: maxchlen, max_spec_pts
   USE OMSAO_indices_module, ONLY: n_max_fitpars, max_rs_idx, max_calfit_idx, o3_t1_idx, o3_t3_idx
+
   IMPLICIT NONE
 
   ! -----------------------------
@@ -35,15 +36,14 @@ MODULE OMSAO_data_module
   ! ------------------------------------------------------------------
   ! Arrays for L1b data (radiance, radiance reference, and irradiance)
   ! ------------------------------------------------------------------
-  REAL    (KIND=r4), ALLOCATABLE, DIMENSION (:) :: spacecraft_alt, spacecraft_alt_reference
-  REAL    (KIND=r8), ALLOCATABLE, DIMENSION (:) :: time, time_reference
+  REAL    (KIND=r4), ALLOCATABLE, DIMENSION (:) :: spacecraft_alt, spacecraft_alt_reference, &
+       time, time_reference
   INTEGER (KIND=i4), ALLOCATABLE, DIMENSION (:) :: radiance_errstat, instrument_flag, &
        radiance_errstat_reference, instrument_flag_reference
-  INTEGER (KIND=i1), ALLOCATABLE, DIMENSION (:,:) :: xtrflg_l1b, xtrflg_l1b_reference
   INTEGER (KIND=i2), ALLOCATABLE, DIMENSION (:,:) :: geoflg, xtrflg, geoflg_reference, xtrflg_reference
   REAL    (KIND=r4), ALLOCATABLE, DIMENSION (:,:) :: height, land_water_flg, snowicefraction, &
        height_reference, land_water_flg_reference, snowicefraction_reference
-  REAL    (KIND=r4), ALLOCATABLE, DIMENSION (:,:) :: latitute, longitude, latitute_reference, longitude_reference
+  REAL    (KIND=r4), ALLOCATABLE, DIMENSION (:,:) :: latitude, longitude, latitude_reference, longitude_reference
   REAL    (KIND=r4), ALLOCATABLE, DIMENSION (:,:) :: szenith, sazimuth, szenith_reference, sazimuth_reference
   REAL    (KIND=r4), ALLOCATABLE, DIMENSION (:,:) :: vzenith, vazimuth, vzenith_reference, vazimuth_reference
   REAL    (KIND=r4), ALLOCATABLE, DIMENSION (:,:) :: razimuth, azimuth_reference
@@ -55,7 +55,7 @@ MODULE OMSAO_data_module
   INTEGER (KIND=i2), ALLOCATABLE, DIMENSION (:,:) :: time_utc, time_utc_reference
   REAL    (KIND=r8), ALLOCATABLE, DIMENSION (:,:) :: irradiance_prec, irradiance_wavl, irradiance_spec, &
        irradiance_wght, radref_spec, radref_wavl, radref_wght
-
+  LOGICAL, ALLOCATABLE, DIMENSION(:,:) :: yn_process_pixel
   ! -------------------------------------------------------------------
   ! Arrays for irradiance or radiance reference and ccd pixel selection
   ! -------------------------------------------------------------------
@@ -173,14 +173,14 @@ CONTAINS
     errstat = 0
     IF (.NOT. ALLOCATED(spacecraft_alt)) THEN
        print*, 'Allocating...'
-       ALLOCATE(spacecraft_alt(0:nt-1),xtrflg(1:nx,0:nt-1),instrument_flag(0:nt-1), &
-            latitute(1:nx,0:nt-1),longitude(1:nx,0:nt-1), szenith(1:nx,0:nt-1), &
+       ALLOCATE(spacecraft_alt(0:nt-1),time(0:nt-1),xtrflg(1:nx,0:nt-1),instrument_flag(0:nt-1), &
+            latitude(1:nx,0:nt-1),longitude(1:nx,0:nt-1), szenith(1:nx,0:nt-1), &
             sazimuth(1:nx,0:nt-1),vzenith(1:nx,0:nt-1),vazimuth(1:nx,0:nt-1), &
             razimuth(1:nx,0:nt-1), nwav_irrad(1:nx), nwav_rad(1:nx,0:nt-1), &
-            irradiance_wavl(1:nw,nx),irradiance_spec(1:nw,1:nx),omi_sol_wav_avg(1:nx), &
+            irradiance_wavl(1:nw,1:nx),irradiance_spec(1:nw,1:nx),omi_sol_wav_avg(1:nx), &
             ccdpix_selection(nx,4), ccdpix_exclusion(nx,2), radiance_wavl(1:nw,1:nx,0:nt-1), &
             radiance_spec(1:nw,1:nx,0:nt-1), radiance_prec(1:nw,1:nx,0:nt-1), &
-            radiance_qflg(1:nw,1:nx,0:nt-1), stat=errstat)
+            radiance_qflg(1:nw,1:nx,0:nt-1), yn_process_pixel(1:nx,0:nt-1), stat=errstat)
     ENDIF
 
   END SUBROUTINE allocate_radiance_variables  
