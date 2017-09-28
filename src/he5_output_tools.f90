@@ -1627,11 +1627,6 @@ SUBROUTINE he5_write_local_attributes ( addstr, data_field, errstat )
   locerrstat = HE5_SWwrlattr ( &
        data_field%Swath_ID, TRIM(ADJUSTL(data_field%Name)), units_attr, &
        HE5T_NATIVE_CHAR, nlen48, TRIM(ADJUSTL(data_field%Units)) )
-  ! UniqueFieldDefinition
-  nlen48 = data_field%LenUniqueFD
-  locerrstat = HE5_SWwrlattr ( &
-       data_field%Swath_ID, TRIM(ADJUSTL(data_field%Name)), ufd_attr, &
-       HE5T_NATIVE_CHAR, nlen48, TRIM(ADJUSTL(data_field%UniqueFD)) )
   ! Offset and ScaleFactor
   ! (suppose to be always DoublePrecsion to avoid rounding errors and improve
   !  compressibility)
@@ -2078,7 +2073,7 @@ SUBROUTINE saopge_geofield_read ( &
      ! --------------------------------------
      ! Geolocation field
      ! --------------------------------------
-     IF (geodata_field .EQ. thgt_field .OR. geodata_field .EQ. extr_field) THEN
+     IF ( geodata_field .EQ. extr_field) THEN
         locerrstat = HE5_SWrdfld ( pge_swath_id, TRIM(ADJUSTL(geodata_field)),         &
              he5_start_2d, he5_stride_2d, he5_edge_2d, geodata_i2(1:nxtrack,iline:iline+nblock-1) )
         geodata(1:nxtrack,iline:iline+nblock-1) = INT(geodata_i2(1:nxtrack,iline:iline+nblock-1), KIND = r4)
@@ -2239,7 +2234,7 @@ SUBROUTINE he5_write_geolocation ( nTimes, nXtrack, &
   ! ----------------------------------------------------------------------------
   he5_start_2d  = (/ 0, 0 /) ;  he5_stride_2d = (/ 1, 0 /) ; he5_edge_2d = (/ nTimes, 0 /)
 
-  locerrstat = HE5_SWWRFLD ( pge_swath_id, auraalt_field,   he5_start_2d, he5_stride_2d, he5_edge_2d, &
+  locerrstat = HE5_SWWRFLD ( pge_swath_id, alt_field,   he5_start_2d, he5_stride_2d, he5_edge_2d, &
        spacecraft_alt(0:nTimes-1) )
   locerrstat = HE5_SWWRFLD ( pge_swath_id, extr_field,      he5_start_2d, he5_stride_2d, he5_edge_2d, &
        INT(instrument_flag(0:nTimes-1), KIND=2) )
@@ -2260,10 +2255,6 @@ SUBROUTINE he5_write_geolocation ( nTimes, nXtrack, &
        vzenith(1:nXtrack,0:nTimes-1) )
   locerrstat = HE5_SWWRFLD ( pge_swath_id, xtr_field,    he5_start_2d, he5_stride_2d, he5_edge_2d, &
        xtrflg(1:nXtrack,0:nTimes-1) )
-  locerrstat = HE5_SWWRFLD ( pge_swath_id, thgt_field,   he5_start_2d, he5_stride_2d, he5_edge_2d, &
-       height(1:nXtrack,0:nTimes-1) )
-  locerrstat = HE5_SWWRFLD ( pge_swath_id, sif_field,    he5_start_2d, he5_stride_2d, he5_edge_2d, &
-       snowicefraction(1:nXtrack,0:nTimes-1) )
 
   ! ------------------
   ! Check error status

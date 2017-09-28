@@ -1,13 +1,11 @@
 MODULE OMSAO_he5_datafields_module
 
-  USE OMSAO_precision_module
-  USE OMSAO_indices_module,    ONLY: o3_t1_idx, o3_t3_idx
+  USE OMSAO_precision_module, ONLY: i4, r8
+  USE OMSAO_indices_module, ONLY: o3_t1_idx, o3_t3_idx
   USE OMSAO_parameters_module, ONLY: maxchlen
   USE OMSAO_he5_module
 
   IMPLICIT NONE
-
-  !INCLUDE 'hdfeos5.inc'
 
   ! ******************************************************
   ! In this MODULE we define the HE5 Data Fields that will
@@ -24,14 +22,13 @@ MODULE OMSAO_he5_datafields_module
   TYPE, PUBLIC :: DataField_HE5
      REAL      (KIND=r8)                      :: FillValue, MissingValue, ScaleFactor, Offset, SpecTemp
      REAL      (KIND=r8), DIMENSION (2)       :: ValidRange
-     CHARACTER (LEN=maxchlen)                 :: Name, Dimensions, Units, Title, UniqueFD
-     INTEGER   (KIND=i4)                      :: LenUnits, LenTitle, LenUniqueFD
+     CHARACTER (LEN=maxchlen)                 :: Name, Dimensions, Units, Title
+     INTEGER   (KIND=i4)                      :: LenUnits, LenTitle
      INTEGER   (KIND=i4)                      :: Swath_ID
      INTEGER   (KIND=i4)                      :: HE5_DataType
      INTEGER   (KIND=i4)                      :: Rank
      INTEGER   (KIND=i4), DIMENSION (maxrank) :: Dims
   END TYPE DataField_HE5
-
 
   ! --------------------------
   ! Composite HE5 Swath Fields
@@ -87,14 +84,12 @@ MODULE OMSAO_he5_datafields_module
          ! Find the numeric type of the data field.
          ! ----------------------------------------
          CALL he5_find_datatype ( TRIM(ADJUSTL(geo_field_specs(4,i))), numtype, missval )
-
          geo_he5fields(i)%ScaleFactor    = 1.0_r8
          geo_he5fields(i)%Offset         = 0.0_r8
          geo_he5fields(i)%Name           = TRIM(ADJUSTL(geo_field_names(1,i)))
          geo_he5fields(i)%Title          = TRIM(ADJUSTL(geo_field_names(2,i)))
          geo_he5fields(i)%Units          = TRIM(ADJUSTL(geo_field_specs(1,i)))
          geo_he5fields(i)%Dimensions     = TRIM(ADJUSTL(geo_field_specs(2,i)))
-         geo_he5fields(i)%UniqueFD       = TRIM(ADJUSTL(geo_field_specs(3,i)))
          geo_he5fields(i)%FillValue      = missval
          geo_he5fields(i)%MissingValue   = missval
          geo_he5fields(i)%Swath_ID       = pge_swath_id
@@ -103,7 +98,6 @@ MODULE OMSAO_he5_datafields_module
          geo_he5fields(i)%Dims           = (/ -1, -1, -1 /)
          geo_he5fields(i)%LenTitle       = LEN_TRIM(ADJUSTL(geo_field_names(2,i)))
          geo_he5fields(i)%LenUnits       = LEN_TRIM(ADJUSTL(geo_field_specs(1,i)))
-         geo_he5fields(i)%LenUniqueFD    = LEN_TRIM(ADJUSTL(geo_field_specs(3,i)))
          geo_he5fields(i)%ValidRange     = geo_valids(1:2,i)
       END DO
 
@@ -116,14 +110,12 @@ MODULE OMSAO_he5_datafields_module
          ! Find the numeric type of the data field.
          ! ----------------------------------------
          CALL he5_find_datatype ( TRIM(ADJUSTL(solcal_field_specs(4,i))), numtype, missval )
-
          sol_calfit_he5fields(i)%ScaleFactor    = 1.0_r8
          sol_calfit_he5fields(i)%Offset         = 0.0_r8
          sol_calfit_he5fields(i)%Name           = TRIM(ADJUSTL(solcal_field_names(1,i)))
          sol_calfit_he5fields(i)%Title          = TRIM(ADJUSTL(solcal_field_names(2,i)))
          sol_calfit_he5fields(i)%Units          = TRIM(ADJUSTL(solcal_field_specs(1,i)))
          sol_calfit_he5fields(i)%Dimensions     = TRIM(ADJUSTL(solcal_field_specs(2,i)))
-         sol_calfit_he5fields(i)%UniqueFD       = TRIM(ADJUSTL(solcal_field_specs(3,i)))
          sol_calfit_he5fields(i)%FillValue      = missval
          sol_calfit_he5fields(i)%MissingValue   = missval
          sol_calfit_he5fields(i)%Swath_ID       = pge_swath_id
@@ -132,7 +124,6 @@ MODULE OMSAO_he5_datafields_module
          sol_calfit_he5fields(i)%Dims           = (/ -1, -1, -1 /)
          sol_calfit_he5fields(i)%LenTitle       = LEN_TRIM(ADJUSTL(solcal_field_names(2,i)))
          sol_calfit_he5fields(i)%LenUnits       = LEN_TRIM(ADJUSTL(solcal_field_specs(1,i)))
-         sol_calfit_he5fields(i)%LenUniqueFD    = LEN_TRIM(ADJUSTL(solcal_field_specs(3,i)))
          sol_calfit_he5fields(i)%ValidRange     = solcal_valids(1:2,i)
       END DO
       DO i = 1, n_radcal_fields
@@ -140,14 +131,12 @@ MODULE OMSAO_he5_datafields_module
          ! Find the numeric type of the data field.
          ! ----------------------------------------
          CALL he5_find_datatype ( TRIM(ADJUSTL(radcal_field_specs(4,i))), numtype, missval )
-
          rad_calfit_he5fields(i)%ScaleFactor    = 1.0_r8
          rad_calfit_he5fields(i)%Offset         = 0.0_r8
          rad_calfit_he5fields(i)%Name           = TRIM(ADJUSTL(radcal_field_names(1,i)))
          rad_calfit_he5fields(i)%Title          = TRIM(ADJUSTL(radcal_field_names(2,i)))
          rad_calfit_he5fields(i)%Units          = TRIM(ADJUSTL(radcal_field_specs(1,i)))
          rad_calfit_he5fields(i)%Dimensions     = TRIM(ADJUSTL(radcal_field_specs(2,i)))
-         rad_calfit_he5fields(i)%UniqueFD       = TRIM(ADJUSTL(radcal_field_specs(3,i)))
          rad_calfit_he5fields(i)%FillValue      = missval
          rad_calfit_he5fields(i)%MissingValue   = missval
          rad_calfit_he5fields(i)%Swath_ID       = pge_swath_id
@@ -156,7 +145,6 @@ MODULE OMSAO_he5_datafields_module
          rad_calfit_he5fields(i)%Dims           = (/ -1, -1, -1 /)
          rad_calfit_he5fields(i)%LenTitle       = LEN_TRIM(ADJUSTL(radcal_field_names(2,i)))
          rad_calfit_he5fields(i)%LenUnits       = LEN_TRIM(ADJUSTL(radcal_field_specs(1,i)))
-         rad_calfit_he5fields(i)%LenUniqueFD    = LEN_TRIM(ADJUSTL(radcal_field_specs(3,i)))
          rad_calfit_he5fields(i)%ValidRange     = radcal_valids(1:2,i)
       END DO
       DO i = 1, n_radref_fields
@@ -164,14 +152,12 @@ MODULE OMSAO_he5_datafields_module
          ! Find the numeric type of the data field.
          ! ----------------------------------------
          CALL he5_find_datatype ( TRIM(ADJUSTL(radref_field_specs(4,i))), numtype, missval )
-
          rad_reffit_he5fields(i)%ScaleFactor    = 1.0_r8
          rad_reffit_he5fields(i)%Offset         = 0.0_r8
          rad_reffit_he5fields(i)%Name           = TRIM(ADJUSTL(radref_field_names(1,i)))
          rad_reffit_he5fields(i)%Title          = TRIM(ADJUSTL(radref_field_names(2,i)))
          rad_reffit_he5fields(i)%Units          = TRIM(ADJUSTL(radref_field_specs(1,i)))
          rad_reffit_he5fields(i)%Dimensions     = TRIM(ADJUSTL(radref_field_specs(2,i)))
-         rad_reffit_he5fields(i)%UniqueFD       = TRIM(ADJUSTL(radref_field_specs(3,i)))
          rad_reffit_he5fields(i)%FillValue      = missval
          rad_reffit_he5fields(i)%MissingValue   = missval
          rad_reffit_he5fields(i)%Swath_ID       = pge_swath_id
@@ -180,7 +166,6 @@ MODULE OMSAO_he5_datafields_module
          rad_reffit_he5fields(i)%Dims           = (/ -1, -1, -1 /)
          rad_reffit_he5fields(i)%LenTitle       = LEN_TRIM(ADJUSTL(radref_field_names(2,i)))
          rad_reffit_he5fields(i)%LenUnits       = LEN_TRIM(ADJUSTL(radref_field_specs(1,i)))
-         rad_reffit_he5fields(i)%LenUniqueFD    = LEN_TRIM(ADJUSTL(radref_field_specs(3,i)))
          rad_reffit_he5fields(i)%ValidRange     = radref_valids(1:2,i)
       END DO
       ! -----------------------------
@@ -191,14 +176,12 @@ MODULE OMSAO_he5_datafields_module
          ! Find the numeric type of the data field.
          ! ----------------------------------------
          CALL he5_find_datatype ( TRIM(ADJUSTL(comdata_field_specs(4,i))), numtype, missval )
-
          comdata_he5fields(i)%ScaleFactor    = 1.0_r8
          comdata_he5fields(i)%Offset         = 0.0_r8
          comdata_he5fields(i)%Name           = TRIM(ADJUSTL(comdata_field_names(1,i)))
          comdata_he5fields(i)%Title          = TRIM(ADJUSTL(comdata_field_names(2,i)))
          comdata_he5fields(i)%Units          = TRIM(ADJUSTL(comdata_field_specs(1,i)))
          comdata_he5fields(i)%Dimensions     = TRIM(ADJUSTL(comdata_field_specs(2,i)))
-         comdata_he5fields(i)%UniqueFD       = TRIM(ADJUSTL(comdata_field_specs(3,i)))
          comdata_he5fields(i)%FillValue      = missval
          comdata_he5fields(i)%MissingValue   = missval
          comdata_he5fields(i)%Swath_ID       = pge_swath_id
@@ -207,7 +190,6 @@ MODULE OMSAO_he5_datafields_module
          comdata_he5fields(i)%Dims           = (/ -1, -1, -1 /)
          comdata_he5fields(i)%LenTitle       = LEN_TRIM(ADJUSTL(comdata_field_names(2,i)))
          comdata_he5fields(i)%LenUnits       = LEN_TRIM(ADJUSTL(comdata_field_specs(1,i)))
-         comdata_he5fields(i)%LenUniqueFD    = LEN_TRIM(ADJUSTL(comdata_field_specs(3,i)))
          comdata_he5fields(i)%ValidRange     = comdata_valids(1:2,i)
       END DO
 
@@ -219,14 +201,12 @@ MODULE OMSAO_he5_datafields_module
          ! Find the numeric type of the data field.
          ! ----------------------------------------
          CALL he5_find_datatype ( TRIM(ADJUSTL(diagnostic_field_specs(4,i))), numtype, missval )
-
          diagnostic_he5fields(i)%ScaleFactor    = 1.0_r8
          diagnostic_he5fields(i)%Offset         = 0.0_r8
          diagnostic_he5fields(i)%Name           = TRIM(ADJUSTL(diagnostic_field_names(1,i)))
          diagnostic_he5fields(i)%Title          = TRIM(ADJUSTL(diagnostic_field_names(2,i)))
          diagnostic_he5fields(i)%Units          = TRIM(ADJUSTL(diagnostic_field_specs(1,i)))
          diagnostic_he5fields(i)%Dimensions     = TRIM(ADJUSTL(diagnostic_field_specs(2,i)))
-         diagnostic_he5fields(i)%UniqueFD       = TRIM(ADJUSTL(diagnostic_field_specs(3,i)))
          diagnostic_he5fields(i)%FillValue      = missval
          diagnostic_he5fields(i)%MissingValue   = missval
          diagnostic_he5fields(i)%Swath_ID       = pge_swath_id
@@ -235,7 +215,6 @@ MODULE OMSAO_he5_datafields_module
          diagnostic_he5fields(i)%Dims           = (/ -1, -1, -1 /)
          diagnostic_he5fields(i)%LenTitle       = LEN_TRIM(ADJUSTL(diagnostic_field_names(2,i)))
          diagnostic_he5fields(i)%LenUnits       = LEN_TRIM(ADJUSTL(diagnostic_field_specs(1,i)))
-         diagnostic_he5fields(i)%LenUniqueFD    = LEN_TRIM(ADJUSTL(diagnostic_field_specs(3,i)))
          diagnostic_he5fields(i)%ValidRange     = diagnostic_valids(1:2,i)
       END DO
 
@@ -248,14 +227,12 @@ MODULE OMSAO_he5_datafields_module
          ! Find the numeric type of the data field.
          ! ----------------------------------------
          CALL he5_find_datatype ( TRIM(ADJUSTL(voc_field_specs(4,i))), numtype, missval )
-
          voc_he5fields(i)%ScaleFactor    = 1.0_r8
          voc_he5fields(i)%Offset         = 0.0_r8
          voc_he5fields(i)%Name           = TRIM(ADJUSTL(voc_field_names(1,i)))
          voc_he5fields(i)%Title          = TRIM(ADJUSTL(voc_field_names(2,i)))
          voc_he5fields(i)%Units          = TRIM(ADJUSTL(voc_field_specs(1,i)))
          voc_he5fields(i)%Dimensions     = TRIM(ADJUSTL(voc_field_specs(2,i)))
-         voc_he5fields(i)%UniqueFD       = TRIM(ADJUSTL(voc_field_specs(3,i)))
          voc_he5fields(i)%FillValue      = missval
          voc_he5fields(i)%MissingValue   = missval
          voc_he5fields(i)%Swath_ID       = pge_swath_id
@@ -264,7 +241,6 @@ MODULE OMSAO_he5_datafields_module
          voc_he5fields(i)%Dims           = (/ -1, -1, -1 /)
          voc_he5fields(i)%LenTitle       = LEN_TRIM(ADJUSTL(voc_field_names(2,i)))
          voc_he5fields(i)%LenUnits       = LEN_TRIM(ADJUSTL(voc_field_specs(1,i)))
-         voc_he5fields(i)%LenUniqueFD    = LEN_TRIM(ADJUSTL(voc_field_specs(3,i)))
          voc_he5fields(i)%ValidRange     = voc_valids(1:2,i)
       END DO
 
@@ -277,14 +253,12 @@ MODULE OMSAO_he5_datafields_module
          ! Find the numeric type of the data field.
          ! ----------------------------------------
          CALL he5_find_datatype ( TRIM(ADJUSTL(wmamf_field_specs(4,i))), numtype, missval )
-
          wmamf_he5fields(i)%ScaleFactor    = 1.0_r8
          wmamf_he5fields(i)%Offset         = 0.0_r8
          wmamf_he5fields(i)%Name           = TRIM(ADJUSTL(wmamf_field_names(1,i)))
          wmamf_he5fields(i)%Title          = TRIM(ADJUSTL(wmamf_field_names(2,i)))
          wmamf_he5fields(i)%Units          = TRIM(ADJUSTL(wmamf_field_specs(1,i)))
          wmamf_he5fields(i)%Dimensions     = TRIM(ADJUSTL(wmamf_field_specs(2,i)))
-         wmamf_he5fields(i)%UniqueFD       = TRIM(ADJUSTL(wmamf_field_specs(3,i)))
          wmamf_he5fields(i)%FillValue      = missval
          wmamf_he5fields(i)%MissingValue   = missval
          wmamf_he5fields(i)%Swath_ID       = pge_swath_id
@@ -293,7 +267,6 @@ MODULE OMSAO_he5_datafields_module
          wmamf_he5fields(i)%Dims           = (/ -1, -1, -1 /)
          wmamf_he5fields(i)%LenTitle       = LEN_TRIM(ADJUSTL(wmamf_field_names(2,i)))
          wmamf_he5fields(i)%LenUnits       = LEN_TRIM(ADJUSTL(wmamf_field_specs(1,i)))
-         wmamf_he5fields(i)%LenUniqueFD    = LEN_TRIM(ADJUSTL(wmamf_field_specs(3,i)))
          wmamf_he5fields(i)%ValidRange     = wmamf_valids(1:2,i)
       END DO
 
@@ -311,7 +284,6 @@ MODULE OMSAO_he5_datafields_module
             o3_prefit_he5fields(i,j)%Dimensions     = TRIM(ADJUSTL(o3_prefit_fields_dims  (i,j)))
             o3_prefit_he5fields(i,j)%Units          = TRIM(ADJUSTL(o3_prefit_fields_units (i,j)))
             o3_prefit_he5fields(i,j)%Title          = TRIM(ADJUSTL(o3_prefit_fields_titles(i,j)))
-            o3_prefit_he5fields(i,j)%UniqueFD       = TRIM(ADJUSTL(o3_prefit_fields_ufd   (i,j)))
             o3_prefit_he5fields(i,j)%FillValue      = missval
             o3_prefit_he5fields(i,j)%MissingValue   = missval
             o3_prefit_he5fields(i,j)%Swath_ID       = pge_swath_id
@@ -320,7 +292,6 @@ MODULE OMSAO_he5_datafields_module
             o3_prefit_he5fields(i,j)%Dims           = (/ -1, -1, -1 /)
             o3_prefit_he5fields(i,j)%LenUnits       = LEN_TRIM(ADJUSTL(o3_prefit_fields_units (i,j)))
             o3_prefit_he5fields(i,j)%LenTitle       = LEN_TRIM(ADJUSTL(o3_prefit_fields_titles(i,j)))
-            o3_prefit_he5fields(i,j)%LenUniqueFD    = LEN_TRIM(ADJUSTL(o3_prefit_fields_ufd   (i,j)))
             o3_prefit_he5fields(i,j)%ValidRange     = o3_prefit_valids(1:2,i,j)
          END DO
       END DO
@@ -333,14 +304,12 @@ MODULE OMSAO_he5_datafields_module
          ! Find the numeric type of the data field.
          ! ----------------------------------------
          CALL he5_find_datatype ( TRIM(ADJUSTL(rs_field_specs(4,i))), numtype, missval )
-
          rs_he5fields(i)%ScaleFactor    = 1.0_r8
          rs_he5fields(i)%Offset         = 0.0_r8
          rs_he5fields(i)%Name           = TRIM(ADJUSTL(rs_field_names(1,i)))
          rs_he5fields(i)%Title          = TRIM(ADJUSTL(rs_field_names(2,i)))
          rs_he5fields(i)%Units          = TRIM(ADJUSTL(rs_field_specs(1,i)))
          rs_he5fields(i)%Dimensions     = TRIM(ADJUSTL(rs_field_specs(2,i)))
-         rs_he5fields(i)%UniqueFD       = TRIM(ADJUSTL(rs_field_specs(3,i)))
          rs_he5fields(i)%FillValue      = missval
          rs_he5fields(i)%MissingValue   = missval
          rs_he5fields(i)%Swath_ID       = pge_swath_id
@@ -349,7 +318,6 @@ MODULE OMSAO_he5_datafields_module
          rs_he5fields(i)%Dims           = (/ -1, -1, -1 /)
          rs_he5fields(i)%LenTitle       = LEN_TRIM(ADJUSTL(rs_field_names(2,i)))
          rs_he5fields(i)%LenUnits       = LEN_TRIM(ADJUSTL(rs_field_specs(1,i)))
-         rs_he5fields(i)%LenUniqueFD    = LEN_TRIM(ADJUSTL(rs_field_specs(3,i)))
          rs_he5fields(i)%ValidRange     = rs_valids(1:2,i)
       END DO
 
@@ -361,14 +329,12 @@ MODULE OMSAO_he5_datafields_module
          ! Find the numeric type of the data field.
          ! ----------------------------------------
          CALL he5_find_datatype ( TRIM(ADJUSTL(sw_field_specs(4,i))), numtype, missval )
-
          sw_he5fields(i)%ScaleFactor    = 1.0_r8
          sw_he5fields(i)%Offset         = 0.0_r8
          sw_he5fields(i)%Name           = TRIM(ADJUSTL(sw_field_names(1,i)))
          sw_he5fields(i)%Title          = TRIM(ADJUSTL(sw_field_names(2,i)))
          sw_he5fields(i)%Units          = TRIM(ADJUSTL(sw_field_specs(1,i)))
          sw_he5fields(i)%Dimensions     = TRIM(ADJUSTL(sw_field_specs(2,i)))
-         sw_he5fields(i)%UniqueFD       = TRIM(ADJUSTL(sw_field_specs(3,i)))
          sw_he5fields(i)%FillValue      = missval
          sw_he5fields(i)%MissingValue   = missval
          sw_he5fields(i)%Swath_ID       = pge_swath_id
@@ -377,7 +343,6 @@ MODULE OMSAO_he5_datafields_module
          sw_he5fields(i)%Dims           = (/ -1, -1, -1 /)
          sw_he5fields(i)%LenTitle       = LEN_TRIM(ADJUSTL(sw_field_names(2,i)))
          sw_he5fields(i)%LenUnits       = LEN_TRIM(ADJUSTL(sw_field_specs(1,i)))
-         sw_he5fields(i)%LenUniqueFD    = LEN_TRIM(ADJUSTL(sw_field_specs(3,i)))
          sw_he5fields(i)%ValidRange     = sw_valids(1:2,i)
       END DO
 

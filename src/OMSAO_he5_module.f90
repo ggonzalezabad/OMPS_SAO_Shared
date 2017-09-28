@@ -79,6 +79,7 @@ MODULE OMSAO_he5_module
   ! --------------------
   ! Fill Value attribute
   ! --------------------
+  CHARACTER (LEN= 9), PARAMETER :: fillval_attr = "FillValue"
   CHARACTER (LEN=12), PARAMETER :: missval_attr = "MissingValue"
   CHARACTER (LEN= 6), PARAMETER :: offset_attr  = "Offset"
   CHARACTER (LEN=11), PARAMETER :: scafac_attr  = "ScaleFactor"
@@ -120,20 +121,18 @@ MODULE OMSAO_he5_module
   ! ------------------------
   ! Swath geolocation fields
   ! ------------------------
-  CHARACTER (LEN=22), PARAMETER ::  extr_field    = "InstrumentQualityFlags"
-  CHARACTER (LEN=18), PARAMETER ::  auraalt_field = "SpacecraftAltitude"
-  CHARACTER (LEN= 4), PARAMETER ::  time_field    = "Time"
-  CHARACTER (LEN= 7), PARAMETER ::  utc_field     = "TimeUTC"
-  CHARACTER (LEN=13), PARAMETER ::  thgt_field    = "TerrainHeight"
-  CHARACTER (LEN=10), PARAMETER ::  scno_field    = "ScanNumber"
-  CHARACTER (LEN= 8), PARAMETER ::  lat_field     = "Latitude"
-  CHARACTER (LEN= 9), PARAMETER ::  lon_field     = "Longitude"
-  CHARACTER (LEN=15), PARAMETER ::  sif_field     = "SnowIceFraction"
-  CHARACTER (LEN=17), PARAMETER ::  saa_field     = "SolarAzimuthAngle"
-  CHARACTER (LEN=16), PARAMETER ::  sza_field     = "SolarZenithAngle"
-  CHARACTER (LEN=19), PARAMETER ::  vaa_field     = "ViewingAzimuthAngle"
-  CHARACTER (LEN=18), PARAMETER ::  vza_field     = "ViewingZenithAngle"
-  CHARACTER (LEN=18), PARAMETER ::  xtr_field     = "XtrackQualityFlags"
+  CHARACTER (LEN= 8), PARAMETER ::  lat_field   = "Latitude"
+  CHARACTER (LEN= 9), PARAMETER ::  lon_field   = "Longitude"
+  CHARACTER (LEN=17), PARAMETER ::  saa_field   = "SolarAzimuthAngle"
+  CHARACTER (LEN=16), PARAMETER ::  sza_field   = "SolarZenithAngle"
+  CHARACTER (LEN=19), PARAMETER ::  vaa_field   = "ViewingAzimuthAngle"
+  CHARACTER (LEN=18), PARAMETER ::  vza_field   = "ViewingZenithAngle"
+  CHARACTER (LEN=18), PARAMETER ::  raa_field   = "RelativeAzimuthAngle"
+  CHARACTER (LEN=23), PARAMETER ::  xtr_field   = "GroundPixelQualityFlags"
+  CHARACTER (LEN=22), PARAMETER ::  extr_field  = "InstrumentQualityFlags"
+  CHARACTER (LEN=18), PARAMETER ::  alt_field   = "SpacecraftAltitude"
+  CHARACTER (LEN= 5), PARAMETER ::  time_field  = "TAI93"
+  CHARACTER (LEN= 7), PARAMETER ::  utc_field   = "TimeUTC"
 
   ! -----------------
   ! Swath data fields
@@ -242,48 +241,51 @@ MODULE OMSAO_he5_module
   ! ------------------
   ! Geolocation fields
   ! ------------------
-  INTEGER (KIND=i4), PARAMETER :: n_gfields = 11
-  CHARACTER (LEN=27), DIMENSION (2,n_gfields), PARAMETER ::  &
+  INTEGER (KIND=i4), PARAMETER :: n_gfields = 12
+  CHARACTER (LEN=41), DIMENSION (2,n_gfields), PARAMETER ::  &
        geo_field_names = RESHAPE ( (/ &
-       "Latitude                   ","Geodetic Latitude          ",    &
-       "Longitude                  ","Geodetic Longitude         ",    &
-       "SnowIceFraction            ","Snow Ice Fraction          ",    &
-       "SolarAzimuthAngle          ","Solar Azimuth Angle        ",    &
-       "SolarZenithAngle           ","Solar Zenith Angle         ",    &
-       "SpacecraftAltitude         ","Altitude of Aura Spacecraft",    &
-       "TerrainHeight              ","Terrain Height             ",    &
-       "ViewingAzimuthAngle        ","Viewing Azimuth Angle      ",    &
-       "ViewingZenithAngle         ","Viewing Zenith Angle       ",    &
-       "XtrackQualityFlags         ","Cross-Track Quality Flags  ",    &
-       "InstrumentQualityFlags     ","Instrument Quality Flags   "  /),&
+       "Latitude                                  ","Geodetic Latitude                         ",    &
+       "Longitude                                 ","Geodetic Longitude                        ",    &
+       "SolarAzimuthAngle                         ","Solar Azimuth Angle                       ",    &
+       "SolarZenithAngle                          ","Solar Zenith Angle                        ",    &
+       "ViewingAzimuthAngle                       ","Viewing Azimuth Angle                     ",    &
+       "ViewingZenithAngle                        ","Viewing Zenith Angle                      ",    &
+       "RelativeAzimuthAngle                      ","Relative Azimuth Angle                    ",    &
+       "GroundPixelQualityFlags                   ","Pixel Level Geolocation Data Quality Flags",    &
+       "InstrumentQualityFlags                    ","Instrument Quality Flags                  ",    &
+       "SpacecraftAltitude                        ","Altitude of Spacecraft                    ",    &
+       "TAI93                                     ","TAI93 Image Midpoint Time                 ",    &
+       "TimeUTC                                   ","UTC Image Midpoint Time                   "  /),&
        (/ 2, n_gfields /) )
   CHARACTER (LEN=14), DIMENSION (4,n_gfields), PARAMETER ::  &
        geo_field_specs = RESHAPE ( (/ &
-       "deg           ","nXtrack,nTimes","Aura-Shared   ","r4            ",    &
-       "deg           ","nXtrack,nTimes","Aura-Shared   ","r4            ",    &
-       "NoUnits       ","nXtrack,nTimes","Aura-Shared   ","r4            ",    &
-       "deg           ","nXtrack,nTimes","Aura-Shared   ","r4            ",    &
-       "deg           ","nXtrack,nTimes","Aura-Shared   ","r4            ",    &
-       "m             ","nTimes        ","Aura-Shared   ","r4            ",    &
-       "hPa           ","nXtrack,nTimes","OMI-Specific  ","r4            ",    &
-       "deg           ","nXtrack,nTimes","OMI-Specific  ","r4            ",    &
-       "deg           ","nXtrack,nTimes","OMI-Specific  ","r4            ",    &
-       "NoUnits       ","nXtrack,nTimes","OMI-Specific  ","i1            ",    &
-       "NoUnits       ","nTimes        ","OMI-Specific  ","i2            "  /),&
+       "deg           ","nXtrack,nTimes","              ","r4            ",    &
+       "deg           ","nXtrack,nTimes","              ","r4            ",    &
+       "deg           ","nXtrack,nTimes","              ","r4            ",    &
+       "deg           ","nXtrack,nTimes","              ","r4            ",    &
+       "deg           ","nXtrack,nTimes","              ","r4            ",    &
+       "deg           ","nXtrack,nTimes","              ","r4            ",    &
+       "deg           ","nXtrack,nTimes","              ","r4            ",    &
+       "              ","nXtrack,nTimes","              ","i2            ",    &
+       "              ","nTimes        ","              ","i4            ",    &
+       "m             ","nTimes        ","              ","r4            ",    &
+       "Seconds       ","nTimes        ","              ","r4            ",    &
+       "              ","nTimes,nUTCdim","              ","ch            "  /),&
        (/ 4, n_gfields /) )
   REAL (KIND=r8), DIMENSION ( 2, n_gfields ), PARAMETER :: &
        geo_valids = RESHAPE (       (/  &
-       -90.0_r8,     +90.0_r8,          & !Latitude
-       -180.0_r8,   +180.0_r8,          & !Longitude
-       zero_r8,     +100.0_r8,          & !Snow Ice Fraction
-       -180.0_r8,   +180.0_r8,          & !SAA
-       zero_r8,     +180.0_r8,          & !SZA
-       zero_r8,     ABS(r8_missval),    & !Spacecraft altitutude
-       -1000.0_r8,  10000.0_r8,         & !Terrain height
-       -180.0_r8,   +180.0_r8,          & !VAA
-       zero_r8,     +180.0_r8,          & !VZA
-       zero_r8,     +127.0_r8,          & !Xtrack quality flag
-       zero_r8,     +11147.0_r8     /), & !Instrument quality flag
+       -90.0_r8,     +90.0_r8,     & !Latitude
+       -180.0_r8,   +180.0_r8,     & !Longitude
+       -180.0_r8,   +180.0_r8,     & !SAA
+       zero_r8,     +180.0_r8,     & !SZA
+       -180.0_r8,   +180.0_r8,     & !VAA
+       zero_r8,     +180.0_r8,     & !VZA
+       -180.0_r8,   +180.0_r8,     & !RAA
+       1.0_r8, 1.0_r8,       & !Ground Pixel Quality Falgs
+       1.0_r8, 1.0_r8,       & !Instrument Quality Flags
+       400000.0_r8, 900000.0_r8,       & !Spacecraft altitutude
+       valid_min_r8, valid_max_r8, & !TAI93
+       zero_r8,   zero_r8      /), & !UTCTime
        (/ 2, n_gfields /) )
 
   ! --------------------------------------------  
