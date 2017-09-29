@@ -251,8 +251,7 @@ SUBROUTINE omi_fitting (                                  &
   ! ------------------------
   ! Write geolocation fields
   ! ------------------------
-  CALL he5_write_geolocation ( nTimesRad, nXtrackRad, &
-       first_wc_pix, last_wc_pix, errstat)
+  CALL he5_write_geolocation ( nTimesRad, nXtrackRad, errstat)
   stop
   ! ---------------------------------------------------------------
   ! Work out pixel corners so we can plot and write them to L2 file

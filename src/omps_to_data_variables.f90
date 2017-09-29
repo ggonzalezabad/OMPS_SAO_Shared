@@ -7,7 +7,7 @@ SUBROUTINE omps_to_data_variables (omps_data,nt,nx,nw)
   ! Modules containing the variables to be filled up
   ! ------------------------------------------------
   USE OMSAO_precision_module, ONLY: i4, r8
-  USE OMSAO_data_module, ONLY: spacecraft_alt, time, xtrflg, instrument_flag, &
+  USE OMSAO_data_module, ONLY: spacecraft_alt, time, utc_time, xtrflg, instrument_flag, &
        latitude, latitudecorner, longitude, longitudecorner, szenith, sazimuth, &
        vzenith, vazimuth, vzenith, vazimuth, razimuth, nwav_irrad, nwav_rad, &
        ccdpix_selection, radiance_wavl, radiance_spec, radiance_prec, radiance_qflg, &
@@ -41,7 +41,8 @@ SUBROUTINE omps_to_data_variables (omps_data,nt,nx,nw)
   ntime_rad = nt
   nxtrack_rad = nx
   spacecraft_alt(0:nt-1) = REAL(omps_data%SpacecraftAltitude(1:nt),KIND=4)
-  time(0:nt-1) = REAL(omps_data%ImageMidPoint_TAI93(1:nt),KIND=4)
+  time(0:nt-1) = omps_data%ImageMidPoint_TAI93(1:nt)
+  utc_time(0:nt-1) = omps_data%UTC_CCSDS_A(1:nt)
   xtrflg(1:nx,0:nt-1) = OMPS_data%GroundPixelQualityFlags(1:nx,1:nt)
   instrument_flag(0:nt-1) = OMPS_data%InstrumentQualityFlags(1:nt)
 
@@ -62,6 +63,13 @@ SUBROUTINE omps_to_data_variables (omps_data,nt,nx,nw)
   vzenith(1:nx,0:nt-1) = OMPS_data%SatelliteZenithAngle(1:nx,1:nt)
   vazimuth(1:nx,0:nt-1) = OMPS_data%SatelliteAzimuth(1:nx,1:nt)
   razimuth(1:nx,0:nt-1) = (sazimuth(1:nx,0:nt-1) + 180.0 - vazimuth(1:nx,0:nt-1))
+  WHERE( razimuth < -180.0)
+     razimuth = razimuth + 360.0
+  END WHERE
+  WHERE( razimuth >  180.0)
+     razimuth = razimuth - 360.0
+  END WHERE
+  
 
   earthsundistance = REAL(OMPS_data%SunEarthDistance,KIND=4)
 

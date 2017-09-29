@@ -36,8 +36,8 @@ MODULE OMSAO_data_module
   ! ------------------------------------------------------------------
   ! Arrays for L1b data (radiance, radiance reference, and irradiance)
   ! ------------------------------------------------------------------
-  REAL    (KIND=r4), ALLOCATABLE, DIMENSION (:) :: spacecraft_alt, spacecraft_alt_reference, &
-       time, time_reference
+  REAL    (KIND=r4), ALLOCATABLE, DIMENSION (:) :: spacecraft_alt, spacecraft_alt_reference
+  REAL    (KIND=r8), ALLOCATABLE, DIMENSION (:) :: time, time_reference       
   INTEGER (KIND=i4), ALLOCATABLE, DIMENSION (:) :: radiance_errstat, instrument_flag, &
        radiance_errstat_reference, instrument_flag_reference
   INTEGER (KIND=i2), ALLOCATABLE, DIMENSION (:,:) :: geoflg, xtrflg, geoflg_reference, xtrflg_reference
@@ -57,6 +57,8 @@ MODULE OMSAO_data_module
   REAL    (KIND=r8), ALLOCATABLE, DIMENSION (:,:) :: irradiance_prec, irradiance_wavl, irradiance_spec, &
        irradiance_wght, radref_spec, radref_wavl, radref_wght
   LOGICAL, ALLOCATABLE, DIMENSION(:,:) :: yn_process_pixel
+  CHARACTER(LEN=nUTCdim), ALLOCATABLE, DIMENSION(:) :: utc_time
+
   ! -------------------------------------------------------------------
   ! Arrays for irradiance or radiance reference and ccd pixel selection
   ! -------------------------------------------------------------------
@@ -181,7 +183,7 @@ CONTAINS
             irradiance_wavl(1:nw,1:nx),irradiance_spec(1:nw,1:nx),omi_sol_wav_avg(1:nx), &
             ccdpix_selection(nx,4), ccdpix_exclusion(nx,2), radiance_wavl(1:nw,1:nx,0:nt-1), &
             radiance_spec(1:nw,1:nx,0:nt-1), radiance_prec(1:nw,1:nx,0:nt-1), &
-            radiance_qflg(1:nw,1:nx,0:nt-1), yn_process_pixel(1:nx,0:nt-1), stat=errstat)
+            radiance_qflg(1:nw,1:nx,0:nt-1), yn_process_pixel(1:nx,0:nt-1), utc_time(0:nt-1), stat=errstat)
     ENDIF
 
   END SUBROUTINE allocate_radiance_variables  

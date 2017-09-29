@@ -129,7 +129,7 @@ MODULE OMSAO_he5_module
   CHARACTER (LEN=16), PARAMETER ::  sza_field   = "SolarZenithAngle"
   CHARACTER (LEN=19), PARAMETER ::  vaa_field   = "ViewingAzimuthAngle"
   CHARACTER (LEN=18), PARAMETER ::  vza_field   = "ViewingZenithAngle"
-  CHARACTER (LEN=18), PARAMETER ::  raa_field   = "RelativeAzimuthAngle"
+  CHARACTER (LEN=20), PARAMETER ::  raa_field   = "RelativeAzimuthAngle"
   CHARACTER (LEN=23), PARAMETER ::  xtr_field   = "GroundPixelQualityFlags"
   CHARACTER (LEN=22), PARAMETER ::  extr_field  = "InstrumentQualityFlags"
   CHARACTER (LEN=18), PARAMETER ::  alt_field   = "SpacecraftAltitude"
@@ -263,8 +263,8 @@ MODULE OMSAO_he5_module
        geo_field_specs = RESHAPE ( (/ &
        "deg             ","nXtrack,nTimes  ","r4              ",    &
        "deg             ","nXtrack,nTimes  ","r4              ",    &
-       "deg             ","nXtrack,nTimes,4","r4              ",    &
-       "deg             ","nXtrack,nTimes,4","r4              ",    &
+       "deg             ","4,nXtrack,nTimes","r4              ",    &
+       "deg             ","4,nXtrack,nTimes","r4              ",    &
        "deg             ","nXtrack,nTimes  ","r4              ",    &
        "deg             ","nXtrack,nTimes  ","r4              ",    &
        "deg             ","nXtrack,nTimes  ","r4              ",    &
@@ -273,7 +273,7 @@ MODULE OMSAO_he5_module
        "                ","nXtrack,nTimes  ","i2              ",    &
        "                ","nTimes          ","i4              ",    &
        "m               ","nTimes          ","r4              ",    &
-       "Seconds         ","nTimes          ","r4              ",    &
+       "Seconds         ","nTimes          ","r8              ",    &
        "                ","nTimes,nUTCdim  ","ch              "  /),&
        (/ 3, n_gfields /) )
   REAL (KIND=r8), DIMENSION ( 2, n_gfields ), PARAMETER :: &
@@ -733,7 +733,7 @@ MODULE OMSAO_he5_module
        he5_swwrfld,    he5_swwrgattr,  he5_swwrlattr, HE5_SWfldinfo,                 &
        HE5_SWdefcomp,  HE5_SWdefchunk, HE5_SWsetfill, HE5_SWdefcomch,  HE5_GDOPEN,   &
        HE5_GDATTACH,   HE5_GDRDFLD,    HE5_GDCLOSE,   HE5_GDINQFLDS,   HE5_GDDETACH, &
-       HE5_GDINQLATTRS,HE5_GDRDLATTR,  HE5_SWinqdflds
+       HE5_GDINQLATTRS,HE5_GDRDLATTR,  HE5_SWinqdflds,HE5_SWwrcharfld
 
   INTEGER (KIND=C_LONG), EXTERNAL :: HE5_SWinqswath, HE5_SWinqdims
 

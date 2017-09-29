@@ -1877,11 +1877,11 @@ SUBROUTINE he5_check_for_compressibility ( &
      n_chunk_dim = 2
      chunk_dim(1:n_chunk_dim) = (/ INT(max_calfit_idx,KIND=C_LONG), INT(nxtrack_rad,KIND=C_LONG) /)
   END IF
-  IF ( field_dim == "nXtrack,nTimes,4" ) THEN
+  IF ( field_dim == "4,nXtrack,nTimes" ) THEN
      yn_compress_field = .TRUE.
      n_chunk_dim = 3
      chunk_dim(1:n_chunk_dim) = &
-          (/INT(nxtrack_rad,KIND=C_LONG), INT(ntime_rad,KIND=C_LONG), INT(4,KIND=C_LONG) /)
+          (/ INT(4,KIND=C_LONG), INT(nxtrack_rad,KIND=C_LONG), INT(ntime_rad,KIND=C_LONG) /)
   END IF
   IF ( field_dim == "nFitElements,nXtrack,nTimes" ) THEN
      yn_compress_field = .TRUE.
@@ -2160,12 +2160,11 @@ SUBROUTINE saopge_columninfo_read (              &
   RETURN
 END SUBROUTINE saopge_columninfo_read
 
-SUBROUTINE he5_write_geolocation ( nTimes, nXtrack, &
-     fpix, lpix, locerrstat)
+SUBROUTINE he5_write_geolocation ( nTimes, nXtrack, locerrstat)
 
   USE OMSAO_data_module, ONLY: spacecraft_alt, instrument_flag, &
-       latitude, longitude, sazimuth, szenith, &
-       vazimuth, vzenith, xtrflg
+       latitude, longitude, sazimuth, szenith, razimuth, ntime_rad, nxtrack_rad, &
+       vazimuth, vzenith, xtrflg, latitudecorner, longitudecorner, time, utc_time
   USE OMSAO_he5_module
   USE OMSAO_errstat_module, ONLY: he5_stat_ok, omsao_e_he5swwrfld, &
        pge_errstat_ok, pge_errstat_error, vb_lev_default, error_check
@@ -2181,24 +2180,14 @@ SUBROUTINE he5_write_geolocation ( nTimes, nXtrack, &
   ! ---------------
   ! Input variables
   ! ---------------
-  INTEGER (KIND=i4), INTENT (IN) :: nTimes, nXtrack, fpix, lpix
+  INTEGER (KIND=i4), INTENT (IN) :: nTimes, nXtrack
 
   ! ---------------
   ! Output variable
   ! ---------------
   INTEGER (KIND=i4), INTENT (INOUT) :: locerrstat
 
-  ! --------------
-  ! Local variable
-  ! --------------
-  INTEGER (KIND=i4) :: npix
-
   locerrstat = pge_errstat_ok
-
-  ! -----------------------------------------------
-  ! Number of cross-track pixels actually processed
-  ! -----------------------------------------------
-  npix = lpix - fpix + 1
 
   ! ---------------------------------------------------------------------------
   ! Geolocation Fields: Latitude, Longitude, Solar Zenith, Viewing Zenith,
@@ -2208,29 +2197,55 @@ SUBROUTINE he5_write_geolocation ( nTimes, nXtrack, &
   !       a different stride for writing. We write those ones first, then set
   !       the strides for the rest of the fields.
   ! ----------------------------------------------------------------------------
-  he5_start_2d  = (/ 0, 0 /) ;  he5_stride_2d = (/ 1, 0 /) ; he5_edge_2d = (/ nTimes, 0 /)
+  he5_start_1d  = 0 ;  he5_stride_1d = 1 ; he5_edge_1d = ntime_rad
+  ! Spacecraft altidude
+  locerrstat = HE5_SWWRFLD ( pge_swath_id, alt_field, he5_start_1d, he5_stride_1d, he5_edge_1d, &
+       REAL(spacecraft_alt(0:nTimes-1),KIND=4) )
+  ! Instrument quality flags
+  locerrstat = HE5_SWWRFLD ( pge_swath_id, extr_field, he5_start_1d, he5_stride_1d, he5_edge_1d, &
+       INT(instrument_flag(0:nTimes-1), KIND=4) )
+  ! TAI93
+  locerrstat = HE5_SWWRFLD ( pge_swath_id, time_field, he5_start_1d, he5_stride_1d, he5_edge_1d, &
+       REAL(time(0:nTimes-1), KIND=8) )
+  ! UTCtime <--FIXME
+  he5_start_1d  = 0 ;  he5_stride_1d = 1 ; he5_edge_1d = ntime_rad
+  locerrstat = HE5_SWWRCHARFLD ( pge_swath_id, utc_field, len(utc_time(0)), ntime_rad, he5_start_1d, &
+       he5_stride_1d, he5_edge_1d, utc_time(0:ntime_rad-1) )
 
-  locerrstat = HE5_SWWRFLD ( pge_swath_id, alt_field,   he5_start_2d, he5_stride_2d, he5_edge_2d, &
-       spacecraft_alt(0:nTimes-1) )
-  locerrstat = HE5_SWWRFLD ( pge_swath_id, extr_field,      he5_start_2d, he5_stride_2d, he5_edge_2d, &
-       INT(instrument_flag(0:nTimes-1), KIND=2) )
+  he5_start_2d = (/ 0, 0 /) ;  he5_stride_2d = (/ 1, 1 /) ; he5_edge_2d = (/ nxtrack_rad, ntime_rad /)
 
-  he5_start_2d = (/ 0, 0 /) ;  he5_stride_2d = (/ 1, 1 /) ; he5_edge_2d = (/ nXtrack, nTimes /)
-
-  locerrstat = HE5_SWWRFLD ( pge_swath_id, lat_field,    he5_start_2d, he5_stride_2d, he5_edge_2d, &
-       latitude(1:nXtrack,0:nTimes-1) )
-  locerrstat = HE5_SWWRFLD ( pge_swath_id, lon_field,    he5_start_2d, he5_stride_2d, he5_edge_2d, &
-       longitude(1:nXtrack,0:nTimes-1) )
-  locerrstat = HE5_SWWRFLD ( pge_swath_id, saa_field,    he5_start_2d, he5_stride_2d, he5_edge_2d, &
-       sazimuth(1:nXtrack,0:nTimes-1) )
-  locerrstat = HE5_SWWRFLD ( pge_swath_id, sza_field,    he5_start_2d, he5_stride_2d, he5_edge_2d, &
-       szenith(1:nXtrack,0:nTimes-1) )
-  locerrstat = HE5_SWWRFLD ( pge_swath_id, vaa_field,    he5_start_2d, he5_stride_2d, he5_edge_2d, &
-       vazimuth(1:nXtrack,0:nTimes-1) )
-  locerrstat = HE5_SWWRFLD ( pge_swath_id, vza_field,    he5_start_2d, he5_stride_2d, he5_edge_2d, &
-       vzenith(1:nXtrack,0:nTimes-1) )
+  ! Latitude
+  locerrstat = HE5_SWWRFLD ( pge_swath_id, lat_field, he5_start_2d, he5_stride_2d, he5_edge_2d, &
+       REAL(latitude(1:nXtrack,0:nTimes-1), KIND=4) )
+  ! Longitude
+  locerrstat = HE5_SWWRFLD ( pge_swath_id, lon_field, he5_start_2d, he5_stride_2d, he5_edge_2d, &
+       REAL(longitude(1:nXtrack,0:nTimes-1), KIND=4) )
+  ! Solar Azimuth Angle
+  locerrstat = HE5_SWWRFLD ( pge_swath_id, saa_field, he5_start_2d, he5_stride_2d, he5_edge_2d, &
+       REAL(sazimuth(1:nXtrack,0:nTimes-1), KIND=4) )
+  ! Solar Zenith Angle
+  locerrstat = HE5_SWWRFLD ( pge_swath_id, sza_field, he5_start_2d, he5_stride_2d, he5_edge_2d, &
+       REAL(szenith(1:nXtrack,0:nTimes-1), KIND=4) )
+  ! Viewing Azimuth Angle
+  locerrstat = HE5_SWWRFLD ( pge_swath_id, vaa_field, he5_start_2d, he5_stride_2d, he5_edge_2d, &
+       REAL(vazimuth(1:nXtrack,0:nTimes-1), KIND=4) )
+  ! Viewing Zenith Angle
+  locerrstat = HE5_SWWRFLD ( pge_swath_id, vza_field, he5_start_2d, he5_stride_2d, he5_edge_2d, &
+       REAL(vzenith(1:nXtrack,0:nTimes-1), KIND=4) )
+  ! Relative Azimuth Angle
+  locerrstat = HE5_SWWRFLD ( pge_swath_id, raa_field, he5_start_2d, he5_stride_2d, he5_edge_2d, &
+       REAL(razimuth(1:nXtrack,0:nTimes-1), KIND=4) )
+  ! Ground pixel Quality Flag
   locerrstat = HE5_SWWRFLD ( pge_swath_id, xtr_field,    he5_start_2d, he5_stride_2d, he5_edge_2d, &
-       xtrflg(1:nXtrack,0:nTimes-1) )
+       INT(xtrflg(1:nXtrack,0:nTimes-1), KIND=2) )
+
+  he5_start_3d = (/ 0, 0, 0 /) ;  he5_stride_3d = (/ 1, 1, 1 /) ; he5_edge_3d = (/4, nxtrack_rad, ntime_rad /)
+  ! Latitude Corner
+  locerrstat = HE5_SWWRFLD ( pge_swath_id, latcor_field, he5_start_3d, he5_stride_3d, he5_edge_3d, &
+       REAL(latitudecorner(1:4,1:nXtrack,0:nTimes-1), KIND=4) )
+  ! Longitude Corner
+  locerrstat = HE5_SWWRFLD ( pge_swath_id, loncor_field, he5_start_3d, he5_stride_3d, he5_edge_3d, &
+       REAL(longitudecorner(1:4,1:nXtrack,0:nTimes-1), KIND=4) )
 
   ! ------------------
   ! Check error status
