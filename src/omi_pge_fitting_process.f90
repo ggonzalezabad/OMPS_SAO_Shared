@@ -119,7 +119,7 @@ SUBROUTINE omi_fitting (                                  &
 
   USE OMSAO_errstat_module, ONLY: pge_errstat_ok, pge_errstat_fatal, &
        pge_errstat_warning, pge_errstat_error, f_sep, omsao_w_nopixel, &
-       omsao_w_subroutine, vb_lev_default, error_check
+       omsao_w_subroutine, vb_lev_default, error_check, omsao_f_subroutine
   USE OMSAO_parameters_module, ONLY: i2_missval
   USE OMSAO_variables_module, ONLY: ctrvar, pcfvar
   USE OMSAO_data_module, ONLY: latitude, column_amount, &
@@ -127,12 +127,11 @@ SUBROUTINE omi_fitting (                                  &
        solcal_itnum, solcal_xflag, &
        longitude, column_uncert, n_comm_wvl, szenith, &
        fit_rms, vzenith, fitconv_flag, height
-  USE OMSAO_he5_module, ONLY:  pge_swath_name
   USE OMSAO_he5_datafields_module
   USE OMSAO_solar_wavcal_module, ONLY: xtrack_solar_calibration_loop
   USE OMSAO_radiance_ref_module, ONLY: &
        radiance_reference_lnums, xtrack_radiance_reference_loop, create_radiance_reference
-  USE OMSAO_wfamf_module, ONLY: omi_read_climatology, CmETA, amf_calculation_bis
+  USE OMSAO_wfamf_module, ONLY: read_climatology, amf_calculation_bis
   USE OMSAO_pixelcorner_module, ONLY: compute_pixel_corners
   USE OMSAO_Reference_sector_module, ONLY: Reference_Sector_Correction
   USE OMSAO_omps_reader, ONLY: omps_nmev_type
@@ -215,44 +214,46 @@ SUBROUTINE omi_fitting (                                  &
   ! "rr" ones (in this case, the dimensions are the same). Otherwise we
   ! have to read them from the radiance reference granule.
   ! --------------------------------------------------------------------
-  IF ( TRIM(ADJUSTL(pcfvar%l1b_radref_fname)) /= TRIM(ADJUSTL(pcfvar%l1b_rad_fname)) ) THEN
-    CALL omi_set_xtrpix_range ( &
+  IF (ctrvar%yn_radiance_reference) THEN
+     CALL omi_set_xtrpix_range ( &
           nTimesRadRR, nXtrackRadRR, ctrvar%pixnum_lim(3:4), &
-           omi_xtrpix_range_rr(0:nTimesRadRR-1,1:2), &
+          omi_xtrpix_range_rr(0:nTimesRadRR-1,1:2), &
           first_wc_pix, last_wc_pix, errstat )
-     pge_error_status = MAX ( pge_error_status, errstat )
-     IF ( pge_error_status >= pge_errstat_error )  GO TO 666
-  ELSE
-     omi_xtrpix_range_rr(0:nTimesRadRR-1,1:2) = omi_xtrpix_range(0:nTimesRad-1,1:2)
-  END IF
+     CALL error_check ( errstat, pge_errstat_ok, pge_errstat_fatal, OMSAO_F_SUBROUTINE, &
+          modulename//f_sep//"omi_set_xtrpix_range for radiance reference", vb_lev_default, pge_error_status )
+     IF (pge_error_status >= pge_errstat_error ) GO TO 666
+  ENDIF
 
-  ! ---------------------------------------------------------------
-  ! The Climatology is going to be read here and kept in memory. If
-  ! this has a bad impact in the efficiency of the application then
-  ! I will find a different way. We are doing this to be able to in
-  ! itialize the output he5 with the correct number of levels for
-  ! the Scattering weights and Gas_profiles output. We are going to
-  ! use the number of levels in the climatology as the number of le
-  ! vels of the reported scattering weights.
-  ! ---------------------------------------------------------------
-  CALL omi_read_climatology ( errstat )
+  ! -----------------------------------------------------
+  ! Obtain number of levels in climatology and if present
+  ! read values for molecule of intetest (<--FIXME)  
+  ! -----------------------------------------------------
+  CALL read_climatology ( errstat )
   
   ! ----------------------------------------
   ! Initialization of HE5 output data fields
   ! ----------------------------------------
-  errstat = HE5_Init_Swath ( TRIM(ADJUSTL(pcfvar%l2_fname)), pge_swath_name, nTimesRad, nXtrackRad, CmETA )
-  CALL he5_initialize_datafields ( )
+  errstat = HE5_Init_Swath ( TRIM(ADJUSTL(pcfvar%l2_fname)) )
+  CALL error_check ( errstat, pge_errstat_ok, pge_errstat_fatal, OMSAO_F_SUBROUTINE, &
+       modulename//f_sep//"HE5_Init_Swath", vb_lev_default, pge_error_status )
+  IF (pge_error_status >= pge_errstat_error ) GO TO 666
 
-  errstat = HE5_Define_Fields ( pge_idx, pge_swath_name, nTimesRad, nXtrackRad, CmETA )
-  pge_error_status = MAX ( pge_error_status, errstat )
-  IF ( pge_error_status >= pge_errstat_error )  GO TO 666
-  
+  CALL he5_initialize_datafields ( )
+  CALL error_check ( errstat, pge_errstat_ok, pge_errstat_fatal, OMSAO_F_SUBROUTINE, &
+       modulename//f_sep//"HE5_Initialize_datafields", vb_lev_default, pge_error_status )
+  IF (pge_error_status >= pge_errstat_error ) GO TO 666
+
+  errstat = HE5_Define_Fields ( )
+  CALL error_check ( errstat, pge_errstat_ok, pge_errstat_fatal, OMSAO_F_SUBROUTINE, &
+       modulename//f_sep//"HE5_Define_Fields", vb_lev_default, pge_error_status )
+  IF (pge_error_status >= pge_errstat_error ) GO TO 666
+
   ! ------------------------
   ! Write geolocation fields
   ! ------------------------
   CALL he5_write_geolocation ( nTimesRad, nXtrackRad, &
        first_wc_pix, last_wc_pix, errstat)
-
+  stop
   ! ---------------------------------------------------------------
   ! Work out pixel corners so we can plot and write them to L2 file
   ! ---------------------------------------------------------------

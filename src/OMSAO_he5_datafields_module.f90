@@ -43,26 +43,15 @@ MODULE OMSAO_he5_datafields_module
   TYPE (DataField_HE5), DIMENSION (n_solcal_fields)       :: sol_calfit_he5fields
   TYPE (DataField_HE5), DIMENSION (n_radcal_fields)       :: rad_calfit_he5fields
   TYPE (DataField_HE5), DIMENSION (n_radref_fields)       :: rad_reffit_he5fields
-  ! * Special fields for OMHCHO and OMCHOCHO
-  TYPE (DataField_HE5), DIMENSION (n_voc_fields)          :: voc_he5fields
-  ! * Special fields for OMHCHO and OMCHOCHO
-  TYPE (DataField_HE5), DIMENSION (n_cld_fields)          :: cld_he5fields
-  ! * Special fields for wavelength-modified AMF fields
-  TYPE (DataField_HE5), DIMENSION (n_wmamf_fields)        :: wmamf_he5fields
-  ! * Special fields for OMSAO3
-  TYPE (DataField_HE5), DIMENSION (o3_t1_idx:o3_t3_idx,2) :: o3_prefit_he5fields
   ! * Special fields for Reference Sector correction
-  TYPE (DataField_He5), DIMENSION (n_rs_fields)           :: rs_he5fields
-  ! * Special fields for Scattering Weights, Gas Profile
-  !   Averaging Kernels and albedo
-  TYPE (DataField_He5), DIMENSION (n_sw_fields)           :: sw_he5fields
+  TYPE (DataField_He5), DIMENSION (n_rsfields)           :: rs_he5fields
+  ! * Special fields for de striping
+  TYPE (DataField_He5), DIMENSION (n_defields) :: de_he5fields
 
 
   CONTAINS
 
     SUBROUTINE he5_initialize_datafields (  )
-  
-      USE OMSAO_parameters_module, ONLY: r8_missval
 
       IMPLICIT NONE
 
@@ -73,7 +62,7 @@ MODULE OMSAO_he5_datafields_module
       ! ---------------
       ! Local Variables
       ! ---------------
-      INTEGER (KIND=i4) :: i, j, numtype
+      INTEGER (KIND=i4) :: i, numtype
       REAL    (KIND=r8) :: missval
 
       ! -----------------------------
@@ -83,7 +72,7 @@ MODULE OMSAO_he5_datafields_module
          ! ----------------------------------------
          ! Find the numeric type of the data field.
          ! ----------------------------------------
-         CALL he5_find_datatype ( TRIM(ADJUSTL(geo_field_specs(4,i))), numtype, missval )
+         CALL he5_find_datatype ( TRIM(ADJUSTL(geo_field_specs(3,i))), numtype, missval )
          geo_he5fields(i)%ScaleFactor    = 1.0_r8
          geo_he5fields(i)%Offset         = 0.0_r8
          geo_he5fields(i)%Name           = TRIM(ADJUSTL(geo_field_names(1,i)))
@@ -109,7 +98,7 @@ MODULE OMSAO_he5_datafields_module
          ! ----------------------------------------
          ! Find the numeric type of the data field.
          ! ----------------------------------------
-         CALL he5_find_datatype ( TRIM(ADJUSTL(solcal_field_specs(4,i))), numtype, missval )
+         CALL he5_find_datatype ( TRIM(ADJUSTL(solcal_field_specs(3,i))), numtype, missval )
          sol_calfit_he5fields(i)%ScaleFactor    = 1.0_r8
          sol_calfit_he5fields(i)%Offset         = 0.0_r8
          sol_calfit_he5fields(i)%Name           = TRIM(ADJUSTL(solcal_field_names(1,i)))
@@ -130,7 +119,7 @@ MODULE OMSAO_he5_datafields_module
          ! ----------------------------------------
          ! Find the numeric type of the data field.
          ! ----------------------------------------
-         CALL he5_find_datatype ( TRIM(ADJUSTL(radcal_field_specs(4,i))), numtype, missval )
+         CALL he5_find_datatype ( TRIM(ADJUSTL(radcal_field_specs(3,i))), numtype, missval )
          rad_calfit_he5fields(i)%ScaleFactor    = 1.0_r8
          rad_calfit_he5fields(i)%Offset         = 0.0_r8
          rad_calfit_he5fields(i)%Name           = TRIM(ADJUSTL(radcal_field_names(1,i)))
@@ -151,7 +140,7 @@ MODULE OMSAO_he5_datafields_module
          ! ----------------------------------------
          ! Find the numeric type of the data field.
          ! ----------------------------------------
-         CALL he5_find_datatype ( TRIM(ADJUSTL(radref_field_specs(4,i))), numtype, missval )
+         CALL he5_find_datatype ( TRIM(ADJUSTL(radref_field_specs(3,i))), numtype, missval )
          rad_reffit_he5fields(i)%ScaleFactor    = 1.0_r8
          rad_reffit_he5fields(i)%Offset         = 0.0_r8
          rad_reffit_he5fields(i)%Name           = TRIM(ADJUSTL(radref_field_names(1,i)))
@@ -175,7 +164,7 @@ MODULE OMSAO_he5_datafields_module
          ! ----------------------------------------
          ! Find the numeric type of the data field.
          ! ----------------------------------------
-         CALL he5_find_datatype ( TRIM(ADJUSTL(comdata_field_specs(4,i))), numtype, missval )
+         CALL he5_find_datatype ( TRIM(ADJUSTL(comdata_field_specs(3,i))), numtype, missval )
          comdata_he5fields(i)%ScaleFactor    = 1.0_r8
          comdata_he5fields(i)%Offset         = 0.0_r8
          comdata_he5fields(i)%Name           = TRIM(ADJUSTL(comdata_field_names(1,i)))
@@ -200,7 +189,7 @@ MODULE OMSAO_he5_datafields_module
          ! ----------------------------------------
          ! Find the numeric type of the data field.
          ! ----------------------------------------
-         CALL he5_find_datatype ( TRIM(ADJUSTL(diagnostic_field_specs(4,i))), numtype, missval )
+         CALL he5_find_datatype ( TRIM(ADJUSTL(diagnostic_field_specs(3,i))), numtype, missval )
          diagnostic_he5fields(i)%ScaleFactor    = 1.0_r8
          diagnostic_he5fields(i)%Offset         = 0.0_r8
          diagnostic_he5fields(i)%Name           = TRIM(ADJUSTL(diagnostic_field_names(1,i)))
@@ -218,92 +207,14 @@ MODULE OMSAO_he5_datafields_module
          diagnostic_he5fields(i)%ValidRange     = diagnostic_valids(1:2,i)
       END DO
 
-
-      ! -------------------------------------------
-      ! OMHCHO/OMCHOCHO special fields (AMF clouds)
-      ! -------------------------------------------
-      DO i = 1, n_voc_fields
-         ! ----------------------------------------
-         ! Find the numeric type of the data field.
-         ! ----------------------------------------
-         CALL he5_find_datatype ( TRIM(ADJUSTL(voc_field_specs(4,i))), numtype, missval )
-         voc_he5fields(i)%ScaleFactor    = 1.0_r8
-         voc_he5fields(i)%Offset         = 0.0_r8
-         voc_he5fields(i)%Name           = TRIM(ADJUSTL(voc_field_names(1,i)))
-         voc_he5fields(i)%Title          = TRIM(ADJUSTL(voc_field_names(2,i)))
-         voc_he5fields(i)%Units          = TRIM(ADJUSTL(voc_field_specs(1,i)))
-         voc_he5fields(i)%Dimensions     = TRIM(ADJUSTL(voc_field_specs(2,i)))
-         voc_he5fields(i)%FillValue      = missval
-         voc_he5fields(i)%MissingValue   = missval
-         voc_he5fields(i)%Swath_ID       = pge_swath_id
-         voc_he5fields(i)%HE5_DataType   = numtype
-         voc_he5fields(i)%Rank           = 1
-         voc_he5fields(i)%Dims           = (/ -1, -1, -1 /)
-         voc_he5fields(i)%LenTitle       = LEN_TRIM(ADJUSTL(voc_field_names(2,i)))
-         voc_he5fields(i)%LenUnits       = LEN_TRIM(ADJUSTL(voc_field_specs(1,i)))
-         voc_he5fields(i)%ValidRange     = voc_valids(1:2,i)
-      END DO
-
-
-      ! ---------------------------------------------------------
-      ! Wavelength-modified AMF fitting fields (SLANT quantities)
-      ! ---------------------------------------------------------
-      DO i = 1, n_wmamf_fields
-         ! ----------------------------------------
-         ! Find the numeric type of the data field.
-         ! ----------------------------------------
-         CALL he5_find_datatype ( TRIM(ADJUSTL(wmamf_field_specs(4,i))), numtype, missval )
-         wmamf_he5fields(i)%ScaleFactor    = 1.0_r8
-         wmamf_he5fields(i)%Offset         = 0.0_r8
-         wmamf_he5fields(i)%Name           = TRIM(ADJUSTL(wmamf_field_names(1,i)))
-         wmamf_he5fields(i)%Title          = TRIM(ADJUSTL(wmamf_field_names(2,i)))
-         wmamf_he5fields(i)%Units          = TRIM(ADJUSTL(wmamf_field_specs(1,i)))
-         wmamf_he5fields(i)%Dimensions     = TRIM(ADJUSTL(wmamf_field_specs(2,i)))
-         wmamf_he5fields(i)%FillValue      = missval
-         wmamf_he5fields(i)%MissingValue   = missval
-         wmamf_he5fields(i)%Swath_ID       = pge_swath_id
-         wmamf_he5fields(i)%HE5_DataType   = numtype
-         wmamf_he5fields(i)%Rank           = 1
-         wmamf_he5fields(i)%Dims           = (/ -1, -1, -1 /)
-         wmamf_he5fields(i)%LenTitle       = LEN_TRIM(ADJUSTL(wmamf_field_names(2,i)))
-         wmamf_he5fields(i)%LenUnits       = LEN_TRIM(ADJUSTL(wmamf_field_specs(1,i)))
-         wmamf_he5fields(i)%ValidRange     = wmamf_valids(1:2,i)
-      END DO
-
-      ! -----------------------------------
-      ! OMSAO3 has additional output fields
-      ! -----------------------------------
-      DO i = o3_t1_idx, o3_t3_idx
-         DO j = 1, 2
-            numtype = HE5T_NATIVE_DOUBLE
-            missval = r8_missval
-            !o3_prefit_he5fields(i,j)%SpecTemp       = missval ! this will be assigned elsewhere
-            o3_prefit_he5fields(i,j)%ScaleFactor    = 1.0_r8
-            o3_prefit_he5fields(i,j)%Offset         = 0.0_r8
-            o3_prefit_he5fields(i,j)%Name           = TRIM(ADJUSTL(o3_prefit_fields       (i,j)))
-            o3_prefit_he5fields(i,j)%Dimensions     = TRIM(ADJUSTL(o3_prefit_fields_dims  (i,j)))
-            o3_prefit_he5fields(i,j)%Units          = TRIM(ADJUSTL(o3_prefit_fields_units (i,j)))
-            o3_prefit_he5fields(i,j)%Title          = TRIM(ADJUSTL(o3_prefit_fields_titles(i,j)))
-            o3_prefit_he5fields(i,j)%FillValue      = missval
-            o3_prefit_he5fields(i,j)%MissingValue   = missval
-            o3_prefit_he5fields(i,j)%Swath_ID       = pge_swath_id
-            o3_prefit_he5fields(i,j)%HE5_DataType   = numtype
-            o3_prefit_he5fields(i,j)%Rank           = 1
-            o3_prefit_he5fields(i,j)%Dims           = (/ -1, -1, -1 /)
-            o3_prefit_he5fields(i,j)%LenUnits       = LEN_TRIM(ADJUSTL(o3_prefit_fields_units (i,j)))
-            o3_prefit_he5fields(i,j)%LenTitle       = LEN_TRIM(ADJUSTL(o3_prefit_fields_titles(i,j)))
-            o3_prefit_he5fields(i,j)%ValidRange     = o3_prefit_valids(1:2,i,j)
-         END DO
-      END DO
-
       ! -----------------------
       ! Reference Sector fields
       ! -----------------------
-      DO i = 1, n_rs_fields
+      DO i = 1, n_rsfields
          ! ----------------------------------------
          ! Find the numeric type of the data field.
          ! ----------------------------------------
-         CALL he5_find_datatype ( TRIM(ADJUSTL(rs_field_specs(4,i))), numtype, missval )
+         CALL he5_find_datatype ( TRIM(ADJUSTL(rs_field_specs(3,i))), numtype, missval )
          rs_he5fields(i)%ScaleFactor    = 1.0_r8
          rs_he5fields(i)%Offset         = 0.0_r8
          rs_he5fields(i)%Name           = TRIM(ADJUSTL(rs_field_names(1,i)))
@@ -321,29 +232,29 @@ MODULE OMSAO_he5_datafields_module
          rs_he5fields(i)%ValidRange     = rs_valids(1:2,i)
       END DO
 
-      ! ------------------------------------------------------------
-      ! Scattering weights, Gas profile and Averaging Kernels fields
-      ! ------------------------------------------------------------
-      DO i = 1, n_sw_fields
+      ! -----------------
+      ! De striped fields
+      ! -----------------
+      DO i = 1, n_defields
          ! ----------------------------------------
          ! Find the numeric type of the data field.
          ! ----------------------------------------
-         CALL he5_find_datatype ( TRIM(ADJUSTL(sw_field_specs(4,i))), numtype, missval )
-         sw_he5fields(i)%ScaleFactor    = 1.0_r8
-         sw_he5fields(i)%Offset         = 0.0_r8
-         sw_he5fields(i)%Name           = TRIM(ADJUSTL(sw_field_names(1,i)))
-         sw_he5fields(i)%Title          = TRIM(ADJUSTL(sw_field_names(2,i)))
-         sw_he5fields(i)%Units          = TRIM(ADJUSTL(sw_field_specs(1,i)))
-         sw_he5fields(i)%Dimensions     = TRIM(ADJUSTL(sw_field_specs(2,i)))
-         sw_he5fields(i)%FillValue      = missval
-         sw_he5fields(i)%MissingValue   = missval
-         sw_he5fields(i)%Swath_ID       = pge_swath_id
-         sw_he5fields(i)%HE5_DataType   = numtype
-         sw_he5fields(i)%Rank           = 1
-         sw_he5fields(i)%Dims           = (/ -1, -1, -1 /)
-         sw_he5fields(i)%LenTitle       = LEN_TRIM(ADJUSTL(sw_field_names(2,i)))
-         sw_he5fields(i)%LenUnits       = LEN_TRIM(ADJUSTL(sw_field_specs(1,i)))
-         sw_he5fields(i)%ValidRange     = sw_valids(1:2,i)
+         CALL he5_find_datatype ( TRIM(ADJUSTL(de_field_specs(3,i))), numtype, missval )
+         de_he5fields(i)%ScaleFactor    = 1.0_r8
+         de_he5fields(i)%Offset         = 0.0_r8
+         de_he5fields(i)%Name           = TRIM(ADJUSTL(de_field_names(1,i)))
+         de_he5fields(i)%Title          = TRIM(ADJUSTL(de_field_names(2,i)))
+         de_he5fields(i)%Units          = TRIM(ADJUSTL(de_field_specs(1,i)))
+         de_he5fields(i)%Dimensions     = TRIM(ADJUSTL(de_field_specs(2,i)))
+         de_he5fields(i)%FillValue      = missval
+         de_he5fields(i)%MissingValue   = missval
+         de_he5fields(i)%Swath_ID       = pge_swath_id
+         de_he5fields(i)%HE5_DataType   = numtype
+         de_he5fields(i)%Rank           = 1
+         de_he5fields(i)%Dims           = (/ -1, -1, -1 /)
+         de_he5fields(i)%LenTitle       = LEN_TRIM(ADJUSTL(de_field_names(2,i)))
+         de_he5fields(i)%LenUnits       = LEN_TRIM(ADJUSTL(de_field_specs(1,i)))
+         de_he5fields(i)%ValidRange     = de_valids(1:2,i)
       END DO
 
       RETURN

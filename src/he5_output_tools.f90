@@ -18,11 +18,13 @@ FUNCTION he5_init_swath ( file_name ) RESULT ( he5stat )
   !   pge_swath_id      - id number for swath (required for writing to swath)
   !
   !------------------------------------------------------------------------------
-
+  USE OMSAO_precision_module, ONLY: i4, C_long
   USE OMSAO_indices_module, ONLY: max_calfit_idx, max_rs_idx
   USE OMSAO_data_module, ONLY: nclenfit, nUTCdim, ntime_rad, nxtrack_rad, nwav_rad
-  USE OMSAO_he5_module
-  USE OMSAO_errstat_module
+  USE OMSAO_he5_module, ONLY: HE5_SWdefdim, he5f_acc_trunc, pge_swath_file_id, pge_swath_id, &
+       pge_swath_name, ncv, nfv, nlc, nrspc, ntc, nutcd, nwalm, nwcp, nxc, HE5_SWopen, HE5_SWcreate
+  USE OMSAO_errstat_module, ONLY: error_check, vb_lev_default, pge_errstat_fatal, pge_errstat_ok, &
+       he5_stat_fail, he5_stat_ok, OMSAO_F_HE5SWCREATE, OMSAO_F_HE5SWDEFDIM, OMSAO_F_HE5SWOPEN
   USE OMSAO_variables_module, ONLY: n_fitvar_rad, ctrvar
   USE OMSAO_wfamf_module, ONLY: CmETA
 
@@ -113,7 +115,7 @@ FUNCTION he5_init_swath ( file_name ) RESULT ( he5stat )
 
 END FUNCTION he5_init_swath
 
-FUNCTION he5_define_fields ( pge_idx, nTimes, nXtrack, nSwLevels ) RESULT ( he5stat )
+FUNCTION he5_define_fields ( ) RESULT ( he5stat )
 
   !------------------------------------------------------------------------------
   ! This function defines fields in the HE5 output swath.
@@ -129,15 +131,18 @@ FUNCTION he5_define_fields ( pge_idx, nTimes, nXtrack, nSwLevels ) RESULT ( he5s
   !   pge_swath_id      - id number for swath (required for writing to swath)
   !
   !------------------------------------------------------------------------------
-
-  USE OMSAO_indices_module, ONLY: sao_molecule_names
+  USE OMSAO_precision_module, ONLY: i4, C_long
   USE OMSAO_variables_module, ONLY: ctrvar
   USE OMSAO_data_module, ONLY: n_field_maxdim
-  USE OMSAO_he5_module
+  USE OMSAO_he5_module, ONLY: pge_swath_id, pge_swath_name, pge_swath_file_id, &
+       he5_comp_par, he5_comp_type, he5_hdfe_nomerge, he5_nocomp_type, &
+       he5_nocomp_par, n_cdfields, n_defields, n_diag_fields, n_gfields, n_radcal_fields, &
+       n_radref_fields, n_rsfields, n_solcal_fields, he5_swdetach, he5_swdefdfld, he5_swdefchunk, &
+       he5_swdefcomch, yn_output_diag, he5_swdefgfld, he5_swattach, he5_swdefcomp
   USE OMSAO_he5_datafields_module, ONLY: geo_he5fields, sol_calfit_he5fields, &
        rad_calfit_he5fields, rad_reffit_he5fields, comdata_he5fields, &
-       diagnostic_he5fields, voc_he5fields, sw_he5fields
-  USE OMSAO_errstat_module, ONLY: pge_errstat_ok, pge_errstat_error, he5_stat_ok, &
+       diagnostic_he5fields, rs_he5fields, de_he5fields
+  USE OMSAO_errstat_module, ONLY: pge_errstat_ok, he5_stat_ok, &
        error_check, vb_lev_default, he5_stat_fail, omsao_e_he5swattach, &
        omsao_e_he5swdeffld, pge_errstat_fatal
 
@@ -149,11 +154,6 @@ FUNCTION he5_define_fields ( pge_idx, nTimes, nXtrack, nSwLevels ) RESULT ( he5s
   CHARACTER (LEN=17), PARAMETER :: modulename = 'he5_define_fields'
  
   ! ---------------
-  ! Input variables
-  ! ---------------
-  INTEGER   (KIND=i4),      INTENT(IN) :: pge_idx, nTimes, nXtrack, nSwLevels
-
-  ! ---------------
   ! Result variable
   ! ---------------
   INTEGER (KIND=i4) :: he5stat
@@ -162,7 +162,6 @@ FUNCTION he5_define_fields ( pge_idx, nTimes, nXtrack, nSwLevels ) RESULT ( he5s
   ! Local variables
   ! ---------------
   INTEGER   (KIND=i4)                             :: i, errstat
-  CHARACTER (LEN=4)                               :: molstr
 
   ! ---------------------------------------------
   ! Variables related to compression and chunking
@@ -174,37 +173,34 @@ FUNCTION he5_define_fields ( pge_idx, nTimes, nXtrack, nSwLevels ) RESULT ( he5s
   he5stat = pge_errstat_ok
   errstat = pge_errstat_ok
 
-  ! ----------------------------------------------------
-  ! Some fields have the PGE molecule name added to them
-  ! ----------------------------------------------------
-  molstr = TRIM(ADJUSTL(sao_molecule_names(pge_idx)))
-
   ! -------------------------------------------------------------
   ! Define geolocation fields in HE5 swath and check error status
   ! -------------------------------------------------------------
   DO i = 1, n_gfields
-     CALL he5_check_for_compressibility ( &
-          nTimes, nXtrack, nSwLevels, TRIM(ADJUSTL(geo_he5fields(i)%Dimensions)), &
+     CALL he5_check_for_compressibility ( TRIM(ADJUSTL(geo_he5fields(i)%Dimensions)), &
           yn_compress_field, n_chunk_dim, chunk_dim )
      IF ( yn_compress_field ) THEN
         errstat = HE5_SWdefcomch ( &
              pge_swath_id, he5_comp_type, he5_comp_par, n_chunk_dim, chunk_dim(1:n_chunk_dim) )
+        he5stat=MIN(he5stat,errstat)
      ELSE
         errstat = HE5_SWdefchunk( pge_swath_id, n_chunk_dim, chunk_dim(1:n_chunk_dim) )
+        he5stat=MIN(he5stat,errstat)
         errstat = HE5_SWdefcomp ( pge_swath_id, he5_nocomp_type, he5_nocomp_par )
+        he5stat=MIN(he5stat,errstat)
      END IF
-
      ! -------------
      ! Set FillValue
      ! -------------
      CALL he5_set_fill_value ( geo_he5fields(i), errstat )
-
      geo_he5fields(i)%Swath_ID = pge_swath_id
+     he5stat=MIN(he5stat,errstat)
      errstat = HE5_SWdefgfld (                               &
           geo_he5fields(i)%Swath_ID,                         &
           TRIM(ADJUSTL(geo_he5fields(i)%Name)),              &
           TRIM(ADJUSTL(geo_he5fields(i)%Dimensions)),   " ", &
           geo_he5fields(i)%HE5_DataType, he5_hdfe_nomerge )
+     he5stat=MIN(he5stat,errstat)
   END DO
 
   ! ----------------------------------------------------------------------
@@ -213,217 +209,222 @@ FUNCTION he5_define_fields ( pge_idx, nTimes, nXtrack, nSwLevels ) RESULT ( he5s
   ! ----------------------------------------------------------------------
   IF (ctrvar%yn_diagnostic_run) THEN
      DO i = 1, n_solcal_fields
-        CALL he5_check_for_compressibility ( &
-             nTimes, nXtrack, nSwLevels, TRIM(ADJUSTL(sol_calfit_he5fields(i)%Dimensions)), &
+        CALL he5_check_for_compressibility ( TRIM(ADJUSTL(sol_calfit_he5fields(i)%Dimensions)), &
              yn_compress_field, n_chunk_dim, chunk_dim )
         IF ( yn_compress_field ) THEN
-           errstat = HE5_SWdefcomch ( &
-                pge_swath_id, he5_comp_type, he5_comp_par, n_chunk_dim, chunk_dim(1:n_chunk_dim) )
+           errstat = HE5_SWdefcomch ( pge_swath_id, he5_comp_type, he5_comp_par, &
+                n_chunk_dim, chunk_dim(1:n_chunk_dim) )
+           he5stat=MIN(he5stat,errstat)
         ELSE
            errstat = HE5_SWdefchunk( pge_swath_id, n_chunk_dim, chunk_dim(1:n_chunk_dim) )
+           he5stat=MIN(he5stat,errstat)
            errstat = HE5_SWdefcomp ( pge_swath_id, he5_nocomp_type, he5_nocomp_par )
+           he5stat=MIN(he5stat,errstat)
         END IF
-        
         ! -------------
         ! Set FillValue
         ! -------------
         CALL he5_set_fill_value ( sol_calfit_he5fields(i), errstat )
-        
+        he5stat=MIN(he5stat,errstat)
         sol_calfit_he5fields(i)%Swath_ID = pge_swath_id
         errstat = HE5_SWdefdfld (                                      &
              sol_calfit_he5fields(i)%Swath_ID,                         &
              TRIM(ADJUSTL(sol_calfit_he5fields(i)%Name)),              &
              TRIM(ADJUSTL(sol_calfit_he5fields(i)%Dimensions)),   " ", &
              sol_calfit_he5fields(i)%HE5_DataType, he5_hdfe_nomerge )
+        he5stat=MIN(he5stat,errstat)
      END DO
 
-  DO i = 1, n_radcal_fields
-     CALL he5_check_for_compressibility ( &
-          nTimes, nXtrack, nSwLevels, TRIM(ADJUSTL(rad_calfit_he5fields(i)%Dimensions)), &
+     DO i = 1, n_radcal_fields
+        CALL he5_check_for_compressibility ( TRIM(ADJUSTL(rad_calfit_he5fields(i)%Dimensions)), &
+             yn_compress_field, n_chunk_dim, chunk_dim )
+        IF ( yn_compress_field ) THEN
+           errstat = HE5_SWdefcomch ( &
+                pge_swath_id, he5_comp_type, he5_comp_par, n_chunk_dim, chunk_dim(1:n_chunk_dim) )
+           he5stat=MIN(he5stat,errstat)
+        ELSE
+           errstat = HE5_SWdefchunk( pge_swath_id, n_chunk_dim, chunk_dim(1:n_chunk_dim) )
+           he5stat=MIN(he5stat,errstat)
+           errstat = HE5_SWdefcomp ( pge_swath_id, he5_nocomp_type, he5_nocomp_par )
+           he5stat=MIN(he5stat,errstat)
+        END IF
+        
+        ! -------------
+        ! Set FillValue
+        ! -------------
+        CALL he5_set_fill_value ( rad_calfit_he5fields(i), errstat )
+        he5stat=MIN(he5stat,errstat)
+        rad_calfit_he5fields(i)%Swath_ID = pge_swath_id
+        errstat = HE5_SWdefdfld (                                      &
+             rad_calfit_he5fields(i)%Swath_ID,                         &
+             TRIM(ADJUSTL(rad_calfit_he5fields(i)%Name)),              &
+             TRIM(ADJUSTL(rad_calfit_he5fields(i)%Dimensions)),   " ", &
+             rad_calfit_he5fields(i)%HE5_DataType, he5_hdfe_nomerge )
+        he5stat=MIN(he5stat,errstat)
+     END DO
+  END IF
+  
+  IF (ctrvar%yn_radiance_reference .AND. ctrvar%yn_diagnostic_run) THEN
+     DO i = 1, n_radref_fields
+        CALL he5_check_for_compressibility ( TRIM(ADJUSTL(rad_reffit_he5fields(i)%Dimensions)), &
+             yn_compress_field, n_chunk_dim, chunk_dim )
+        IF ( yn_compress_field ) THEN
+           errstat = HE5_SWdefcomch ( &
+                pge_swath_id, he5_comp_type, he5_comp_par, n_chunk_dim, chunk_dim(1:n_chunk_dim) )
+           he5stat=MIN(he5stat,errstat)
+        ELSE
+           errstat = HE5_SWdefchunk( pge_swath_id, n_chunk_dim, chunk_dim(1:n_chunk_dim) )
+           he5stat=MIN(he5stat,errstat)
+           errstat = HE5_SWdefcomp ( pge_swath_id, he5_nocomp_type, he5_nocomp_par )
+           he5stat=MIN(he5stat,errstat)
+        END IF
+        ! -------------
+        ! Set FillValue
+        ! -------------
+        CALL he5_set_fill_value ( rad_reffit_he5fields(i), errstat )
+        he5stat=MIN(he5stat,errstat)
+        rad_reffit_he5fields(i)%Swath_ID = pge_swath_id
+        errstat = HE5_SWdefdfld (                                      &
+             rad_reffit_he5fields(i)%Swath_ID,                         &
+          TRIM(ADJUSTL(rad_reffit_he5fields(i)%Name)),              &
+          TRIM(ADJUSTL(rad_reffit_he5fields(i)%Dimensions)),   " ", &
+          rad_reffit_he5fields(i)%HE5_DataType, he5_hdfe_nomerge )
+        he5stat=MIN(he5stat,errstat)
+     END DO
+  END IF
+
+  ! --------------------
+  ! Radiance data fields
+  ! --------------------
+  ! ----------------------
+  ! (1) Common Data Fields
+  ! ----------------------
+  DO i = 1, n_cdfields
+     CALL he5_check_for_compressibility ( TRIM(ADJUSTL(comdata_he5fields(i)%Dimensions)), &
           yn_compress_field, n_chunk_dim, chunk_dim )
      IF ( yn_compress_field ) THEN
         errstat = HE5_SWdefcomch ( &
              pge_swath_id, he5_comp_type, he5_comp_par, n_chunk_dim, chunk_dim(1:n_chunk_dim) )
+        he5stat=MIN(he5stat,errstat)
      ELSE
         errstat = HE5_SWdefchunk( pge_swath_id, n_chunk_dim, chunk_dim(1:n_chunk_dim) )
-        errstat = HE5_SWdefcomp ( pge_swath_id, he5_nocomp_type, he5_nocomp_par )
+        he5stat=MIN(he5stat,errstat)
+        errstat = HE5_SWdefcomp ( pge_swath_id, he5_nocomp_type, he5_nocomp_par )! comp_par )
+        he5stat=MIN(he5stat,errstat)
      END IF
-
      ! -------------
      ! Set FillValue
      ! -------------
-     CALL he5_set_fill_value ( rad_calfit_he5fields(i), errstat )
-
-     rad_calfit_he5fields(i)%Swath_ID = pge_swath_id
-     errstat = HE5_SWdefdfld (                                      &
-          rad_calfit_he5fields(i)%Swath_ID,                         &
-          TRIM(ADJUSTL(rad_calfit_he5fields(i)%Name)),              &
-          TRIM(ADJUSTL(rad_calfit_he5fields(i)%Dimensions)),   " ", &
-          rad_calfit_he5fields(i)%HE5_DataType, he5_hdfe_nomerge )
+     CALL he5_set_fill_value ( comdata_he5fields(i), errstat )
+     he5stat=MIN(he5stat,errstat)
+     errstat = HE5_SWdefdfld (                                   &
+          comdata_he5fields(i)%Swath_ID,                         &
+          TRIM(ADJUSTL(comdata_he5fields(i)%Name)),              &
+          TRIM(ADJUSTL(comdata_he5fields(i)%Dimensions)),        &
+          " ",                                                   &
+          comdata_he5fields(i)%HE5_DataType, he5_hdfe_nomerge )
+     he5stat=MIN(he5stat,errstat)
   END DO
+
+  ! -----------------------
+  ! Reference Sector fields
+  ! -----------------------
+  IF (ctrvar%yn_refseccor) THEN
+     DO i = 1, n_rsfields   
+        CALL he5_check_for_compressibility ( TRIM(ADJUSTL(rs_he5fields(i)%Dimensions)), &
+             yn_compress_field, n_chunk_dim, chunk_dim )
+        IF ( yn_compress_field ) THEN
+           errstat = HE5_SWdefcomch ( &
+                pge_swath_id, he5_comp_type, he5_comp_par, n_chunk_dim, chunk_dim(1:n_chunk_dim) )
+           he5stat=MIN(he5stat,errstat)
+        ELSE
+           errstat = HE5_SWdefchunk( pge_swath_id, n_chunk_dim, chunk_dim(1:n_chunk_dim) )
+           he5stat=MIN(he5stat,errstat)
+           errstat = HE5_SWdefcomp ( pge_swath_id, he5_nocomp_type, he5_nocomp_par )! comp_par )
+           he5stat=MIN(he5stat,errstat)
+        END IF
+        ! -------------
+        ! Set FillValue
+        ! -------------
+        CALL he5_set_fill_value ( rs_he5fields(i), errstat )
+        he5stat=MIN(he5stat,errstat)
+        errstat = HE5_SWdefdfld ( rs_he5fields(i)%Swath_ID, TRIM(ADJUSTL(rs_he5fields(i)%Name)), &
+             TRIM(ADJUSTL(rs_he5fields(i)%Dimensions)), " ", rs_he5fields(i)%HE5_DataType, he5_hdfe_nomerge )
+        he5stat=MIN(he5stat,errstat)
+     END DO
   END IF
 
-!!$  DO i = 1, n_radref_fields
-!!$     CALL he5_check_for_compressibility ( &
-!!$          nTimes, nXtrack, nSwLevels, TRIM(ADJUSTL(rad_reffit_he5fields(i)%Dimensions)), &
-!!$          yn_compress_field, n_chunk_dim, chunk_dim )
-!!$     IF ( yn_compress_field ) THEN
-!!$        errstat = HE5_SWdefcomch ( &
-!!$             pge_swath_id, he5_comp_type, he5_comp_par, n_chunk_dim, chunk_dim(1:n_chunk_dim) )
-!!$     ELSE
-!!$        errstat = HE5_SWdefchunk( pge_swath_id, n_chunk_dim, chunk_dim(1:n_chunk_dim) )
-!!$        errstat = HE5_SWdefcomp ( pge_swath_id, he5_nocomp_type, he5_nocomp_par )
-!!$     END IF
-!!$
-!!$     ! -------------
-!!$     ! Set FillValue
-!!$     ! -------------
-!!$     CALL he5_set_fill_value ( rad_reffit_he5fields(i), errstat )
-!!$
-!!$     rad_reffit_he5fields(i)%Swath_ID = pge_swath_id
-!!$     errstat = HE5_SWdefdfld (                                      &
-!!$          rad_reffit_he5fields(i)%Swath_ID,                         &
-!!$          TRIM(ADJUSTL(rad_reffit_he5fields(i)%Name)),              &
-!!$          TRIM(ADJUSTL(rad_reffit_he5fields(i)%Dimensions)),   " ", &
-!!$          rad_reffit_he5fields(i)%HE5_DataType, he5_hdfe_nomerge )
-!!$  END DO
-!!$
-!!$
-!!$  ! --------------------
-!!$  ! Radiance data fields
-!!$  ! --------------------
-!!$  ! ----------------------
-!!$  ! (1) Common Data Fields
-!!$  ! ----------------------
-!!$  DO i = 1, n_cdfields
-!!$
-!!$     CALL he5_check_for_compressibility ( &
-!!$          nTimes, nXtrack, nSwLevels, TRIM(ADJUSTL(comdata_he5fields(i)%Dimensions)), &
-!!$          yn_compress_field, n_chunk_dim, chunk_dim )
-!!$
-!!$     IF ( yn_compress_field ) THEN
-!!$        errstat = HE5_SWdefcomch ( &
-!!$             pge_swath_id, he5_comp_type, he5_comp_par, n_chunk_dim, chunk_dim(1:n_chunk_dim) )
-!!$     ELSE
-!!$        errstat = HE5_SWdefchunk( pge_swath_id, n_chunk_dim, chunk_dim(1:n_chunk_dim) )
-!!$        errstat = HE5_SWdefcomp ( pge_swath_id, he5_nocomp_type, he5_nocomp_par )! comp_par )
-!!$     END IF
-!!$
-!!$     ! -------------
-!!$     ! Set FillValue
-!!$     ! -------------
-!!$     CALL he5_set_fill_value ( comdata_he5fields(i), errstat )
-!!$
-!!$     errstat = HE5_SWdefdfld (                                   &
-!!$          comdata_he5fields(i)%Swath_ID,                         &
-!!$          TRIM(ADJUSTL(comdata_he5fields(i)%Name)),              &
-!!$          TRIM(ADJUSTL(comdata_he5fields(i)%Dimensions)),        &
-!!$          " ",                                                   &
-!!$          comdata_he5fields(i)%HE5_DataType, he5_hdfe_nomerge )
-!!$
-!!$  END DO
-!!$
-!!$  ! --------------------------
-!!$  ! (2) Diagnostic Data Fields
-!!$  ! --------------------------
-!!$  IF ( ctrvar%yn_diagnostic_run ) THEN
-!!$
-!!$     DO i = 1, n_diag_fields
-!!$
-!!$    	! Is this field outputted? CCM
-!!$        IF ( yn_output_diag(i) ) THEN
-!!$ 
-!!$           CALL he5_check_for_compressibility ( &
-!!$                nTimes, nXtrack, nSwLevels, TRIM(ADJUSTL(diagnostic_he5fields(i)%Dimensions)), &
-!!$                yn_compress_field, n_chunk_dim, chunk_dim )
-!!$           IF ( yn_compress_field ) THEN
-!!$              errstat = HE5_SWdefcomch ( &
-!!$                   pge_swath_id, he5_comp_type, he5_comp_par, n_chunk_dim, chunk_dim(1:n_chunk_dim) )
-!!$           ELSE
-!!$              errstat = HE5_SWdefchunk( pge_swath_id, n_chunk_dim, chunk_dim(1:n_chunk_dim) )
-!!$              errstat = HE5_SWdefcomp ( pge_swath_id, he5_nocomp_type, he5_nocomp_par )! comp_par )
-!!$           END IF
-!!$           
-!!$           ! -------------
-!!$           ! Set FillValue
-!!$           ! -------------
-!!$           CALL he5_set_fill_value ( diagnostic_he5fields(i), errstat )
-!!$           
-!!$           errstat = HE5_SWdefdfld (                                      &
-!!$                diagnostic_he5fields(i)%Swath_ID,                         &
-!!$                TRIM(ADJUSTL(diagnostic_he5fields(i)%Name)),              &
-!!$                TRIM(ADJUSTL(diagnostic_he5fields(i)%Dimensions)),        &
-!!$                " ",                                                      &
-!!$                diagnostic_he5fields(i)%HE5_DataType, he5_hdfe_nomerge )
-!!$        END IF
-!!$     END DO
-!!$  END IF
-!!$  
-!!$  ! --------------
-!!$  ! AMF Cloud Data
-!!$  ! --------------
-!!$  DO i = 1, n_voc_fields
-!!$     CALL he5_check_for_compressibility ( &
-!!$          nTimes, nXtrack, nSwLevels, TRIM(ADJUSTL(voc_he5fields(i)%Dimensions)), &
-!!$          yn_compress_field, n_chunk_dim, chunk_dim )
-!!$     IF ( yn_compress_field ) THEN
-!!$        errstat = HE5_SWdefcomch ( &
-!!$             pge_swath_id, he5_comp_type, he5_comp_par, n_chunk_dim, chunk_dim(1:n_chunk_dim) )
-!!$     ELSE
-!!$        errstat = HE5_SWdefchunk( pge_swath_id, n_chunk_dim, chunk_dim(1:n_chunk_dim) )
-!!$        errstat = HE5_SWdefcomp ( pge_swath_id, he5_nocomp_type, he5_nocomp_par )! comp_par )
-!!$     END IF
-!!$     
-!!$     ! -------------
-!!$     ! Set FillValue
-!!$     ! -------------
-!!$     CALL he5_set_fill_value ( voc_he5fields(i), errstat )
-!!$     
-!!$     errstat = HE5_SWdefdfld (                           &
-!!$          voc_he5fields(i)%Swath_ID,                     &
-!!$          TRIM(ADJUSTL(voc_he5fields(i)%Name)),          &
-!!$          TRIM(ADJUSTL(voc_he5fields(i)%Dimensions)),    &
-!!$          " ",                                           &
-!!$          voc_he5fields(i)%HE5_DataType, he5_hdfe_nomerge )
-!!$  END DO
-!!$
-!!$  ! -------------------------------------------------
-!!$  ! (4) Scattering weights, gas profile averaging kernels
-!!$  ! and albedo gga
-!!$  ! -------------------------------------------------
-!!$  DO i = 1, n_sw_fields
-!!$     CALL he5_check_for_compressibility ( &
-!!$          nTimes, nXtrack, nSwLevels, TRIM(ADJUSTL(sw_he5fields(i)%Dimensions)), &
-!!$          yn_compress_field, n_chunk_dim, chunk_dim )
-!!$     IF ( yn_compress_field ) THEN
-!!$        errstat = HE5_SWdefcomch ( &
-!!$             pge_swath_id, he5_comp_type, he5_comp_par, n_chunk_dim, &
-!!$             chunk_dim(1:n_chunk_dim) )
-!!$     ELSE
-!!$        errstat = HE5_SWdefchunk( pge_swath_id, n_chunk_dim, &
-!!$             chunk_dim(1:n_chunk_dim) )
-!!$        errstat = HE5_SWdefcomp ( pge_swath_id, he5_nocomp_type, &
-!!$             he5_nocomp_par )! comp_par )
-!!$     END IF
-!!$        
-!!$     ! -------------
-!!$     ! Set FillValue
-!!$     ! -------------
-!!$     CALL he5_set_fill_value ( sw_he5fields(i), errstat )
-!!$     
-!!$     errstat = HE5_SWdefdfld (                           &
-!!$          sw_he5fields(i)%Swath_ID,                      &
-!!$          TRIM(ADJUSTL(sw_he5fields(i)%Name)),           &
-!!$          TRIM(ADJUSTL(sw_he5fields(i)%Dimensions)),     &
-!!$          " ",                                           &
-!!$          sw_he5fields(i)%HE5_DataType, he5_hdfe_nomerge )
-!!$  END DO
+  ! -------------------
+  ! De stripping fields
+  ! -------------------
+  IF (ctrvar%yn_run_destriping) THEN
+     DO i = 1, n_defields   
+        CALL he5_check_for_compressibility ( TRIM(ADJUSTL(de_he5fields(i)%Dimensions)), &
+             yn_compress_field, n_chunk_dim, chunk_dim )
+        IF ( yn_compress_field ) THEN
+           errstat = HE5_SWdefcomch ( &
+                pge_swath_id, he5_comp_type, he5_comp_par, n_chunk_dim, chunk_dim(1:n_chunk_dim) )
+           he5stat=MIN(he5stat,errstat)
+        ELSE
+           errstat = HE5_SWdefchunk( pge_swath_id, n_chunk_dim, chunk_dim(1:n_chunk_dim) )
+           he5stat=MIN(he5stat,errstat)
+           errstat = HE5_SWdefcomp ( pge_swath_id, he5_nocomp_type, he5_nocomp_par )! comp_par )
+           he5stat=MIN(he5stat,errstat)
+        END IF
+        ! -------------
+        ! Set FillValue
+        ! -------------
+        CALL he5_set_fill_value ( de_he5fields(i), errstat )
+        he5stat=MIN(he5stat,errstat)
+        errstat = HE5_SWdefdfld ( de_he5fields(i)%Swath_ID, TRIM(ADJUSTL(de_he5fields(i)%Name)), &
+             TRIM(ADJUSTL(de_he5fields(i)%Dimensions)), " ", de_he5fields(i)%HE5_DataType, he5_hdfe_nomerge )
+        he5stat=MIN(he5stat,errstat)
+     END DO
+  END IF
 
+
+  ! --------------------------
+  ! (2) Diagnostic Data Fields
+  ! --------------------------
+  IF ( ctrvar%yn_diagnostic_run ) THEN
+     DO i = 1, n_diag_fields
+    	! Is this field outputted? CCM
+        IF ( yn_output_diag(i) ) THEN
+           CALL he5_check_for_compressibility ( TRIM(ADJUSTL(diagnostic_he5fields(i)%Dimensions)), &
+                yn_compress_field, n_chunk_dim, chunk_dim )
+           IF ( yn_compress_field ) THEN
+              errstat = HE5_SWdefcomch ( &
+                   pge_swath_id, he5_comp_type, he5_comp_par, n_chunk_dim, chunk_dim(1:n_chunk_dim) )
+              he5stat=MIN(he5stat,errstat)
+           ELSE
+              errstat = HE5_SWdefchunk( pge_swath_id, n_chunk_dim, chunk_dim(1:n_chunk_dim) )
+              he5stat=MIN(he5stat,errstat)
+              errstat = HE5_SWdefcomp ( pge_swath_id, he5_nocomp_type, he5_nocomp_par )! comp_par )
+              he5stat=MIN(he5stat,errstat)
+           END IF
+           ! -------------
+           ! Set FillValue
+           ! -------------
+           CALL he5_set_fill_value ( diagnostic_he5fields(i), errstat )
+           he5stat=MIN(he5stat,errstat)
+           errstat = HE5_SWdefdfld (                                      &
+                diagnostic_he5fields(i)%Swath_ID,                         &
+                TRIM(ADJUSTL(diagnostic_he5fields(i)%Name)),              &
+                TRIM(ADJUSTL(diagnostic_he5fields(i)%Dimensions)),        &
+                " ",                                                      &
+                diagnostic_he5fields(i)%HE5_DataType, he5_hdfe_nomerge )
+           he5stat=MIN(he5stat,errstat)
+        END IF
+     END DO
+  END IF
+  
+  
   ! ------------------------------------------
   ! Check error status of swath initialization
   ! ------------------------------------------
+  IF (he5stat < 0) errstat = 1
   CALL error_check ( &
-       errstat, he5_stat_ok, pge_errstat_error, OMSAO_E_HE5SWDEFFLD, &
+       errstat, he5_stat_ok, pge_errstat_fatal, OMSAO_E_HE5SWDEFFLD, &
        modulename, vb_lev_default, he5stat )
   
   ! -------------------------------------------------------------------------------
@@ -1099,7 +1100,7 @@ FUNCTION he5_set_field_attributes ( pge_idx ) RESULT ( he5stat )
   USE OMSAO_indices_module, ONLY: sao_molecule_names
   USE OMSAO_variables_module, ONLY: ctrvar
   USE OMSAO_he5_module
-  USE OMSAO_he5_datafields_module, ONLY: sw_he5fields, voc_he5fields, &
+  USE OMSAO_he5_datafields_module, ONLY: &
        diagnostic_he5fields, comdata_he5fields, rad_reffit_he5fields, &
        rad_calfit_he5fields, sol_calfit_he5fields, geo_he5fields
   USE OMSAO_errstat_module, ONLY: pge_errstat_ok, pge_errstat_warning, &
@@ -1185,22 +1186,6 @@ FUNCTION he5_set_field_attributes ( pge_idx ) RESULT ( he5stat )
      END DO
   END IF
   
-  ! ---------------------
-  ! AMF cloud data fields
-  ! ---------------------
-  DO i = 1, n_voc_fields
-     CALL he5_write_local_attributes ( "", voc_he5fields(i), locerrstat )
-  END DO
-  
-  ! --------------------------------------------------
-  ! Scattering weights, gas profile, averaging kernels
-  ! and albedo attributes. gga
-  ! --------------------------------------------------
-  DO i = 1, n_sw_fields
-     CALL he5_write_local_attributes ( "", sw_he5fields(i), locerrstat )
-  END DO
-
-
   ! -----------------------------------------------------------------------
   ! Assign the error status returned from this routine. If we have
   ! reached here, then everything has gone well and we can exit with "O.K."
@@ -1764,16 +1749,16 @@ FUNCTION he5_write_swath_attributes ( pge_idx ) RESULT ( he5stat )
 END FUNCTION he5_write_swath_attributes
 
 SUBROUTINE he5_check_for_compressibility ( &
-     nTimes, nXtrack, nSwLevels, field_dim, yn_compress_field, n_chunk_dim, chunk_dim )
+     field_dim, yn_compress_field, n_chunk_dim, chunk_dim )
 
   USE OMSAO_indices_module, ONLY: max_calfit_idx, max_rs_idx
   USE OMSAO_data_module, ONLY: nwav_rad
   USE OMSAO_he5_module
   USE OMSAO_errstat_module
   USE OMSAO_variables_module, ONLY: n_fitvar_rad
-  USE OMSAO_data_module,   ONLY: nclenfit, nUTCdim, n_field_maxdim, &
-       nwavel_max
-
+  USE OMSAO_data_module, ONLY: nclenfit, nUTCdim, n_field_maxdim, ntime_rad, &
+       nxtrack_rad, nwav_rad
+  USE OMSAO_wfamf_module, ONLY: CmETA
 
   ! -----------------------------------------------------------------
   ! The purpose of this subroutine is to check whether compression
@@ -1796,10 +1781,9 @@ SUBROUTINE he5_check_for_compressibility ( &
   !
   ! The dimensions for which compression can be enabled are:
   !
-  !    "nXtrack,2"
+  !    "nXtrackSw,2"
   !    "nXtrack,nWaves"
   !    "nXtrack,nTimes"
-  !    "nXtrack+1,nTimes+1"
   !    "nWavCalPars,nXtrack"
   !    "nUTCdim,nTimes"
   !    "nFitElements,nXtrack,nTimes"
@@ -1820,7 +1804,6 @@ SUBROUTINE he5_check_for_compressibility ( &
   ! ---------------
   ! Input variables
   ! ---------------
-  INTEGER   (KIND=i4), INTENT (IN) :: nTimes, nXtrack, nSwLevels !gga
   CHARACTER (LEN=*),   INTENT (IN) :: field_dim
 
   ! ----------------
@@ -1854,106 +1837,85 @@ SUBROUTINE he5_check_for_compressibility ( &
   END IF
   IF ( field_dim == "nTimes" ) THEN
      n_chunk_dim  = 1
-     chunk_dim(1) = INT ( nTimes, KIND=C_LONG )
+     chunk_dim(1) = INT ( ntime_rad, KIND=C_LONG )
   END IF
   IF ( field_dim == "nTimes,nUTCdim" ) THEN
      n_chunk_dim  = 2
-     chunk_dim(1) = INT ( nTimes, KIND=C_LONG )
+     chunk_dim(1) = INT ( ntime_rad, KIND=C_LONG )
      chunk_dim(2) = INT ( nUTCdim, KIND=C_LONG )
   END IF     
   IF ( field_dim == "nXtrack" ) THEN
      n_chunk_dim  = 1
-     chunk_dim(1) = INT ( nXtrack, KIND=C_LONG )
+     chunk_dim(1) = INT ( nxtrack_rad, KIND=C_LONG )
   END IF
   IF ( field_dim == "nCharLenFitElements" ) THEN
      n_chunk_dim  = 1
      chunk_dim(1) = INT ( nclenfit, KIND=C_LONG )
   END IF
 
-
   ! -------------------------------------------------------------------------
   ! Now the compressible cases, one by one. Since exact matches are required,
   ! there is no harm if we miss to RETURN on a non-compressible field.
   ! -------------------------------------------------------------------------
-
   IF ( field_dim == "nXtrack,2" ) THEN
      yn_compress_field = .TRUE.
      n_chunk_dim = 2
-     chunk_dim(1:n_chunk_dim) = (/ INT(nXtrack,KIND=C_LONG), INT(2,KIND=C_LONG) /)
+     chunk_dim(1:n_chunk_dim) = (/ INT(nxtrack_rad,KIND=C_LONG), INT(2,KIND=C_LONG) /)
   END IF
   IF ( field_dim == "nXtrack,nWaves" ) THEN
      yn_compress_field = .TRUE.
      n_chunk_dim = 2
-     chunk_dim(1:n_chunk_dim) = (/ INT(nXtrack,KIND=C_LONG), INT(MAXVAL(nwav_rad),KIND=C_LONG) /)
+     chunk_dim(1:n_chunk_dim) = (/ INT(nxtrack_rad,KIND=C_LONG), INT(MAXVAL(nwav_rad),KIND=C_LONG) /)
   END IF
   IF ( field_dim == "nXtrack,nTimes" ) THEN
      yn_compress_field = .TRUE.
      n_chunk_dim = 2
-     chunk_dim(1:n_chunk_dim) = (/ INT(nXtrack,KIND=C_LONG), INT(nTimes,KIND=C_LONG) /)
+     chunk_dim(1:n_chunk_dim) = (/ INT(nxtrack_rad,KIND=C_LONG), INT(ntime_rad,KIND=C_LONG) /)
   END IF
-
-  IF ( field_dim == "nXtrack+1,nTimes+1" ) THEN
-     yn_compress_field = .TRUE.
-     n_chunk_dim = 2
-     chunk_dim(1:n_chunk_dim) = (/ INT(nXtrack+1,KIND=C_LONG), INT(nTimes+1,KIND=C_LONG) /)
-  END IF
-
   IF ( field_dim == "nWavCalPars,nXtrack" ) THEN
      yn_compress_field = .TRUE.
      n_chunk_dim = 2
-     chunk_dim(1:n_chunk_dim) = (/ INT(max_calfit_idx,KIND=C_LONG), INT(nXtrack,KIND=C_LONG) /)
+     chunk_dim(1:n_chunk_dim) = (/ INT(max_calfit_idx,KIND=C_LONG), INT(nxtrack_rad,KIND=C_LONG) /)
   END IF
-
-  IF ( field_dim == "nUTCdim,nTimes" ) THEN
-     yn_compress_field = .TRUE.
-     n_chunk_dim = 2
-     chunk_dim(1:n_chunk_dim) = (/ INT(nUTCdim,KIND=C_LONG), INT(nTimes,KIND=C_LONG) /)
-  END IF
-
   IF ( field_dim == "nXtrack,nTimes,4" ) THEN
      yn_compress_field = .TRUE.
      n_chunk_dim = 3
      chunk_dim(1:n_chunk_dim) = &
-          (/INT(nXtrack,KIND=C_LONG), INT(nTimes,KIND=C_LONG), INT(4,KIND=C_LONG) /)
+          (/INT(nxtrack_rad,KIND=C_LONG), INT(ntime_rad,KIND=C_LONG), INT(4,KIND=C_LONG) /)
   END IF
-
   IF ( field_dim == "nFitElements,nXtrack,nTimes" ) THEN
      yn_compress_field = .TRUE.
      n_chunk_dim = 3
      chunk_dim(1:n_chunk_dim) = &
-          (/ INT(n_fitvar_rad,KIND=C_LONG), INT(nXtrack,KIND=C_LONG), INT(nTimes,KIND=C_LONG) /)
+          (/ INT(n_fitvar_rad,KIND=C_LONG), INT(nxtrack_rad,KIND=C_LONG), INT(ntime_rad,KIND=C_LONG) /)
   END IF
-
   IF ( field_dim == "nXtrack,nTimes,nLevels" ) THEN
      yn_compress_field = .TRUE.
      n_chunk_dim = 3
      chunk_dim(1:n_chunk_dim) = &
-          (/ INT(nXtrack,KIND=C_LONG), INT(nTimes,KIND=C_LONG), INT(nSwLevels,KIND=C_LONG) /)
+          (/ INT(nxtrack_rad,KIND=C_LONG), INT(ntime_rad,KIND=C_LONG), INT(CmETA,KIND=C_LONG) /)
   END IF
-
-	! CCM New fields
-  IF ( field_dim == "nwavel_max,nXtrack,nTimes" ) THEN
+  ! CCM New fields
+  IF ( field_dim == "nWaves,nXtrack,nTimes" ) THEN
      yn_compress_field = .TRUE.
      n_chunk_dim = 3
-     chunk_dim(1:n_chunk_dim) = &
-          (/ INT(nwavel_max,KIND=C_LONG), INT(nXtrack,KIND=C_LONG), INT(nTimes,KIND=C_LONG) /)
+     chunk_dim(1:n_chunk_dim) = (/INT(MAXVAL(nwav_rad),KIND=C_LONG), &
+          INT(nxtrack_rad,KIND=C_LONG), INT(ntime_rad,KIND=C_LONG) /)
+
   END IF
-	
   IF ( field_dim == "nRfSpec,nWaves,nXtrack" ) THEN
      yn_compress_field = .TRUE.
      n_chunk_dim = 3
      chunk_dim(1:n_chunk_dim) = &
-          (/ INT(max_rs_idx,KIND=C_LONG), INT(MAXVAL(nwav_rad),KIND=C_LONG), INT(nXtrack,KIND=C_LONG) /)
+          (/ INT(max_rs_idx,KIND=C_LONG), INT(MAXVAL(nwav_rad),KIND=C_LONG), INT(nxtrack_rad,KIND=C_LONG) /)
   END IF
 
   IF ( field_dim == "nWaves,nXtrack" ) THEN
      yn_compress_field = .TRUE.
      n_chunk_dim = 2
      chunk_dim(1:n_chunk_dim) = &
-          (/ INT(MAXVAL(nwav_rad),KIND=C_LONG), INT(nXtrack,KIND=C_LONG) /)
-  END IF
-
-  
+          (/ INT(MAXVAL(nwav_rad),KIND=C_LONG), INT(nxtrack_rad,KIND=C_LONG) /)
+  END IF  
   IF ( field_dim == "nRfSpec" ) THEN
      yn_compress_field = .FALSE.
      n_chunk_dim = 1
@@ -2203,8 +2165,7 @@ SUBROUTINE he5_write_geolocation ( nTimes, nXtrack, &
 
   USE OMSAO_data_module, ONLY: spacecraft_alt, instrument_flag, &
        latitude, longitude, sazimuth, szenith, &
-       vazimuth, vzenith, xtrflg, height, &
-       snowicefraction
+       vazimuth, vzenith, xtrflg
   USE OMSAO_he5_module
   USE OMSAO_errstat_module, ONLY: he5_stat_ok, omsao_e_he5swwrfld, &
        pge_errstat_ok, pge_errstat_error, vb_lev_default, error_check

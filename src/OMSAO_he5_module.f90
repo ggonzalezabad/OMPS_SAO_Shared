@@ -152,11 +152,9 @@ MODULE OMSAO_he5_module
   CHARACTER (LEN=21), PARAMETER ::  dstrcol_field  = "ColumnAmountDestriped"
   CHARACTER (LEN=18), PARAMETER ::  fitcon_field   = "FitConvergenceFlag"
   CHARACTER (LEN=06), PARAMETER ::  fitrms_field   = "FitRMS"
-  CHARACTER (LEN=22), PARAMETER ::  mainqa_field   = "FitMainDataQualityFlag"
-!!$  CHARACTER (LEN=19), PARAMETER ::  maxcol_field   = "MaximumColumnAmount"
+  CHARACTER (LEN=19), PARAMETER ::  mainqa_field   = "MainDataQualityFlag"
   CHARACTER (LEN=20), PARAMETER ::  pxclat_field   = "PixelCornerLatitudes"
   CHARACTER (LEN=21), PARAMETER ::  pxclon_field   = "PixelCornerLongitudes"
-!!$  CHARACTER (LEN= 9), PARAMETER ::  pxarea_field   = "PixelArea"
 
   ! CCM Add field for fit residuals
   CHARACTER (LEN=11), PARAMETER ::  spcfit_field   = "FitSpectrum"
@@ -261,36 +259,36 @@ MODULE OMSAO_he5_module
        "TAI93                                     ","TAI93 Image Midpoint Time                 ",    &
        "TimeUTC                                   ","UTC Image Midpoint Time                   "  /),&
        (/ 2, n_gfields /) )
-  CHARACTER (LEN=16), DIMENSION (4,n_gfields), PARAMETER ::  &
+  CHARACTER (LEN=16), DIMENSION (3,n_gfields), PARAMETER ::  &
        geo_field_specs = RESHAPE ( (/ &
-       "deg             ","nXtrack,nTimes  ","                ","r4              ",    &
-       "deg             ","nXtrack,nTimes  ","                ","r4              ",    &
-       "deg             ","nXtrack,nTimes,4","                ","r4              ",    &
-       "deg             ","nXtrack,nTimes,4","                ","r4              ",    &
-       "deg             ","nXtrack,nTimes  ","                ","r4              ",    &
-       "deg             ","nXtrack,nTimes  ","                ","r4              ",    &
-       "deg             ","nXtrack,nTimes  ","                ","r4              ",    &
-       "deg             ","nXtrack,nTimes  ","                ","r4              ",    &
-       "deg             ","nXtrack,nTimes  ","                ","r4              ",    &
-       "                ","nXtrack,nTimes  ","                ","i2              ",    &
-       "                ","nTimes          ","                ","i4              ",    &
-       "m               ","nTimes          ","                ","r4              ",    &
-       "Seconds         ","nTimes          ","                ","r4              ",    &
-       "                ","nTimes,nUTCdim  ","                ","ch              "  /),&
-       (/ 4, n_gfields /) )
+       "deg             ","nXtrack,nTimes  ","r4              ",    &
+       "deg             ","nXtrack,nTimes  ","r4              ",    &
+       "deg             ","nXtrack,nTimes,4","r4              ",    &
+       "deg             ","nXtrack,nTimes,4","r4              ",    &
+       "deg             ","nXtrack,nTimes  ","r4              ",    &
+       "deg             ","nXtrack,nTimes  ","r4              ",    &
+       "deg             ","nXtrack,nTimes  ","r4              ",    &
+       "deg             ","nXtrack,nTimes  ","r4              ",    &
+       "deg             ","nXtrack,nTimes  ","r4              ",    &
+       "                ","nXtrack,nTimes  ","i2              ",    &
+       "                ","nTimes          ","i4              ",    &
+       "m               ","nTimes          ","r4              ",    &
+       "Seconds         ","nTimes          ","r4              ",    &
+       "                ","nTimes,nUTCdim  ","ch              "  /),&
+       (/ 3, n_gfields /) )
   REAL (KIND=r8), DIMENSION ( 2, n_gfields ), PARAMETER :: &
        geo_valids = RESHAPE (       (/  &
-       -90.0_r8,     +90.0_r8,     & !Latitude
+        -90.0_r8,     +90.0_r8,     & !Latitude
        -180.0_r8,   +180.0_r8,     & !Longitude
-       -90.0_r8,     +90.0_r8,     & !Latitude
-       -180.0_r8,   +180.0_r8,     & !Longitude
+        -90.0_r8,     +90.0_r8,     & !Latitude corner
+       -180.0_r8,   +180.0_r8,     & !Longitude corner
        -180.0_r8,   +180.0_r8,     & !SAA
-       zero_r8,     +180.0_r8,     & !SZA
+         zero_r8,     +180.0_r8,     & !SZA
        -180.0_r8,   +180.0_r8,     & !VAA
-       zero_r8,     +180.0_r8,     & !VZA
+         zero_r8,     +180.0_r8,     & !VZA
        -180.0_r8,   +180.0_r8,     & !RAA
-       1.0_r8, 1.0_r8,       & !Ground Pixel Quality Falgs
-       1.0_r8, 1.0_r8,       & !Instrument Quality Flags
+          1.0_r8, 1.0_r8,       & !Ground Pixel Quality Falgs
+          1.0_r8, 1.0_r8,       & !Instrument Quality Flags
        400000.0_r8, 900000.0_r8,       & !Spacecraft altitutude
        valid_min_r8, valid_max_r8, & !TAI93
        zero_r8,   zero_r8      /), & !UTCTime
@@ -309,15 +307,15 @@ MODULE OMSAO_he5_module
        "SolarWavCalResi                              ","Solar Residual                               ", &
        "SolarWavCalShif                              ","Solar Shift                                  " /), &
        (/ 2, n_solcal_fields /) )
-  CHARACTER (LEN=18), DIMENSION ( 4, n_solcal_fields ), PARAMETER :: &
+  CHARACTER (LEN=18), DIMENSION ( 3, n_solcal_fields ), PARAMETER :: &
        solcal_field_specs = RESHAPE ( (/ &
-       "NoUnits           ","nXtrack           ","OMI-Specific      ","i2                " ,&
-       "NoUnits           ","nXtrack,nWaves    ","OMI-Specific      ","r8                " ,&
-       "NoUnits           ","nXtrack,nWaves    ","OMI-Specific      ","r8                " ,&
-       "NoUnits           ","nXtrack,nWaves    ","OMI-Specific      ","r8                ", &
-       "NoUnits           ","nXtrack,nWaves    ","OMI-Specific      ","r8                ", &
-       "NoUnits           ","nXtrack           ","OMI-Specific      ","r8                " /), &
-       (/ 4, n_solcal_fields /) )
+       "NoUnits           ","nXtrack           ","i2                " ,&
+       "NoUnits           ","nXtrack,nWaves    ","r8                " ,&
+       "NoUnits           ","nXtrack,nWaves    ","r8                " ,&
+       "NoUnits           ","nXtrack,nWaves    ","r8                ", &
+       "NoUnits           ","nXtrack,nWaves    ","r8                ", &
+       "NoUnits           ","nXtrack           ","r8                " /), &
+       (/ 3, n_solcal_fields /) )
   REAL (KIND=r8), DIMENSION ( 2, n_solcal_fields ), PARAMETER :: &
        solcal_valids = RESHAPE ( (/ &
        elsunc_usrstop_eval_r8, elsunc_highest_eval_r8, &
@@ -344,15 +342,15 @@ MODULE OMSAO_he5_module
        "RadianceWavCalWavl                              ", "Radiance Wavelenght Calibration Wavelenght      ", &
        "RadianceWavCalShif                              ", "Radiance Wavelenght Calibration Shift           "/), &
        (/ 2, n_radcal_fields /) )
-  CHARACTER (LEN=18), DIMENSION ( 4, n_radcal_fields ), PARAMETER :: &
+  CHARACTER (LEN=18), DIMENSION ( 3, n_radcal_fields ), PARAMETER :: &
        radcal_field_specs = RESHAPE ( (/ &
-       "NoUnits           ","nXtrack           ","OMI-Specific      ","i2                ", &
-       "NoUnits           ","nXtrack,nWaves    ","OMI-Specific      ","r8                ", &
-       "NoUnits           ","nXtrack,nWaves    ","OMI-Specific      ","r8                ", &
-       "NoUnits           ","nXtrack,nWaves    ","OMI-Specific      ","r8                ", &
-       "NoUnits           ","nXtrack,nWaves    ","OMI-Specific      ","r8                ", &
-       "NoUnits           ","nXtrack           ","OMI-Specific      ","r8                " /), &
-       (/ 4, n_radcal_fields /) )
+       "NoUnits           ","nXtrack           ","i2                ", &
+       "NoUnits           ","nXtrack,nWaves    ","r8                ", &
+       "NoUnits           ","nXtrack,nWaves    ","r8                ", &
+       "NoUnits           ","nXtrack,nWaves    ","r8                ", &
+       "NoUnits           ","nXtrack,nWaves    ","r8                ", &
+       "NoUnits           ","nXtrack           ","r8                " /), &
+       (/ 3, n_radcal_fields /) )
   REAL (KIND=r8), DIMENSION ( 2, n_radcal_fields ), PARAMETER :: &
        radcal_valids = RESHAPE ( (/ &
        elsunc_usrstop_eval_r8, elsunc_highest_eval_r8, &
@@ -379,15 +377,15 @@ MODULE OMSAO_he5_module
        "RadianceReferenceColumnXTRFit            ", "Radiance Reference Fit Colunm XTR Fit    ",    &
        "RadianceReferenceFittingRMS              ", "Radiance Reference Fit RMS               "  /),&
        (/ 2, n_radref_fields /) )
-  CHARACTER (LEN=12), DIMENSION ( 4, n_radref_fields ), PARAMETER :: &
+  CHARACTER (LEN=12), DIMENSION ( 3, n_radref_fields ), PARAMETER :: &
        radref_field_specs = RESHAPE ( (/ &
-       "NoUnits     ", "nXtrack     ", "OMI-Specific", "i2          ",   &
-       "NoUnits     ", "4           ", "OMI-Specific", "r4          ",   &
-       "molec/cm2   ", "nXtrack     ", "OMI-Specific", "r8          ",   &
-       "molec/cm2   ", "nXtrack     ", "OMI-Specific", "r8          ",   &
-       "molec/cm2   ", "nXtrack     ", "OMI-Specific", "r8          ",   &
-       "NoUnits     ", "nXtrack     ", "OMI-Specific", "r8          " /),&
-       (/ 4, n_radref_fields /) )
+       "NoUnits     ", "nXtrack     ", "i2          ",   &
+       "NoUnits     ", "4           ", "r4          ",   &
+       "molec/cm2   ", "nXtrack     ", "r8          ",   &
+       "molec/cm2   ", "nXtrack     ", "r8          ",   &
+       "molec/cm2   ", "nXtrack     ", "r8          ",   &
+       "NoUnits     ", "nXtrack     ", "r8          " /),&
+       (/ 3, n_radref_fields /) )
   REAL (KIND=r8), DIMENSION ( 2, n_radref_fields ), PARAMETER :: &
        radref_valids = RESHAPE ( (/ &
        elsunc_usrstop_eval_r8, elsunc_highest_eval_r8,    &
@@ -398,51 +396,54 @@ MODULE OMSAO_he5_module
        zero_r8,                valid_max_r8           /), &
        (/ 2, n_radref_fields /) )
 
-
   ! -----------
   ! Data Fields
   ! -----------
-
-  ! ------------------------------------------------------------
-  ! (1) Main common output quantities ( mostly [nTimes,nXtrack])
-  ! ------------------------------------------------------------
-  INTEGER (KIND=i4), PARAMETER :: n_cdfields = 15
+  ! -----------------------------
+  ! Main common output quantities
+  ! -----------------------------
+  INTEGER (KIND=i4), PARAMETER :: n_cdfields = 17
   CHARACTER (LEN=41), DIMENSION (2,n_cdfields), PARAMETER ::  &
        comdata_field_names = RESHAPE ( (/ &
-       "AirMassFactor                            ", "Molecule Specific Air Mass Factor (AMF)  ",    &
-       "AirMassFactorDiagnosticFlag              ", "Diagnostic Flag for Molecule Specific AMF",    &
-       "AirMassFactorGeometric                   ", "Geometric Air Mass Factor (AMF)          ",    &
-       "AverageColumnAmount                      ", "Average Column Amount                    ",    &
-       "AverageColumnUncertainty                 ", "Average Column Uncertainty               ",    &
-       "AverageFittingRMS                        ", "Average Fitting RMS                      ",    &
-       "ColumnAmount                             ", "Column Amount                            ",    &
-       "ColumnAmountCorrected                    ", "Column Amount Corrected                  ",    &
-       "ColumnAmountCorrectedFlag                ", "Column Amount Corrected Flag             ",    &
-       "ColumnUncertainty                        ", "Column Uncertainty                       ",    &
-       "FitRMS                                   ", "Fitting RMS                              ",    &
-       "FitConvergenceFlag                       ", "Fitting Convergence Flag                 ",    &
-       "FitMainDataQualityFlag                   ", "Main Data Quality Flag                   ",    &
-       "PixelCornerLatitudes                     ", "Pixel Corner Latitude Coordinates        ",    &
-       "PixelCornerLongitudes                    ", "Pixel Corner Longitude Coordinates       " /), & 
+       "AirMassFactor                            ", "Molecule Specific Air Mass Factor (AMF)  ", &
+       "AirMassFactorDiagnosticFlag              ", "Diagnostic Flag for Molecule Specific AMF", &
+       "AirMassFactorGeometric                   ", "Geometric Air Mass Factor (AMF)          ", &
+       "AirMassFactorCloudFraction               ", "Cloud Fraction for AMF Computation       ", &
+       "AirMassFactorCloudPressure               ", "Cloud Pressure for AMF Computation       ", &
+       "Albedo                                   ", "Scene Albedo for AMF Computation         ", &
+       "AprioriGasProfile                        ", "A-priori Gas profile for AMF Computation ", &
+       "AverageColumnAmount                      ", "Average Column Amount                    ", &
+       "AverageColumnUncertainty                 ", "Average Column Uncertainty               ", &
+       "AverageFittingRMS                        ", "Average Fitting RMS                      ", &
+       "ColumnAmount                             ", "Column Amount                            ", &
+       "ColumnUncertainty                        ", "Column Uncertainty                       ", &
+       "FitRMS                                   ", "Fitting RMS                              ", &
+       "FitConvergenceFlag                       ", "Fitting Convergence Flag                 ", &
+       "MainDataQualityFlag                      ", "Main Data Quality Flag                   ", &
+       "ScatteringWeights                        ", "Scattering Weights                       ", &
+       "SurfacePressure                          ", "Surface Pressure for AMF Computation     "/),&
        (/ 2, n_cdfields /) )
-  CHARACTER (LEN=18), DIMENSION (4,n_cdfields), PARAMETER ::  &
+  CHARACTER (LEN=22), DIMENSION (3,n_cdfields), PARAMETER ::  &
        comdata_field_specs = RESHAPE ( (/ &
-       "NoUnits           ", "nXtrack,nTimes    ", "OMI-Specific      ", "r4                ",    &
-       "NoUnits           ", "nXtrack,nTimes    ", "OMI-Specific      ", "i2                ",    &
-       "NoUnits           ", "nXtrack,nTimes    ", "OMI-Specific      ", "r4                ",    &
-       "molec/cm2         ", "1                 ", "OMI-Specific      ", "r8                ",    &
-       "molec/cm2         ", "1                 ", "OMI-Specific      ", "r8                ",    &
-       "NoUnits           ", "1                 ", "OMI-Specific      ", "r8                ",    &
-       "molec/cm2         ", "nXtrack,nTimes    ", "OMI-Specific      ", "r8                ",    &
-       "molec/cm2         ", "nXtrack,nTimes    ", "OMI-Specific      ", "r8                ",    &
-       "NoUnits           ", "nXtrack,nTimes    ", "OMI-Specific      ", "i2                ",    &
-       "molec/cm2         ", "nXtrack,nTimes    ", "OMI-Specific      ", "r8                ",    &
-       "NoUnits           ", "nXtrack,nTimes    ", "OMI-Specific      ", "r8                ",    &
-       "NoUnits           ", "nXtrack,nTimes    ", "OMI-Specific      ", "i2                ",    &
-       "NoUnits           ", "nXtrack,nTimes    ", "OMI-Specific      ", "i2                ",    &
-       "deg               ", "nXtrack+1,nTimes+1", "OMI-Specific      ", "r4                ",    &
-       "deg               ", "nXtrack+1,nTimes+1", "OMI-Specific      ", "r4                " /), &
-       (/ 4, n_cdfields /) )
+       "NoUnits               ", "nXtrack,nTimes        ","r4                    ", &
+       "NoUnits               ", "nXtrack,nTimes        ","i2                    ", &
+       "NoUnits               ", "nXtrack,nTimes        ","r4                    ", &
+       "NoUnits               ", "nXtrack,nTimes        ","r4                    ", &
+       "hPa                   ", "nXtrack,nTimes        ","r4                    ", &
+       "NoUnits               ", "nXtrack,nTimes        ","r4                    ", &
+       "molecules cm-2        ", "nXtrack,nTimes,nLevels","r8                    ", &
+       "molec/cm2             ", "1                     ","r8                    ", &
+       "molec/cm2             ", "1                     ","r8                    ", &
+       "NoUnits               ", "1                     ","r8                    ", &
+       "molec/cm2             ", "nXtrack,nTimes        ","r8                    ", &
+       "molec/cm2             ", "nXtrack,nTimes        ","r8                    ", &
+       "NoUnits               ", "nXtrack,nTimes        ","r8                    ", &
+       "NoUnits               ", "nXtrack,nTimes        ","i2                    ", &
+       "NoUnits               ", "nXtrack,nTimes        ","i2                    ", &
+       "NoUnits               ", "nXtrack,nTimes,nLevels","r8                    ", &
+       "hPa                   ", "nXtrack,nTimes        ","r8                    "/), &
+       (/3, n_cdfields /) )
+
   ! -----------------------------------------------------------------
   ! Note that the VALIDS for FittingCorrelationElements are not used;
   ! they are only here to make this array of the same dimension as
@@ -453,20 +454,68 @@ MODULE OMSAO_he5_module
        zero_r8,                valid_max_r8,                   &  ! AirMassFactor
        -2.0_r8,                13127.0_r8,                     &  ! AirMassFactorDiagnosticFlag
        zero_r8 ,               valid_max_r8,                   &  ! AirMassFactorGeometric
+       zero_r8,                +1.0_r8,                        &  ! AMFCloudFraction
+       zero_r8,                valid_max_r8,                   &  ! AMFCloudPressure
+       valid_min_r8,         valid_max_r8,                     &  ! Albedo
+       valid_min_r8,         valid_max_r8,                     &  ! Gas profile
        valid_min_r8,           valid_max_r8,                   &  ! AverageColumnAmount
        zero_r8,                valid_max_r8,                   &  ! AverageColumnUncertainty
        zero_r8,                valid_max_r8,                   &  ! AverageFittingRMS
        valid_min_r8,           valid_max_r8,                   &  ! ColumnAmount
-       valid_min_r8,           valid_max_r8,                   &  ! ColumnAmountCorrected
-       0.0_r8,                 0.0_r8,                         &  ! ColumnAmountCorrectedFlag
        zero_r8,                valid_max_r8,                   &  ! ColumnUncertainty
        zero_r8,                valid_max_r8,                   &  ! FittingRMS
        elsunc_usrstop_eval_r8, elsunc_highest_eval_r8,         &  ! FitConvergenceFlag
-       main_qa_min_flag_r8,    main_qa_max_flag_r8,            &  ! MainDataQualityFlag
-       -90.0_r8,               +90.0_r8,                       &  ! PixelCornerLatitudes
-       -180.0_r8,              +180.0_r8                      /), &  ! PixelCornerLongitudes
+       main_qa_min_flag_r8,    main_qa_max_flag_r8,            &  ! Main data quality flag
+       valid_min_r8,         valid_max_r8,                     &  ! Scattering Weights
+       valid_min_r8,         valid_max_r8                  /), &  ! Surface Pressure
        (/ 2, n_cdfields /) )
 
+  ! ------------------------------------------
+  ! Output for the Reference Sector correction
+  ! ------------------------------------------
+  INTEGER (KIND=i4), PARAMETER :: n_rsfields = 5
+  CHARACTER (LEN=40), DIMENSION (2,n_rsfields), PARAMETER ::  &
+       rs_field_names = RESHAPE ( (/ &
+       "ReferenceSectorSlantColumn              ","Reference Sector Slant Column           ", &
+       "ReferenceSectorAirMassFactor            ","Reference Sector AMF                    ", &
+       "ReferenceSectorApriori                  ","Reference Sector Apriori Vertical Column", &
+       "ReferenceSectorFlag                     ","Reference Sector Correction Flag        ", &
+       "ColumnAmountReferenceSectorCorrected    ","Column Amount Reference Sector Corrected" /), &
+       (/ 2, n_rsfields /) )
+  CHARACTER (LEN=14), DIMENSION (3,n_rsfields), PARAMETER ::  &
+       rs_field_specs = RESHAPE ( (/ &
+       "molec/cm2     ","nXtrack,nTimes","r8            ", &
+       "NoUnits       ","nXtrack,nTimes","r8            ", &
+       "molec/cm2     ","nXtrack,nTimes","r8            ", &
+       "NoUnits       ","nXtrack,nTimes","r8            ", &
+       "molec/cm2     ","nXtrack,nTimes","r8            "  /), &
+       (/3, n_rsfields /) )
+  REAL (KIND=r8), DIMENSION ( 2, n_rsfields ), PARAMETER :: &
+       rs_valids = RESHAPE ( (/                              &
+       valid_min_r8,         valid_max_r8,                   & ! Reference Sector Slant Columns
+       valid_min_r8,         valid_max_r8,                   & ! Reference Sector AMF
+       valid_min_r8,         valid_max_r8,                   & ! Reference Sector apriori Vertical Columns
+       zero_r8,              1.0_r8,                         & ! Reference Sector Correction Flags
+       valid_min_r8,         valid_max_r8 /),                & ! Reference Sector Corrected Vertical Column
+       (/2, n_rsfields/) )
+
+  ! --------------------------------------
+  ! Output for the de-stripping correction
+  ! --------------------------------------
+  INTEGER (KIND=i4), PARAMETER :: n_defields = 1
+  CHARACTER (LEN=24), DIMENSION (2,n_defields), PARAMETER ::  &
+       de_field_names = RESHAPE ( (/ &
+       "ColumnAmountDestriped   ","Column Amount de striped" /), &
+       (/ 2, n_defields /) )
+  CHARACTER (LEN=14), DIMENSION (3,n_defields), PARAMETER ::  &
+       de_field_specs = RESHAPE ( (/ &
+       "molec/cm2     ","nXtrack,nTimes","r8            "  /), &
+       (/3, n_defields /) )
+  REAL (KIND=r8), DIMENSION ( 2, n_defields ), PARAMETER :: &
+       de_valids = RESHAPE ( (/                              &
+       valid_min_r8,         valid_max_r8 /),                & ! Column Amount de striped
+       (/2, n_defields/) )
+    
   ! -------------------------------------------
   ! (2) Additional fields for "diagnostic" runs
   ! -------------------------------------------
@@ -497,32 +546,32 @@ MODULE OMSAO_he5_module
        "FitIterationCount                        ", "Radiance Fit Iteration Count             ",    &
        "FitResidualSpectrum                      ", "Residual Spectrum                        " /), &
        (/ 2, n_diag_fields /) )
-  CHARACTER (LEN=27), DIMENSION (4,n_diag_fields), PARAMETER ::  &
+  CHARACTER (LEN=27), DIMENSION (3,n_diag_fields), PARAMETER ::  &
        diagnostic_field_specs = RESHAPE ( (/ &
-       "NoUnits                    ","nXtrack,2                  ","OMI-Specific               ","i2                         ",   &
-       "NoUnits                    ","nXtrack                    ","OMI-Specific               ","i4                         ",   &
-       "NoUnits                    ","nXtrack,nWaves             ","OMI-Specific               ","r8                         ",   &
-       "nm                         ","nXtrack,nWaves             ","OMI-Specific               ","r4                         ",   &
-       "NoUnit                     ","nXtrack,nTimes             ","OMI-Specific               ","r8                         ",   &
-       "NoUnits                    ","nFitElements,nXtrack,nTimes","OMI-Specific               ","r8                         ",   &
-       "NoUnits                    ","nFitElements,nXtrack,nTimes","OMI-Specific               ","r8                         ",   &
-       "NoUnits                    ","nWaves,nXtrack,nTimes      ","OMI-Specific               ","r8                         ",   &
-       "NoUnits                    ","nWaves,nXtrack,nTimes      ","OMI-Specific               ","r8                         ",   &
-       "NoUnits                    ","nWaves,nXtrack,nTimes      ","OMI-Specific               ","r8                         ",   &
-       "NoUnits                    ","nWaves,nXtrack,nTimes      ","OMI-Specific               ","r8                         ",   &
-       "NoUnits                    ","nCharLenFitElements        ","OMI-Specific               ","ch                         ",   &
-       "NoUnits                    ","nFitElements,nXtrack,nTimes","OMI-Specific               ","r8                         ",   &
-       "NoUnits                    ","nRfSpec,nWaves,nXtrack     ","OMI-Specific               ","r8                         ",   &
-       "nm                         ","nWaves,nXtrack             ","OMI-Specific               ","r8                         ",   &
-       "NoUnits                    ","nRfSpec                    ","OMI-Specific               ","r8                         ",   &
-       "NoUnits                    ","nRfSpec                    ","OMI-Specific               ","ch                         ",   &
-       "NoUnits                    ","nXtrack,nTimes             ","OMI-Specific               ","i2                         ",   &
-       "NoUnits                    ","nWaves,nXtrack,nTimes      ","OMI-Specific               ","r8                         " /),&
-       (/ 4, n_diag_fields /) )
+       "NoUnits                    ","nXtrack,2                  ","i2                         ",   &
+       "NoUnits                    ","nXtrack                    ","i4                         ",   &
+       "NoUnits                    ","nXtrack,nWaves             ","r8                         ",   &
+       "nm                         ","nXtrack,nWaves             ","r4                         ",   &
+       "NoUnit                     ","nXtrack,nTimes             ","r8                         ",   &
+       "NoUnits                    ","nFitElements,nXtrack,nTimes","r8                         ",   &
+       "NoUnits                    ","nFitElements,nXtrack,nTimes","r8                         ",   &
+       "NoUnits                    ","nWaves,nXtrack,nTimes      ","r8                         ",   &
+       "NoUnits                    ","nWaves,nXtrack,nTimes      ","r8                         ",   &
+       "NoUnits                    ","nWaves,nXtrack,nTimes      ","r8                         ",   &
+       "NoUnits                    ","nWaves,nXtrack,nTimes      ","r8                         ",   &
+       "NoUnits                    ","nCharLenFitElements        ","ch                         ",   &
+       "NoUnits                    ","nFitElements,nXtrack,nTimes","r8                         ",   &
+       "NoUnits                    ","nRfSpec,nWaves,nXtrack     ","r8                         ",   &
+       "nm                         ","nWaves,nXtrack             ","r8                         ",   &
+       "NoUnits                    ","nRfSpec                    ","r8                         ",   &
+       "NoUnits                    ","nRfSpec                    ","ch                         ",   &
+       "NoUnits                    ","nXtrack,nTimes             ","i2                         ",   &
+       "NoUnits                    ","nWaves,nXtrack,nTimes      ","r8                         " /),&
+       (/3, n_diag_fields /) )
        
   ! Output control logicals CCM
   LOGICAL, DIMENSION ( n_diag_fields ) :: &
-       yn_output_diag = (/ .FALSE. ,&  ! CCDPixelRange
+       yn_output_diag = (/ .TRUE. ,&  ! CCDPixelRange
        .TRUE. ,&  ! CommonModeCount
        .TRUE. ,&  ! CommonModeSpectrum
        .TRUE. ,&  ! CommonModeWavelengths
@@ -538,7 +587,7 @@ MODULE OMSAO_he5_module
        .TRUE. ,&  ! DatabaseSpec
        .TRUE. ,&  ! DatabaseWavl
        .TRUE. ,&  ! DatabaseNormFactor
-       .FALSE. ,&  ! DatabaseSpecNames
+       .TRUE. ,&  ! DatabaseSpecNames
        .TRUE. ,&  ! IterationCount
        .TRUE. /)  ! ResidualSpectrum
 
@@ -569,180 +618,6 @@ MODULE OMSAO_he5_module
        0.0_r8,                 valid_max_i2,     &  ! IterationCount
        valid_min_r8,           valid_max_r8  /), &  ! ResidualSpectrum
        (/ 2, n_diag_fields /) )
-
-  ! ----------------------------------------------------------------
-  ! (3) Additional output for OMHCHO/OMCHOCHO: Adjusted Cloud Fields
-  ! ----------------------------------------------------------------
-  INTEGER (KIND=i4), PARAMETER :: n_cld_fields = 2
-  CHARACTER (LEN=43), DIMENSION (2,n_cld_fields), PARAMETER ::  &
-       cld_field_names = RESHAPE ( (/ &
-       "AMFCloudFraction"//blk27, "Adjusted Cloud Fraction for AMF Computation",    &
-       "AMFCloudPressure"//blk27, "Adjusted Cloud Pressure for AMF Computation" /), &
-       (/ 2, n_cld_fields /) )
-  CHARACTER (LEN=14), DIMENSION (4,n_cld_fields), PARAMETER ::  &
-       cld_field_specs = RESHAPE ( (/ &
-       "NoUnits       ", "nXtrack,nTimes", "OMI-Specific  ","r4            ",     &
-       "hPa           ", "nXtrack,nTimes", "OMI-Specific  ","r4            "  /), &
-       (/ 4, n_cld_fields /) )
-  INTEGER (KIND=i4), PARAMETER :: n_voc_fields = 2
-  CHARACTER (LEN=43), DIMENSION (2,n_voc_fields), PARAMETER ::  &
-       voc_field_names = RESHAPE ( (/ &
-       "AMFCloudFraction"//blk27, "Adjusted Cloud Fraction for AMF Computation",    &
-       "AMFCloudPressure"//blk27, "Adjusted Cloud Pressure for AMF Computation" /), &
-       (/ 2, n_voc_fields /) )
-  CHARACTER (LEN=14), DIMENSION (4,n_voc_fields), PARAMETER ::  &
-       voc_field_specs = RESHAPE ( (/ &
-       "NoUnits       ", "nXtrack,nTimes", "OMI-Specific  ","r4            ",     &
-       "hPa           ", "nXtrack,nTimes", "OMI-Specific  ","r4            "  /), &
-       (/ 4, n_voc_fields /) )
-
-  ! -----------------------------------------------------------------
-  ! Note that the VALIDS for FittingCorrelationElements are not used;
-  ! they are only here to make this array of the same dimension as
-  ! the others, and so eliminates the need for additional CASE logic.
-  ! -----------------------------------------------------------------
-  REAL (KIND=r8), DIMENSION ( 2, n_cld_fields ), PARAMETER :: &
-       cld_valids = RESHAPE ( (/                 &
-       zero_r8,                +1.0_r8,          &  ! AMFCloudFraction
-       zero_r8,                valid_max_r8  /), &  ! AMFCloudPressure
-       (/ 2, n_cld_fields /) )
-  REAL (KIND=r8), DIMENSION ( 2, n_voc_fields ), PARAMETER :: &
-       voc_valids = RESHAPE ( (/                 &
-       zero_r8,                +1.0_r8,          &  ! AMFCloudFraction
-       zero_r8,                valid_max_r8  /), &  ! AMFCloudPressure
-       (/ 2, n_voc_fields /) )
-
-
-
-  ! ------------------------------------------------------------
-  ! (4) Special output for Wavelength-Modified AMF fitting
-  ! ------------------------------------------------------------
-  INTEGER (KIND=i4), PARAMETER :: n_wmamf_fields = 6
-  CHARACTER (LEN=47), DIMENSION (2, n_wmamf_fields), PARAMETER ::  &
-       wmamf_field_names = RESHAPE ( (/ &
-       "AdjustedSceneAlbedo                            ", "Adjusted Scene Albedo                          ",    &
-       "SlantColumnAmount                              ", "Slant Column Amount                            ",    &
-       "SlantColumnAmountDestriped                     ", "Slant Column Amount with Destriping Correction ",    &
-       "SlantColumnUncertainty                         ", "Slant Column Uncertainty                       ",    &
-       "SlantFittingRMS                                ", "Slant Fitting RMS                              ",    &
-       "SlantFitConvergenceFlag                        ", "Slant Fitting Convergence Flag                 " /), &
-       (/ 2, n_wmamf_fields /) )
-  CHARACTER (LEN=18), DIMENSION (4,n_wmamf_fields), PARAMETER ::  &
-       wmamf_field_specs = RESHAPE ( (/ &
-       "NoUnits           ", "nXtrack,nTimes    ", "OMI-Specific      ", "r4                ",    &
-       "molec/cm2         ", "nXtrack,nTimes    ", "OMI-Specific      ", "r8                ",    &
-       "molec/cm2         ", "nXtrack,nTimes    ", "OMI-Specific      ", "r8                ",    &
-       "molec/cm2         ", "nXtrack,nTimes    ", "OMI-Specific      ", "r8                ",    &
-       "NoUnits           ", "nXtrack,nTimes    ", "OMI-Specific      ", "r8                ",    &
-       "NoUnits           ", "nXtrack,nTimes    ", "OMI-Specific      ", "i2                " /), &
-       (/ 4, n_wmamf_fields /) )
-  ! -----------------------------------------------------------------
-  ! Note that the VALIDS for FittingCorrelationElements are not used;
-  ! they are only here to make this array of the same dimension as
-  ! the others, and so eliminates the need for additional CASE logic.
-  ! -----------------------------------------------------------------
-  REAL (KIND=r8), DIMENSION ( 2, n_wmamf_fields ), PARAMETER :: &
-       wmamf_valids = RESHAPE ( (/                              &
-       zero_r8,                one_r8,                          &  ! ColumnAmount
-       valid_min_r8,           valid_max_r8,                    &  ! ColumnAmount
-       valid_min_r8,           valid_max_r8,                    &  ! ColumnAmountDestriped
-       zero_r8,                valid_max_r8,                    &  ! ColumnUncertainty
-       zero_r8,                valid_max_r8,                    &  ! FittingRMS
-       elsunc_usrstop_eval_r8, elsunc_highest_eval_r8      /),  &  ! FitConvergenceFlag
-       (/ 2, n_wmamf_fields /) )
-
-
-  ! -----------------------------
-  ! (5) Special output for OMSAO3
-  ! ---------------------------------------------------------------------
-  ! This we leave in its pedestrian structure of multiple arrays for the
-  ! string definitions. Figuring out the logic of a RESHAPE in three
-  ! dimensions is just too much of a headache for now (tpk, 16 Oct '04)
-  ! ---------------------------------------------------------------------
-  INTEGER   (KIND=i4), PARAMETER :: n_o3fields = o3_t3_idx - o3_t1_idx + 1
-  CHARACTER (LEN=35), DIMENSION (o3_t1_idx:o3_t3_idx, 2), PARAMETER ::  &
-       o3_prefit_fields = RESHAPE ( (/ &
-       "SlantColumnAmountTemperatureT1     ", &
-       "SlantColumnAmountTemperatureT2     ", &
-       "SlantColumnAmountTemperatureT3     ", &
-       "SlantColumnUncertaintyTemperatureT1", &
-       "SlantColumnUncertaintyTemperatureT2", &
-       "SlantColumnUncertaintyTemperatureT3"  /), (/ n_o3fields, 2 /) )
-  CHARACTER (LEN=42), DIMENSION (o3_t1_idx:o3_t3_idx, 2), PARAMETER ::  &
-       o3_prefit_fields_titles = RESHAPE ( (/ &
-       "Slant Column Amount at Temperature T1     ", &
-       "Slant Column Amount at Temperature T2     ", &
-       "Slant Column Amount at Temperature T3     ", &
-       "Slant Column Uncertainty at Temperature T1", &
-       "Slant Column Uncertainty at Temperature T2", &
-       "Slant Column Uncertainty at Temperature T3"/), &
-       (/ n_o3fields, 2 /) )
-  CHARACTER (LEN=12), DIMENSION ( o3_t1_idx:o3_t3_idx, 2 ), PARAMETER :: &
-       o3_prefit_fields_ufd = RESHAPE ( (/ &
-       omspec, omspec, omspec,     &
-       omspec, omspec, omspec  /), &
-       (/ n_o3fields, 2 /) )
-  CHARACTER (LEN= 9), DIMENSION ( o3_t1_idx:o3_t3_idx, 2 ), PARAMETER :: &
-       o3_prefit_fields_units = RESHAPE ( (/ &
-       "molec/cm2", "molec/cm2", "molec/cm2", "molec/cm2", "molec/cm2", "molec/cm2" /), &
-       (/ n_o3fields, 2 /) )
-  CHARACTER (LEN=14), DIMENSION ( o3_t1_idx:o3_t3_idx, 2 ), PARAMETER :: &
-       o3_prefit_fields_dims  = RESHAPE ( (/ &
-       nxtc, nxtc, nxtc, nxtc, nxtc, nxtc /), &
-       (/ n_o3fields, 2 /) )
-  REAL (KIND=r8), DIMENSION ( 2, o3_t1_idx:o3_t3_idx, 2 ), PARAMETER :: &
-       o3_prefit_valids = RESHAPE ( (/ &
-       valid_min_r8, valid_max_r8, valid_min_r8, valid_max_r8, &
-       valid_min_r8, valid_max_r8, valid_min_r8, valid_max_r8, &
-       valid_min_r8, valid_max_r8, valid_min_r8, valid_max_r8  /), &
-       (/ 2, n_o3fields, 2 /) )
-
-  ! ----------------------------------------------
-  ! (6) Output for the Reference Sector correction
-  ! ----------------------------------------------
-  INTEGER (KIND=i4), PARAMETER :: n_rs_fields = 2
-  CHARACTER (LEN=42), DIMENSION (2,n_rs_fields), PARAMETER ::  &
-       rs_field_names = RESHAPE ( (/ &
-       "ReferenceSectorCorrectedVerticalColumn    ", "Reference Sector Corrected Vertical Column", &
-       "ReferenceSectorCorrectedUncertainty       ", "Reference Sector Corrected Uncertainty    " /),  &
-       (/ 2, n_rs_fields /) )
-  CHARACTER (LEN=14), DIMENSION (4,n_rs_fields), PARAMETER ::  &
-       rs_field_specs = RESHAPE ( (/ &
-       "molec/cm2     ", "nXtrack,nTimes", "OMI-Specific  ","r8            ",     &
-       "molec/cm2     ", "nXtrack,nTimes", "OMI-Specific  ","r8            "  /), &
-       (/ 4, n_rs_fields /) )
-  REAL (KIND=r8), DIMENSION ( 2, n_rs_fields ), PARAMETER :: &
-       rs_valids = RESHAPE ( (/                              &
-       valid_min_r8,         valid_max_r8,                   &  ! Reference Sector Corrected Vertical Column
-       valid_min_r8,         valid_max_r8 /),                &  ! Reference Sector Corrected Uncertainty 
-       (/2, n_rs_fields/) )
-
-  ! ------------------------------------------------------------------------
-  ! (7) Output for the Scattering Weights, Gas Profile and Averaging Kernels
-  !     Also albedo from Kleipool or any other OMI climatology.
-  ! ------------------------------------------------------------------------
-  INTEGER (KIND=i4), PARAMETER :: n_sw_fields = 4
-  CHARACTER (LEN=20), DIMENSION (2,n_sw_fields), PARAMETER ::  &
-       sw_field_names = RESHAPE ( (/ &
-       "ScatteringWeights   ", "Scattering Weights  ",   &
-       "ClimatologyLevels   ", "Climatology Levels  ",  &
-       "GasProfile          ", "Gas Profile         ",   &
-       "Albedo              ", "Albedo              "/), &
-       (/ 2, n_sw_fields /) )
-  CHARACTER (LEN=22), DIMENSION (4,n_sw_fields), PARAMETER ::  &
-       sw_field_specs = RESHAPE ( (/ &
-       "NoUnits               ", "nXtrack,nTimes,nLevels", "OMI-Specific          ","r8                    ",   &
-       "hPa                   ", "nXtrack,nTimes,nLevels", "OMI-Specific          ","r8                    ",   &
-       "molecules cm-2        ", "nXtrack,nTimes,nLevels", "OMI-Specific          ","r8                    ",   &
-       "NoUnits               ", "nXtrack,nTimes        ", "OMI-Specific          ","r8                    "/), &
-       (/ 4, n_sw_fields /) )
-  REAL (KIND=r8), DIMENSION ( 2, n_sw_fields ), PARAMETER :: &
-       sw_valids = RESHAPE ( (/                              &
-       valid_min_r8,         valid_max_r8,                   &  ! Scattering Weights
-       valid_min_r8,         valid_max_r8,                   &  ! Gas Profile
-       valid_min_r8,         valid_max_r8,                   &  ! Climatology Levels (hPa)
-       valid_min_r8,         valid_max_r8/),                 &  ! Albedo
-       (/2, n_sw_fields/) )
 
   ! ------------------------------------------------------------------
   ! Integer variables for writing to swath data and geolocation fields
