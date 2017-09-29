@@ -8,10 +8,10 @@ SUBROUTINE omps_to_data_variables (omps_data,nt,nx,nw)
   ! ------------------------------------------------
   USE OMSAO_precision_module, ONLY: i4, r8
   USE OMSAO_data_module, ONLY: spacecraft_alt, time, xtrflg, instrument_flag, &
-       latitude, longitude, szenith, sazimuth, vzenith, vazimuth, vzenith, &
-       vazimuth, razimuth, nwav_irrad, nwav_rad, ccdpix_selection, &
-       radiance_wavl, radiance_spec, radiance_prec, radiance_qflg, nwav_rad, &
-       omi_sol_wav_avg, irradiance_wavl, irradiance_spec, ccdpix_exclusion, &
+       latitude, latitudecorner, longitude, longitudecorner, szenith, sazimuth, &
+       vzenith, vazimuth, vzenith, vazimuth, razimuth, nwav_irrad, nwav_rad, &
+       ccdpix_selection, radiance_wavl, radiance_spec, radiance_prec, radiance_qflg, &
+       nwav_rad, omi_sol_wav_avg, irradiance_wavl, irradiance_spec, ccdpix_exclusion, &
        EarthSunDistance, yn_process_pixel, ntime_rad, nxtrack_rad
   USE OMSAO_OMPS_READER, ONLY: omps_nmev_type
   USE OMSAO_he5_module, ONLY: granule_day, granule_month, granule_year
@@ -54,7 +54,9 @@ SUBROUTINE omps_to_data_variables (omps_data,nt,nx,nw)
   END DO
 
   latitude(1:nx,0:nt-1) = OMPS_data%Latitude(1:nx,1:nt)
+  latitudecorner(1:4,1:nx,0:nt-1) = OMPS_data%LatitudeCorner(1:4,1:nx,1:nt)
   longitude(1:nx,0:nt-1) = OMPS_data%Longitude(1:nx,1:nt)
+  longitudecorner(1:4,1:nx,0:nt-1) = OMPS_data%LongitudeCorner(1:4,1:nx,1:nt)
   szenith(1:nx,0:nt-1) = OMPS_data%SolarZenithAngle(1:nx,1:nt)
   sazimuth(1:nx,0:nt-1) = OMPS_data%SolarAzimuth(1:nx,1:nt)
   vzenith(1:nx,0:nt-1) = OMPS_data%SatelliteZenithAngle(1:nx,1:nt)

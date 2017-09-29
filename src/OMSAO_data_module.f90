@@ -47,6 +47,7 @@ MODULE OMSAO_data_module
   REAL    (KIND=r4), ALLOCATABLE, DIMENSION (:,:) :: szenith, sazimuth, szenith_reference, sazimuth_reference
   REAL    (KIND=r4), ALLOCATABLE, DIMENSION (:,:) :: vzenith, vazimuth, vzenith_reference, vazimuth_reference
   REAL    (KIND=r4), ALLOCATABLE, DIMENSION (:,:) :: razimuth, azimuth_reference
+  REAL    (KIND=r4), ALLOCATABLE, DIMENSION (:,:,:) :: latitudecorner, longitudecorner
   REAL    (KIND=r8), ALLOCATABLE, DIMENSION (:,:,:) :: radiance_spec, radiance_spec_reference
   REAL    (KIND=r8), ALLOCATABLE, DIMENSION (:,:,:) :: radiance_prec, radiance_prec_reference
   REAL    (KIND=r8), ALLOCATABLE, DIMENSION (:,:,:) :: radiance_wavl, radiance_wavl_reference
@@ -173,7 +174,8 @@ CONTAINS
     errstat = 0
     IF (.NOT. ALLOCATED(spacecraft_alt)) THEN
        ALLOCATE(spacecraft_alt(0:nt-1),time(0:nt-1),xtrflg(1:nx,0:nt-1),instrument_flag(0:nt-1), &
-            latitude(1:nx,0:nt-1),longitude(1:nx,0:nt-1), szenith(1:nx,0:nt-1), &
+            latitude(1:nx,0:nt-1), latitudecorner(1:4,1:nx,0:nt-1), longitude(1:nx,0:nt-1), &
+            longitudecorner(1:4,1:nx,0:nt-1), szenith(1:nx,0:nt-1), &
             sazimuth(1:nx,0:nt-1),vzenith(1:nx,0:nt-1),vazimuth(1:nx,0:nt-1), &
             razimuth(1:nx,0:nt-1), nwav_irrad(1:nx), nwav_rad(1:nx,0:nt-1), &
             irradiance_wavl(1:nw,1:nx),irradiance_spec(1:nw,1:nx),omi_sol_wav_avg(1:nx), &
