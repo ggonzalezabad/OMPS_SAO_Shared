@@ -30,7 +30,7 @@ CONTAINS
          nwavel_max, nxtrack_max, irradiance_spec,        &
          irradiance_qflg, irradiance_prec, irradiance_wavl, nwav_irrad, &
          ccdpix_selection, ccdpix_exclusion,             &
-         omi_sol_wav_avg, EarthSunDistance
+         ins_sol_wav_avg, EarthSunDistance
     USE OMSAO_indices_module, ONLY: solmonthave_lun
 
     IMPLICIT NONE
@@ -201,7 +201,7 @@ CONTAINS
        irradiance_prec(1:icnt,ix) = REAL(tmp_prc(imin:imax,ix), KIND=r8)
        irradiance_qflg(1:icnt,ix) = tmp_flg(imin:imax,ix)
        nwav_irrad (ix) = icnt
-       omi_sol_wav_avg(ix) = SUM( tmp_wvl(imin:imax,ix) ) / REAL(icnt, KIND=r8)
+       ins_sol_wav_avg(ix) = SUM( tmp_wvl(imin:imax,ix) ) / REAL(icnt, KIND=r8)
 
        ! ------------------------------------------------------------------------------
        ! If any window is excluded, find the corresponding indices. This has to be done

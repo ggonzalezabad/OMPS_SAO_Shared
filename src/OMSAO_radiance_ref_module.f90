@@ -31,7 +31,7 @@ CONTAINS
     USE OMSAO_data_module, ONLY: nwav_irrad, irradiance_wght, &
          nwav_rad, n_ins_database_wvl, cross_track_skippix, &
          curr_xtrack_pixnum, n_radwvl, max_rs_idx, ins_database, &
-         ins_database_wvl, omi_sol_wav_avg, solcal_pars, radref_wavl, &
+         ins_database_wvl, ins_sol_wav_avg, solcal_pars, radref_wavl, &
          radref_spec, ccdpix_selection, radiance_ccdpix, &
          ccdpix_exclusion, xtrackpix_no, radref_wght, &
          radref_pars, max_calfit_idx, radref_xflag, radref_itnum, &
@@ -147,7 +147,7 @@ CONTAINS
           ! -----------------------------------------------------------------------
           ! Restore solar fitting variables for across-track reference in Earthshine fitting
           ! --------------------------------------------------------------------------------
-          sol_wav_avg                             = omi_sol_wav_avg(ipix)
+          sol_wav_avg                             = ins_sol_wav_avg(ipix)
           hw1e                                    = solcal_pars(hwe_idx,ipix)
           e_asym                                  = solcal_pars(asy_idx,ipix)
           curr_sol_spec(wvl_idx,1:n_database_wvl) = ins_database_wvl(1:n_database_wvl,ipix)
@@ -406,7 +406,7 @@ SUBROUTINE create_radiance_reference (nt, nx, nw, locerrstat)
   USE OMSAO_data_module, ONLY: &
        ccdpix_selection, nwav_radref, radref_spec, radref_wavl,     &
        radref_qflg, radref_sza, radref_vza, radref_wght,            &
-       ccdpix_exclusion, omi_sol_wav_avg 
+       ccdpix_exclusion, ins_sol_wav_avg 
   USE OMSAO_variables_module, ONLY : ctrvar, pcfvar
   USE OMSAO_omps_reader, ONLY: omps_nmev_type, omps_nmev_reader
 
@@ -607,7 +607,7 @@ SUBROUTINE create_radiance_reference (nt, nx, nw, locerrstat)
      ! Re-assign the average solar wavelength variable, sinfe from here
      ! on we are concerned with radiances.
      ! -----------------------------------------------------------------
-     omi_sol_wav_avg(ix) =  SUM( radref_wavl(1:icnt,ix) ) / REAL(icnt, KIND=r8)
+     ins_sol_wav_avg(ix) =  SUM( radref_wavl(1:icnt,ix) ) / REAL(icnt, KIND=r8)
 
      ! ------------------------------------------------------------------
      ! Set weights and quality flags to "bad" for missing spectral points

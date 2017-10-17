@@ -14,7 +14,7 @@ SUBROUTINE xtrack_radiance_wvl_calibration (             &
   USE OMSAO_data_module, ONLY: nwavel_max, nxtrack_max, &
        cross_track_skippix, nwav_radref, radcal_itnum, &
        radcal_xflag, radcal_chisq, n_ins_database_wvl, &
-       solcal_pars, omi_sol_wav_avg,  &
+       solcal_pars, ins_sol_wav_avg,  &
        nwav_irrad, irradiance_wght, irradiance_wavl, &
        irradiance_spec, ins_database, ins_database_wvl, &
        radref_spec, radref_wavl, radref_qflg, radref_wght, &
@@ -120,7 +120,7 @@ SUBROUTINE xtrack_radiance_wvl_calibration (             &
      ! Restore solar fitting variables for across-track reference in
      ! Earthshine fitting. Use the Radiance References if appropriate.
      ! ---------------------------------------------------------------
-     sol_wav_avg = omi_sol_wav_avg(ipix)
+     sol_wav_avg = ins_sol_wav_avg(ipix)
      hw1e        = solcal_pars(hwe_idx,ipix)
      e_asym      = solcal_pars(asy_idx,ipix)
 
@@ -348,7 +348,7 @@ SUBROUTINE xtrack_radiance_fitting_loop (                             &
   USE OMSAO_slitfunction_module, ONLY: saved_shift, saved_squeeze
   USE OMSAO_data_module, ONLY: nxtrack_max, n_comm_wvl, &
        column_uncert, column_amount, fit_rms, radfit_chisq, &
-       itnum_flag, fitconv_flag, solcal_pars, omi_sol_wav_avg, &
+       itnum_flag, fitconv_flag, solcal_pars, ins_sol_wav_avg, &
        n_ins_database_wvl, nwav_rad, szenith, xtrackpix_no, &
        cross_track_skippix, n_radwvl, n_irradwvl, &
        curr_xtrack_pixnum, o3_uncert, o3_amount, radiance_wavl, &
@@ -450,7 +450,7 @@ SUBROUTINE xtrack_radiance_fitting_loop (                             &
      ! Note that, for the YN_SOLAR_COMP case, some variables have been assigned already
      ! in the XTRACK_RADIANCE_WAVCAL loop.
      ! ---------------------------------------------------------------------------------
-     sol_wav_avg                             = omi_sol_wav_avg(ipix)
+     sol_wav_avg                             = ins_sol_wav_avg(ipix)
      hw1e                                    = solcal_pars(hwe_idx,ipix)
      e_asym                                  = solcal_pars(asy_idx,ipix)
      curr_sol_spec(wvl_idx,1:n_database_wvl) = ins_database_wvl(1:n_database_wvl,ipix)

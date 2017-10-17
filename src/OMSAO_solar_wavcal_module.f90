@@ -12,7 +12,8 @@ MODULE OMSAO_solar_wavcal_module
        mask_fitvar_cal, n_fitvar_cal, lobnd, upbnd,&
        fitwavs, fitweights, currspec, refspecs_original,    &
        pcfvar, ctrvar
-  USE OMSAO_data_module
+  USE OMSAO_data_module!, ONLY: nxtrack_rad, nwav_rad, nwav_irrad, solcal_itnum, solcal_xflag, &
+!       ins_sol_wav_avg
   USE OMSAO_errstat_module
   USE OMSAO_he5_module
 
@@ -45,7 +46,7 @@ CONTAINS
     LOGICAL                                 :: yn_skip_pix, yn_bad_pixel
     INTEGER (KIND=i4), DIMENSION (4)        :: select_idx
     INTEGER (KIND=i4), DIMENSION (2)        :: exclud_idx
-    REAL   (KIND=r8), DIMENSION(nwavel_max) :: fitres_out
+    REAL   (KIND=r8), ALLOCATABLE, DIMENSION(:) :: fitres_out
 
     ! ------------------------------
     ! Name of this module/subroutine
@@ -54,8 +55,9 @@ CONTAINS
 
     solcal_chisq = r8_missval
 
+    print*, ctrvar%fitvar_sol_init(1:max_calfit_idx)
     fitvar_cal_saved(1:max_calfit_idx) = ctrvar%fitvar_sol_init(1:max_calfit_idx)
-
+    stop
     ! ---------------------------------------------------------------
     ! Loop for solar wavelength calibration and slit function fitting
     ! ---------------------------------------------------------------
@@ -115,7 +117,7 @@ CONTAINS
        ! -----------------------------------------------------------------------
        ! Save crucial variables for across-track reference in Earthshine fitting
        ! -----------------------------------------------------------------------
-       omi_sol_wav_avg (ipix)                     = sol_wav_avg
+       ins_sol_wav_avg (ipix)                     = sol_wav_avg
        solcal_chisq(ipix)                     = chisquav
        solcal_pars (1:max_calfit_idx,ipix)    = fitvar_cal(1:max_calfit_idx)
        solcal_xflag(ipix)                     = INT (solcal_exval, KIND=i2)
@@ -406,7 +408,7 @@ CONTAINS
     DO ipix = first_pix, last_pix
 
        nwav        = nwav_irrad(ipix)
-       sol_wav_avg = omi_sol_wav_avg(ipix)
+       sol_wav_avg = ins_sol_wav_avg(ipix)
        
        tmpwav(1:nwav) = irradiance_wavl(1:nwav,ipix)
        modspe(1:nwav) = irradiance_spec(1:nwav,ipix)

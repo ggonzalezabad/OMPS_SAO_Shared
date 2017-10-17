@@ -11,7 +11,7 @@ SUBROUTINE omps_to_data_variables (omps_data,nt,nx,nw)
        latitude, latitudecorner, longitude, longitudecorner, szenith, sazimuth, &
        vzenith, vazimuth, vzenith, vazimuth, razimuth, nwav_irrad, nwav_rad, &
        ccdpix_selection, radiance_wavl, radiance_spec, radiance_prec, radiance_qflg, &
-       nwav_rad, omi_sol_wav_avg, irradiance_wavl, irradiance_spec, ccdpix_exclusion, &
+       nwav_rad, ins_sol_wav_avg, irradiance_wavl, irradiance_spec, ccdpix_exclusion, &
        EarthSunDistance, yn_process_pixel, ntime_rad, nxtrack_rad
   USE OMSAO_OMPS_READER, ONLY: omps_nmev_type
   USE OMSAO_he5_module, ONLY: granule_day, granule_month, granule_year
@@ -110,7 +110,7 @@ SUBROUTINE omps_to_data_variables (omps_data,nt,nx,nw)
      irradiance_wavl(1:icnt,ix) = REAL(OMPS_data%SolarFluxWavelengths(imin:imax,ix), KIND=r8)
      irradiance_spec(1:icnt,ix) = REAL(OMPS_data%SolarFlux(imin:imax,ix), KIND=r8)
      nwav_irrad (ix) = icnt
-     omi_sol_wav_avg(ix) = SUM(irradiance_wavl(1:icnt,ix) ) / REAL(icnt, KIND=r8)
+     ins_sol_wav_avg(ix) = SUM(irradiance_wavl(1:icnt,ix) ) / REAL(icnt, KIND=r8)
      
      ccdpix_exclusion(ix,1:2) = -1
      IF ( MINVAL(ctrvar%fit_winexc_lim(1:2)) > 0.0_r8 ) THEN

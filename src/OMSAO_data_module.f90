@@ -116,7 +116,7 @@ MODULE OMSAO_data_module
   REAL    (KIND=r8), DIMENSION (max_calfit_idx, nxtrack_max) :: solcal_pars, radcal_pars, radref_pars
   REAL    (KIND=r8), DIMENSION (max_rs_idx, nwavel_max, nxtrack_max) :: ins_database
   REAL    (KIND=r8), DIMENSION (            nwavel_max, nxtrack_max) :: ins_database_wvl
-  REAL    (KIND=r8), ALLOCATABLE, DIMENSION (:) :: omi_sol_wav_avg
+  REAL    (KIND=r8), ALLOCATABLE, DIMENSION (:) :: ins_sol_wav_avg
   REAL    (KIND=r8), ALLOCATABLE, DIMENSION (:) :: solcal_chisq, radcal_chisq, radref_chisq, &
        radref_col, radref_dcol, radref_rms, radref_xtrcol
 
@@ -180,7 +180,7 @@ CONTAINS
             longitudecorner(1:4,1:nx,0:nt-1), szenith(1:nx,0:nt-1), &
             sazimuth(1:nx,0:nt-1),vzenith(1:nx,0:nt-1),vazimuth(1:nx,0:nt-1), &
             razimuth(1:nx,0:nt-1), nwav_irrad(1:nx), nwav_rad(1:nx,0:nt-1), &
-            irradiance_wavl(1:nw,1:nx),irradiance_spec(1:nw,1:nx),omi_sol_wav_avg(1:nx), &
+            irradiance_wavl(1:nw,1:nx),irradiance_spec(1:nw,1:nx),ins_sol_wav_avg(1:nx), &
             ccdpix_selection(nx,4), ccdpix_exclusion(nx,2), radiance_wavl(1:nw,1:nx,0:nt-1), &
             radiance_spec(1:nw,1:nx,0:nt-1), radiance_prec(1:nw,1:nx,0:nt-1), &
             radiance_qflg(1:nw,1:nx,0:nt-1), yn_process_pixel(1:nx,0:nt-1), utc_time(0:nt-1), stat=errstat)
@@ -200,7 +200,7 @@ CONTAINS
        DEALLOCATE(spacecraft_alt,time,xtrflg,instrument_flag, latitude, latitudecorner, &
             longitude, longitudecorner, szenith, sazimuth, vzenith, vazimuth, &
             razimuth, nwav_irrad, nwav_rad, irradiance_wavl, irradiance_spec, &
-            omi_sol_wav_avg, ccdpix_selection, ccdpix_exclusion, radiance_wavl, &
+            ins_sol_wav_avg, ccdpix_selection, ccdpix_exclusion, radiance_wavl, &
             radiance_spec, radiance_prec, radiance_qflg, yn_process_pixel, utc_time, stat=errstat)
     ENDIF
 

@@ -391,7 +391,7 @@ SUBROUTINE omi_create_solcomp_irradiance ( nxt )
   USE OMSAO_solcomp_module, ONLY: soco_compute
   USE OMSAO_data_module, ONLY: nwavel_max, irradiance_spec, irradiance_qflg, &
        irradiance_prec, irradiance_wavl, nwav_irrad, ccdpix_selection, &
-       ccdpix_exclusion, omi_sol_wav_avg
+       ccdpix_exclusion, ins_sol_wav_avg
   
 
   IMPLICIT NONE
@@ -439,7 +439,7 @@ SUBROUTINE omi_create_solcomp_irradiance ( nxt )
      irradiance_prec(1:nwvl,ix) = 0.0_r8
      irradiance_qflg(1:nwvl,ix) = 0_i2
 
-     omi_sol_wav_avg(ix) = irradiance_wavl(nwvl/2,ix)
+     ins_sol_wav_avg(ix) = irradiance_wavl(nwvl/2,ix)
 
 
      ! ------------------------------------------------------------------------------
