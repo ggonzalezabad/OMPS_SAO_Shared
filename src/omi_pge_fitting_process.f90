@@ -124,9 +124,8 @@ SUBROUTINE omi_fitting (                                  &
   USE OMSAO_variables_module, ONLY: ctrvar, pcfvar
   USE OMSAO_data_module, ONLY: latitude, column_amount, &
        cross_track_skippix, radcal_itnum, radcal_xflag, &
-       solcal_itnum, solcal_xflag, &
        longitude, column_uncert, n_comm_wvl, szenith, &
-       fit_rms, vzenith, fitconv_flag, height
+       fit_rms, vzenith, fitconv_flag, height, deallocate_radiance_variables
   USE OMSAO_he5_datafields_module
   USE OMSAO_solar_wavcal_module, ONLY: xtrack_solar_calibration_loop
   USE OMSAO_radiance_ref_module, ONLY: &
@@ -252,25 +251,18 @@ SUBROUTINE omi_fitting (                                  &
   ! Write geolocation fields
   ! ------------------------
   CALL he5_write_geolocation ( nTimesRad, nXtrackRad, errstat)
-  stop
-  ! ---------------------------------------------------------------
-  ! Work out pixel corners so we can plot and write them to L2 file
-  ! ---------------------------------------------------------------
-  CALL compute_pixel_corners (nTimesRad, nXtrackRad, &
-       latitude(1:nXtrackRad, 0:nTimesRad-1),    &
-       longitude(1:nXtrackRad, 0:nTimesRad-1),   &
-       errstat)
 
   ! ---------------------------------------------------------------
   ! Solar wavelength calibration, done even when we use a composite
   ! solar spectrum to avoid un-initialized variables. However, no
   ! actual fitting is performed in the latter case.
   ! ---------------------------------------------------------------
-  solcal_itnum = i2_missval ; solcal_xflag = i2_missval
+  print*, first_wc_pix, last_wc_pix
   CALL xtrack_solar_calibration_loop ( first_wc_pix, last_wc_pix, errstat )
   pge_error_status = MAX ( pge_error_status, errstat )
   IF ( pge_error_status >= pge_errstat_error )  GO TO 666
 
+  stop
   ! ------------------------------------------------
   ! If use radiance reference we read the radiance
   ! reference file and work out an efective radiance
@@ -545,6 +537,14 @@ SUBROUTINE omi_fitting (                                  &
 
   ENDIF
 
+  ! -----------------------------
+  ! Deallocate radiance variables
+  ! -----------------------------
+  CALL deallocate_radiance_variables(errstat)
+  CALL error_check ( errstat, pge_errstat_ok, pge_errstat_fatal, OMSAO_F_SUBROUTINE, &
+       modulename//f_sep//"deallocate_radiance_variables", vb_lev_default, pge_error_status )
+  IF (pge_error_status >= pge_errstat_error ) GO TO 666
+  
   ! ---------------------
   ! Write some attributes
   ! ---------------------

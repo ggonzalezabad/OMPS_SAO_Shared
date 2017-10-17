@@ -188,5 +188,23 @@ CONTAINS
 
   END SUBROUTINE allocate_radiance_variables  
 
+  SUBROUTINE deallocate_radiance_variables (errstat)
+
+    IMPLICIT NONE
+
+    ! Modified varaible
+    INTEGER(KIND=i4), INTENT(INOUT) :: errstat
+
+    errstat = 0
+    IF (ALLOCATED(spacecraft_alt)) THEN
+       DEALLOCATE(spacecraft_alt,time,xtrflg,instrument_flag, latitude, latitudecorner, &
+            longitude, longitudecorner, szenith, sazimuth, vzenith, vazimuth, &
+            razimuth, nwav_irrad, nwav_rad, irradiance_wavl, irradiance_spec, &
+            omi_sol_wav_avg, ccdpix_selection, ccdpix_exclusion, radiance_wavl, &
+            radiance_spec, radiance_prec, radiance_qflg, yn_process_pixel, utc_time, stat=errstat)
+    ENDIF
+
+  END SUBROUTINE deallocate_radiance_variables  
+
 
 END MODULE OMSAO_data_module
