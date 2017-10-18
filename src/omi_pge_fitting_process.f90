@@ -2,7 +2,7 @@ SUBROUTINE omi_pge_fitting_process ( pge_idx, n_max_rspec,             &
                                      pge_error_status )
 
   USE OMSAO_precision_module, ONLY: i4
-  USE OMSAO_data_module, ONLY: allocate_radiance_variables
+  USE OMSAO_data_module, ONLY: allocate_variables, deallocate_variables
   USE OMSAO_errstat_module, ONLY: pge_errstat_ok, pge_errstat_error, &
        pge_errstat_fatal, error_check, f_sep, omsao_f_subroutine, &
        vb_lev_default, pge_error_status_exit
@@ -50,7 +50,7 @@ SUBROUTINE omi_pge_fitting_process ( pge_idx, n_max_rspec,             &
   IF ( pge_error_status >= pge_errstat_error ) GOTO 666
 
   ! Allocate data variables
-  CALL allocate_radiance_variables (omps_data%nxtrack,omps_data%nlines,omps_data%nwavel,errstat)
+  CALL allocate_variables (omps_data%nxtrack,omps_data%nlines,omps_data%nwavel,errstat)
   CALL error_check ( errstat, pge_errstat_ok, pge_errstat_fatal, OMSAO_F_SUBROUTINE, &
        modulename//f_sep//"Allocate radiance variables.", vb_lev_default, pge_error_status )
   IF (pge_error_status >= pge_errstat_error ) GO TO 666
@@ -90,13 +90,21 @@ SUBROUTINE omi_pge_fitting_process ( pge_idx, n_max_rspec,             &
        pge_idx, omps_data_radiance_reference,         &
        nTimesRad,   nXtrackRad, n_max_rspec, &
        nTimesRadRR, nXtrackRadRR, nWvlCCDrr, pge_error_status       )
-
-  IF ( pge_error_status >= pge_errstat_fatal ) GO TO 666
+  CALL error_check ( errstat, pge_errstat_ok, pge_errstat_fatal, OMSAO_F_SUBROUTINE, &
+       modulename//f_sep//"omi_fitting", vb_lev_default, pge_error_status )
 
   ! -------------------------------------------------
   ! Deallocation of some potentially allocated memory
   ! -------------------------------------------------
-  CALL soco_pars_deallocate (errstat)  
+  CALL soco_pars_deallocate (errstat)
+  CALL error_check ( errstat, pge_errstat_ok, pge_errstat_fatal, OMSAO_F_SUBROUTINE, &
+       modulename//f_sep//"soco_pars_deallocate.", vb_lev_default, pge_error_status )
+  IF (pge_error_status >= pge_errstat_error ) GO TO 666
+
+  CALL deallocate_variables (errstat)
+  CALL error_check ( errstat, pge_errstat_ok, pge_errstat_fatal, OMSAO_F_SUBROUTINE, &
+       modulename//f_sep//"deallocate_variables.", vb_lev_default, pge_error_status )
+  IF (pge_error_status >= pge_errstat_error ) GO TO 666
   
   ! -------------------------------------------------------------
   ! Here is the place to jump to in case some error has occurred.
@@ -125,7 +133,7 @@ SUBROUTINE omi_fitting (                                  &
   USE OMSAO_data_module, ONLY: latitude, column_amount, &
        cross_track_skippix, radcal_itnum, radcal_xflag, &
        longitude, column_uncert, n_comm_wvl, szenith, &
-       fit_rms, vzenith, fitconv_flag, height, deallocate_radiance_variables
+       fit_rms, vzenith, fitconv_flag, height
   USE OMSAO_he5_datafields_module
   USE OMSAO_solar_wavcal_module, ONLY: xtrack_solar_calibration_loop
   USE OMSAO_radiance_ref_module, ONLY: &
@@ -257,7 +265,6 @@ SUBROUTINE omi_fitting (                                  &
   ! solar spectrum to avoid un-initialized variables. However, no
   ! actual fitting is performed in the latter case.
   ! ---------------------------------------------------------------
-  print*, first_wc_pix, last_wc_pix
   CALL xtrack_solar_calibration_loop ( first_wc_pix, last_wc_pix, errstat )
   pge_error_status = MAX ( pge_error_status, errstat )
   IF ( pge_error_status >= pge_errstat_error )  GO TO 666
@@ -537,14 +544,6 @@ SUBROUTINE omi_fitting (                                  &
 
   ENDIF
 
-  ! -----------------------------
-  ! Deallocate radiance variables
-  ! -----------------------------
-  CALL deallocate_radiance_variables(errstat)
-  CALL error_check ( errstat, pge_errstat_ok, pge_errstat_fatal, OMSAO_F_SUBROUTINE, &
-       modulename//f_sep//"deallocate_radiance_variables", vb_lev_default, pge_error_status )
-  IF (pge_error_status >= pge_errstat_error ) GO TO 666
-  
   ! ---------------------
   ! Write some attributes
   ! ---------------------
