@@ -89,8 +89,37 @@ SUBROUTINE omps_to_data_variables (omps_data,nt,nx,nw)
   ! control file (ccdpix_selection and ccdpix_exclusion)
   ! Limit the pixels used to the fitting window.
   ! Radiance and irradiance
-  ! ------------------------------------------------------------
-  ! First the irradiance, only loop on xtrack
+  ! -----------------------------------------------------------
+  ! Radiances
+  ! ------------------------------------------
+  DO it = 0, nt-1
+     DO ix = 1, nx
+        tmp_wvl(1:nw) = REAL(OMPS_data%BandCenterWavelengths(1:nw,ix,it+1), KIND=r8)
+        
+        DO j = 1, 3, 2
+           CALL array_locate_r8 ( &
+                nw, tmp_wvl(1:nw), REAL(ctrvar%fit_winwav_lim(j  ),KIND=r8), 'LE', &
+                ccdpix_selection(ix,j  ) )
+           CALL array_locate_r8 ( &
+                nw, tmp_wvl(1:nw), REAL(ctrvar%fit_winwav_lim(j+1),KIND=r8), 'GE', &
+                ccdpix_selection(ix,j+1) )
+        END DO
+        
+        imin = ccdpix_selection(ix,1)
+        imax = ccdpix_selection(ix,4)
+        icnt = imax - imin + 1
+        
+        radiance_wavl(1:icnt,ix,it) = REAL ( OMPS_data%BandCenterWavelengths(imin:imax,ix,it+1), KIND=r8 )
+        radiance_spec(1:icnt,ix,it) = REAL ( OMPS_data%Radiance(imin:imax,ix,it+1), KIND=r8 )
+        radiance_prec(1:icnt,ix,it) = REAL ( OMPS_data%RadianceError(imin:imax,ix,it+1), KIND=r8 )
+        radiance_qflg(1:icnt,ix,it) = OMPS_data%PixelQualityFlags(imin:imax,ix,it+1)
+        nwav_rad (ix,it) = icnt
+        
+     END DO
+  END DO
+  
+  ! ------------------------------------------
+  ! Irradiance, only loop on xtrack
   ! -----------------------------------------
   DO ix = 1, nx
   tmp_wvl(1:nw) = REAL(OMPS_data%SolarFluxWavelengths(1:nw,ix),KIND=r8)
@@ -122,37 +151,6 @@ SUBROUTINE omps_to_data_variables (omps_data,nt,nx,nw)
              ccdpix_exclusion(ix,2) )
      END IF
 
-  END DO
-
-  ! ------------------------------------------
-  ! Now the radiances, xtrack and ntimes loops
-  ! We don't need to work out again the 
-  ! ccdpix_selection arrays
-  ! ------------------------------------------
-  DO it = 0, nt-1
-     DO ix = 1, nx
-        tmp_wvl(1:nw) = REAL(OMPS_data%BandCenterWavelengths(1:nw,ix,it+1), KIND=r8)
-
-        DO j = 1, 3, 2
-           CALL array_locate_r8 ( &
-                nw, tmp_wvl(1:nw), REAL(ctrvar%fit_winwav_lim(j  ),KIND=r8), 'LE', &
-                ccdpix_selection(ix,j  ) )
-           CALL array_locate_r8 ( &
-                nw, tmp_wvl(1:nw), REAL(ctrvar%fit_winwav_lim(j+1),KIND=r8), 'GE', &
-                ccdpix_selection(ix,j+1) )
-        END DO
-
-        imin = ccdpix_selection(ix,1)
-        imax = ccdpix_selection(ix,4)
-        icnt = imax - imin + 1
-
-        radiance_wavl(1:icnt,ix,it) = REAL ( OMPS_data%BandCenterWavelengths(imin:imax,ix,it+1), KIND=r8 )
-        radiance_spec(1:icnt,ix,it) = REAL ( OMPS_data%Radiance(imin:imax,ix,it+1), KIND=r8 )
-        radiance_prec(1:icnt,ix,it) = REAL ( OMPS_data%RadianceError(imin:imax,ix,it+1), KIND=r8 )
-        radiance_qflg(1:icnt,ix,it) = OMPS_data%PixelQualityFlags(imin:imax,ix,it+1)
-        nwav_rad (ix,it) = icnt
-
-     END DO
   END DO
 
 END SUBROUTINE omps_to_data_variables
