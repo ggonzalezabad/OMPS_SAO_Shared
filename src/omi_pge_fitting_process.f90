@@ -27,7 +27,7 @@ SUBROUTINE omi_pge_fitting_process ( pge_idx, n_max_rspec,             &
   ! ---------------
   ! Local variables
   ! ---------------
-  TYPE(omps_nmev_type) :: omps_data, omps_data_radiance_reference
+  TYPE(omps_nmev_type), ALLOCATABLE :: omps_data, omps_data_radiance_reference
   TYPE(omps_nmto3_type):: omps_to3_data
   INTEGER (KIND=i4) :: nTimesRad,   nXtrackRad,   nWvlCCD
   INTEGER (KIND=i4) :: nTimesRadRR, nXtrackRadRR, nWvlCCDrr
@@ -44,6 +44,7 @@ SUBROUTINE omi_pge_fitting_process ( pge_idx, n_max_rspec,             &
   ! Since the OMPS NM files are not that big I'm going to read here the whole file and
   ! assign the values needed to the significant variables.
   ! ----------------------------------------------------------------------------------
+  ALLOCATE (omps_data, omps_data_radiance_reference)
   omps_reader_status = OMPS_NMEV_READER(omps_data,TRIM(ADJUSTL(pcfvar%l1b_rad_fname)))
   CALL error_check ( INT(omps_reader_status,KIND=i4), pge_errstat_ok, pge_errstat_fatal, OMSAO_F_SUBROUTINE, &
        modulename//f_sep//"Read OMPS radiance data.", vb_lev_default, pge_error_status )
@@ -58,7 +59,7 @@ SUBROUTINE omi_pge_fitting_process ( pge_idx, n_max_rspec,             &
   ! Copy and assing values to data variables from omps_data
   CALL omps_to_data_variables ( omps_data, &
        omps_data%nlines, omps_data%nxtrack, omps_data%nwavel)
-
+  
   omps_reader_status = OMPS_NMEV_READER(omps_data_radiance_reference,TRIM(ADJUSTL(pcfvar%l1b_radref_fname)))
   CALL error_check ( INT(omps_reader_status,KIND=i4), pge_errstat_ok, pge_errstat_fatal, OMSAO_F_SUBROUTINE, &
        modulename//f_sep//"Read OMPS radiance reference data.", vb_lev_default, pge_error_status )
@@ -85,6 +86,8 @@ SUBROUTINE omi_pge_fitting_process ( pge_idx, n_max_rspec,             &
   nXtrackRadRR         = omps_data_radiance_reference%nXtrack
   nWvlCCD              = omps_data%nWavel  
   nWvlCCDrr            = omps_data_radiance_reference%nWavel  
+  ! Now I can deallocate omps_data)
+  DEALLOCATE(omps_data)
 
   CALL omi_fitting (                                  &
        pge_idx, omps_data_radiance_reference,         &
