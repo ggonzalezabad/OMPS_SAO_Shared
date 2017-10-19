@@ -8,7 +8,7 @@ SUBROUTINE prepare_databases ( &
   ! ===========================================
 
   USE OMSAO_precision_module, ONLY: i4, r8
-  USE OMSAO_variables_module, ONLY: hw1e, e_asym, ctrvar
+  USE OMSAO_variables_module, ONLY: hw1e, e_asym, g_shap, ctrvar
   USE OMSAO_errstat_module, ONLY: pge_errstat_error, pge_errstat_ok
   IMPLICIT NONE
 
@@ -43,7 +43,7 @@ SUBROUTINE prepare_databases ( &
   ! -----------------------------------
   IF ( ANY (ctrvar%have_undersampling) ) &
        CALL undersample (                                                               &
-       xtrack_pix, n_rad_wvl, curr_rad_wvl(1:n_rad_wvl), hw1e, e_asym, ctrvar%phase, locerrstat )
+       xtrack_pix, n_rad_wvl, curr_rad_wvl(1:n_rad_wvl), hw1e, e_asym, g_shap, ctrvar%phase, locerrstat )
   errstat = MAX ( errstat, locerrstat )
   IF ( errstat >= pge_errstat_error ) RETURN
 

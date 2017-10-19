@@ -1,4 +1,5 @@
-SUBROUTINE undersample ( xtrack_pix, n_sensor_pts, curr_wvl, hw1e, e_asym, phase, errstat )
+SUBROUTINE undersample ( xtrack_pix, n_sensor_pts, curr_wvl, hw1e, e_asym, g_shap, &
+     phase, errstat )
 
   !     Convolves input spectrum with Gaussian slit function of specified
   !     HW1e, and samples at a particular input phase to give the OMI
@@ -20,7 +21,7 @@ SUBROUTINE undersample ( xtrack_pix, n_sensor_pts, curr_wvl, hw1e, e_asym, phase
   ! Input variables
   ! ---------------
   INTEGER (KIND=i4),                           INTENT (IN) :: n_sensor_pts, xtrack_pix
-  REAL    (KIND=r8),                           INTENT (IN) :: hw1e, e_asym, phase
+  REAL    (KIND=r8),                           INTENT (IN) :: hw1e, e_asym, g_shap, phase
   REAL    (KIND=r8), DIMENSION (n_sensor_pts), INTENT (IN) :: curr_wvl
 
   ! ---------------
@@ -57,8 +58,8 @@ SUBROUTINE undersample ( xtrack_pix, n_sensor_pts, curr_wvl, hw1e, e_asym, phase
      CALL omi_slitfunc_convolve ( &
           xtrack_pix, npts, locwvl(1:npts), locspec(1:npts), specmod(1:npts), locerrstat )
   ELSE
-     CALL asymmetric_gaussian_sf ( &
-          npts, hw1e, e_asym, locwvl(1:npts), locspec(1:npts), specmod(1:npts))
+     CALL super_gaussian_sf ( &
+          npts, hw1e, e_asym, g_shap, locwvl(1:npts), locspec(1:npts), specmod(1:npts))
   END IF
   CALL error_check ( &
        locerrstat, pge_errstat_ok, pge_errstat_error, OMSAO_E_INTERPOL, &
@@ -201,7 +202,7 @@ END SUBROUTINE undersample
 
 
 SUBROUTINE undersample_new ( xtrack_pix, n_sensor_pts, curr_wvl, n_solar_pts, solar_wvl, &
-                             hw1e, e_asym, errstat )
+                             hw1e, e_asym, g_shap, errstat )
 
   !     Convolves input spectrum with Gaussian slit function of specified
   !     HW1e, and samples at a particular input phase to give the OMI
@@ -224,7 +225,7 @@ SUBROUTINE undersample_new ( xtrack_pix, n_sensor_pts, curr_wvl, n_solar_pts, so
   ! ---------------
   INTEGER (KIND=i4),                           INTENT (IN) :: n_sensor_pts, xtrack_pix, &
        n_solar_pts
-  REAL    (KIND=r8),                           INTENT (IN) :: hw1e, e_asym
+  REAL    (KIND=r8),                           INTENT (IN) :: hw1e, e_asym, g_shap
   REAL    (KIND=r8), DIMENSION (n_sensor_pts), INTENT (IN) :: curr_wvl
   REAL    (KIND=r8), DIMENSION (n_solar_pts), INTENT (IN)  :: solar_wvl
 
@@ -270,8 +271,8 @@ SUBROUTINE undersample_new ( xtrack_pix, n_sensor_pts, curr_wvl, n_solar_pts, so
      CALL omi_slitfunc_convolve ( &
           xtrack_pix, npts, locwvl(1:npts), locspec(1:npts), specmod(1:npts), locerrstat )
   ELSE
-     CALL asymmetric_gaussian_sf ( &
-          npts, hw1e, e_asym, locwvl(1:npts), locspec(1:npts), specmod(1:npts))
+     CALL super_gaussian_sf ( &
+          npts, hw1e, e_asym, g_shap, locwvl(1:npts), locspec(1:npts), specmod(1:npts))
   END IF
   CALL error_check ( &
        locerrstat, pge_errstat_ok, pge_errstat_error, OMSAO_E_INTERPOL, &
