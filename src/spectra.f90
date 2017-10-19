@@ -4,8 +4,8 @@ SUBROUTINE spectrum_solar ( &
   USE OMSAO_precision_module
   USE OMSAO_indices_module, ONLY: solar_idx, &
        bl0_idx, bl1_idx, bl2_idx, bl3_idx, bl4_idx, bl5_idx, sc0_idx, sc1_idx, &
-       sc2_idx, sc3_idx, sc4_idx, sc5_idx, sin_idx, hwe_idx, asy_idx, shi_idx, &
-       squ_idx
+       sc2_idx, sc3_idx, sc4_idx, sc5_idx, sin_idx, hwe_idx, asy_idx, sha_idx, &
+       shi_idx, squ_idx
   USE OMSAO_variables_module,  ONLY: &
        refspecs_original, solar_spec_convolved, &
        fitvar_cal, mask_fitvar_cal, ctrvar
@@ -108,8 +108,8 @@ SUBROUTINE spectrum_solar ( &
         IF ( errstat >= pge_errstat_error ) RETURN
      END IF
   ELSE
-     CALL asymmetric_gaussian_sf (                                           &
-          npts, fitvar_cal(hwe_idx), fitvar_cal(asy_idx),                    &
+     CALL super_gaussian_sf (                                           &
+          npts, fitvar_cal(hwe_idx), fitvar_cal(asy_idx), fitvar_cal(sha_idx), &
           solar_pos(1:npts), solar_spec(1:npts), solar_spec_convolved(1:npts) )
   END IF
 
