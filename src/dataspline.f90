@@ -13,7 +13,7 @@ SUBROUTINE dataspline ( xtrack_pix, n_radwvl, curr_rad_wvl, n_max_rspec, errstat
   USE OMSAO_precision_module, ONLY: i4, r8
   USE OMSAO_indices_module, ONLY: max_rs_idx, mxs_idx, &
        max_calfit_idx, solar_idx, refspec_strings, &
-       hwe_idx, asy_idx, comm_idx, us1_idx, us2_idx
+       hwe_idx, asy_idx, sha_idx, comm_idx, us1_idx, us2_idx
   USE OMSAO_parameters_module, ONLY: zerospec_string, &
        solar_i0_scd, yn_i0_spc
   USE OMSAO_variables_module, ONLY: refspecs_original, common_mode_spec, &
@@ -69,8 +69,8 @@ SUBROUTINE dataspline ( xtrack_pix, n_radwvl, curr_rad_wvl, n_max_rspec, errstat
      solar_spc(1:nsol) = refspecs_original(idx)%RefSpecData(1:nsol)
      CALL convolve_data (                                                              &
           xtrack_pix, nsol,  solar_wvl(1:nsol), solar_spc(1:nsol), ctrvar%yn_use_labslitfunc, &
-          solcal_pars(hwe_idx,xtrack_pix), solcal_pars(asy_idx,xtrack_pix),    &
-          solar_conv(1:nsol), errstat )
+          solcal_pars(hwe_idx,xtrack_pix), solcal_pars(asy_idx,xtrack_pix), &
+          solcal_pars(sha_idx,xtrack_pix), solar_conv(1:nsol), errstat )
   END IF
   
   ! ---------------------------------------------------------------------
@@ -144,8 +144,8 @@ SUBROUTINE dataspline ( xtrack_pix, n_radwvl, curr_rad_wvl, n_max_rspec, errstat
            ! ------------------------------
            CALL convolve_data (                                                            &
                 xtrack_pix, nsol, solar_wvl(1:nsol), tmp_spec(1:nsol), ctrvar%yn_use_labslitfunc, &
-                solcal_pars(hwe_idx,xtrack_pix), solcal_pars(asy_idx,xtrack_pix),  &
-                xsec_i0_spc(1:nsol), errstat )
+                solcal_pars(hwe_idx,xtrack_pix), solcal_pars(asy_idx,xtrack_pix), &
+                solcal_pars(sha_idx,xtrack_pix), xsec_i0_spc(1:nsol), errstat )
            ! -----------------------------------
            ! 5: Compute corrected cross sections
            ! -----------------------------------
@@ -174,7 +174,7 @@ SUBROUTINE dataspline ( xtrack_pix, n_radwvl, curr_rad_wvl, n_max_rspec, errstat
               CALL convolve_data (                                                           &
                    xtrack_pix, npts, tmp_wavl(1:npts), tmp_spec(1:npts), ctrvar%yn_use_labslitfunc, &
                    solcal_pars(hwe_idx,xtrack_pix), solcal_pars(asy_idx,xtrack_pix), &
-                   tmp_spec(1:npts), errstat )
+                   solcal_pars(sha_idx,xtrack_pix), tmp_spec(1:npts), errstat )
            END IF
         END IF
   
@@ -214,7 +214,7 @@ END SUBROUTINE dataspline
 
 SUBROUTINE convolve_data (                                     &
      xtrack_pix, npts, wvl_in, spec_in, yn_labslit, hw1e, asy, &
-     spec_conv, errstat )
+     sha, spec_conv, errstat )
 
   USE OMSAO_precision_module, ONLY: i4, r8
   USE OMSAO_slitfunction_module, ONLY: omi_slitfunc_convolve, &
@@ -228,7 +228,7 @@ SUBROUTINE convolve_data (                                     &
   ! Input variables
   ! ---------------
   INTEGER (KIND=i4),                   INTENT (IN) :: xtrack_pix, npts
-  REAL    (KIND=r8),                   INTENT (IN) :: hw1e, asy
+  REAL    (KIND=r8),                   INTENT (IN) :: hw1e, asy, sha
   LOGICAL,                             INTENT (IN) :: yn_labslit
   REAL    (KIND=r8), DIMENSION (npts), INTENT (IN) :: spec_in, wvl_in
 
