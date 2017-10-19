@@ -128,7 +128,7 @@ MODULE OMSAO_variables_module
   ! Previously IMPLICIT variables
   ! -----------------------------
   REAL (KIND=r8) :: chisq, sol_wav_avg, rad_wav_avg
-  REAL (KIND=r8) :: hw1e, e_asym
+  REAL (KIND=r8) :: hw1e, e_asym, g_shap
 
   ! -----------------------------------------------------------
   ! Variables related to reference spectra
