@@ -74,8 +74,8 @@ CONTAINS
     ! OMPS slit function
     ! ------------------
     INTEGER (KIND=i4), PARAMETER       :: maxbands  = 300
-    INTEGER (KIND=i4), PARAMETER       :: maxpoints = 501
-    REAL    (KIND=r8), PARAMETER       :: startpoint = -2.5, endpoint = 2.5
+    INTEGER (KIND=i4), PARAMETER       :: maxpoints = 38
+    REAL    (KIND=r8), PARAMETER       :: startpoint = -1.9, endpoint = 1.9
     REAL    (KIND=r8)                  :: delvar
     LOGICAL                            :: LFAIL
     CHARACTER(LEN=256)                 :: msg
@@ -115,6 +115,7 @@ CONTAINS
     iXt = xtrack_pix
     delvar = wvl(2) - wvl(1)
     wlr(1) = wvl(1) ; wlr(2) = wvl(nwvl)
+    
     CALL OMPS_wlr2bands( wlr, iXt, wls, bandIdx, nwls, LFAIL, msg )
 
     ! -----------------------------------------------------------
@@ -126,6 +127,7 @@ CONTAINS
     DO ixa = 1, maxpoints
      xa(ixa) = startpoint + (ixa-1.0) * delvar
     END DO
+
     Do ixa = 1, nwvl
        ! ------------------------------------------------------
        ! Working out the wavelenghts for one band
