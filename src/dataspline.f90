@@ -218,7 +218,7 @@ SUBROUTINE convolve_data (                                     &
 
   USE OMSAO_precision_module, ONLY: i4, r8
   USE OMSAO_slitfunction_module, ONLY: omi_slitfunc_convolve, &
-       asymmetric_gaussian_sf
+       super_gaussian_sf
   USE OMSAO_errstat_module, ONLY: pge_errstat_ok, pge_errstat_warning, &
        omsao_w_interpol, f_sep, vb_lev_default, error_check
 
@@ -262,8 +262,8 @@ SUBROUTINE convolve_data (                                     &
      ! need to save the convolved spectrum, because we have to convolve
      ! for each and every pixel due to the varying slit function.
      ! -----------------------------------------------------------------
-     CALL asymmetric_gaussian_sf (                                           &
-          npts, hw1e, asy, wvl_in(1:npts), spec_in(1:npts), spec_conv(1:npts) )
+     CALL super_gaussian_sf (                                           &
+          npts, hw1e, asy, sha, wvl_in(1:npts), spec_in(1:npts), spec_conv(1:npts) )
   END IF
 
   RETURN
