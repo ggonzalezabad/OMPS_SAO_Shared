@@ -25,8 +25,6 @@ CONTAINS
 
   SUBROUTINE xtrack_solar_calibration_loop ( first_pix, last_pix, errstat )
 
-!!$    USE OMSAO_slitfunction_module, ONLY: saved_shift, saved_squeeze
-
     IMPLICIT NONE
     ! ---------------
     ! Input variables
@@ -76,7 +74,6 @@ CONTAINS
        ALLOCATE(fitres_out(1:n_irradwvl), weightsum(1:n_irradwvl), wvl_good(1:n_irradwvl), &
             wvl_bad(1:n_irradwvl), spc_good(1:n_irradwvl), spc_bad(1:n_irradwvl), bad_idx(1:n_irradwvl) )
 
-!       saved_shift = -1.0e+30_r8 ; saved_squeeze = -1.0e+30_r8
        ! -----------------------------
        ! Set up generic fitting arrays
        ! -----------------------------
