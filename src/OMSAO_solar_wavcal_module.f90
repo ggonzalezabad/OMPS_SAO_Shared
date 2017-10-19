@@ -3,12 +3,12 @@ MODULE OMSAO_solar_wavcal_module
   USE OMSAO_precision_module
   USE OMSAO_indices_module,    ONLY: &
        wvl_idx, sig_idx, spc_idx, ccd_idx, max_calfit_idx, shi_idx, squ_idx, solcal_idx,  &
-       hwe_idx, asy_idx, solar_idx, bl0_idx, bl1_idx, bl2_idx, bl3_idx, bl4_idx, bl5_idx, &
-       sc0_idx, sc1_idx, sc2_idx, sc3_idx, sc4_idx, sc5_idx, sin_idx
+       hwe_idx, asy_idx, sha_idx, solar_idx, bl0_idx, bl1_idx, bl2_idx, bl3_idx, bl4_idx, &
+       bl5_idx, sc0_idx, sc1_idx, sc2_idx, sc3_idx, sc4_idx, sc5_idx, sin_idx
   USE OMSAO_parameters_module, ONLY: &
        i2_missval, i4_missval, r8_missval, normweight, downweight, maxchlen, max_spec_pts
   USE OMSAO_variables_module,  ONLY: &
-       hw1e, e_asym, curr_sol_spec, sol_wav_avg, fitvar_cal, fitvar_cal_saved,  &
+       hw1e, e_asym, g_shap, curr_sol_spec, sol_wav_avg, fitvar_cal, fitvar_cal_saved,  &
        mask_fitvar_cal, n_fitvar_cal, lobnd, upbnd,&
        fitwavs, fitweights, currspec, refspecs_original,    &
        pcfvar, ctrvar
@@ -244,8 +244,8 @@ CONTAINS
        irradiance_wght(1:n_irradwvl,ipix) = curr_sol_spec(sig_idx,1:n_irradwvl)
 
        addmsg = ''
-       WRITE (addmsg, '(A,I2,4(A,1PE10.3),2(A,I5))') 'SOLAR FIT #', ipix, &
-            ': hw 1/e = ', hw1e, '; e_asy = ', e_asym, '; shift = ', &
+       WRITE (addmsg, '(A,I2,5(A,1PE10.3),2(A,I5))') 'SOLAR FIT #', ipix, &
+            ': hw 1/e = ', hw1e, '; e_asy = ', e_asym,  '; g_sha = ', g_shap, '; shift = ', &
             fitvar_cal(shi_idx), '; squeeze = ', fitvar_cal(squ_idx), '; exit val = ', &
             solcal_exval, '; iter num = ', local_solcal_itnum
        CALL error_check ( &
@@ -480,7 +480,7 @@ CONTAINS
     !  Save the slit function parameters for later use 
     ! in the undersampling correction.
     ! ------------------------------------------------
-    hw1e   = fitvar_cal(hwe_idx)  ;  e_asym = fitvar_cal(asy_idx)
+    hw1e   = fitvar_cal(hwe_idx) ; e_asym = fitvar_cal(asy_idx) ; g_shap = fitvar_cal(sha_idx)
     fitres_out(1:n_sol_wvl) = fitres(1:n_sol_wvl)
     errstat = MAX ( errstat, locerrstat )
 

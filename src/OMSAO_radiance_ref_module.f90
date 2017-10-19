@@ -21,10 +21,10 @@ CONTAINS
        yn_radiance_reference, yn_remove_target, nx, nw, fpix, lpix, pge_idx, errstat )
 
     USE OMSAO_indices_module, ONLY: solar_idx, wvl_idx, spc_idx, sig_idx, &
-         o3_t1_idx, o3_t3_idx, hwe_idx, asy_idx, shi_idx, squ_idx, &
+         o3_t1_idx, o3_t3_idx, hwe_idx, asy_idx, shi_idx, sha_idx, squ_idx, &
          ccd_idx, radref_idx
     USE OMSAO_variables_module,  ONLY: database, curr_sol_spec, n_rad_wvl, &
-         curr_rad_spec, sol_wav_avg, hw1e, e_asym, n_fitvar_rad, &
+         curr_rad_spec, sol_wav_avg, hw1e, e_asym, g_shap, n_fitvar_rad, &
          fitvar_rad_saved, n_database_wvl, fitvar_rad, &
          pcfvar, ctrvar
     USE OMSAO_slitfunction_module, ONLY: saved_shift, saved_squeeze
@@ -150,6 +150,7 @@ CONTAINS
           sol_wav_avg                             = ins_sol_wav_avg(ipix)
           hw1e                                    = solcal_pars(hwe_idx,ipix)
           e_asym                                  = solcal_pars(asy_idx,ipix)
+          g_shap                                  = solcal_pars(sha_idx,ipix)
           curr_sol_spec(wvl_idx,1:n_database_wvl) = ins_database_wvl(1:n_database_wvl,ipix)
           curr_sol_spec(spc_idx,1:n_database_wvl) = ins_database    (solar_idx,1:n_database_wvl,ipix)
           ! --------------------------------------------------------------------------------
@@ -200,8 +201,8 @@ CONTAINS
 
              IF ( yn_bad_pixel ) CYCLE
 
-             WRITE (addmsg, '(A,I2,4(A,1PE10.3),2(A,I5))') 'RADIANCE Reference #', ipix, &
-                  ': hw 1/e = ', hw1e, '; e_asy = ', e_asym, '; shift = ', &
+             WRITE (addmsg, '(A,I2,5(A,1PE10.3),2(A,I5))') 'RADIANCE Reference #', ipix, &
+                  ': hw 1/e = ', hw1e, '; e_asy = ', e_asym, '; g_sha = ', g_shap, '; shift = ', &
                   fitvar_rad(shi_idx), '; squeeze = ', fitvar_rad(squ_idx),&
                   '; exit val = ', radfit_exval, '; iter num = ', radfit_itnum
           ELSE

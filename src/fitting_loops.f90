@@ -4,10 +4,10 @@ SUBROUTINE xtrack_radiance_wvl_calibration (             &
 
   USE OMSAO_precision_module, ONLY: i2, i4, r8
   USE OMSAO_indices_module, ONLY: wvl_idx, spc_idx, sig_idx, &
-       max_calfit_idx, max_rs_idx, hwe_idx, asy_idx,  &
+       max_calfit_idx, max_rs_idx, hwe_idx, asy_idx, sha_idx, &
        shi_idx, squ_idx, solar_idx, ccd_idx, radcal_idx
   USE OMSAO_parameters_module, ONLY: maxchlen, downweight, normweight
-  USE OMSAO_variables_module, ONLY: hw1e, e_asym, &
+  USE OMSAO_variables_module, ONLY: hw1e, e_asym, g_shap, &
        n_rad_wvl, curr_rad_spec, sol_wav_avg, database, fitvar_cal, &
        fitvar_cal_saved, pcfvar, ctrvar
   USE OMSAO_slitfunction_module, ONLY: saved_shift, saved_squeeze
@@ -123,6 +123,7 @@ SUBROUTINE xtrack_radiance_wvl_calibration (             &
      sol_wav_avg = ins_sol_wav_avg(ipix)
      hw1e        = solcal_pars(hwe_idx,ipix)
      e_asym      = solcal_pars(asy_idx,ipix)
+     g_shap      = solcal_pars(sha_idx,ipix)
 
      ! -----------------------------------------------------
      ! Assign (hopefully predetermined) "reference" weights.
@@ -215,8 +216,8 @@ SUBROUTINE xtrack_radiance_wvl_calibration (             &
      ! ------------------------------------------------------------------------------------
            
      addmsg = ''
-     WRITE (addmsg, '(A,I2,4(A,1PE10.3),2(A,I5))') 'RADIANCE Wavcal    #', ipix, &
-          ': hw 1/e = ', hw1e, '; e_asy = ', e_asym, '; shift = ', &
+     WRITE (addmsg, '(A,I2,5(A,1PE10.3),2(A,I5))') 'RADIANCE Wavcal    #', ipix, &
+          ': hw 1/e = ', hw1e, '; e_asy = ', e_asym, '; g_sha = ', g_shap, '; shift = ', &
           fitvar_cal(shi_idx), '; squeeze = ', fitvar_cal(squ_idx), &
          '; exit val = ', radcal_exval, '; iter num = ', local_radcal_itnum
      CALL error_check ( &
@@ -339,11 +340,11 @@ SUBROUTINE xtrack_radiance_fitting_loop (                             &
 
   USE OMSAO_precision_module, ONLY: i2, i4, r8
   USE OMSAO_indices_module, ONLY: wvl_idx, spc_idx, sig_idx, &
-       o3_t1_idx, o3_t3_idx, hwe_idx, asy_idx, &
+       o3_t1_idx, o3_t3_idx, hwe_idx, asy_idx, sha_idx, &
        pge_o3_idx, solar_idx, ccd_idx, radfit_idx
   USE OMSAO_parameters_module, ONLY: i2_missval, r8_missval
   USE OMSAO_variables_module,  ONLY: database, curr_sol_spec, n_rad_wvl, &
-       curr_rad_spec, sol_wav_avg, hw1e, e_asym, n_database_wvl, ctrvar
+       curr_rad_spec, sol_wav_avg, hw1e, e_asym, g_shap, n_database_wvl, ctrvar
   USE OMSAO_radiance_ref_module, ONLY: yn_reference_fit
   USE OMSAO_slitfunction_module, ONLY: saved_shift, saved_squeeze
   USE OMSAO_data_module, ONLY: nxtrack_max, n_comm_wvl, &
@@ -453,6 +454,7 @@ SUBROUTINE xtrack_radiance_fitting_loop (                             &
      sol_wav_avg                             = ins_sol_wav_avg(ipix)
      hw1e                                    = solcal_pars(hwe_idx,ipix)
      e_asym                                  = solcal_pars(asy_idx,ipix)
+     g_shap                                  = solcal_pars(sha_idx,ipix)
      curr_sol_spec(wvl_idx,1:n_database_wvl) = ins_database_wvl(1:n_database_wvl,ipix)
      curr_sol_spec(spc_idx,1:n_database_wvl) = ins_database    (solar_idx,1:n_database_wvl,ipix)
      ! --------------------------------------------------------------------------------

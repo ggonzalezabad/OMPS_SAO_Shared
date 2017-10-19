@@ -7,11 +7,11 @@ SUBROUTINE radiance_wavcal (                              &
   USE OMSAO_parameters_module, ONLY: i2_missval, i4_missval, r8_missval, &
        downweight, elsunc_less_is_noise
   USE OMSAO_indices_module, ONLY: max_calfit_idx, shi_idx, squ_idx, wvl_idx, &
-       spc_idx, sig_idx, ccd_idx, hwe_idx, asy_idx
+       spc_idx, sig_idx, ccd_idx, hwe_idx, asy_idx, sha_idx
   USE OMSAO_variables_module, ONLY: fitwavs, fitweights, currspec, &
        fitvar_cal, fitvar_cal_saved, &
        mask_fitvar_cal, n_fitvar_cal, lobnd, upbnd, &
-       hw1e, e_asym, sol_wav_avg, ctrvar
+       hw1e, e_asym, g_shap, sol_wav_avg, ctrvar
   USE OMSAO_errstat_module
 
   IMPLICIT NONE
@@ -96,6 +96,10 @@ SUBROUTINE radiance_wavcal (                              &
         fitvar_cal(asy_idx) = e_asym
         ctrvar%lo_radbnd (asy_idx) = e_asym
         ctrvar%up_radbnd (asy_idx) = e_asym
+     CASE ( sha_idx )
+        fitvar_cal(sha_idx) = g_shap
+        ctrvar%lo_radbnd (sha_idx) = g_shap
+        ctrvar%up_radbnd (sha_idx) = g_shap
      CASE DEFAULT
         IF (ctrvar%lo_radbnd(i) < ctrvar%up_radbnd(i) ) THEN
            n_fitvar_cal  = n_fitvar_cal + 1
