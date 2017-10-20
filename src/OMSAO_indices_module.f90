@@ -425,7 +425,6 @@ MODULE OMSAO_indices_module
      CHARACTER (LEN=28) :: socline_str     = 'Solar calibration parameters'
      CHARACTER (LEN=23) :: wavwindow_str   = 'Fitting window settings'
      CHARACTER (LEN=21) :: solmonthave_str = 'Solar monthly average'
-     CHARACTER (LEN=21) :: newshift_str    = 'New shift and squeeze'
      CHARACTER (LEN=27) :: refseccor_str   = 'Reference sector correction'
      CHARACTER (LEN=20) :: insowavcal_str  = 'Solar inverse wavcal'
      CHARACTER (LEN= 3) :: eoi3str = 'eoi'

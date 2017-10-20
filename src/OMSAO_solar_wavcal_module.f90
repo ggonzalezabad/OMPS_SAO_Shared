@@ -317,7 +317,7 @@ CONTAINS
     local_solcal_itnum = i2_missval
     chisquav = r8_missval
     yn_bad_pixel = .FALSE.
-
+    
     ! --------------------------------------------------------------
     ! Calculate and iterate on the irradiance spectrum.
     ! --------------------------------------------------------------
@@ -466,14 +466,8 @@ CONTAINS
     ! ---------------------------------------------------------------
     ! Save shifted&squeezed wavelength array, and the fitting weights
     ! ---------------------------------------------------------------
-    IF (ctrvar%yn_newshift .EQV. .true.) THEN !gga
-       curr_sol_spec(wvl_idx,1:n_sol_wvl) = (fitwavs (1:n_sol_wvl) - fitvar_cal_saved(shi_idx) + &
-            sol_wav_avg * fitvar_cal_saved(squ_idx)) /          &
-            (1.0_r8 + fitvar_cal_saved(squ_idx))
-    ELSE !gga
-       curr_sol_spec(wvl_idx,1:n_sol_wvl) = (fitwavs (1:n_sol_wvl) - fitvar_cal_saved(shi_idx)) / &
-            (1.0_r8 + fitvar_cal_saved(squ_idx))
-    END IF
+    curr_sol_spec(wvl_idx,1:n_sol_wvl) = (fitwavs (1:n_sol_wvl) - fitvar_cal_saved(shi_idx) + &
+         sol_wav_avg * fitvar_cal_saved(squ_idx)) / (1.0_r8 + fitvar_cal_saved(squ_idx))
     curr_sol_spec(sig_idx,1:n_sol_wvl) = fitweights (1:n_sol_wvl)
 
     ! ------------------------------------------------

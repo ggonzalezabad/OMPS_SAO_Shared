@@ -63,22 +63,12 @@ SUBROUTINE spectrum_solar ( &
   ! =========================================================================
   !     Spectrum Calculation for Solar and Radiance Wavelength Calibration
   ! =========================================================================
-  
   !     Calculate the spectrum:
   !     First do the shift and squeeze. Shift by FITVAR(SHI_IDX), squeeze by
   !     1 + FITVAR(SQU_IDX); do in absolute sense, to make it easy to back-convert
   !     OMI data.
-  !     Now, after Xiong recommendation if yn_newfit equal true then (gga):
-  !     Lambda = Lambda * (1 + squeeze) + shift - sol_wav_avg * squeeze
-
-
-  IF (ctrvar%yn_newshift .EQV. .true.) THEN ! gga
-     solar_pos(1:npts) = solar_pos(1:npts) * (1.0_r8 + fitvar_cal(squ_idx)) &
+  solar_pos(1:npts) = solar_pos(1:npts) * (1.0_r8 + fitvar_cal(squ_idx)) &
        + fitvar_cal(shi_idx) - sol_wav_avg * fitvar_cal(squ_idx)
-  ELSE ! gga
-     solar_pos(1:npts) = solar_pos(1:npts) * (1.0_r8 + fitvar_cal(squ_idx)) &
-       + fitvar_cal(shi_idx)
-  END IF
 
   ! ----------------------------------------------
   ! Convolve only if we don't do a solar composite
@@ -292,23 +282,17 @@ SUBROUTINE spectrum_earthshine ( &
 
   ! ---------------------------------------------------------------------
   ! Apply Shift&Squeeze
-  ! Changed to include Xiong comments (gga) if yn_newshift equal .true. :
-  ! Lambda = Lambda * (1 + squeeze) + shift - sol_wav_avg * squeeze
   ! ---------------------------------------------------------------------
   j1 = -1; j2 = -1
   IF ( squeeze == 0.0_r8 .AND. yn_solsynth ) THEN
      locwvl_shift(1:npts) = locwvl(1:npts) - shift
      CALL array_locate_r8 ( npts, locwvl(1:npts), locwvl_shift(   1), 'GE', j1 )
      CALL array_locate_r8 ( npts, locwvl(1:npts), locwvl_shift(npts), 'LE', j2 )
-  ELSE IF (ctrvar%yn_newshift) THEN !gga
+  ELSE
      sunpos_ss(1:n_sunpos) = sunpos_ss(1:n_sunpos) * (1.0_r8 + squeeze) +       &
                              shift - rad_wav_avg * squeeze
      CALL array_locate_r8 ( npts, locwvl(1:npts), sunpos_ss(       1), 'GE', j1 )
      CALL array_locate_r8 ( npts, locwvl(1:npts), sunpos_ss(n_sunpos), 'LE', j2 ) !gga
-  ELSE
-     sunpos_ss(1:n_sunpos) = sunpos_ss(1:n_sunpos) * (1.0_r8 + squeeze) + shift
-     CALL array_locate_r8 ( npts, locwvl(1:npts), sunpos_ss(       1), 'GE', j1 )
-     CALL array_locate_r8 ( npts, locwvl(1:npts), sunpos_ss(n_sunpos), 'LE', j2 )
   END IF
 
   ! ---------------------------------------------------------------------
@@ -596,25 +580,18 @@ SUBROUTINE spectrum_earthshine_o3exp ( &
 
   ! ---------------------------------------------------------------------
   ! Apply Shift&Squeeze
-  ! Changed to include Xiong comments (gga) if yn_newshift equal .true. :
-  ! Lambda = Lambda * (1 + squeeze) + shift - sol_wav_avg * squeeze
   ! ---------------------------------------------------------------------
   j1 = -1; j2 = -1
   IF ( squeeze == 0.0_r8 .AND. yn_solsynth ) THEN
      locwvl_shift(1:npts) = locwvl(1:npts) - shift
      CALL array_locate_r8 ( npts, locwvl(1:npts), locwvl_shift(   1), 'GE', j1 )
      CALL array_locate_r8 ( npts, locwvl(1:npts), locwvl_shift(npts), 'LE', j2 )
-  ELSE IF (ctrvar%yn_newshift .EQV. .true.) THEN !gga
+  ELSE
      sunpos_ss(1:n_sunpos) = sunpos_ss(1:n_sunpos) * (1.0_r8 + squeeze) +       &
                              shift - rad_wav_avg * squeeze
      CALL array_locate_r8 ( npts, locwvl(1:npts), sunpos_ss(       1), 'GE', j1 )
      CALL array_locate_r8 ( npts, locwvl(1:npts), sunpos_ss(n_sunpos), 'LE', j2 ) !gga
-  ELSE
-     sunpos_ss(1:n_sunpos) = sunpos_ss(1:n_sunpos) * (1.0_r8 + squeeze) + shift
-     CALL array_locate_r8 ( npts, locwvl(1:npts), sunpos_ss(       1), 'GE', j1 )
-     CALL array_locate_r8 ( npts, locwvl(1:npts), sunpos_ss(n_sunpos), 'LE', j2 )
   END IF
-
 
   ! ---------------------------------------------------------------------
   ! Re-sample the solar reference spectrum to the current radiance grid

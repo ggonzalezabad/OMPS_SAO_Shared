@@ -82,7 +82,7 @@ MODULE OMSAO_variables_module
      LOGICAL :: yn_diagnostic_run, yn_smooth, yn_doas, yn_spectrum_norm, &
           yn_solar_comp, yn_common_iter, yn_solmonthave, yn_radiance_reference, &
           yn_remove_target, yn_use_labslitfunc, yn_solar_i0, yn_amf_wfmod, &
-          yn_o3amf_cor, yn_run_destriping, yn_remove_ctrbias, yn_newshift, &
+          yn_o3amf_cor, yn_run_destriping, yn_remove_ctrbias, &
           yn_refseccor
      LOGICAL, DIMENSION (2) :: yn_prefit
      LOGICAL, DIMENSION (us1_idx:us2_idx) :: have_undersampling

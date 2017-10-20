@@ -218,17 +218,10 @@ SUBROUTINE radiance_wavcal (                              &
   ! ---------------------
   ! Perform Shift&Squueze
   ! ---------------------
-  ! gga to include Xiong comments
-!  write(*,*) curr_rad_spec(wvl_idx,1:n_rad_wvl), fitvar_cal(shi_idx), fitvar_cal(squ_idx)
-  IF (ctrvar%yn_newshift .EQV. .true.) THEN
-     curr_rad_spec(wvl_idx,1:n_rad_wvl) = ( &
-          curr_rad_spec(wvl_idx,1:n_rad_wvl) - fitvar_cal(shi_idx) + sol_wav_avg * fitvar_cal(squ_idx)) / &
-          (1.0_r8 + fitvar_cal(squ_idx))
-  ELSE
-     curr_rad_spec(wvl_idx,1:n_rad_wvl) = ( &
-          curr_rad_spec(wvl_idx,1:n_rad_wvl) - fitvar_cal(shi_idx) ) / (1.0_r8 + fitvar_cal(squ_idx))
-  END IF
+  curr_rad_spec(wvl_idx,1:n_rad_wvl) = ( curr_rad_spec(wvl_idx,1:n_rad_wvl) - fitvar_cal(shi_idx) + &
+       sol_wav_avg * fitvar_cal(squ_idx)) / (1.0_r8 + fitvar_cal(squ_idx))
 
+  ! Save fitting residual
   fitres_out(1:n_rad_wvl) = fitres(1:n_rad_wvl)
 
   ! -----------------------------------------------------------------

@@ -477,17 +477,6 @@ SUBROUTINE read_fitting_control_file ( pge_error_status )
   ! -------------------------------------------------------------------
   ctrvar%ctr_maxcol = ctrvar%max_good_col
 
-  ! --------------------------------------------------------
-  ! Position cursor to read new shift and squeeze option gga
-  ! --------------------------------------------------------
-  REWIND (fit_ctrl_unit)
-  CALL skip_to_filemark ( fit_ctrl_unit, ctrstr%newshift_str, tmpchar, file_read_stat )
-  CALL error_check ( &
-       file_read_stat, file_read_ok, pge_errstat_fatal, OMSAO_F_READ_FITCTRL_FILE, &
-       modulename//f_sep//ctrstr%destriping_str, vb_lev_default, pge_error_status )
-  IF ( pge_error_status >= pge_errstat_error ) RETURN
-  READ (fit_ctrl_unit, *) ctrvar%yn_newshift
-
   ! -------------------------------------------------------------------
   ! Position cursor to read logical for Reference Sector Correction gga
   ! -------------------------------------------------------------------
