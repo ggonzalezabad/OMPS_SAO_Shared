@@ -333,13 +333,10 @@ CONTAINS
 
        sf_val(npoints+i) = 1.0_r8
        getslit: DO j = 1, npoints
-          sslit = npoints+i-j ; lwvl = cwvl - wvl_temp(sslit)
-          eslit = npoints+i+j ; rwvl = cwvl - wvl_temp(eslit)
-!!$          sslit = npoints+i-j ; lwvl = cwvl - wvl_temp(sslit)
-!!$          eslit = npoints+i+j ; rwvl = cwvl - wvl_temp(eslit)
-
+          sslit = npoints+i-j ; lwvl = - cwvl + wvl_temp(sslit)
+          eslit = npoints+i+j ; rwvl = - cwvl + wvl_temp(eslit)
           sf_val(sslit) = EXP(-(ABS(lwvl / ( hw1e + signdp(lwvl)*e_asym ) ) )**g_shap )
-          sf_val(eslit) = EXP(-(ABS(rwvl / ( hw1e + signdp(rwvl)*e_asym ) ) )**g_shap )
+          sf_val(eslit) = EXP(-(ABS(rwvl / ( hw1e + signdp(rwvl)*e_asym ) ) )**g_shap ) 
           IF ( sf_val(sslit) < 0.0005_r8 .AND. sf_val(sslit) < 0.0005_r8 ) EXIT getslit
        END DO getslit
 
