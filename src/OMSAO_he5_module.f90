@@ -201,8 +201,10 @@ MODULE OMSAO_he5_module
   CHARACTER (LEN=15), PARAMETER ::  swwei_field    = "SolarWavCalWght"
   CHARACTER (LEN=15), PARAMETER ::  swres_field    = "SolarWavCalResi"
   CHARACTER (LEN=15), PARAMETER ::  swshi_field    = "SolarWavCalShif"
-
-
+  CHARACTER (LEN=15), PARAMETER ::  swsqu_field    = "SolarWavCalSque"
+  CHARACTER (LEN=15), PARAMETER ::  swhw1_field    = "SolarWavCalHw1e"
+  CHARACTER (LEN=15), PARAMETER ::  swasy_field    = "SolarWavCalAsym"
+  CHARACTER (LEN=15), PARAMETER ::  swsha_field    = "SolarWavCalShap"
 
   ! --------------------------------------------------
   ! Swath data fields, additional in "diagnostic" runs
@@ -297,7 +299,7 @@ MODULE OMSAO_he5_module
   ! --------------------------------------------  
   ! Data fields for Solar Wavelength Calibration
   ! --------------------------------------------  
-  INTEGER (KIND=i4), PARAMETER :: n_solcal_fields = 6
+  INTEGER (KIND=i4), PARAMETER :: n_solcal_fields = 10
   CHARACTER (LEN=45), DIMENSION ( 2, n_solcal_fields ), PARAMETER :: &
        solcal_field_names = RESHAPE ( (/ &
        "SolarWavCalConvergenceFlag                   ","Solar Wavelength Calibration Convergence Flag", &
@@ -305,7 +307,11 @@ MODULE OMSAO_he5_module
        "SolarWavCalIrra                              ","Solar Irradiance                             ", &
        "SolarWavCalWght                              ","Solar Weight                                 ", &
        "SolarWavCalResi                              ","Solar Residual                               ", &
-       "SolarWavCalShif                              ","Solar Shift                                  " /), &
+       "SolarWavCalShif                              ","Solar Shift                                  ", &
+       "SolarWavCalHw1e                              ","Solar Half Width at 1/e                      ", &
+       "SolarWavCalSque                              ","Solar Squeeze                                ", &
+       "SolarWavCalAsym                              ","Solar Asymmetry Parameter                    ", &
+       "SolarWavCalShap                              ","Solar Shape Factor                           "/), &
        (/ 2, n_solcal_fields /) )
   CHARACTER (LEN=18), DIMENSION ( 3, n_solcal_fields ), PARAMETER :: &
        solcal_field_specs = RESHAPE ( (/ &
@@ -314,11 +320,19 @@ MODULE OMSAO_he5_module
        "NoUnits           ","nXtrack,nWaves    ","r8                " ,&
        "NoUnits           ","nXtrack,nWaves    ","r8                ", &
        "NoUnits           ","nXtrack,nWaves    ","r8                ", &
-       "NoUnits           ","nXtrack           ","r8                " /), &
+       "NoUnits           ","nXtrack           ","r8                ", &
+       "NoUnits           ","nXtrack           ","r8                ", &
+       "NoUnits           ","nXtrack           ","r8                ", &
+       "NoUnits           ","nXtrack           ","r8                ", &
+       "NoUnits           ","nXtrack           ","r8                "/), &
        (/ 3, n_solcal_fields /) )
   REAL (KIND=r8), DIMENSION ( 2, n_solcal_fields ), PARAMETER :: &
        solcal_valids = RESHAPE ( (/ &
        elsunc_usrstop_eval_r8, elsunc_highest_eval_r8, &
+       valid_min_r8          , valid_max_r8          , &
+       valid_min_r8          , valid_max_r8          , &
+       valid_min_r8          , valid_max_r8          , &
+       valid_min_r8          , valid_max_r8          , &
        valid_min_r8          , valid_max_r8          , &
        valid_min_r8          , valid_max_r8          , &
        valid_min_r8          , valid_max_r8          , &
