@@ -61,13 +61,11 @@ CONTAINS
     XtrackSolCal: DO ipix = first_pix, last_pix
 
        locerrstat = pge_errstat_ok
-
        curr_xtrack_pixnum = ipix
 
        n_irradwvl = nwav_irrad(ipix)
-
        IF ( n_irradwvl <= 0 ) CYCLE
-
+       yn_skip_pix = .FALSE.
        ! ------------------------
        ! Allocate local variables
        ! ------------------------
@@ -90,7 +88,7 @@ CONTAINS
              curr_sol_spec(sig_idx,i) = downweight
           END IF
        END DO
-       
+
        ! ----------------------------------------
        ! No missing / negative values in spectrum
        ! ----------------------------------------
@@ -199,7 +197,7 @@ CONTAINS
             curr_sol_spec(sig_idx,1:ccdpix_selection(ipix,2)-ccdpix_selection(ipix,1)+1) = downweight
        IF ( ccdpix_selection(ipix,3) < ccdpix_selection(ipix,4) ) &
             curr_sol_spec(sig_idx,ccdpix_selection(ipix,3)-ccdpix_selection(ipix,1)+1:n_irradwvl) = downweight
-       
+              
        ! ------------------------------------------------------------------------
        ! Also any window excluded by the user (specified in fitting control file)
        ! ------------------------------------------------------------------------
@@ -252,11 +250,15 @@ CONTAINS
             0, 1, pge_errstat_ok, OMSAO_S_PROGRESS, TRIM(ADJUSTL(addmsg)), &
             vb_lev_omidebug, errstat )
        IF ( pcfvar%verb_thresh_lev >= vb_lev_screen  ) WRITE (*, '(A)') TRIM(ADJUSTL(addmsg))
-       
-     !  CALL he5_write_solarwavcal (n_irradwvl, ipix, fitvar_cal(shi_idx), fitres_out(1:n_irradwvl), locerrstat)
+
+       IF (ctrvar%yn_diagnostic_run) THEN
+          CALL he5_write_solarwavcal (n_irradwvl, ipix, fitvar_cal(shi_idx), fitvar_cal(squ_idx), &
+               fitres_out(1:n_irradwvl), locerrstat)
+       ENDIF
        DEALLOCATE(fitres_out, weightsum, wvl_good, wvl_bad, spc_good, spc_bad, bad_idx )
+
     END DO XtrackSolCal
-    stop
+    
     errstat = MAX ( errstat, locerrstat )
 
     RETURN
@@ -470,10 +472,9 @@ CONTAINS
          sol_wav_avg * fitvar_cal_saved(squ_idx)) / (1.0_r8 + fitvar_cal_saved(squ_idx))
     curr_sol_spec(sig_idx,1:n_sol_wvl) = fitweights (1:n_sol_wvl)
 
-    ! ------------------------------------------------
-    !  Save the slit function parameters for later use 
-    ! in the undersampling correction.
-    ! ------------------------------------------------
+    ! --------------------------------------------
+    ! Save the slit function parameters for output
+    ! --------------------------------------------
     hw1e   = fitvar_cal(hwe_idx) ; e_asym = fitvar_cal(asy_idx) ; g_shap = fitvar_cal(sha_idx)
     fitres_out(1:n_sol_wvl) = fitres(1:n_sol_wvl)
     errstat = MAX ( errstat, locerrstat )
