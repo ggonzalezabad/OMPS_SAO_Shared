@@ -2208,12 +2208,11 @@ SUBROUTINE he5_write_geolocation ( nTimes, nXtrack, locerrstat)
   locerrstat = HE5_SWWRFLD ( pge_swath_id, time_field, he5_start_1d, he5_stride_1d, he5_edge_1d, &
        REAL(time(0:nTimes-1), KIND=8) )
   ! UTCtime <--FIXME
-  he5_start_1d  = 0 ;  he5_stride_1d = 1 ; he5_edge_1d = ntime_rad
-  locerrstat = HE5_SWWRCHARFLD ( pge_swath_id, utc_field, len(utc_time(0)), ntime_rad, he5_start_1d, &
-       he5_stride_1d, he5_edge_1d, utc_time(0:ntime_rad-1) )
+!!$  he5_start_1d  = 0 ;  he5_stride_1d = 1 ; he5_edge_1d = ntime_rad
+!!$  locerrstat = HE5_SWWRCHARFLD ( pge_swath_id, utc_field, len(utc_time(0)), ntime_rad, he5_start_1d, &
+!!$       he5_stride_1d, he5_edge_1d, utc_time(0:ntime_rad-1) )
 
   he5_start_2d = (/ 0, 0 /) ;  he5_stride_2d = (/ 1, 1 /) ; he5_edge_2d = (/ nxtrack_rad, ntime_rad /)
-
   ! Latitude
   locerrstat = HE5_SWWRFLD ( pge_swath_id, lat_field, he5_start_2d, he5_stride_2d, he5_edge_2d, &
        REAL(latitude(1:nXtrack,0:nTimes-1), KIND=4) )
@@ -2317,11 +2316,13 @@ SUBROUTINE he5_write_results ( nTimes, nXtrack, locerrstat)
 
 END SUBROUTINE he5_write_results
 
-SUBROUTINE he5_write_solarwavcal ( nw, ip, shift, residual, locerrstat)
+SUBROUTINE he5_write_solarwavcal ( nw, ip, shift, squeeze, residual, locerrstat)
 
   USE OMSAO_data_module, ONLY: irradiance_wavl, &
        irradiance_spec, irradiance_wght, &
        solcal_xflag
+  USE OMSAO_variables_module,  ONLY: &
+       hw1e, e_asym, g_shap
   USE OMSAO_he5_module
   USE OMSAO_errstat_module, ONLY: he5_stat_ok, omsao_e_he5swwrfld, &
        pge_errstat_ok, pge_errstat_error, vb_lev_default, error_check
@@ -2338,7 +2339,7 @@ SUBROUTINE he5_write_solarwavcal ( nw, ip, shift, residual, locerrstat)
   ! Input variables
   ! ---------------
   INTEGER (KIND=i4), INTENT (IN)                  :: nw, ip
-  REAL    (KIND=r8), INTENT (IN)                  :: shift
+  REAL    (KIND=r8), INTENT (IN)                  :: shift, squeeze
   REAL    (KIND=r8), DIMENSION(1:nw), INTENT (IN) :: residual
 
   ! ---------------
@@ -2349,19 +2350,38 @@ SUBROUTINE he5_write_solarwavcal ( nw, ip, shift, residual, locerrstat)
   locerrstat = pge_errstat_ok
 
   he5_start_2d  = (/ ip-1, 0 /) ;  he5_stride_2d = (/ 1, 0 /) ; he5_edge_2d = (/ 1, 0 /)
+
+  ! Shift
   locerrstat = HE5_SWWRFLD ( pge_swath_id, swshi_field, he5_start_2d, he5_stride_2d, he5_edge_2d, &
        shift ) 
+  ! Squeeze
+  locerrstat = HE5_SWWRFLD ( pge_swath_id, swsqu_field, he5_start_2d, he5_stride_2d, he5_edge_2d, &
+       squeeze ) 
+  ! HW1E
+  locerrstat = HE5_SWWRFLD ( pge_swath_id, swhw1_field, he5_start_2d, he5_stride_2d, he5_edge_2d, &
+       hw1e ) 
+  ! Asymmetry
+  locerrstat = HE5_SWWRFLD ( pge_swath_id, swasy_field, he5_start_2d, he5_stride_2d, he5_edge_2d, &
+       e_asym ) 
+  ! Shape
+  locerrstat = HE5_SWWRFLD ( pge_swath_id, swsha_field, he5_start_2d, he5_stride_2d, he5_edge_2d, &
+       g_shap ) 
+  ! Fitting flag
   locerrstat = HE5_SWWRFLD ( pge_swath_id, swccf_field, he5_start_2d, he5_stride_2d, he5_edge_2d, &
        solcal_xflag(ip) )
 
 
   he5_start_2d = (/ ip-1, 0 /) ;  he5_stride_2d = (/ 1, 1 /) ; he5_edge_2d = (/ 1, nw /)
+  ! Fitting residual
   locerrstat = HE5_SWWRFLD ( pge_swath_id, swres_field,    he5_start_2d, he5_stride_2d, he5_edge_2d, &
        residual(1:nw) )
+  ! Wavelength (shifted)
   locerrstat = HE5_SWWRFLD ( pge_swath_id, swwav_field,    he5_start_2d, he5_stride_2d, he5_edge_2d, &
        irradiance_wavl(1:nw,ip) )
+  ! Spectra (shifted)
   locerrstat = HE5_SWWRFLD ( pge_swath_id, swirr_field,    he5_start_2d, he5_stride_2d, he5_edge_2d, &
        irradiance_spec(1:nw,ip) )
+  ! Fitting weight
   locerrstat = HE5_SWWRFLD ( pge_swath_id, swwei_field,    he5_start_2d, he5_stride_2d, he5_edge_2d, &
        irradiance_wght(1:nw,ip) )
 
