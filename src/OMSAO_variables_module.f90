@@ -128,7 +128,7 @@ MODULE OMSAO_variables_module
   INTEGER (KIND=I4)                             :: n_fitvar_rad, n_fitvar_cal
   REAL    (KIND=r8), DIMENSION (max_calfit_idx) :: fitvar_cal, fitvar_cal_saved
   REAL    (KIND=r8), DIMENSION (n_max_fitpars)  :: fitvar_rad, fitvar_rad_saved, lobnd, upbnd
-  REAL    (KIND=r8), DIMENSION (max_rs_idx, nwavel_max) :: database
+  REAL (KIND=r8), ALLOCATABLE, DIMENSION (:,:) :: database
 
   ! -----------------------------
   ! Previously IMPLICIT variables
