@@ -15,7 +15,8 @@ MODULE OMSAO_solar_wavcal_module
   USE OMSAO_data_module, ONLY: nxtrack_rad, nwav_irrad, solcal_itnum, solcal_xflag, &
        ins_sol_wav_avg, cross_track_skippix, solcal_pars, n_irradwvl, irradiance_wght, &
        irradiance_spec, irradiance_wavl, curr_xtrack_pixnum, &
-       ccdpix_selection, ccdpix_exclusion
+       ccdpix_selection, ccdpix_exclusion, ins_database, ins_database_wvl, &
+       n_ins_database_wvl
   USE OMSAO_errstat_module
   USE OMSAO_he5_module
 
@@ -240,6 +241,13 @@ CONTAINS
        irradiance_wavl(1:n_irradwvl,ipix) = curr_sol_spec(wvl_idx,1:n_irradwvl)
        irradiance_spec(1:n_irradwvl,ipix) = curr_sol_spec(spc_idx,1:n_irradwvl)
        irradiance_wght(1:n_irradwvl,ipix) = curr_sol_spec(sig_idx,1:n_irradwvl)
+
+       ! -----------------------------------------------------------------
+       ! Save wavelengths and spectra in ins_database and ins_database_wvl
+       ! -----------------------------------------------------------------
+       n_ins_database_wvl(ipix) = n_irradwvl
+       ins_database(solar_idx,1:n_irradwvl,ipix) = irradiance_spec(1:n_irradwvl,ipix)
+       ins_database_wvl(1:n_irradwvl,ipix) = irradiance_wavl(1:n_irradwvl,ipix)
 
        addmsg = ''
        WRITE (addmsg, '(A,I2,5(A,1PE10.3),2(A,I5))') 'SOLAR FIT #', ipix, &
