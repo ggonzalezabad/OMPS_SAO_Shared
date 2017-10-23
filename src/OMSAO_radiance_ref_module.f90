@@ -4,7 +4,8 @@ MODULE OMSAO_radiance_ref_module
   USE OMSAO_parameters_module, ONLY: i2_missval, r4_missval, &
        r8_missval, downweight, normweight, maxchlen
   USE OMSAO_errstat_module, ONLY: pge_errstat_ok, omsao_s_progress, &
-       vb_lev_screen, vb_lev_omidebug, error_check
+       vb_lev_screen, vb_lev_omidebug, error_check, pge_errstat_fatal, &
+       pge_errstat_error
 
 
   IMPLICIT NONE
@@ -402,20 +403,21 @@ CONTAINS
     RETURN
   END SUBROUTINE remove_target_from_radiance
 
-SUBROUTINE create_radiance_reference (nt, nx, nw, locerrstat)
+SUBROUTINE create_radiance_reference (omps_data, nt, nx, nw, locerrstat)
 
   USE OMSAO_data_module, ONLY: &
        ccdpix_selection, nwav_radref, radref_spec, radref_wavl,     &
        radref_qflg, radref_sza, radref_vza, radref_wght,            &
        ccdpix_exclusion, ins_sol_wav_avg 
-  USE OMSAO_variables_module, ONLY : ctrvar, pcfvar
-  USE OMSAO_omps_reader, ONLY: omps_nmev_type, omps_nmev_reader
+  USE OMSAO_variables_module, ONLY : ctrvar
+  USE OMSAO_omps_reader, ONLY: omps_nmev_type
 
   IMPLICIT NONE
 
   ! ---------------
   ! Input variables
   ! ---------------
+  TYPE(omps_nmev_type), INTENT(IN) :: omps_data
   INTEGER (KIND=i4), INTENT(IN) :: nt, nx, nw
 
   ! -----------------
@@ -426,16 +428,14 @@ SUBROUTINE create_radiance_reference (nt, nx, nw, locerrstat)
   ! ---------------
   ! Local variables
   ! ---------------
-  TYPE(omps_nmev_type) :: omps_data
-  INTEGER (KIND=i2)                          :: omps_reader_status_reference
   INTEGER (KIND=i2), DIMENSION(nw)           :: qflg_mask
   REAL    (KIND=r4)                          :: lat_midpt
   REAL    (KIND=r4), DIMENSION(nx,0:nt-1)    :: latr4, tmp_szenith, tmp_vzenith
   REAL    (KIND=r4), DIMENSION(nx)           :: szacount
   REAL    (KIND=r8)                          :: specsum
-  REAL    (KIND=r8), DIMENSION(nw)           :: cntr8, radref_wavl_ix
+  REAL    (KIND=r8), DIMENSION(nw)           :: cntr8
   REAL    (KIND=r8), DIMENSION(nx,nw)        :: local_radref_spec, local_radref_wavl
-  REAL    (KIND=r8), DIMENSION(nx,nw)        :: allcount, dumcount
+  REAL    (KIND=r8), DIMENSION(nx,nw)        :: allcount
   REAL    (KIND=r8), DIMENSION(nw,nx,0:nt-1) :: tmp_radiance_spec, tmp_radiance_wavl
   INTEGER (KIND=i4), DIMENSION(0:nt-1,2)     :: xtrange
   INTEGER (KIND=i4)                          :: fpix, lpix, midpt_line, iline, ix, &
@@ -447,12 +447,6 @@ SUBROUTINE create_radiance_reference (nt, nx, nw, locerrstat)
   ! Initialize error variable
   ! -------------------------
   locerrstat = pge_errstat_ok
-
-  ! ------------------------------------
-  ! Read OMPS radiance reference granule
-  ! ------------------------------------
-  omps_reader_status_reference = omps_nmev_reader(omps_data, &
-                                                    pcfvar%l1b_radref_fname)
 
   latr4(1:nx,0:nt-1)                  = omps_data%Latitude(1:nx,1:nt)
   tmp_szenith(1:nx,0:nt-1)            = omps_data%SolarZenithAngle(1:nx,1:nt)
@@ -469,6 +463,7 @@ SUBROUTINE create_radiance_reference (nt, nx, nw, locerrstat)
   CALL omi_set_xtrpix_range ( &
        nt, nx, ctrvar%pixnum_lim(3:4), &
        xtrange(0:nt-1,1:2), fpix, lpix, locerrstat )
+  IF (locerrstat .GT. pge_errstat_ok) RETURN
 
   ! ----------------------------------------------------------------------
   ! Locate the swath line numbers corresponding the center of the latitude
@@ -477,6 +472,11 @@ SUBROUTINE create_radiance_reference (nt, nx, nw, locerrstat)
   CALL find_swathline_by_latitude ( &
        nx, 0, nt-1, latr4(1:nx,0:nt-1), lat_midpt, &
        xtrange(0:nt-1,1:2), midpt_line, yn_have_scanline )
+  IF (.NOT. yn_have_scanline) THEN
+     WRITE(*,*) 'Radiance reference file does not cover selected latitude range.'
+     locerrstat = pge_errstat_fatal
+     RETURN
+  ENDIF
 
   ! --------------------------------------------------------------------
   ! If lower and upper bounds of the radiance reference block to average
@@ -495,13 +495,12 @@ SUBROUTINE create_radiance_reference (nt, nx, nw, locerrstat)
           xtrange(midpt_line:nt-1,1:2), radiance_reference_lnums(2), yn_have_limits(2) )
   END IF
 
-  ! --------------------------------------------------------------------
-  ! Now we can average the spectra and the wavelength arrays. Loop over
-  ! the block of swath lines in multiples of NLINES_MAX (100 by default)
-  ! --------------------------------------------------------------------
-  allcount       = 0.0_r8  ; dumcount       = 0.0_r8 ;  szacount = 0.0_r4
-  local_radref_wavl    = 0.0_r8  ; local_radref_spec    = 0.0_r8
-  radref_sza = 0.0_r4  ; radref_vza = 0.0_r4
+  ! ---------------------------------------------------------
+  ! Now we can average the spectra and the wavelength arrays.
+  ! ---------------------------------------------------------
+  allcount = 0.0_r8; szacount = 0.0_r4
+  local_radref_wavl = 0.0_r8; local_radref_spec = 0.0_r8
+  radref_sza = 0.0_r4; radref_vza = 0.0_r4
 
   DO iline = radiance_reference_lnums(1), radiance_reference_lnums(2)
 
@@ -534,20 +533,17 @@ SUBROUTINE create_radiance_reference (nt, nx, nw, locerrstat)
            specsum = SUM ( tmp_radiance_spec(1:nw,ix,iline) ) / SUM ( cntr8(1:nw) )
            IF ( specsum == 0.0_r8 ) specsum = 1.0_r8
            
-           specsum = 1.0_r8
-           
            local_radref_spec(ix,1:nw) = &
                 local_radref_spec(ix,1:nw) + tmp_radiance_spec(1:nw,ix,iline)/specsum
            local_radref_wavl(ix,1:nw) = &
                 local_radref_wavl(ix,1:nw) + tmp_radiance_wavl(1:nw,ix,iline)
            allcount(ix,1:nw) = allcount(ix,1:nw) + cntr8(1:nw)
-           dumcount(ix,1:nw) = dumcount(ix,1:nw) + 1.0_r8
            
            IF ( tmp_szenith(ix,iline) /= r4_missval .AND. &
                 tmp_vzenith(ix,iline) /= r4_missval         ) THEN
               radref_sza(ix) = radref_sza(ix) + tmp_szenith(ix,iline)
               radref_vza(ix) = radref_vza(ix) + tmp_vzenith(ix,iline)
-              szacount      (ix) = szacount(ix) + 1.0_r4
+              szacount(ix) = szacount(ix) + 1.0_r4
            END IF
            
         END IF
@@ -556,18 +552,17 @@ SUBROUTINE create_radiance_reference (nt, nx, nw, locerrstat)
      
   END DO ! line loop
   
-  ! -----------------------------------------------------------
-  ! Now for the actual averaging and assignment of final arrays
-  ! -----------------------------------------------------------
+  ! -----------------------------------------------
+  ! Do the averaging and assignment of final arrays
+  ! -----------------------------------------------
   DO ix = 1, nx
+
      ! -----------------------------------
      ! Average the wavelengths and spectra
      ! -----------------------------------
      WHERE ( allcount(ix,1:nw) /= 0.0_r8 )
         local_radref_spec(ix,1:nw) = local_radref_spec(ix,1:nw) / allcount(ix,1:nw)
-     END WHERE
-     WHERE ( dumcount(ix,1:nw) /= 0.0_r8 )
-        local_radref_wavl(ix,1:nw) = local_radref_wavl(ix,1:nw) / dumcount(ix,1:nw)
+        local_radref_wavl(ix,1:nw) = local_radref_wavl(ix,1:nw) / allcount(ix,1:nw)
      END WHERE
 
      ! -------------------------------------------
@@ -583,39 +578,38 @@ SUBROUTINE create_radiance_reference (nt, nx, nw, locerrstat)
 
      ! -------------------------------------------------------------------------------
      ! Determine the CCD pixel numbers based on the selected wavelength fitting window
-     ! -------------------------------------------------------------------------------
-     radref_wavl_ix = local_radref_wavl(ix,1:nw)
+     ! -------------------------------------------------------------------------------     
      DO j1 = 1, 3, 2
         CALL array_locate_r8 ( &
-             nw, radref_wavl_ix, REAL(ctrvar%fit_winwav_lim(j1  ),KIND=r8), 'LE', &
+             nw, local_radref_wavl(ix,1:nw), REAL(ctrvar%fit_winwav_lim(j1  ),KIND=r8), 'LE', &
              ccdpix_selection(ix,j1  ) )
         CALL array_locate_r8 ( &
-             nw, radref_wavl_ix, REAL(ctrvar%fit_winwav_lim(j1+1),KIND=r8), 'GE', &
+             nw, local_radref_wavl(ix,1:nw), REAL(ctrvar%fit_winwav_lim(j1+1),KIND=r8), 'GE', &
              ccdpix_selection(ix,j1+1) )
      END DO
 
      imin = ccdpix_selection(ix,1)
      imax = ccdpix_selection(ix,4)
-
      icnt = imax - imin + 1
-     nwav_radref(       ix) = icnt
+
+     radref_wavl(1:icnt,ix) = local_radref_wavl(ix,imin:imax)
      radref_spec(1:icnt,ix) = local_radref_spec(ix,imin:imax)
-     radref_wavl(1:icnt,ix) = radref_wavl_ix(imin:imax)
      radref_qflg(1:icnt,ix) = 0_i2
      radref_wght(1:icnt,ix) = normweight
+     nwav_radref(ix) = icnt
 
-     ! -----------------------------------------------------------------
-     ! Re-assign the average solar wavelength variable, sinfe from here
+     ! ----------------------------------------------------------------
+     ! Re-assign the average solar wavelength variable, since from here
      ! on we are concerned with radiances.
-     ! -----------------------------------------------------------------
-     ins_sol_wav_avg(ix) =  SUM( radref_wavl(1:icnt,ix) ) / REAL(icnt, KIND=r8)
+     ! ----------------------------------------------------------------
+     ins_sol_wav_avg(ix) = SUM( radref_wavl(1:icnt,ix) ) / REAL(icnt, KIND=r8)
 
      ! ------------------------------------------------------------------
      ! Set weights and quality flags to "bad" for missing spectral points
      ! ------------------------------------------------------------------
      allcount(ix,1:icnt) = allcount(ix,imin:imax)
      WHERE ( allcount(ix,1:icnt) == 0.0_r8 )
-        radref_qflg(1:icnt,ix) = 7_i2
+        radref_qflg(1:icnt,ix) = 1_i2
         radref_wght(1:icnt,ix) = downweight
      END WHERE
 
@@ -627,16 +621,14 @@ SUBROUTINE create_radiance_reference (nt, nx, nw, locerrstat)
      ccdpix_exclusion(ix,1:2) = -1
      IF ( MINVAL(ctrvar%fit_winexc_lim(1:2)) > 0.0_r8 ) THEN
         CALL array_locate_r8 ( &
-             nw, radref_wavl_ix, REAL(ctrvar%fit_winexc_lim(1),KIND=r8), 'GE', &
+             nw, local_radref_wavl(ix,1:nw), REAL(ctrvar%fit_winexc_lim(1),KIND=r8), 'GE', &
              ccdpix_exclusion(ix,1) )
         CALL array_locate_r8 ( &
-             nw, radref_wavl_ix, REAL(ctrvar%fit_winexc_lim(2),KIND=r8), 'LE', &
+             nw, local_radref_wavl(ix,1:nw), REAL(ctrvar%fit_winexc_lim(2),KIND=r8), 'LE', &
              ccdpix_exclusion(ix,2) )
      END IF
      
   END DO
-
-  locerrstat = omps_reader_status_reference  
 
 END SUBROUTINE create_radiance_reference
 
