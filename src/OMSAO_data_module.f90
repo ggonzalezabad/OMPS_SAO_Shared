@@ -190,7 +190,9 @@ CONTAINS
     ENDIF
     IF (ctrvar%yn_radiance_reference) THEN
        IF (.NOT. ALLOCATED(radref_sza)) THEN
-          ALLOCATE (radref_sza(1:nx), radref_vza(1:nx), stat=errstat)
+          ALLOCATE (radref_sza(1:nx), radref_vza(1:nx), nwav_radref(1:nx), &
+               radref_spec(1:nw,1:nx), radref_wavl(1:nw,1:nx), &
+               radref_wght(1:nw,1:nx), radref_qflg(1:nw,1:nx), stat=errstat)
        END IF
     END IF
 
@@ -215,7 +217,8 @@ CONTAINS
     ENDIF
     IF (ctrvar%yn_radiance_reference) THEN
        IF (ALLOCATED(radref_sza)) THEN
-          DEALLOCATE(radref_sza, radref_vza,stat=errstat)
+          DEALLOCATE(radref_sza, radref_vza, nwav_radref, radref_spec, radref_wavl, radref_wght, &
+               radref_qflg, stat=errstat)
        END IF
     END IF
 
