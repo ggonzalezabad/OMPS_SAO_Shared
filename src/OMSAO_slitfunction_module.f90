@@ -15,6 +15,8 @@ MODULE OMSAO_slitfunction_module
 
   IMPLICIT NONE
 
+  LOGICAL, PRIVATE :: Slit_read = .TRUE.
+
   ! ---------------------------------------------------------------------
   ! The following two quantities are used to determine whether we need to
   ! reconvolve the solar spectrum. Only if either SHIFT or SQUEEZE have 
@@ -104,10 +106,13 @@ CONTAINS
     ! ------------------------
     ! Read OMPS Slit functions
     ! ------------------------
-    CALL OMPS_macroSlit_read( ompsSlitFN, ompsBcwlFN,  &
-         nbands, nXts, nSiltPts, slitMacroTab,&
-         wlMacroTab, wlRelTab, wlRelminTab,   &
-         wlRelmaxTab, wlStepTab, LFAIL, msg )
+    IF (slit_read) THEN
+       CALL OMPS_macroSlit_read( ompsSlitFN, ompsBcwlFN,  &
+            nbands, nXts, nSiltPts, slitMacroTab,&
+            wlMacroTab, wlRelTab, wlRelminTab,   &
+            wlRelmaxTab, wlStepTab, LFAIL, msg )
+       slit_read = .FALSE.
+    ENDIF
 
     ! --------------------
     ! Getting band indices
