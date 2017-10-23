@@ -12,7 +12,7 @@ MODULE OMSAO_solar_wavcal_module
        mask_fitvar_cal, n_fitvar_cal, lobnd, upbnd,&
        fitwavs, fitweights, currspec, refspecs_original,    &
        pcfvar, ctrvar
-  USE OMSAO_data_module, ONLY: nxtrack_rad, nwav_rad, nwav_irrad, solcal_itnum, solcal_xflag, &
+  USE OMSAO_data_module, ONLY: nxtrack_rad, nwav_irrad, solcal_itnum, solcal_xflag, &
        ins_sol_wav_avg, cross_track_skippix, solcal_pars, n_irradwvl, irradiance_wght, &
        irradiance_spec, irradiance_wavl, curr_xtrack_pixnum, &
        ccdpix_selection, ccdpix_exclusion
