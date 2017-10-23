@@ -3,6 +3,7 @@ MODULE OMSAO_data_module
   USE OMSAO_precision_module, ONLY: i1, i2, i4, r4, r8
   USE OMSAO_parameters_module, ONLY: maxchlen, max_spec_pts
   USE OMSAO_indices_module, ONLY: n_max_fitpars, max_rs_idx, max_calfit_idx, o3_t1_idx, o3_t3_idx
+  USE OMSAO_variables_module, ONLY: ctrvar
 
   IMPLICIT NONE
 
@@ -187,6 +188,11 @@ CONTAINS
             radcal_xflag(1:nx), radref_xflag(1:nx), solcal_pars(1:max_calfit_idx,1:nx), &
             radcal_pars(1:max_calfit_idx,1:nx), radref_pars(1:max_calfit_idx,1:nx), stat=errstat)
     ENDIF
+    IF (ctrvar%yn_radiance_reference) THEN
+       IF (.NOT. ALLOCATED(radref_sza)) THEN
+          ALLOCATE (radref_sza(1:nx), radref_vza(1:nx), stat=errstat)
+       END IF
+    END IF
 
   END SUBROUTINE allocate_variables  
 
@@ -207,6 +213,11 @@ CONTAINS
             solcal_itnum, radcal_itnum, radref_itnum, solcal_xflag, radcal_xflag, radref_xflag, &
             solcal_pars, radcal_pars, radref_pars, stat=errstat)
     ENDIF
+    IF (ctrvar%yn_radiance_reference) THEN
+       IF (ALLOCATED(radref_sza)) THEN
+          DEALLOCATE(radref_sza, radref_vza,stat=errstat)
+       END IF
+    END IF
 
   END SUBROUTINE deallocate_variables  
 
