@@ -350,7 +350,7 @@ SUBROUTINE xtrack_radiance_fitting_loop (                             &
   USE OMSAO_data_module, ONLY: nxtrack_max, n_comm_wvl, &
        column_uncert, column_amount, fit_rms, radfit_chisq, &
        itnum_flag, fitconv_flag, solcal_pars, ins_sol_wav_avg, &
-       n_ins_database_wvl, nwav_rad, szenith, xtrackpix_no, &
+       n_ins_database_wvl, nwav_rad, szenith, &
        cross_track_skippix, n_radwvl, n_irradwvl, &
        curr_xtrack_pixnum, o3_uncert, o3_amount, radiance_wavl, &
        ccdpix_exclusion, ccdpix_selection, ins_database, &
@@ -458,8 +458,6 @@ SUBROUTINE xtrack_radiance_fitting_loop (                             &
      curr_sol_spec(wvl_idx,1:n_database_wvl) = ins_database_wvl(1:n_database_wvl,ipix)
      curr_sol_spec(spc_idx,1:n_database_wvl) = ins_database    (solar_idx,1:n_database_wvl,ipix)
      ! --------------------------------------------------------------------------------
-
-     xtrackpix_no = ipix
 
      ! -------------------------------------------------------------------------
      select_idx(1:4) = ccdpix_selection(ipix,1:4)

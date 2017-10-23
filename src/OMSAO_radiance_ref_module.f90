@@ -30,11 +30,10 @@ CONTAINS
          pcfvar, ctrvar
     USE OMSAO_slitfunction_module, ONLY: saved_shift, saved_squeeze
     USE OMSAO_data_module, ONLY: nwav_irrad, irradiance_wght, &
-         nwav_rad, n_ins_database_wvl, cross_track_skippix, &
-         curr_xtrack_pixnum, n_radwvl, max_rs_idx, ins_database, &
-         ins_database_wvl, ins_sol_wav_avg, solcal_pars, radref_wavl, &
-         radref_spec, ccdpix_selection, radiance_ccdpix, &
-         ccdpix_exclusion, xtrackpix_no, radref_wght, &
+         cross_track_skippix, curr_xtrack_pixnum, n_radwvl, &
+         max_rs_idx, ins_database, ins_database_wvl, ins_sol_wav_avg, solcal_pars, radref_wavl, &
+         radref_spec, ccdpix_selection, radiance_ccdpix, nwav_radref,  &
+         ccdpix_exclusion, radref_wght, &
          radref_pars, max_calfit_idx, radref_xflag, radref_itnum, &
          radref_chisq, radref_col, radref_rms, radref_dcol, &
          radref_xtrcol
@@ -45,7 +44,7 @@ CONTAINS
     ! Input Variables
     ! ---------------
     INTEGER (KIND=i4), INTENT (IN) :: pge_idx, nx, nw, fpix, lpix
-    LOGICAL,           INTENT (IN) :: yn_radiance_reference, yn_remove_target
+    LOGICAL, INTENT (IN) :: yn_radiance_reference, yn_remove_target
 
     ! -----------------
     ! Modified variable
@@ -55,7 +54,7 @@ CONTAINS
     ! ---------------
     ! Local variables
     ! ---------------
-    INTEGER (KIND=i4) :: locerrstat, ipix, jpix, radfit_exval, radfit_itnum, i
+    INTEGER (KIND=i4) :: locerrstat, ipix, radfit_exval, radfit_itnum, i
     REAL    (KIND=r8) :: fitcol, rms, dfitcol, chisquav, rad_spec_avg
     REAL    (KIND=r8), DIMENSION (o3_t1_idx:o3_t3_idx) :: o3fit_cols, o3fit_dcols
     REAL    (KIND=r8), DIMENSION (n_fitvar_rad)        :: corr_matrix_tmp, allfit_cols_tmp, allfit_errs_tmp
@@ -74,10 +73,9 @@ CONTAINS
     ! -------------------------
     ! Initialize some variables
     ! -------------------------
-    locerrstat          = pge_errstat_ok
-    target_var          = r8_missval
-    fitvar_rad_saved    = ctrvar%fitvar_rad_init
-
+    locerrstat = pge_errstat_ok
+    target_var = r8_missval
+    fitvar_rad_saved = ctrvar%fitvar_rad_init
 
     ! ---------------------------------------------------
     ! Note that this initialization will overwrite valid
@@ -87,16 +85,16 @@ CONTAINS
     ! In that case, however, we write the results to file
     ! before the second call.
     ! ---------------------------------------------------
-    radref_pars  (1:max_calfit_idx,1:nx) = r8_missval
-    radref_xflag (1:nx)                  = i2_missval
-    radref_itnum (1:nx)                  = i2_missval
-    radref_chisq (1:nx)                  = r8_missval
-    radref_col   (1:nx)                  = r8_missval
-    radref_dcol  (1:nx)                  = r8_missval
-    radref_rms   (1:nx)                  = r8_missval
-    radref_xtrcol(1:nx)                  = r8_missval
+    radref_pars (1:max_calfit_idx,1:nx) = r8_missval
+    radref_xflag (1:nx) = i2_missval
+    radref_itnum (1:nx) = i2_missval
+    radref_chisq (1:nx) = r8_missval
+    radref_col (1:nx) = r8_missval
+    radref_dcol (1:nx) = r8_missval
+    radref_rms (1:nx) = r8_missval
+    radref_xtrcol(1:nx) = r8_missval
 
-    XTrackPix: DO jpix = fpix, lpix
+    XTrackPix: DO ipix = fpix, lpix
 
        locerrstat = pge_errstat_ok
 
@@ -105,7 +103,6 @@ CONTAINS
        ! when the slit function is computed: The CCD position based
        ! hyper-parameterization requires the knowledge of the row#.
        ! -----------------------------------------------------------
-       ipix = jpix
        curr_xtrack_pixnum = ipix
 
        ! ---------------------------------------------------------------------
@@ -114,8 +111,7 @@ CONTAINS
        ! ---------------------------------------------------------------------
        IF ( cross_track_skippix(ipix) ) CYCLE
 
-       n_database_wvl = n_ins_database_wvl(ipix)
-       n_radwvl   = nwav_rad      (ipix,0)
+       n_radwvl = nwav_radref(ipix)
 
        ! ---------------------------------------------------------------------------
        ! For each cross-track position we have to initialize the saved Shift&Squeeze
@@ -126,11 +122,12 @@ CONTAINS
        ! Assign number of irradiance wavelengths and the fitting weights
        ! from the solar wavelength calibration. Why? gga
        ! ------------------------------------------------------------------
-       n_solar_pts              = nwav_irrad(ipix)
+       n_solar_pts = nwav_irrad(ipix)
+       n_database_wvl = n_solar_pts
        solar_wgt(1:n_solar_pts) = irradiance_wght(1:n_solar_pts,ipix)
 
        ! -----------------------------------------------------
-       ! Catch the possibility that N_OMI_RADWVL > N_SOLAR_PTS
+       ! Catch the possibility that N_RADWVL > N_SOLAR_PTS
        ! -----------------------------------------------------
        IF ( n_radwvl > n_solar_pts ) THEN
           i = n_radwvl - n_solar_pts
@@ -138,25 +135,25 @@ CONTAINS
           n_solar_pts = n_radwvl
        END IF
 
-       IF ( n_database_wvl > 0 .AND. n_radwvl > 0 ) THEN
+       IF ( n_solar_pts > 0 .AND. n_radwvl > 0 ) THEN
 
-          ! ----------------------------------------------
-          ! Restore DATABASE from OMI_DATABASE (see above)
-          ! ----------------------------------------------
+          ! ----------------------------------
+          ! Restore DATABASE from OMI_DATABASE
+          ! ----------------------------------
           database (1:max_rs_idx,1:n_database_wvl) = ins_database (1:max_rs_idx,1:n_database_wvl,ipix)
 
           ! -----------------------------------------------------------------------
           ! Restore solar fitting variables for across-track reference in Earthshine fitting
           ! --------------------------------------------------------------------------------
-          sol_wav_avg                             = ins_sol_wav_avg(ipix)
-          hw1e                                    = solcal_pars(hwe_idx,ipix)
-          e_asym                                  = solcal_pars(asy_idx,ipix)
-          g_shap                                  = solcal_pars(sha_idx,ipix)
-          curr_sol_spec(wvl_idx,1:n_database_wvl) = ins_database_wvl(1:n_database_wvl,ipix)
-          curr_sol_spec(spc_idx,1:n_database_wvl) = ins_database    (solar_idx,1:n_database_wvl,ipix)
+          sol_wav_avg = ins_sol_wav_avg(ipix)
+          hw1e = solcal_pars(hwe_idx,ipix)
+          e_asym = solcal_pars(asy_idx,ipix)
+          g_shap = solcal_pars(sha_idx,ipix)
+          curr_sol_spec(wvl_idx,1:n_solar_pts) = ins_database_wvl(1:n_solar_pts,ipix)
+          curr_sol_spec(spc_idx,1:n_solar_pts) = ins_database(solar_idx,1:n_solar_pts,ipix)
+          stop
           ! --------------------------------------------------------------------------------
 
-          xtrackpix_no = ipix
           ! -------------------------------------------------------------------------
           select_idx(1:4) = ccdpix_selection(ipix,1:4)
           exclud_idx(1:2) = ccdpix_exclusion(ipix,1:2)

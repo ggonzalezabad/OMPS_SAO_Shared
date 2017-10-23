@@ -128,7 +128,7 @@ MODULE OMSAO_data_module
   ! ---------------------------------------------------------
   ! Scan line, block line, and across-track pixel numbers
   ! ---------------------------------------------------------
-  INTEGER (KIND=i4) :: scanline_no, blockline_no, xtrackpix_no
+  INTEGER (KIND=i4) :: scanline_no, blockline_no
 
   ! -----------------------
   ! L2 output data QA flags
