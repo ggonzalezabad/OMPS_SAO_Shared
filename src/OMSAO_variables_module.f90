@@ -6,7 +6,6 @@ MODULE OMSAO_variables_module
        o3_t1_idx, o3_t2_idx, o3_t3_idx,                                      &
        us1_idx, us2_idx, ccd_idx, radfit_idx
   USE OMSAO_parameters_module, ONLY: maxchlen, max_spec_pts, n_fit_winwav, max_mol_fit
-  USE OMSAO_data_module, ONLY: nwavel_max, nxtrack_max, nlines_max
 
   IMPLICIT NONE
 
@@ -20,8 +19,15 @@ MODULE OMSAO_variables_module
   !              Monthly average Solar Spectrum, 
   !              radiance reference
   ! -----------------------------------------------------
-
   INTEGER (KIND=I4) :: l1br_opf_version
+
+  ! -----------------------------
+  ! Maximum data/swath dimensions
+  ! -----------------------------
+  INTEGER (KIND=i4), PARAMETER :: &
+       nxtrack_max    =  60, nwavel_max = 300, &
+       nwavelcoef_max =   5, nlines_max = 500, &
+       nUTCdim        =   27
 
   TYPE pcf_variables
      INTEGER (KIND=I4) :: pge_idx
