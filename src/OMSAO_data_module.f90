@@ -114,8 +114,8 @@ MODULE OMSAO_data_module
   INTEGER (KIND=i2), ALLOCATABLE, DIMENSION (:) :: solcal_itnum, radcal_itnum, radref_itnum, &
        solcal_xflag, radcal_xflag, radref_xflag
   REAL    (KIND=r8), ALLOCATABLE, DIMENSION (:,:) :: solcal_pars, radcal_pars, radref_pars
-  REAL    (KIND=r8), DIMENSION (max_rs_idx, nwavel_max, nxtrack_max) :: ins_database
-  REAL    (KIND=r8), DIMENSION (            nwavel_max, nxtrack_max) :: ins_database_wvl
+  REAL    (KIND=r8), ALLOCATABLE, DIMENSION (:,:,:) :: ins_database
+  REAL    (KIND=r8), ALLOCATABLE, DIMENSION (:,:) :: ins_database_wvl
   REAL    (KIND=r8), ALLOCATABLE, DIMENSION (:) :: ins_sol_wav_avg
   REAL    (KIND=r8), ALLOCATABLE, DIMENSION (:) :: radcal_chisq, radref_chisq, &
        radref_col, radref_dcol, radref_rms, radref_xtrcol
@@ -184,15 +184,18 @@ CONTAINS
             ccdpix_selection(nx,4), ccdpix_exclusion(nx,2), radiance_wavl(1:nw,1:nx,0:nt-1), &
             radiance_spec(1:nw,1:nx,0:nt-1), radiance_prec(1:nw,1:nx,0:nt-1), &
             radiance_qflg(1:nw,1:nx,0:nt-1), yn_process_pixel(1:nx,0:nt-1), utc_time(0:nt-1), &
-            solcal_itnum(1:nx), radcal_itnum(1:nx), radref_itnum(1:nx), solcal_xflag(1:nx), &
-            radcal_xflag(1:nx), radref_xflag(1:nx), solcal_pars(1:max_calfit_idx,1:nx), &
-            radcal_pars(1:max_calfit_idx,1:nx), radref_pars(1:max_calfit_idx,1:nx), stat=errstat)
+            solcal_itnum(1:nx), radcal_itnum(1:nx), solcal_xflag(1:nx), &
+            radcal_xflag(1:nx),  solcal_pars(1:max_calfit_idx,1:nx), radcal_pars(1:max_calfit_idx,1:nx), &
+            n_ins_database_wvl(1:nx), ins_database(1:max_rs_idx,1:nw,1:nx), &
+            ins_database_wvl(1:nw,1:nx), stat=errstat)
     ENDIF
     IF (ctrvar%yn_radiance_reference) THEN
        IF (.NOT. ALLOCATED(radref_sza)) THEN
           ALLOCATE (radref_sza(1:nx), radref_vza(1:nx), nwav_radref(1:nx), &
-               radref_spec(1:nw,1:nx), radref_wavl(1:nw,1:nx), &
-               radref_wght(1:nw,1:nx), radref_qflg(1:nw,1:nx), stat=errstat)
+               radref_spec(1:nw,1:nx), radref_wavl(1:nw,1:nx), radref_wght(1:nw,1:nx), &
+               radref_qflg(1:nw,1:nx), radref_pars(1:max_calfit_idx,1:nx), &
+               radref_xflag(1:nx), radref_itnum(1:nx), radref_chisq(1:nx), &
+               radref_col(1:nx), radref_dcol(1:nx), radref_rms(1:nx), radref_xtrcol(1:nx), stat=errstat)
        END IF
     END IF
 
@@ -213,12 +216,14 @@ CONTAINS
             ins_sol_wav_avg, ccdpix_selection, ccdpix_exclusion, radiance_wavl, &
             radiance_spec, radiance_prec, radiance_qflg, yn_process_pixel, utc_time, &
             solcal_itnum, radcal_itnum, radref_itnum, solcal_xflag, radcal_xflag, radref_xflag, &
-            solcal_pars, radcal_pars, radref_pars, stat=errstat)
+            solcal_pars, radcal_pars, radref_pars, n_ins_database_wvl, ins_database, &
+            ins_database_wvl, stat=errstat)
     ENDIF
     IF (ctrvar%yn_radiance_reference) THEN
        IF (ALLOCATED(radref_sza)) THEN
           DEALLOCATE(radref_sza, radref_vza, nwav_radref, radref_spec, radref_wavl, radref_wght, &
-               radref_qflg, stat=errstat)
+               radref_qflg, radref_pars, radref_xflag, radref_itnum, radref_chisq, radref_col, &
+               radref_dcol, radref_rms, radref_xtrcol, stat=errstat)
        END IF
     END IF
 
