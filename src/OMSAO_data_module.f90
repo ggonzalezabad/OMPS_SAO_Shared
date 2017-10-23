@@ -3,7 +3,7 @@ MODULE OMSAO_data_module
   USE OMSAO_precision_module, ONLY: i1, i2, i4, r4, r8
   USE OMSAO_parameters_module, ONLY: maxchlen, max_spec_pts
   USE OMSAO_indices_module, ONLY: n_max_fitpars, max_rs_idx, max_calfit_idx, o3_t1_idx, o3_t3_idx
-  USE OMSAO_variables_module, ONLY: ctrvar
+  USE OMSAO_variables_module, ONLY: ctrvar, database
 
   IMPLICIT NONE
 
@@ -187,7 +187,7 @@ CONTAINS
             solcal_itnum(1:nx), radcal_itnum(1:nx), solcal_xflag(1:nx), &
             radcal_xflag(1:nx),  solcal_pars(1:max_calfit_idx,1:nx), radcal_pars(1:max_calfit_idx,1:nx), &
             n_ins_database_wvl(1:nx), ins_database(1:max_rs_idx,1:nw,1:nx), &
-            ins_database_wvl(1:nw,1:nx), stat=errstat)
+            ins_database_wvl(1:nw,1:nx), database(max_rs_idx, 1:nw), stat=errstat)
     ENDIF
     IF (ctrvar%yn_radiance_reference) THEN
        IF (.NOT. ALLOCATED(radref_sza)) THEN
@@ -217,7 +217,7 @@ CONTAINS
             radiance_spec, radiance_prec, radiance_qflg, yn_process_pixel, utc_time, &
             solcal_itnum, radcal_itnum, radref_itnum, solcal_xflag, radcal_xflag, radref_xflag, &
             solcal_pars, radcal_pars, radref_pars, n_ins_database_wvl, ins_database, &
-            ins_database_wvl, stat=errstat)
+            ins_database_wvl, database, stat=errstat)
     ENDIF
     IF (ctrvar%yn_radiance_reference) THEN
        IF (ALLOCATED(radref_sza)) THEN
