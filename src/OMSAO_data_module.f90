@@ -98,7 +98,7 @@ MODULE OMSAO_data_module
   ! --------------------------------------------------------
   ! Ozone is a special case: We can have up to 3 temperatues
   ! --------------------------------------------------------
-  REAL (KIND=r8), DIMENSION (o3_t1_idx:o3_t3_idx, nxtrack_max,0:nlines_max-1) :: o3_amount, o3_uncert
+  REAL (KIND=r8), ALLOCATABLE, DIMENSION (:,:,:) :: o3_amount, o3_uncert
 
   ! ---------------------------------
   ! Dimensions for measurement swaths
