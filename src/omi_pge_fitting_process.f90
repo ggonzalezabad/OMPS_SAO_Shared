@@ -27,10 +27,9 @@ SUBROUTINE omi_pge_fitting_process ( pge_idx, n_max_rspec,             &
   ! ---------------
   ! Local variables
   ! ---------------
-  TYPE(omps_nmev_type), ALLOCATABLE :: omps_data, omps_data_radiance_reference
+  TYPE(omps_nmev_type), ALLOCATABLE :: omps_data
   TYPE(omps_nmto3_type):: omps_to3_data
-  INTEGER (KIND=i4) :: nTimesRad,   nXtrackRad,   nWvlCCD
-  INTEGER (KIND=i4) :: nTimesRadRR, nXtrackRadRR, nWvlCCDrr
+  INTEGER (KIND=i4) :: nTimesRad, nXtrackRad, nWvlCCD
   INTEGER (KIND=i4) :: errstat
   CHARACTER(LEN=23) :: modulename = 'omi_pge_fitting_process'
 
@@ -40,13 +39,15 @@ SUBROUTINE omi_pge_fitting_process ( pge_idx, n_max_rspec,             &
   INTEGER (KIND=i4) :: omps_reader_status
   
   pge_error_status = pge_errstat_ok
+
   ! ----------------------------------------------------------------------------------
   ! Since the OMPS NM files are not that big I'm going to read here the whole file and
   ! assign the values needed to the significant variables.
   ! ----------------------------------------------------------------------------------
-  ALLOCATE (omps_data, omps_data_radiance_reference)
+  ALLOCATE (omps_data)
   omps_reader_status = OMPS_NMEV_READER(omps_data,TRIM(ADJUSTL(pcfvar%l1b_rad_fname)))
-  CALL error_check ( INT(omps_reader_status,KIND=i4), pge_errstat_ok, pge_errstat_fatal, OMSAO_F_SUBROUTINE, &
+  CALL error_check ( INT(omps_reader_status,KIND=i4), pge_errstat_ok, pge_errstat_fatal, &
+       OMSAO_F_SUBROUTINE, &
        modulename//f_sep//"Read OMPS radiance data.", vb_lev_default, pge_error_status )
   IF ( pge_error_status >= pge_errstat_error ) GOTO 666
 
@@ -60,13 +61,9 @@ SUBROUTINE omi_pge_fitting_process ( pge_idx, n_max_rspec,             &
   CALL omps_to_data_variables ( omps_data, &
        omps_data%nlines, omps_data%nxtrack, omps_data%nwavel)
   
-  omps_reader_status = OMPS_NMEV_READER(omps_data_radiance_reference,TRIM(ADJUSTL(pcfvar%l1b_radref_fname)))
-  CALL error_check ( INT(omps_reader_status,KIND=i4), pge_errstat_ok, pge_errstat_fatal, OMSAO_F_SUBROUTINE, &
-       modulename//f_sep//"Read OMPS radiance reference data.", vb_lev_default, pge_error_status )
-  IF (pge_error_status >= pge_errstat_error ) GO TO 666
-
   omps_reader_status = OMPS_NMTO3_READER(omps_to3_data,TRIM(ADJUSTL(pcfvar%l2_to3_fname)))
-  CALL error_check ( INT(omps_reader_status,KIND=i4), pge_errstat_ok, pge_errstat_fatal, OMSAO_F_SUBROUTINE, &
+  CALL error_check ( INT(omps_reader_status,KIND=i4), pge_errstat_ok, pge_errstat_fatal, &
+       OMSAO_F_SUBROUTINE, &
        modulename//f_sep//"Read OMPS total ozone data.", vb_lev_default, pge_error_status )
   IF (pge_error_status >= pge_errstat_error ) GO TO 666
 
@@ -81,18 +78,14 @@ SUBROUTINE omi_pge_fitting_process ( pge_idx, n_max_rspec,             &
   NrofScanLines        = omps_data%nLines
   NrofCrossTrackPixels = omps_data%nXtrack
   nTimesRad            = omps_data%nLines
-  nTimesRadRR          = omps_data_radiance_reference%nLines
   nXtrackRad           = omps_data%nXtrack
-  nXtrackRadRR         = omps_data_radiance_reference%nXtrack
   nWvlCCD              = omps_data%nWavel  
-  nWvlCCDrr            = omps_data_radiance_reference%nWavel  
+
   ! Now I can deallocate omps_data)
   DEALLOCATE(omps_data)
 
-  CALL omi_fitting (                                  &
-       pge_idx, omps_data_radiance_reference,         &
-       nTimesRad,   nXtrackRad, n_max_rspec, &
-       nTimesRadRR, nXtrackRadRR, nWvlCCDrr, pge_error_status       )
+  CALL omi_fitting ( &
+       pge_idx, nTimesRad,   nXtrackRad, n_max_rspec,  pge_error_status )
   CALL error_check ( errstat, pge_errstat_ok, pge_errstat_fatal, OMSAO_F_SUBROUTINE, &
        modulename//f_sep//"omi_fitting", vb_lev_default, pge_error_status )
 
@@ -122,11 +115,8 @@ SUBROUTINE omi_pge_fitting_process ( pge_idx, n_max_rspec,             &
 END SUBROUTINE omi_pge_fitting_process
 
 
-SUBROUTINE omi_fitting (                                  &
-       pge_idx, omps_data_radiance_reference, &
-       nTimesRad,   nXtrackRad, n_max_rspec, &
-       nTimesRadRR, nXtrackRadRR, nWvlCCDrr, &
-       pge_error_status )
+SUBROUTINE omi_fitting ( &
+       pge_idx, nTimesRad, nXtrackRad, n_max_rspec, pge_error_status )
 
   USE OMSAO_errstat_module, ONLY: pge_errstat_ok, pge_errstat_fatal, &
        pge_errstat_warning, pge_errstat_error, f_sep, omsao_w_nopixel, &
@@ -140,20 +130,18 @@ SUBROUTINE omi_fitting (                                  &
   USE OMSAO_he5_datafields_module
   USE OMSAO_solar_wavcal_module, ONLY: xtrack_solar_calibration_loop
   USE OMSAO_radiance_ref_module, ONLY: &
-       radiance_reference_lnums, xtrack_radiance_reference_loop, create_radiance_reference
+       xtrack_radiance_reference_loop, create_radiance_reference
   USE OMSAO_wfamf_module, ONLY: read_climatology, amf_calculation_bis
   USE OMSAO_pixelcorner_module, ONLY: compute_pixel_corners
   USE OMSAO_Reference_sector_module, ONLY: Reference_Sector_Correction
-  USE OMSAO_omps_reader, ONLY: omps_nmev_type
+  USE OMSAO_omps_reader, ONLY: omps_nmev_type, omps_nmev_reader
 
   IMPLICIT NONE
 
   ! ---------------
   ! Input variables
   ! ---------------
-  TYPE(omps_nmev_type), INTENT(IN) :: omps_data_radiance_reference
   INTEGER (KIND=i4), INTENT (IN) :: pge_idx, nTimesRad, nXtrackRad, n_max_rspec
-  INTEGER (KIND=i4), INTENT (IN) :: nTimesRadRR, nWvlCCDrr, nXtrackRadRR
   
   ! ---------------
   ! Output variable
@@ -163,15 +151,17 @@ SUBROUTINE omi_fitting (                                  &
   ! -------------------------
   ! Local variables (for now)
   ! -------------------------
-  INTEGER   (KIND=i4) :: iline, first_line, last_line, errstat, first_wc_pix, last_wc_pix, &
-       first_pix, last_pix
+  TYPE(omps_nmev_type), ALLOCATABLE :: omps_data_radiance_reference
+  INTEGER (KIND=i4) :: nTimesRadRR, nWvlCCDrr, nXtrackRadRR
+  INTEGER (KIND=i4) :: first_line, last_line, errstat, first_wc_pix, last_wc_pix, &
+       first_pix, last_pix, omps_reader_status
   REAl (KIND=r8), DIMENSION (1) :: zerovec = 0.0_r8
-  INTEGER (KIND=i2), DIMENSION (1:nXtrackRad,0:nTimesRad-1)     :: saomqf
-  INTEGER (KIND=i2), DIMENSION (1:nXtrackRadRR,0:nTimesRadRR-1) :: refmqf
-  REAL    (KIND=r8), DIMENSION (1:nXtrackRad,0:nTimesRad-1)     :: saoamf
-  REAL    (KIND=r8), DIMENSION (1:nXtrackRadRR,0:nTimesRadRR-1) :: refamf
-  INTEGER (KIND=i2), DIMENSION (1:nXtrackRadRR,0:nTimesRadRR-1) :: amfflg
-  INTEGER (KIND=i2), DIMENSION (1:nXtrackRadRR,0:nTimesRadRR-1) :: refamfflg
+  INTEGER (KIND=i2), DIMENSION (1:nXtrackRad,0:nTimesRad-1) :: saomqf
+  INTEGER (KIND=i2), ALLOCATABLE, DIMENSION (:,:) :: refmqf
+  REAL    (KIND=r8), DIMENSION (1:nXtrackRad,0:nTimesRad-1) :: saoamf
+  REAL    (KIND=r8), ALLOCATABLE, DIMENSION (:,:) :: refamf
+  INTEGER (KIND=i2), DIMENSION (1:nXtrackRad,0:nTimesRad-1) :: amfflg
+  INTEGER (KIND=i2), ALLOCATABLE, DIMENSION (:,:) :: refamfflg
 
   ! ----------------------------------------------------------
   ! Variables and parameters associated with Spatial Zoom data
@@ -180,7 +170,7 @@ SUBROUTINE omi_fitting (                                  &
   INTEGER (KIND=i4), DIMENSION (0:nTimesRad-1,2) :: omi_xtrpix_range
   LOGICAL,           DIMENSION (0:nTimesRad-1)   :: yn_common_range, yn_radfit_range
 
-  INTEGER (KIND=i4), DIMENSION (0:nTimesRadRR-1,2) :: omi_xtrpix_range_rr
+  INTEGER (KIND=i4), ALLOCATABLE, DIMENSION (:,:) :: omi_xtrpix_range_rr
 
   ! ----------------------------------------------------------
   ! OMI L1b latitudes
@@ -218,22 +208,6 @@ SUBROUTINE omi_fitting (                                  &
        modulename//f_sep//"omi_set_xtrpix_range", vb_lev_default, pge_error_status )
   IF (pge_error_status >= pge_errstat_error ) GO TO 666
  
-  ! --------------------------------------------------------------------
-  ! If the radiance reference is obtained from the same L1b file, we can
-  ! simply copy the variables we have just read to the corresponding 
-  ! "rr" ones (in this case, the dimensions are the same). Otherwise we
-  ! have to read them from the radiance reference granule.
-  ! --------------------------------------------------------------------
-  IF (ctrvar%yn_radiance_reference) THEN
-     CALL omi_set_xtrpix_range ( &
-          nTimesRadRR, nXtrackRadRR, ctrvar%pixnum_lim(3:4), &
-          omi_xtrpix_range_rr(0:nTimesRadRR-1,1:2), &
-          first_wc_pix, last_wc_pix, errstat )
-     CALL error_check ( errstat, pge_errstat_ok, pge_errstat_fatal, OMSAO_F_SUBROUTINE, &
-          modulename//f_sep//"omi_set_xtrpix_range for radiance reference", vb_lev_default, pge_error_status )
-     IF (pge_error_status >= pge_errstat_error ) GO TO 666
-  ENDIF
-
   ! -----------------------------------------------------
   ! Obtain number of levels in climatology and if present
   ! read values for molecule of intetest (<--FIXME)  
@@ -271,16 +245,65 @@ SUBROUTINE omi_fitting (                                  &
   CALL xtrack_solar_calibration_loop ( first_wc_pix, last_wc_pix, errstat )
   pge_error_status = MAX ( pge_error_status, errstat )
   IF ( pge_error_status >= pge_errstat_error )  GO TO 666
-
-  stop
+  
   ! ------------------------------------------------
   ! If use radiance reference we read the radiance
   ! reference file and work out an efective radiance
   ! reference that is saved to the solar array
   ! ------------------------------------------------
   IF (ctrvar%yn_radiance_reference) THEN
-     CALL create_radiance_reference (nTimesRadRR, nXtrackRadRR, nWvlCCDrr, errstat)
+
+     ALLOCATE (omps_data_radiance_reference)
+     omps_reader_status = OMPS_NMEV_READER(omps_data_radiance_reference, &
+          TRIM(ADJUSTL(pcfvar%l1b_radref_fname)))
+     CALL error_check ( INT(omps_reader_status,KIND=i4), pge_errstat_ok, pge_errstat_fatal, &
+          OMSAO_F_SUBROUTINE, &
+          modulename//f_sep//"Read OMPS radiance reference data.", vb_lev_default, pge_error_status )
+     IF (pge_error_status >= pge_errstat_error ) GO TO 666
+
+     ! Copy dimensions from radiance reference in to variables
+     nTimesRadRR = omps_data_radiance_reference%nLines
+     nXtrackRadRR = omps_data_radiance_reference%nXtrack
+     nWvlCCDrr = omps_data_radiance_reference%nWavel  
+
+     ! --------------------------------------------------------------------
+     ! If the radiance reference is obtained from the same L1b file, we can
+     ! simply copy the variables we have just read to the corresponding 
+     ! "rr" ones (in this case, the dimensions are the same). Otherwise we
+     ! have to read them from the radiance reference granule.
+     ! --------------------------------------------------------------------
+     ALLOCATE(omi_xtrpix_range_rr(0:nTimesRadRR-1,1:2))
+     CALL omi_set_xtrpix_range ( &
+          nTimesRadRR, nXtrackRadRR, ctrvar%pixnum_lim(3:4), &
+          omi_xtrpix_range_rr(0:nTimesRadRR-1,1:2), &
+          first_wc_pix, last_wc_pix, errstat )
+     CALL error_check ( errstat, pge_errstat_ok, pge_errstat_fatal, OMSAO_F_SUBROUTINE, &
+          modulename//f_sep//"omi_set_xtrpix_range for radiance reference", vb_lev_default, &
+          pge_error_status )
+     IF (pge_error_status >= pge_errstat_error ) GO TO 666
+     CALL create_radiance_reference (omps_data_radiance_reference, nTimesRadRR, nXtrackRadRR, &
+          nWvlCCDrr, errstat)
+     CALL error_check ( errstat, pge_errstat_ok, pge_errstat_fatal, OMSAO_F_SUBROUTINE, &
+          modulename//f_sep//"create_radiance_reference", vb_lev_default, &
+          pge_error_status )
+     IF (pge_error_status >= pge_errstat_error ) GO TO 666
+
+     ! -------------------------------------------------
+     ! Perform radiance reference wavelength calibration
+     ! using solar slit function parameters
+     ! -------------------------------------------------
+     first_pix = MINVAL(omi_xtrpix_range_rr)
+     last_pix  = MAXVAL(omi_xtrpix_range_rr)
+
+     CALL xtrack_radiance_reference_loop (                                   &
+          ctrvar%yn_radiance_reference, ctrvar%yn_remove_target,                           &
+          nXtrackRadRR, nWvlCCDrr, first_pix, last_pix, pge_idx, pge_error_status )
+
+
+     DEALLOCATE (omps_data_radiance_reference, omi_xtrpix_range_rr)
   END IF
+
+  stop
 
   ! -----------------------------------------------------
   ! Across-track loop for radiance wavelength calibration
@@ -310,14 +333,6 @@ SUBROUTINE omi_fitting (                                  &
   !  doesn't produce a decently fitted column).
   ! ---------------------------------------------------------------------
   IF ( ctrvar%yn_radiance_reference) THEN 
-
-     iline = SUM ( radiance_reference_lnums(1:2) ) / 2
-     IF ( iline < 0 .OR. iline > nTimesRadRR ) iline = nTimesRadRR / 2
-     first_pix = omi_xtrpix_range_rr(iline,1)
-     last_pix  = omi_xtrpix_range_rr(iline,2)
-     CALL xtrack_radiance_reference_loop (                                   &
-          ctrvar%yn_radiance_reference, ctrvar%yn_remove_target,                           &
-          nXtrackRadRR, nWvlCCDrr, first_pix, last_pix, pge_idx, pge_error_status )
 
      ! -------------------------------------------------------------
      ! Write the output from solar/earthshine wavelength calibration
