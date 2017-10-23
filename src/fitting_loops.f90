@@ -19,7 +19,7 @@ SUBROUTINE xtrack_radiance_wvl_calibration (             &
        irradiance_spec, ins_database, ins_database_wvl, &
        radref_spec, radref_wavl, radref_qflg, radref_wght, &
        nwav_rad, radiance_spec, radiance_wavl, radiance_qflg, &
-       ccdpix_selection, ccdpix_exclusion, radiance_ccdpix, &
+       ccdpix_selection, ccdpix_exclusion, &
        radcal_pars, curr_xtrack_pixnum, n_irradwvl, n_radwvl      
   USE OMSAO_errstat_module, ONLY: f_sep, omsao_s_progress, omsao_w_skippix, &
        pge_errstat_error,pge_errstat_ok, pge_errstat_warning, vb_lev_default, &
@@ -174,7 +174,6 @@ SUBROUTINE xtrack_radiance_wvl_calibration (             &
           n_radwvl,                                &
           calibration_wavl   (1:n_radwvl),         &
           calibration_spec   (1:n_radwvl),         &
-          radiance_ccdpix(1:n_radwvl,ipix,0),  &
           n_irradwvl, ref_wgt(1:n_irradwvl),   &
           n_rad_wvl, curr_rad_spec(wvl_idx:ccd_idx,1:n_radwvl), rad_spec_avg, &
           yn_skip_pix )
@@ -354,7 +353,7 @@ SUBROUTINE xtrack_radiance_fitting_loop (                             &
        cross_track_skippix, n_radwvl, n_irradwvl, &
        curr_xtrack_pixnum, o3_uncert, o3_amount, radiance_wavl, &
        ccdpix_exclusion, ccdpix_selection, ins_database, &
-       ins_database_wvl, max_rs_idx, radiance_spec, radiance_ccdpix, &
+       ins_database_wvl, max_rs_idx, radiance_spec, &
        radref_wght
   USE OMSAO_errstat_module, ONLY: pge_errstat_ok
      
@@ -468,7 +467,6 @@ SUBROUTINE xtrack_radiance_fitting_loop (                             &
           n_radwvl,                                            &
           radiance_wavl  (1:n_radwvl,ipix,iloop),          &
           radiance_spec  (1:n_radwvl,ipix,iloop),          &
-          radiance_ccdpix(1:n_radwvl,ipix,iloop),          &
           n_radwvl, radref_wght(1:n_radwvl,ipix),      &
           n_rad_wvl, curr_rad_spec(wvl_idx:ccd_idx,1:n_radwvl),&
           rad_spec_avg, yn_skip_pix )

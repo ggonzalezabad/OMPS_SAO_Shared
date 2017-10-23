@@ -1,6 +1,6 @@
 SUBROUTINE omi_adjust_radiance_data (                                   &
      ccdpix_idx, ccdpix_exc, n_radwvl, omi_rad_wvl, omi_rad_spc, &
-     omi_rad_ccd, n_irradwvl, curr_sol_weight, n_rad_wvl, curr_rad_spec,   &
+     n_irradwvl, curr_sol_weight, n_rad_wvl, curr_rad_spec,   &
      rad_spec_avg, yn_skip_pix )
 
   USE OMSAO_precision_module, ONLY: i4, r8
@@ -15,20 +15,19 @@ SUBROUTINE omi_adjust_radiance_data (                                   &
   ! ---------------
   ! Input variables
   ! ---------------
-  INTEGER (KIND=i4),                             INTENT (IN) :: n_radwvl, n_irradwvl
-  INTEGER (KIND=i4), DIMENSION (2),              INTENT (IN) :: ccdpix_exc
-  INTEGER (KIND=i4), DIMENSION (4),              INTENT (IN) :: ccdpix_idx
-  REAL    (KIND=r8), DIMENSION (n_radwvl),   INTENT (IN) :: omi_rad_wvl, omi_rad_spc
-  REAL    (KIND=r8), DIMENSION (n_irradwvl), INTENT (IN) :: curr_sol_weight
+  INTEGER (KIND=i4), INTENT (IN) :: n_radwvl, n_irradwvl
+  INTEGER (KIND=i4), DIMENSION (2), INTENT (IN) :: ccdpix_exc
+  INTEGER (KIND=i4), DIMENSION (4), INTENT (IN) :: ccdpix_idx
+  REAL (KIND=r8), DIMENSION (n_radwvl), INTENT (IN) :: omi_rad_wvl, omi_rad_spc
+  REAL (KIND=r8), DIMENSION (n_irradwvl), INTENT (IN) :: curr_sol_weight
 
   ! ----------------
   ! Output variables
   ! ----------------
-  LOGICAL,                                                INTENT (OUT) :: yn_skip_pix
-  INTEGER (KIND=i4),                                      INTENT (OUT) :: n_rad_wvl
-  REAL    (KIND=r8),                                      INTENT (OUT) :: rad_spec_avg
-  INTEGER (KIND=i4),  DIMENSION (n_radwvl),           INTENT (OUT) :: omi_rad_ccd
-  REAL    (KIND=r8),  DIMENSION (ccd_idx,1:n_radwvl), INTENT (OUT) :: curr_rad_spec
+  LOGICAL, INTENT (OUT) :: yn_skip_pix
+  INTEGER (KIND=i4), INTENT (OUT) :: n_rad_wvl
+  REAL (KIND=r8), INTENT (OUT) :: rad_spec_avg
+  REAL (KIND=r8), DIMENSION (ccd_idx,1:n_radwvl), INTENT (OUT) :: curr_rad_spec
 
   ! ------------------
   ! Modified variables
@@ -55,7 +54,6 @@ SUBROUTINE omi_adjust_radiance_data (                                   &
   n_rad_wvl                          = n_radwvl
   curr_rad_spec(wvl_idx,1:n_rad_wvl) = omi_rad_wvl(1:n_rad_wvl)
   curr_rad_spec(spc_idx,1:n_rad_wvl) = omi_rad_spc(1:n_rad_wvl)
-  omi_rad_ccd  (        1:n_rad_wvl) = (/ (i, i = imin1, imax1) /)
 
   ! ---------------------------------------------------------
   ! Compute the weights. This is a bit tedious, as we have to

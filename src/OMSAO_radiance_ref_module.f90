@@ -32,7 +32,7 @@ CONTAINS
     USE OMSAO_data_module, ONLY: nwav_irrad, irradiance_wght, &
          cross_track_skippix, curr_xtrack_pixnum, n_radwvl, &
          max_rs_idx, ins_database, ins_database_wvl, ins_sol_wav_avg, solcal_pars, radref_wavl, &
-         radref_spec, ccdpix_selection, radiance_ccdpix, nwav_radref,  &
+         radref_spec, ccdpix_selection, nwav_radref,  &
          ccdpix_exclusion, radref_wght, &
          radref_pars, max_calfit_idx, radref_xflag, radref_itnum, &
          radref_chisq, radref_col, radref_rms, radref_dcol, &
@@ -151,23 +151,25 @@ CONTAINS
           g_shap = solcal_pars(sha_idx,ipix)
           curr_sol_spec(wvl_idx,1:n_solar_pts) = ins_database_wvl(1:n_solar_pts,ipix)
           curr_sol_spec(spc_idx,1:n_solar_pts) = ins_database(solar_idx,1:n_solar_pts,ipix)
-          stop
-          ! --------------------------------------------------------------------------------
-
-          ! -------------------------------------------------------------------------
+          
+          ! --------------------------------------
+          ! Prepare radiance reference for fitting
+          ! --------------------------------------
           select_idx(1:4) = ccdpix_selection(ipix,1:4)
           exclud_idx(1:2) = ccdpix_exclusion(ipix,1:2)
 
+          print*, select_idx, exclud_idx
           CALL omi_adjust_radiance_data ( &           ! Set up generic fitting arrays
-               select_idx(1:4), exclud_idx(1:2),            &
-               n_radwvl,                                &
+               select_idx(1:4), exclud_idx(1:2), &
+               n_radwvl, &
                radref_wavl(1:n_radwvl,ipix),        &
                radref_spec(1:n_radwvl,ipix),        &
-               radiance_ccdpix (1:n_radwvl,ipix,0), &
                n_solar_pts, solar_wgt(1:n_solar_pts),       &
                n_rad_wvl, curr_rad_spec(wvl_idx:ccd_idx,1:n_radwvl), rad_spec_avg, &
                yn_skip_pix )
 
+          print*, n_radwvl, n_rad_wvl, n_solar_pts, rad_spec_avg
+          stop
           ! --------------------------------------------------------------------
           ! Update the weights for the Reference/Wavelength Calibration Radiance
           ! --------------------------------------------------------------------

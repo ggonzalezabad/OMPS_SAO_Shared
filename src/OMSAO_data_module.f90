@@ -53,7 +53,6 @@ MODULE OMSAO_data_module
   REAL    (KIND=r8), ALLOCATABLE, DIMENSION (:,:,:) :: radiance_prec, radiance_prec_reference
   REAL    (KIND=r8), ALLOCATABLE, DIMENSION (:,:,:) :: radiance_wavl, radiance_wavl_reference
   INTEGER (KIND=i2), ALLOCATABLE, DIMENSION (:,:,:) :: radiance_qflg, radiance_qflg_reference
-  INTEGER (KIND=i4), ALLOCATABLE, DIMENSION (:,:,:) :: radiance_ccdpix, radiance_ccdpix_reference
   INTEGER (KIND=i2), ALLOCATABLE, DIMENSION (:,:) :: time_utc, time_utc_reference
   REAL    (KIND=r8), ALLOCATABLE, DIMENSION (:,:) :: irradiance_prec, irradiance_wavl, irradiance_spec, &
        irradiance_wght, radref_spec, radref_wavl, radref_wght
