@@ -2,7 +2,7 @@ MODULE OMSAO_data_module
 
   USE OMSAO_precision_module, ONLY: i1, i2, i4, r4, r8
   USE OMSAO_parameters_module, ONLY: maxchlen, max_spec_pts
-  USE OMSAO_indices_module, ONLY: n_max_fitpars, max_rs_idx, max_calfit_idx, o3_t1_idx, o3_t3_idx
+  USE OMSAO_indices_module, ONLY: n_max_fitpars, max_rs_idx, max_calfit_idx
   USE OMSAO_variables_module, ONLY: ctrvar, database
 
   IMPLICIT NONE
@@ -93,11 +93,6 @@ MODULE OMSAO_data_module
   ! ----------------------------------------------------------------------------
   CHARACTER (LEN=maxchlen), DIMENSION (n_max_fitpars) :: correlation_names
   CHARACTER (LEN=n_max_fitpars*maxchlen)              :: correlation_names_concat
-
-  ! --------------------------------------------------------
-  ! Ozone is a special case: We can have up to 3 temperatues
-  ! --------------------------------------------------------
-  REAL (KIND=r8), ALLOCATABLE, DIMENSION (:,:,:) :: o3_amount, o3_uncert
 
   ! ---------------------------------
   ! Dimensions for measurement swaths

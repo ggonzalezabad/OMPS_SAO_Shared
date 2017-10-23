@@ -1,8 +1,8 @@
 SUBROUTINE radiance_fit ( &
-     pge_idx, ipix, n_fitres_loop, fitres_range, yn_reference_fit, &
+     ipix, n_fitres_loop, fitres_range, yn_reference_fit, &
      n_rad_wvl, curr_rad_spec,                                     &
      fitcol, rms, dfitcol, radfit_exval, radfit_itnum, chisquav,   &
-     o3fit_cols, o3fit_dcols, target_var, allfit, allerr, corrmat, &
+     target_var, allfit, allerr, corrmat, &
      yn_bad_pixel, fitspc_out )
 
   ! ***************************************************************
@@ -13,8 +13,7 @@ SUBROUTINE radiance_fit ( &
 
   USE OMSAO_precision_module
   USE OMSAO_indices_module, ONLY: solar_idx, n_max_fitpars, wvl_idx, &
-       spc_idx, sig_idx, ccd_idx, max_calfit_idx, o3_t1_idx, o3_t3_idx, &
-       pge_o3_idx
+       spc_idx, sig_idx, ccd_idx, max_calfit_idx
   USE OMSAO_parameters_module, ONLY: r8_missval, i2_missval, downweight
   USE OMSAO_variables_module, ONLY: &
        database, rad_wav_avg, fitvar_rad, &
@@ -35,14 +34,13 @@ SUBROUTINE radiance_fit ( &
   ! ---------------
   ! Input variables
   ! ---------------
-  INTEGER (KIND=i4), INTENT (IN) :: pge_idx, ipix, n_rad_wvl, n_fitres_loop, fitres_range
+  INTEGER (KIND=i4), INTENT (IN) :: ipix, n_rad_wvl, n_fitres_loop, fitres_range
   LOGICAL,           INTENT (IN) :: yn_reference_fit
 
   ! -----------------------------
   ! (Possibly) Modified Variables
   ! -----------------------------
   REAL (KIND=r8), DIMENSION (ccd_idx, n_rad_wvl),  INTENT (INOUT) :: curr_rad_spec
-  REAL (KIND=r8), DIMENSION (o3_t1_idx:o3_t3_idx), INTENT (INOUT) :: o3fit_cols, o3fit_dcols
 
   ! ------------------
   ! Modified variables
@@ -79,9 +77,6 @@ SUBROUTINE radiance_fit ( &
   radfit_itnum = INT(i2_missval, KIND=i4)
   chisquav     = r8_missval
 
-  IF ( pge_idx == pge_o3_idx ) THEN
-     o3fit_cols = r8_missval  ;  o3fit_dcols = r8_missval
-  END IF
   ! ============================================================
   ! Assign LL_RAD, LU_RAD, and SIG for each earthshine radiance
   ! ============================================================
@@ -353,23 +348,6 @@ SUBROUTINE radiance_fit ( &
 
         fitcol  = fitcol  + ctrvar%pm_one * fitvar(j1) / refspecs_original(k1)%NormFactor
         dfitcol = dfitcol + covar_matrix(j1,j1) / refspecs_original(k1)%NormFactor**2
-
-        IF ( pge_idx == pge_o3_idx ) THEN
-           o3fit_cols (k1) = fitvar(j1)   / refspecs_original(k1)%NormFactor
-           ! -------------------------------------------------------------------------
-           ! Just as for the combined column uncertainty, we can't compute O3FIT_DCOLS
-           ! if any of the major elements are missing.
-           ! -------------------------------------------------------------------------
-           IF ( (n_fitwav_rad - n_fitvar_rad) <= 0 .OR. &
-                (rms == r8_missval) .OR. (n_rad_wvl == 0)                 ) THEN
-              o3fit_dcols(k1) = r8_missval
-           ELSE
-              o3fit_dcols(k1) = rms * &
-                   SQRT ( covar_matrix(j1,j1) / refspecs_original(k1)%NormFactor**2 *  &
-                   REAL ( n_fitwav_rad, KIND=r8 ) /                                    &
-                   REAL ( n_fitwav_rad-n_fitvar_rad, KIND=r8 ) )
-           END IF
-        END IF
 
         ! -------------------------------------------------------------------------
         ! Then add the contributions from off-diagonal elements (correlations)

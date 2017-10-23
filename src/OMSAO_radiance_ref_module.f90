@@ -19,10 +19,10 @@ MODULE OMSAO_radiance_ref_module
 CONTAINS
 
   SUBROUTINE xtrack_radiance_reference_loop (     &
-       yn_radiance_reference, yn_remove_target, nx, nw, fpix, lpix, pge_idx, errstat )
+       yn_radiance_reference, yn_remove_target, nx, nw, fpix, lpix, errstat )
 
     USE OMSAO_indices_module, ONLY: solar_idx, wvl_idx, spc_idx, sig_idx, &
-         o3_t1_idx, o3_t3_idx, hwe_idx, asy_idx, shi_idx, sha_idx, squ_idx, &
+         hwe_idx, asy_idx, shi_idx, sha_idx, squ_idx, &
          ccd_idx, radref_idx
     USE OMSAO_variables_module,  ONLY: database, curr_sol_spec, n_rad_wvl, &
          curr_rad_spec, sol_wav_avg, hw1e, e_asym, g_shap, n_fitvar_rad, &
@@ -43,7 +43,7 @@ CONTAINS
     ! ---------------
     ! Input Variables
     ! ---------------
-    INTEGER (KIND=i4), INTENT (IN) :: pge_idx, nx, nw, fpix, lpix
+    INTEGER (KIND=i4), INTENT (IN) :: nx, nw, fpix, lpix
     LOGICAL, INTENT (IN) :: yn_radiance_reference, yn_remove_target
 
     ! -----------------
@@ -56,7 +56,6 @@ CONTAINS
     ! ---------------
     INTEGER (KIND=i4) :: locerrstat, ipix, radfit_exval, radfit_itnum, i
     REAL    (KIND=r8) :: fitcol, rms, dfitcol, chisquav, rad_spec_avg
-    REAL    (KIND=r8), DIMENSION (o3_t1_idx:o3_t3_idx) :: o3fit_cols, o3fit_dcols
     REAL    (KIND=r8), DIMENSION (n_fitvar_rad)        :: corr_matrix_tmp, allfit_cols_tmp, allfit_errs_tmp
     LOGICAL                  :: yn_skip_pix
     CHARACTER (LEN=maxchlen) :: addmsg
@@ -158,7 +157,6 @@ CONTAINS
           select_idx(1:4) = ccdpix_selection(ipix,1:4)
           exclud_idx(1:2) = ccdpix_exclusion(ipix,1:2)
 
-          print*, select_idx, exclud_idx
           CALL omi_adjust_radiance_data ( &           ! Set up generic fitting arrays
                select_idx(1:4), exclud_idx(1:2), &
                n_radwvl, &
@@ -168,8 +166,7 @@ CONTAINS
                n_rad_wvl, curr_rad_spec(wvl_idx:ccd_idx,1:n_radwvl), rad_spec_avg, &
                yn_skip_pix )
 
-          print*, n_radwvl, n_rad_wvl, n_solar_pts, rad_spec_avg
-          stop
+          print*, yn_skip_pix
           ! --------------------------------------------------------------------
           ! Update the weights for the Reference/Wavelength Calibration Radiance
           ! --------------------------------------------------------------------
@@ -189,11 +186,11 @@ CONTAINS
                n_rad_wvl > n_fitvar_rad .AND. (.NOT. yn_skip_pix)              ) THEN
              yn_bad_pixel     = .FALSE.
              CALL radiance_fit ( &
-                  pge_idx, ipix, ctrvar%n_fitres_loop(radref_idx), ctrvar%fitres_range(radref_idx), &
+                  ipix, ctrvar%n_fitres_loop(radref_idx), ctrvar%fitres_range(radref_idx), &
                   yn_reference_fit,                                                         &
                   n_rad_wvl, curr_rad_spec(wvl_idx:ccd_idx,1:n_rad_wvl),                    &
                   fitcol, rms, dfitcol, radfit_exval, radfit_itnum, chisquav,               &
-                  o3fit_cols, o3fit_dcols, target_var(1:ctrvar%n_fincol_idx,ipix),                 &
+                  target_var(1:ctrvar%n_fincol_idx,ipix),                 &
                   allfit_cols_tmp(1:n_fitvar_rad), allfit_errs_tmp(1:n_fitvar_rad),         &
                   corr_matrix_tmp(1:n_fitvar_rad), yn_bad_pixel, fitspctmp(1:n_rad_wvl) )
 
@@ -208,14 +205,14 @@ CONTAINS
           ELSE
              WRITE (addmsg, '(A,I2,A)') 'RADIANCE Reference #', ipix, ': Skipped!'
           END IF
-
+          
           ! ------------------
           ! Report on progress
           ! ------------------
           CALL error_check ( &
                0, 1, pge_errstat_ok, OMSAO_S_PROGRESS, TRIM(ADJUSTL(addmsg)), vb_lev_omidebug, errstat )
           IF ( pcfvar%verb_thresh_lev >= vb_lev_screen ) WRITE (*, '(A)') TRIM(ADJUSTL(addmsg))
-
+          stop
           ! -----------------------------------
           ! Assign pixel values to final arrays
           ! -----------------------------------

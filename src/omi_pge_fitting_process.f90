@@ -295,9 +295,9 @@ SUBROUTINE omi_fitting ( &
      first_pix = MINVAL(omi_xtrpix_range_rr)
      last_pix  = MAXVAL(omi_xtrpix_range_rr)
 
-     CALL xtrack_radiance_reference_loop (                                   &
-          ctrvar%yn_radiance_reference, ctrvar%yn_remove_target,                           &
-          nXtrackRadRR, nWvlCCDrr, first_pix, last_pix, pge_idx, pge_error_status )
+     CALL xtrack_radiance_reference_loop ( &
+          ctrvar%yn_radiance_reference, ctrvar%yn_remove_target, &
+          nXtrackRadRR, nWvlCCDrr, first_pix, last_pix, pge_error_status )
 
 
      DEALLOCATE (omps_data_radiance_reference, omi_xtrpix_range_rr)

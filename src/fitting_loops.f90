@@ -332,15 +332,15 @@ SUBROUTINE xtrack_radiance_wvl_calibration (             &
 END SUBROUTINE xtrack_radiance_wvl_calibration
 
 
-SUBROUTINE xtrack_radiance_fitting_loop (                             &
-     n_max_rspec, first_pix, last_pix, pge_idx, iloop,                &
+SUBROUTINE xtrack_radiance_fitting_loop ( &
+     n_max_rspec, first_pix, last_pix, iloop, &
      n_fitvar_rad, allfit_cols, allfit_errs, corr_matrix, &
      target_var, errstat, fitspc_out, fitspc_out_dim0                 )
 
   USE OMSAO_precision_module, ONLY: i2, i4, r8
   USE OMSAO_indices_module, ONLY: wvl_idx, spc_idx, sig_idx, &
-       o3_t1_idx, o3_t3_idx, hwe_idx, asy_idx, sha_idx, &
-       pge_o3_idx, solar_idx, ccd_idx, radfit_idx
+       hwe_idx, asy_idx, sha_idx, &
+       solar_idx, ccd_idx, radfit_idx
   USE OMSAO_parameters_module, ONLY: i2_missval, r8_missval
   USE OMSAO_variables_module,  ONLY: database, curr_sol_spec, n_rad_wvl, &
        curr_rad_spec, sol_wav_avg, hw1e, e_asym, g_shap, n_database_wvl, ctrvar
@@ -351,7 +351,7 @@ SUBROUTINE xtrack_radiance_fitting_loop (                             &
        itnum_flag, fitconv_flag, solcal_pars, ins_sol_wav_avg, &
        n_ins_database_wvl, nwav_rad, szenith, &
        cross_track_skippix, n_radwvl, n_irradwvl, &
-       curr_xtrack_pixnum, o3_uncert, o3_amount, radiance_wavl, &
+       curr_xtrack_pixnum, radiance_wavl, &
        ccdpix_exclusion, ccdpix_selection, ins_database, &
        ins_database_wvl, max_rs_idx, radiance_spec, &
        radref_wght
@@ -363,7 +363,7 @@ SUBROUTINE xtrack_radiance_fitting_loop (                             &
   ! Input Variables
   ! ---------------
   INTEGER (KIND=i4), INTENT (IN) :: &
-       pge_idx, iloop, first_pix, last_pix, n_max_rspec, n_fitvar_rad, &
+       iloop, first_pix, last_pix, n_max_rspec, n_fitvar_rad, &
        fitspc_out_dim0
 
   ! -----------------
@@ -386,7 +386,6 @@ SUBROUTINE xtrack_radiance_fitting_loop (                             &
   ! ---------------
   INTEGER (KIND=i4) :: locerrstat, ipix, radfit_exval, radfit_itnum
   REAL    (KIND=r8) :: fitcol, rms, dfitcol, chisquav, rad_spec_avg  
-  REAL    (KIND=r8), DIMENSION (o3_t1_idx:o3_t3_idx) :: o3fit_cols, o3fit_dcols
   LOGICAL                                     :: yn_skip_pix, yn_cycle_this_pix
   LOGICAL                                     :: yn_bad_pixel
   INTEGER (KIND=i4), DIMENSION (4)            :: select_idx
@@ -487,11 +486,11 @@ SUBROUTINE xtrack_radiance_fitting_loop (                             &
         yn_bad_pixel = .FALSE.
 
         CALL radiance_fit ( &
-             pge_idx, ipix, ctrvar%n_fitres_loop(radfit_idx), ctrvar%fitres_range(radfit_idx),   &
+             ipix, ctrvar%n_fitres_loop(radfit_idx), ctrvar%fitres_range(radfit_idx),   &
              yn_reference_fit,                                                     &
              n_rad_wvl, curr_rad_spec(wvl_idx:ccd_idx,1:n_rad_wvl),                &
              fitcol, rms, dfitcol, radfit_exval, radfit_itnum, chisquav,           &
-             o3fit_cols, o3fit_dcols, target_var(1:ctrvar%n_fincol_idx,ipix),             &
+             target_var(1:ctrvar%n_fincol_idx,ipix),             &
              allfit_cols(1:n_fitvar_rad,ipix), allfit_errs(1:n_fitvar_rad,ipix),   &
              corr_matrix(1:n_fitvar_rad,ipix), yn_bad_pixel, fitspc(1:n_rad_wvl) )
 
@@ -513,11 +512,6 @@ SUBROUTINE xtrack_radiance_fitting_loop (                             &
      fitspc_out(1:n_rad_wvl,ipix,2) = curr_rad_spec(spc_idx,1:n_rad_wvl)
      fitspc_out(1:n_rad_wvl,ipix,3) = curr_rad_spec(wvl_idx,1:n_rad_wvl)
      fitspc_out(1:n_rad_wvl,ipix,4) = curr_rad_spec(sig_idx,1:n_rad_wvl)
-
-     IF ( pge_idx == pge_o3_idx ) THEN
-        o3_amount(o3_t1_idx:o3_t3_idx,ipix,iloop) = o3fit_cols (o3_t1_idx:o3_t3_idx)
-        o3_uncert(o3_t1_idx:o3_t3_idx,ipix,iloop) = o3fit_dcols(o3_t1_idx:o3_t3_idx)
-     END IF
 
   END DO XTrackPix
 

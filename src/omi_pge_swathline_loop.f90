@@ -127,7 +127,7 @@ SUBROUTINE omi_pge_swathline_loop ( &
      lpix = xtrange(scanline_no,2)
      
      CALL xtrack_radiance_fitting_loop (                         &
-          n_max_rspec, fpix, lpix, pge_idx, iline,               &
+          n_max_rspec, fpix, lpix, iline,               &
           n_fitvar_rad,                              &
           all_fitted_columns (1:n_fitvar_rad,fpix:lpix,iline),   &
           all_fitted_errors  (1:n_fitvar_rad,fpix:lpix,iline),   &
