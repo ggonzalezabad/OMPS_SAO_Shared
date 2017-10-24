@@ -285,24 +285,21 @@ SUBROUTINE xtrack_radiance_wvl_calibration ( &
      ! ---------------------------------------------------------
      ! Save DATABASE in OMI_DATABASE for radiance fitting loops.
      ! ---------------------------------------------------------
-     ins_database      (1:max_rs_idx,1:n_rad_wvl,ipix) = database     (1:max_rs_idx,1:n_rad_wvl)
-     ins_database_wvl  (             1:n_rad_wvl,ipix) = curr_rad_spec(     wvl_idx,1:n_rad_wvl)
-     n_ins_database_wvl(                         ipix) = n_rad_wvl
+     ins_database(1:max_rs_idx,1:n_rad_wvl,ipix) = database(1:max_rs_idx,1:n_rad_wvl)
+     ins_database_wvl(1:n_rad_wvl,ipix) = curr_rad_spec(wvl_idx,1:n_rad_wvl)
+     n_ins_database_wvl(ipix) = n_rad_wvl
      
-     ! ----------------------------------------------------------------------
-     ! Update the radiance reference with the wavelength calibrated values.
-     ! ----------------------------------------------------------------------
      IF ( ctrvar%yn_radiance_reference ) THEN
-
         ! --------------------------------------------------------
-        ! Update the solar spectrum entry in OMI_DATABASE. First
-        ! re-sample the solar reference spectrum to the OMI grid
-        ! then assign to data base.
+        ! Update the solar spectrum entry in ins_DATABASE. First
+        ! re-sample the solar reference spectrum to the instrument
+        ! grid then assign to data base.
         !
         ! We need to keep the irradiance spectrum because we still
         ! have to fit the radiance reference, and we can't really
         ! do that against itself. In a later module the irradiance
-        ! is replaced by the radiance reference.
+        ! is replaced by the radiance reference. <--FIXME (probably
+        ! inside radiance reference fitting loop.
         ! --------------------------------------------------------
 
         ! ------------------------------------------------------------------
@@ -332,8 +329,7 @@ SUBROUTINE xtrack_radiance_wvl_calibration ( &
      END IF
 
   END DO XTrackWavCal
-  print*, cross_track_skippix
-  stop
+
   ! CCM Write splined/convolved databases if necessary
   IF( ctrvar%yn_diagnostic_run ) THEN
      
