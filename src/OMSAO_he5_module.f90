@@ -194,6 +194,7 @@ MODULE OMSAO_he5_module
   CHARACTER (LEN=18), PARAMETER ::  rwwei_field    = "RadianceWavCalWght"
   CHARACTER (LEN=18), PARAMETER ::  rwres_field    = "RadianceWavCalResi"
   CHARACTER (LEN=18), PARAMETER ::  rwshi_field    = "RadianceWavCalShif"
+  CHARACTER (LEN=18), PARAMETER ::  rwsqu_field    = "RadianceWavCalSque"
 
   CHARACTER (LEN=26), PARAMETER ::  swccf_field    = "SolarWavCalConvergenceFlag"
   CHARACTER (LEN=15), PARAMETER ::  swwav_field    = "SolarWavCalWavl"
@@ -346,7 +347,7 @@ MODULE OMSAO_he5_module
   ! NOTE: First N_SOLCAL_FIELDS must be the same type as in SOLCAL_FIELDS,
   !       since this is what is assumed in the output routine.
   ! ----------------------------------------------------------------------
-  INTEGER (KIND=i4), PARAMETER :: n_radcal_fields = 6
+  INTEGER (KIND=i4), PARAMETER :: n_radcal_fields = 7
   CHARACTER (LEN=48), DIMENSION ( 2, n_radcal_fields ), PARAMETER :: &
        radcal_field_names = RESHAPE ( (/ &
        "RadianceWavCalConvergenceFlag                   ", "Radiance Wavelength Calibration Convergence Flag", &
@@ -354,7 +355,8 @@ MODULE OMSAO_he5_module
        "RadianceWavCalWght                              ", "Radiance Wavelength Calibration Weight          ", &
        "RadianceWavCalResi                              ", "Radiance Wavelength Calibration Residual        ", &
        "RadianceWavCalWavl                              ", "Radiance Wavelenght Calibration Wavelenght      ", &
-       "RadianceWavCalShif                              ", "Radiance Wavelenght Calibration Shift           "/), &
+       "RadianceWavCalShif                              ", "Radiance Wavelenght Calibration Shift           ", &
+       "RadianceWavCalSque                              ", "Radiance Wavelenght Calibration Squeeze         "/), &
        (/ 2, n_radcal_fields /) )
   CHARACTER (LEN=18), DIMENSION ( 3, n_radcal_fields ), PARAMETER :: &
        radcal_field_specs = RESHAPE ( (/ &
@@ -363,11 +365,13 @@ MODULE OMSAO_he5_module
        "NoUnits           ","nXtrack,nWaves    ","r8                ", &
        "NoUnits           ","nXtrack,nWaves    ","r8                ", &
        "NoUnits           ","nXtrack,nWaves    ","r8                ", &
+       "NoUnits           ","nXtrack           ","r8                ", &
        "NoUnits           ","nXtrack           ","r8                " /), &
        (/ 3, n_radcal_fields /) )
   REAL (KIND=r8), DIMENSION ( 2, n_radcal_fields ), PARAMETER :: &
        radcal_valids = RESHAPE ( (/ &
        elsunc_usrstop_eval_r8, elsunc_highest_eval_r8, &
+       valid_min_r8          , valid_max_r8          , &
        valid_min_r8          , valid_max_r8          , &
        valid_min_r8          , valid_max_r8          , &
        valid_min_r8          , valid_max_r8          , &
