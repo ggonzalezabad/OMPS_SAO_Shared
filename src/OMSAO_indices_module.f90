@@ -62,7 +62,7 @@ MODULE OMSAO_indices_module
        hcho_idx   = 12, h2o_idx    = 13, lqh2o_idx  = 14, glyox_idx  = 15, &
        io_idx     = 16, hono_idx   = 17, vraman_idx = 18, comm_idx   = 19, &
        resid_idx  = 20, pabs1_idx  = 21, pabs2_idx  = 22, pabs3_idx  = 23, &
-       polcor_idx = 24, us1_idx    = 25, us2_idx    = 25, noname_idx = 27
+       polcor_idx = 24, us1_idx    = 25, us2_idx    = 26, noname_idx = 27
 
   ! ----------------------------------------------------------
   ! The minimum and maximum indices of reference spectra (rs).
