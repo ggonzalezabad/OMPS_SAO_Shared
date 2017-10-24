@@ -4,7 +4,7 @@ SUBROUTINE xtrack_radiance_wvl_calibration ( &
   USE OMSAO_precision_module, ONLY: i2, i4, r8
   USE OMSAO_indices_module, ONLY: wvl_idx, spc_idx, sig_idx, &
        max_calfit_idx, max_rs_idx, hwe_idx, asy_idx, sha_idx, &
-       shi_idx, squ_idx, solar_idx, ccd_idx, radcal_idx
+       shi_idx, squ_idx, ccd_idx, radcal_idx
   USE OMSAO_parameters_module, ONLY: maxchlen, downweight, normweight, &
        i2_missval
   USE OMSAO_variables_module, ONLY: hw1e, e_asym, g_shap, &
@@ -49,9 +49,9 @@ SUBROUTINE xtrack_radiance_wvl_calibration ( &
   ! Local variables
   ! ---------------
   INTEGER (KIND=i2) :: local_radcal_itnum
-  INTEGER (KIND=i4) :: locerrstat, ipix, radcal_exval, i, imax, n_ref_wvl, cline
+  INTEGER (KIND=i4) :: locerrstat, ipix, radcal_exval, i, n_ref_wvl, cline
   REAL (KIND=r8) :: chisquav, rad_spec_avg
-  LOGICAL :: yn_skip_pix, yn_bad_pixel, yn_full_range
+  LOGICAL :: yn_skip_pix, yn_bad_pixel
   CHARACTER (LEN=maxchlen) :: addmsg
   REAL (KIND=r8), ALLOCATABLE, DIMENSION(:) :: fitres_out
   REAL (KIND=r8), ALLOCATABLE, DIMENSION(:) :: calibration_wavl
@@ -287,46 +287,7 @@ SUBROUTINE xtrack_radiance_wvl_calibration ( &
      ! ---------------------------------------------------------
      ins_database(1:max_rs_idx,1:n_rad_wvl,ipix) = database(1:max_rs_idx,1:n_rad_wvl)
      ins_database_wvl(1:n_rad_wvl,ipix) = curr_rad_spec(wvl_idx,1:n_rad_wvl)
-     n_ins_database_wvl(ipix) = n_rad_wvl
-     
-     IF ( ctrvar%yn_radiance_reference ) THEN
-        ! --------------------------------------------------------
-        ! Update the solar spectrum entry in ins_DATABASE. First
-        ! re-sample the solar reference spectrum to the instrument
-        ! grid then assign to data base.
-        !
-        ! We need to keep the irradiance spectrum because we still
-        ! have to fit the radiance reference, and we can't really
-        ! do that against itself. In a later module the irradiance
-        ! is replaced by the radiance reference. <--FIXME (probably
-        ! inside radiance reference fitting loop.
-        ! --------------------------------------------------------
-
-        ! ------------------------------------------------------------------
-        ! Prevent failure of interpolation by finding the maximum wavelength
-        ! of the irradiance wavelength array.
-        ! ------------------------------------------------------------------
-        imax = MAXVAL ( MAXLOC ( irradiance_wavl(1:n_irradwvl,ipix) ) )
-
-        CALL interpolation ( &
-             imax, irradiance_wavl(1:imax,ipix),                     &
-             irradiance_spec(1:imax,ipix),                           &
-             n_rad_wvl, ins_database_wvl(1:n_rad_wvl,ipix),              &
-             ins_database(solar_idx,1:n_rad_wvl,ipix),                   &
-             'endpoints', 0.0_r8, yn_full_range, locerrstat )
-
-        IF ( locerrstat >= pge_errstat_error ) THEN
-           errstat = MAX ( errstat, locerrstat )
-           cross_track_skippix (ipix) = .TRUE.
-           addmsg = ''
-           WRITE (addmsg, '(A,I2)') 'SKIPPING cross track pixel #', ipix
-           CALL error_check ( 0, 1, pge_errstat_warning, OMSAO_W_SKIPPIX, &
-                modulename//f_sep//TRIM(ADJUSTL(addmsg)), vb_lev_default, &
-                locerrstat )
-           CYCLE
-        END IF
-
-     END IF
+     n_ins_database_wvl(ipix) = n_rad_wvl     
 
   END DO XTrackWavCal
 
