@@ -179,9 +179,10 @@ CONTAINS
             radiance_spec(1:nw,1:nx,0:nt-1), radiance_prec(1:nw,1:nx,0:nt-1), &
             radiance_qflg(1:nw,1:nx,0:nt-1), yn_process_pixel(1:nx,0:nt-1), utc_time(0:nt-1), &
             solcal_itnum(1:nx), radcal_itnum(1:nx), solcal_xflag(1:nx), &
-            radcal_xflag(1:nx),  solcal_pars(1:max_calfit_idx,1:nx), radcal_pars(1:max_calfit_idx,1:nx), &
-            n_ins_database_wvl(1:nx), ins_database(1:max_rs_idx,1:nw,1:nx), &
-            ins_database_wvl(1:nw,1:nx), database(max_rs_idx, 1:nw), stat=errstat)
+            radcal_xflag(1:nx), radcal_chisq(1:nx), solcal_pars(1:max_calfit_idx,1:nx), &
+            radcal_pars(1:max_calfit_idx,1:nx), n_ins_database_wvl(1:nx), &
+            ins_database(1:max_rs_idx,1:nw,1:nx), ins_database_wvl(1:nw,1:nx), &
+            database(max_rs_idx, 1:nw), stat=errstat)
     ENDIF
     IF (ctrvar%yn_radiance_reference) THEN
        IF (.NOT. ALLOCATED(radref_sza)) THEN
@@ -208,7 +209,7 @@ CONTAINS
             longitude, longitudecorner, szenith, sazimuth, vzenith, vazimuth, &
             razimuth, nwav_irrad, nwav_rad, irradiance_wavl, irradiance_spec, irradiance_wght, &
             ins_sol_wav_avg, ccdpix_selection, ccdpix_exclusion, radiance_wavl, &
-            radiance_spec, radiance_prec, radiance_qflg, yn_process_pixel, utc_time, &
+            radiance_spec, radiance_prec, radiance_qflg, yn_process_pixel, utc_time, radcal_chisq, &
             solcal_itnum, radcal_itnum, radref_itnum, solcal_xflag, radcal_xflag, radref_xflag, &
             solcal_pars, radcal_pars, radref_pars, n_ins_database_wvl, ins_database, &
             ins_database_wvl, database, stat=errstat)
