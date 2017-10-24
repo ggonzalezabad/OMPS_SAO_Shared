@@ -2419,6 +2419,10 @@ SUBROUTINE he5_write_radiancewavcal ( nw, ip, squeeze, shift, residual, locerrst
   REAL    (KIND=r8), INTENT (IN) :: shift, squeeze
   REAL    (KIND=r8), DIMENSION(1:nw), INTENT (IN) :: residual
 
+  ! --------------
+  ! Local variable
+  ! --------------
+  REAL (KIND=r8), DIMENSION(1:nw) :: spectrum
   ! ---------------
   ! Output variable
   ! ---------------
@@ -2439,17 +2443,20 @@ SUBROUTINE he5_write_radiancewavcal ( nw, ip, squeeze, shift, residual, locerrst
 
   he5_start_2d = (/ ip-1, 0 /) ;  he5_stride_2d = (/ 1, 1 /) ; he5_edge_2d = (/ 1, nw /)
   ! Fitting residual
-  locerrstat = HE5_SWWRFLD ( pge_swath_id, rwres_field,    he5_start_2d, he5_stride_2d, he5_edge_2d, &
+  locerrstat = HE5_SWWRFLD ( pge_swath_id, rwres_field, he5_start_2d, he5_stride_2d, he5_edge_2d, &
        residual(1:nw) )
   ! Wavelength
-  locerrstat = HE5_SWWRFLD ( pge_swath_id, rwwav_field,    he5_start_2d, he5_stride_2d, he5_edge_2d, &
-       curr_rad_spec(wvl_idx,1:nw) )
+  spectrum = curr_rad_spec(wvl_idx,1:nw)
+  locerrstat = HE5_SWWRFLD ( pge_swath_id, rwwav_field, he5_start_2d, he5_stride_2d, he5_edge_2d, &
+       spectrum )
   ! Radiance
-  locerrstat = HE5_SWWRFLD ( pge_swath_id, rwrad_field,    he5_start_2d, he5_stride_2d, he5_edge_2d, &
-       curr_rad_spec(spc_idx,1:nw) )
+  spectrum = curr_rad_spec(spc_idx,1:nw)
+  locerrstat = HE5_SWWRFLD ( pge_swath_id, rwrad_field, he5_start_2d, he5_stride_2d, he5_edge_2d, &
+       spectrum )
   ! Weight
-  locerrstat = HE5_SWWRFLD ( pge_swath_id, rwwei_field,    he5_start_2d, he5_stride_2d, he5_edge_2d, &
-       curr_rad_spec(sig_idx,1:nw) )
+  spectrum = curr_rad_spec(sig_idx,1:nw)
+  locerrstat = HE5_SWWRFLD ( pge_swath_id, rwwei_field, he5_start_2d, he5_stride_2d, he5_edge_2d, &
+       spectrum )
 
   ! ------------------
   ! Check error status
