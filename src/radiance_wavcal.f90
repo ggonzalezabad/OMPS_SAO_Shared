@@ -1,5 +1,5 @@
 SUBROUTINE radiance_wavcal (                              &
-     ipix, n_fitres_loop, fitres_range, n_rad_wvl,        &
+     n_fitres_loop, fitres_range, n_rad_wvl,        &
      curr_rad_spec, radcal_exval, radcal_itnum, chisquav, &
      yn_bad_pixel, fitres_out, errstat )
 
@@ -19,7 +19,7 @@ SUBROUTINE radiance_wavcal (                              &
   ! ----------------
   ! Input parameters
   ! ----------------
-  INTEGER (KIND=i4), INTENT (IN) :: ipix, n_fitres_loop, n_rad_wvl, fitres_range
+  INTEGER (KIND=i4), INTENT (IN) :: n_fitres_loop, n_rad_wvl, fitres_range
 
   ! -------------------
   ! Modified parameters
@@ -58,8 +58,8 @@ SUBROUTINE radiance_wavcal (                              &
   ! ----------
   ! ELSUNC fit
   ! ----------
-  fitwavs   (1:n_rad_wvl) = curr_rad_spec(wvl_idx, 1:n_rad_wvl)
-  currspec  (1:n_rad_wvl) = curr_rad_spec(spc_idx, 1:n_rad_wvl)
+  fitwavs (1:n_rad_wvl) = curr_rad_spec(wvl_idx, 1:n_rad_wvl)
+  currspec (1:n_rad_wvl) = curr_rad_spec(spc_idx, 1:n_rad_wvl)
   fitweights(1:n_rad_wvl) = curr_rad_spec(sig_idx, 1:n_rad_wvl)
 
   ! ------------------------------------------
@@ -67,8 +67,8 @@ SUBROUTINE radiance_wavcal (                              &
   ! (the .TRUE. in the call below selects the
   !  "wavelength update only" branch)
   ! ------------------------------------------
-  CALL compute_common_mode ( &
-       .TRUE., ipix, n_rad_wvl, fitwavs(1:n_rad_wvl), currspec(1:n_rad_wvl), .FALSE. )        
+!!$  CALL compute_common_mode ( &
+!!$       .TRUE., ipix, n_rad_wvl, fitwavs(1:n_rad_wvl), currspec(1:n_rad_wvl), .FALSE. )        
 
   ! -------------------------------------------------------------
   ! Initialize the fitting variables. FITVAR_CAL_SAVED has been
@@ -77,9 +77,8 @@ SUBROUTINE radiance_wavcal (                              &
   ! updated with current values from the previous fit if that fit
   ! has gone well.
   ! -------------------------------------------------------------
-  !fitvar_cal(1:max_calfit_idx) = fitvar_cal_saved(1:max_calfit_idx)
-  !fitvar_cal(1:max_calfit_idx) = fitvar_rad_init(1:max_calfit_idx)
-  fitvar_cal(1:max_calfit_idx) = ctrvar%fitvar_sol_init(1:max_calfit_idx)
+  fitvar_cal(1:max_calfit_idx) = fitvar_cal_saved(1:max_calfit_idx)
+  !fitvar_cal(1:max_calfit_idx) = ctrvar%fitvar_sol_init(1:max_calfit_idx)
 
   ! -------------------------------------------------------------------------
   ! Keep the slit function variables from solar fit fixed. Remember to reduce
@@ -218,7 +217,7 @@ SUBROUTINE radiance_wavcal (                              &
   ! ---------------------
   ! Perform Shift&Squueze
   ! ---------------------
-  curr_rad_spec(wvl_idx,1:n_rad_wvl) = ( curr_rad_spec(wvl_idx,1:n_rad_wvl) - fitvar_cal(shi_idx) + &
+  curr_rad_spec(wvl_idx,1:n_rad_wvl) = ( fitwavs(1:n_rad_wvl) - fitvar_cal(shi_idx) + &
        sol_wav_avg * fitvar_cal(squ_idx)) / (1.0_r8 + fitvar_cal(squ_idx))
 
   ! Save fitting residual
