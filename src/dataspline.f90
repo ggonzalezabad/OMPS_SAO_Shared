@@ -39,12 +39,12 @@ SUBROUTINE dataspline ( xtrack_pix, n_radwvl, curr_rad_wvl, n_max_rspec, errstat
   ! ---------------
   ! Local variables
   ! ---------------
-  LOGICAL                                       :: yn_full_range
-  INTEGER (KIND=i4)                             :: idx, npts, locerrstat, iii, nsol, ios
-  REAL    (KIND=r8)                             :: DU_load
-  REAL    (KIND=r8), DIMENSION (n_max_rspec)    :: tmp_spec, tmp_wavl
-  REAL    (KIND=r8), DIMENSION (n_radwvl)       :: dbase_loc
-  REAL    (KIND=r8), DIMENSION (:), ALLOCATABLE :: solar_spc, solar_wvl, solar_conv, xsec_i0_spc
+  LOGICAL :: yn_full_range
+  INTEGER (KIND=i4) :: idx, npts, locerrstat, iii, nsol, ios
+  REAL (KIND=r8) :: DU_load
+  REAL (KIND=r8), DIMENSION (n_max_rspec)    :: tmp_spec, tmp_wavl
+  REAL (KIND=r8), DIMENSION (n_radwvl)       :: dbase_loc
+  REAL (KIND=r8), DIMENSION (:), ALLOCATABLE :: solar_spc, solar_wvl, solar_conv, xsec_i0_spc
 
   CHARACTER (LEN=11), PARAMETER :: modulename = 'dataspline'
 
@@ -61,13 +61,14 @@ SUBROUTINE dataspline ( xtrack_pix, n_radwvl, curr_rad_wvl, n_max_rspec, errstat
   ! --------------------------------------
   ! Compute correction for Solar I0 effect
   ! --------------------------------------
+  ! work out convolved high resolution
+  ! solar spectrum
+  ! ----------------------------------
   IF ( ctrvar%yn_solar_i0 ) THEN
      idx  = solar_idx
-     iii  = max_calfit_idx + (idx-1)*mxs_idx
-
      solar_wvl(1:nsol) = refspecs_original(idx)%RefSpecWavs(1:nsol)
      solar_spc(1:nsol) = refspecs_original(idx)%RefSpecData(1:nsol)
-     CALL convolve_data (                                                              &
+     CALL convolve_data ( &
           xtrack_pix, nsol,  solar_wvl(1:nsol), solar_spc(1:nsol), ctrvar%yn_use_labslitfunc, &
           solcal_pars(hwe_idx,xtrack_pix), solcal_pars(asy_idx,xtrack_pix), &
           solcal_pars(sha_idx,xtrack_pix), solar_conv(1:nsol), errstat )
@@ -99,10 +100,13 @@ SUBROUTINE dataspline ( xtrack_pix, n_radwvl, curr_rad_wvl, n_max_rspec, errstat
      ! (computed and assigned to DATABASE in the UNDERSAMPLE subroutine), and the
      ! common mode spectrum (which hasn't been defined yet anyway).
      ! --------------------------------------------------------------------------
-     IF ( (idx == solar_idx) .OR. (idx == us1_idx) .OR. (idx == us2_idx) ) CYCLE
+     IF ( (idx == solar_idx) .OR. (idx == us1_idx) .OR. (idx == us2_idx) .OR. (idx == comm_idx) ) CYCLE
 
+     ! -----------------------------------------------------------------------------
+     ! Only carry on with the i0 correction, convolution and interpolation if we are
+     ! using that particular cross-section
+     ! -----------------------------------------------------------------------------
      iii = max_calfit_idx + (idx-1)*mxs_idx
-
      IF ( refspecs_original(idx)%nPoints /= 0                                          .AND. &
           INDEX (TRIM(ADJUSTL(refspecs_original(idx)%FileName)), zerospec_string) == 0 .AND. &
           ( ANY (ctrvar%fitvar_rad_init(iii+1:iii+mxs_idx) /= 0) .OR. &
@@ -112,18 +116,17 @@ SUBROUTINE dataspline ( xtrack_pix, n_radwvl, curr_rad_wvl, n_max_rspec, errstat
         ! -----------------------------------------------
         ! Define short-hand for number of spectral points
         ! -----------------------------------------------
-        npts             = refspecs_original(idx)%nPoints
+        npts = refspecs_original(idx)%nPoints
         tmp_wavl(1:npts) = refspecs_original(idx)%RefSpecWavs(1:npts)
         tmp_spec(1:npts) = refspecs_original(idx)%RefSpecData(1:npts)
 
-        ! -------------------------------------------------------------
+        ! ---------------------------------------------------------
         ! Solar I0 correction, Yes or No?
-        ! Check if it is a corrected species (set in params module) CCM
-        ! -------------------------------------------------------------
+        ! Check if it is a corrected species (set in params module)
+        ! ---------------------------------------------------------
         IF ( ctrvar%yn_solar_i0 .AND. yn_i0_spc(idx)) THEN
 				
            DU_load = solar_i0_scd(idx)
-           
            ! --------------------------------------------------------------------
            ! 1: Interpolate cross sections to solar reference spectrum wavelength
            ! --------------------------------------------------------------------
@@ -131,47 +134,53 @@ SUBROUTINE dataspline ( xtrack_pix, n_radwvl, curr_rad_wvl, n_max_rspec, errstat
                 npts, tmp_wavl(1:npts), tmp_spec(1:npts),                         &
                 nsol, solar_wvl(1:nsol), xsec_i0_spc(1:nsol),                     &
                 'fillvalue', 0.0_r8, yn_full_range, locerrstat )
+
            ! ---------------------
            ! 2: Undo normalization
            ! ---------------------
            xsec_i0_spc(1:nsol) = xsec_i0_spc(1:nsol) * refspecs_original(idx)%NormFactor
+
            ! ------------------------------------
            ! 3: Compute attenuated solar spectrum
            ! ------------------------------------
            tmp_spec(1:nsol) = solar_spc(1:nsol) * EXP(-xsec_i0_spc(1:nsol)*DU_load)
+
            ! ------------------------------
            ! 4: Convolve with slit function
            ! ------------------------------
-           CALL convolve_data (                                                            &
+           CALL convolve_data ( &
                 xtrack_pix, nsol, solar_wvl(1:nsol), tmp_spec(1:nsol), ctrvar%yn_use_labslitfunc, &
                 solcal_pars(hwe_idx,xtrack_pix), solcal_pars(asy_idx,xtrack_pix), &
                 solcal_pars(sha_idx,xtrack_pix), xsec_i0_spc(1:nsol), errstat )
+
            ! -----------------------------------
            ! 5: Compute corrected cross sections
            ! -----------------------------------
            WHERE ( solar_conv(1:nsol) > 0.0_r8 .AND. xsec_i0_spc(1:nsol) > 0.0_r8 )
               xsec_i0_spc(1:nsol) = -LOG( xsec_i0_spc(1:nsol) / solar_conv(1:nsol) ) / DU_load
            END WHERE
+
            ! ---------------------
            ! 6: Redo normalization
            ! ---------------------
            xsec_i0_spc(1:nsol) = xsec_i0_spc(1:nsol) / refspecs_original(idx)%NormFactor
+
            ! ------------------------------------------------------------
            ! Copy values to the variables used in the interpolation below
            ! ------------------------------------------------------------
-           npts             = nsol
+           npts = nsol
            tmp_spec(1:npts) = xsec_i0_spc(1:npts)
-           tmp_wavl(1:npts) = solar_wvl  (1:npts)
+           tmp_wavl(1:npts) = solar_wvl(1:npts)
 
         ELSE
-           ! --------------------------------------------------------------------------
+           ! -------------------------------------------------------------------------
            ! All other cross sections just need to be convolved with the slit function,
            ! EXCEPT for the Common Mode spectra.
-           ! --------------------------------------------------------------------------
+           ! -------------------------------------------------------------------------
            IF ( (idx == comm_idx) ) THEN
               tmp_spec(1:npts) = common_mode_spec%RefSpecData(xtrack_pix,1:npts)
            ELSE
-              CALL convolve_data (                                                           &
+              CALL convolve_data ( &
                    xtrack_pix, npts, tmp_wavl(1:npts), tmp_spec(1:npts), ctrvar%yn_use_labslitfunc, &
                    solcal_pars(hwe_idx,xtrack_pix), solcal_pars(asy_idx,xtrack_pix), &
                    solcal_pars(sha_idx,xtrack_pix), tmp_spec(1:npts), errstat )
@@ -206,7 +215,6 @@ SUBROUTINE dataspline ( xtrack_pix, n_radwvl, curr_rad_wvl, n_max_rspec, errstat
      IF ( ALLOCATED ( solar_conv  ) )  DEALLOCATE ( solar_conv  )
      IF ( ALLOCATED ( xsec_i0_spc ) )  DEALLOCATE ( xsec_i0_spc )
   END IF
-
   
   RETURN
 END SUBROUTINE dataspline
