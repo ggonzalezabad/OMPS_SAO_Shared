@@ -11,7 +11,7 @@ SUBROUTINE xtrack_radiance_wvl_calibration ( &
        n_rad_wvl, curr_rad_spec, sol_wav_avg, database, fitvar_cal, &
        fitvar_cal_saved, pcfvar, ctrvar
   USE OMSAO_slitfunction_module, ONLY: saved_shift, saved_squeeze
-  USE OMSAO_data_module, ONLY: nwavel_max, nxtrack_max, &
+  USE OMSAO_data_module, ONLY: nxtrack_max, &
        cross_track_skippix, nwav_radref, radcal_itnum, &
        radcal_xflag, radcal_chisq, n_ins_database_wvl, &
        solcal_pars, ins_sol_wav_avg,  &
@@ -257,11 +257,18 @@ SUBROUTINE xtrack_radiance_wvl_calibration ( &
         radref_wavl(1:n_ref_wvl,ipix) = curr_rad_spec(wvl_idx,1:n_ref_wvl)
         radref_spec(1:n_ref_wvl,ipix) = curr_rad_spec(spc_idx,1:n_ref_wvl)
         radref_wght(1:n_ref_wvl,ipix) = curr_rad_spec(sig_idx,1:n_ref_wvl)
-        radref_wght(n_rad_wvl+1:nwavel_max,ipix) = downweight
      END IF
-    
-!!$     CALL he5_write_radiancewavcal ( n_rad_wvl, ipix, fitvar_cal(shi_idx), fitres_out(1:n_rad_wvl), &
-!!$          locerrstat)
+
+     ! ---------------------------------------------------
+     ! Write wavelength calibration results to output file
+     ! ---------------------------------------------------
+     IF (ctrvar%yn_diagnostic_run) &
+          CALL he5_write_radiancewavcal ( n_rad_wvl, ipix, fitvar_cal(squ_idx), &
+          fitvar_cal(shi_idx), fitres_out(1:n_rad_wvl), locerrstat)
+
+     ! --------------------
+     ! Deallocate variables
+     ! --------------------
      DEALLOCATE(calibration_wavl,calibration_spec, calibration_qflg, &
           fitres_out, stat = locerrstat)
 
