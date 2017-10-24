@@ -42,11 +42,11 @@ SUBROUTINE prepare_databases ( &
   ! Calculate the undersampled spectrum
   ! -----------------------------------
   IF ( ANY (ctrvar%have_undersampling) ) &
-       CALL undersample (                                                               &
-       xtrack_pix, n_rad_wvl, curr_rad_wvl(1:n_rad_wvl), hw1e, e_asym, g_shap, ctrvar%phase, locerrstat )
+       CALL undersample ( xtrack_pix, n_rad_wvl, curr_rad_wvl(1:n_rad_wvl), &
+       hw1e, e_asym, g_shap, ctrvar%phase, locerrstat )
   errstat = MAX ( errstat, locerrstat )
   IF ( errstat >= pge_errstat_error ) RETURN
-
+  
   ! -------------------------------------------------------------------------------------
   ! Calculate the splined fitting database. This will be saved into a nXtrack-dimensional
   ! array in a calling routine higher up (inside the fitting loop). 
@@ -56,7 +56,7 @@ SUBROUTINE prepare_databases ( &
        curr_rad_wvl(1:n_rad_wvl), locerrstat )
   errstat = MAX ( errstat, locerrstat )
   IF ( errstat >= pge_errstat_error ) RETURN
-
+  
   RETURN
 END SUBROUTINE prepare_databases
 
