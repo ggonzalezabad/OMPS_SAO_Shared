@@ -2395,7 +2395,7 @@ SUBROUTINE he5_write_solarwavcal ( nw, ip, shift, squeeze, residual, locerrstat)
 
 END SUBROUTINE he5_write_solarwavcal
 
-SUBROUTINE he5_write_radiancewavcal ( nw, ip, shift, residual, locerrstat)
+SUBROUTINE he5_write_radiancewavcal ( nw, ip, squeeze, shift, residual, locerrstat)
 
   USE OMSAO_data_module, ONLY: radcal_xflag
   USE OMSAO_he5_module
@@ -2415,8 +2415,8 @@ SUBROUTINE he5_write_radiancewavcal ( nw, ip, shift, residual, locerrstat)
   ! ---------------
   ! Input variables
   ! ---------------
-  INTEGER (KIND=i4), INTENT (IN)                  :: nw, ip
-  REAL    (KIND=r8), INTENT (IN)                  :: shift
+  INTEGER (KIND=i4), INTENT (IN) :: nw, ip
+  REAL    (KIND=r8), INTENT (IN) :: shift, squeeze
   REAL    (KIND=r8), DIMENSION(1:nw), INTENT (IN) :: residual
 
   ! ---------------
@@ -2427,19 +2427,27 @@ SUBROUTINE he5_write_radiancewavcal ( nw, ip, shift, residual, locerrstat)
   locerrstat = pge_errstat_ok
 
   he5_start_2d  = (/ ip-1, 0 /) ;  he5_stride_2d = (/ 1, 0 /) ; he5_edge_2d = (/ 1, 0 /)
+  ! Shift
   locerrstat = HE5_SWWRFLD ( pge_swath_id, rwshi_field, he5_start_2d, he5_stride_2d, he5_edge_2d, &
        shift ) 
+  ! Squeeze
+  locerrstat = HE5_SWWRFLD ( pge_swath_id, rwsqu_field, he5_start_2d, he5_stride_2d, he5_edge_2d, &
+       squeeze ) 
+  ! Fitting flag
   locerrstat = HE5_SWWRFLD ( pge_swath_id, rwccf_field, he5_start_2d, he5_stride_2d, he5_edge_2d, &
        radcal_xflag(ip) )
 
-
   he5_start_2d = (/ ip-1, 0 /) ;  he5_stride_2d = (/ 1, 1 /) ; he5_edge_2d = (/ 1, nw /)
+  ! Fitting residual
   locerrstat = HE5_SWWRFLD ( pge_swath_id, rwres_field,    he5_start_2d, he5_stride_2d, he5_edge_2d, &
        residual(1:nw) )
+  ! Wavelength
   locerrstat = HE5_SWWRFLD ( pge_swath_id, rwwav_field,    he5_start_2d, he5_stride_2d, he5_edge_2d, &
        curr_rad_spec(wvl_idx,1:nw) )
+  ! Radiance
   locerrstat = HE5_SWWRFLD ( pge_swath_id, rwrad_field,    he5_start_2d, he5_stride_2d, he5_edge_2d, &
        curr_rad_spec(spc_idx,1:nw) )
+  ! Weight
   locerrstat = HE5_SWWRFLD ( pge_swath_id, rwwei_field,    he5_start_2d, he5_stride_2d, he5_edge_2d, &
        curr_rad_spec(sig_idx,1:nw) )
 
