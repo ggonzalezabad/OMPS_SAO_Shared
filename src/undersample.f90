@@ -1,27 +1,31 @@
 SUBROUTINE undersample ( xtrack_pix, n_sensor_pts, curr_wvl, hw1e, e_asym, g_shap, &
      phase, errstat )
 
-  !     Convolves input spectrum with Gaussian slit function of specified
-  !     HW1e, and samples at a particular input phase to give the OMI
-  !     undersampling spectrum. This version calculates both phases of the
-  !     undersampling spectrum, phase1 - i.e., underspec (1, i) - being the
-  !     more common in OMI spectra.
+  ! -----------------------------------------------------------------------
+  ! Convolves input spectrum with Super Gaussian slit function of specified
+  ! HW1e, e_asym, g_shap or preflight measured slit function and samples at
+  ! a particular input phase to give the undersampling spectrum. 
+  ! This version calculates both phases of the undersampling spectrum, 
+  ! phase1 - i.e., underspec (1, i)
+  ! -----------------------------------------------------------------------
 
-  USE OMSAO_precision_module
-  USE OMSAO_indices_module,    ONLY: solar_idx, us1_idx, us2_idx
+  USE OMSAO_precision_module, ONLY: i4, r8
+  USE OMSAO_indices_module, ONLY: solar_idx, us1_idx, us2_idx
   USE OMSAO_parameters_module, ONLY: max_spec_pts
   USE OMSAO_variables_module,  ONLY: &
        refspecs_original, database, ctrvar
-  USE OMSAO_slitfunction_module
-  USE OMSAO_errstat_module
+  USE OMSAO_slitfunction_module, ONLY: omi_slitfunc_convolve, super_gaussian_sf
+  USE OMSAO_errstat_module, ONLY: error_check, pge_errstat_ok, OMSAO_E_interpol, &
+       f_sep, vb_lev_default, pge_errstat_error, omsao_w_interpol_range, &
+       pge_errstat_warning, vb_lev_develop
 
   IMPLICIT NONE
 
   ! ---------------
   ! Input variables
   ! ---------------
-  INTEGER (KIND=i4),                           INTENT (IN) :: n_sensor_pts, xtrack_pix
-  REAL    (KIND=r8),                           INTENT (IN) :: hw1e, e_asym, g_shap, phase
+  INTEGER (KIND=i4), INTENT (IN) :: n_sensor_pts, xtrack_pix
+  REAL    (KIND=r8), INTENT (IN) :: hw1e, e_asym, g_shap, phase
   REAL    (KIND=r8), DIMENSION (n_sensor_pts), INTENT (IN) :: curr_wvl
 
   ! ---------------
@@ -49,7 +53,7 @@ SUBROUTINE undersample ( xtrack_pix, n_sensor_pts, curr_wvl, hw1e, e_asym, g_sha
   ! ==================================================
   ! Assign solar reference spectrum to local variables
   ! ==================================================
-  npts            = refspecs_original(solar_idx)%nPoints
+  npts = refspecs_original(solar_idx)%nPoints
   locwvl (1:npts) = refspecs_original(solar_idx)%RefSpecWavs(1:npts)
   locspec(1:npts) = refspecs_original(solar_idx)%RefSpecData(1:npts)
 
@@ -66,9 +70,7 @@ SUBROUTINE undersample ( xtrack_pix, n_sensor_pts, curr_wvl, hw1e, e_asym, g_sha
        modulename//f_sep//'Convolution', vb_lev_default, errstat )
   IF ( locerrstat >= pge_errstat_error ) RETURN
 
-  ! Phase1 calculation: Calculate spline derivatives for KPNO data
-  !                     Calculate solar spectrum at OMI positions
-
+  ! Phase1 calculation: Interpolate high resolution solar spectrum to instrument positions (resample)
   CALL interpolation (                                                                &
        npts, locwvl(1:npts), specmod(1:npts), n_sensor_pts, curr_wvl(1:n_sensor_pts), &
        resample(1:n_sensor_pts), 'endpoints', 0.0_r8, yn_full_range, locerrstat )
@@ -84,8 +86,7 @@ SUBROUTINE undersample ( xtrack_pix, n_sensor_pts, curr_wvl, hw1e, e_asym, g_sha
        0, 1, pge_errstat_warning, OMSAO_W_INTERPOL_RANGE, &
        modulename//f_sep//'Phase 1a', vb_lev_develop, errstat )
 
-  ! Calculate solar spectrum at OMI + phase positions, original and resampled.
-
+  ! Calculate solar spectrum at instrument + phase positions, original and resampled.
   ! ------------------------------------------------------------------------------
   ! The original ("modified K.C.) scheme to compute the UNDERSPEC wavelength array
   ! ------------------------------------------------------------------------------
@@ -96,6 +97,7 @@ SUBROUTINE undersample ( xtrack_pix, n_sensor_pts, curr_wvl, hw1e, e_asym, g_sha
   tmpwav(n_sensor_pts)   = curr_wvl(n_sensor_pts)
   IF ( tmpwav(2) <= tmpwav(1) ) tmpwav(2) = (tmpwav(1)+tmpwav(3))/2.0_r8
 
+  ! Over sampled solar ---> over
   CALL interpolation (                                                              &
        npts, locwvl(1:npts), specmod(1:npts), n_sensor_pts, tmpwav(1:n_sensor_pts), &
        over(1:n_sensor_pts), 'endpoints', 0.0_r8, yn_full_range, locerrstat )
@@ -104,13 +106,7 @@ SUBROUTINE undersample ( xtrack_pix, n_sensor_pts, curr_wvl, hw1e, e_asym, g_sha
        modulename//f_sep//'Phase 1b', vb_lev_default, errstat )
   IF ( locerrstat >= pge_errstat_error ) RETURN
 
-  ! -------------------------------------------------------------
-  ! Issue a warning if we don't have the full interpolation range
-  ! -------------------------------------------------------------
-  !IF ( .NOT. yn_full_range ) CALL error_check (                 &
-  !     0, 1, pge_errstat_warning, OMSAO_W_INTERPOL_RANGE,       &
-  !     modulename//f_sep//'Phase 1b', vb_lev_omidebug, errstat )
-
+  ! Under sampled resample ---> under
   CALL interpolation (                                                                 &
        n_sensor_pts, curr_wvl(1:n_sensor_pts), resample(1:n_sensor_pts), n_sensor_pts, &
        tmpwav(1:n_sensor_pts), under(1:n_sensor_pts), 'endpoints', 0.0_r8,             &
@@ -119,13 +115,6 @@ SUBROUTINE undersample ( xtrack_pix, n_sensor_pts, curr_wvl, hw1e, e_asym, g_sha
        locerrstat, pge_errstat_ok, pge_errstat_error, OMSAO_E_INTERPOL, &
        modulename//f_sep//'Phase 1c', vb_lev_default, errstat )
   IF ( locerrstat >= pge_errstat_error ) RETURN
-
-  ! -------------------------------------------------------------
-  ! Issue a warning if we don't have the full interpolation range
-  ! -------------------------------------------------------------
-  !IF ( .NOT. yn_full_range ) CALL error_check (                 &
-  !     0, 1, pge_errstat_warning, OMSAO_W_INTERPOL_RANGE,       &
-  !     modulename//f_sep//'Phase 1c', vb_lev_omidebug, errstat )
 
   underspec(1,1:n_sensor_pts) = over(1:n_sensor_pts) - under(1:n_sensor_pts)
   resample (  1:n_sensor_pts) = over(1:n_sensor_pts)
@@ -145,9 +134,9 @@ SUBROUTINE undersample ( xtrack_pix, n_sensor_pts, curr_wvl, hw1e, e_asym, g_sha
   ! ---------------------------------------------------------
   IF ( .NOT. ctrvar%have_undersampling(us2_idx) ) RETURN
 
-  ! --------------------------------------------------------------------------------------
-  ! Phase2 calculation: Calculate solar spectrum at OMI positions, original and resampled.
-  ! --------------------------------------------------------------------------------------
+  ! ---------------------------------------------------------------------------------------------
+  ! Phase2 calculation: Calculate solar spectrum at instrument positions, original and resampled.
+  ! --------------------------------------------------------------------------------------------
   CALL interpolation (                                                                &
        npts, locwvl(1:npts), specmod(1:npts), n_sensor_pts, curr_wvl(1:n_sensor_pts), &
        over(1:n_sensor_pts), 'endpoints', 0.0_r8, yn_full_range, locerrstat )
@@ -156,13 +145,6 @@ SUBROUTINE undersample ( xtrack_pix, n_sensor_pts, curr_wvl, hw1e, e_asym, g_sha
        modulename//f_sep//'Phase 2a', vb_lev_default, errstat )
 
   IF ( locerrstat >= pge_errstat_error ) RETURN
-
-  ! -------------------------------------------------------------
-  ! Issue a warning if we don't have the full interpolation range
-  ! -------------------------------------------------------------
-  !IF ( .NOT. yn_full_range ) CALL error_check ( &
-  !     0, 1, pge_errstat_warning, OMSAO_W_INTERPOL_RANGE, &
-  !     modulename//f_sep//'Phase 2a', vb_lev_omidebug, errstat )
 
   CALL interpolation ( &
        n_sensor_pts, tmpwav(1:n_sensor_pts), resample(1:n_sensor_pts), n_sensor_pts, &
@@ -173,13 +155,6 @@ SUBROUTINE undersample ( xtrack_pix, n_sensor_pts, curr_wvl, hw1e, e_asym, g_sha
        modulename//f_sep//'Phase 2b', vb_lev_default, errstat )
 
   IF ( locerrstat >= pge_errstat_error ) RETURN
-
-  ! -------------------------------------------------------------
-  ! Issue a warning if we don't have the full interpolation range
-  ! -------------------------------------------------------------
-  !IF ( .NOT. yn_full_range ) CALL error_check ( &
-  !     0, 1, pge_errstat_warning, OMSAO_W_INTERPOL_RANGE, &
-  !     modulename//f_sep//'Phase 2b', vb_lev_omidebug, errstat )
 
   ! ------------------------------------
   ! Compute final undersampling spectrum
@@ -195,7 +170,6 @@ SUBROUTINE undersample ( xtrack_pix, n_sensor_pts, curr_wvl, hw1e, e_asym, g_sha
   refspecs_original(us2_idx)%RefSpecData(1:n_sensor_pts) = underspec(2,1:n_sensor_pts)
 
   database(us2_idx,1:n_sensor_pts) = underspec (2,1:n_sensor_pts)
-
 
   RETURN
 END SUBROUTINE undersample
