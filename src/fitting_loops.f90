@@ -1,12 +1,12 @@
-SUBROUTINE xtrack_radiance_wvl_calibration (             &
-     yn_radiance_reference, yn_solar_comp,               &
+SUBROUTINE xtrack_radiance_wvl_calibration ( &
      first_pix, last_pix, n_max_rspec, n_comm_wvl_out, errstat )
 
   USE OMSAO_precision_module, ONLY: i2, i4, r8
   USE OMSAO_indices_module, ONLY: wvl_idx, spc_idx, sig_idx, &
        max_calfit_idx, max_rs_idx, hwe_idx, asy_idx, sha_idx, &
        shi_idx, squ_idx, solar_idx, ccd_idx, radcal_idx
-  USE OMSAO_parameters_module, ONLY: maxchlen, downweight, normweight
+  USE OMSAO_parameters_module, ONLY: maxchlen, downweight, normweight, &
+       i2_missval
   USE OMSAO_variables_module, ONLY: hw1e, e_asym, g_shap, &
        n_rad_wvl, curr_rad_spec, sol_wav_avg, database, fitvar_cal, &
        fitvar_cal_saved, pcfvar, ctrvar
@@ -34,7 +34,6 @@ SUBROUTINE xtrack_radiance_wvl_calibration (             &
   ! Input variables
   ! ---------------
   INTEGER (KIND=i4), INTENT (IN) :: first_pix, last_pix, n_max_rspec
-  LOGICAL,           INTENT (IN) :: yn_radiance_reference, yn_solar_comp
 
   ! ---------------
   ! Output variable
@@ -49,38 +48,46 @@ SUBROUTINE xtrack_radiance_wvl_calibration (             &
   ! ---------------
   ! Local variables
   ! ---------------
-  INTEGER   (KIND=i2)      :: local_radcal_itnum
-  INTEGER   (KIND=i4)      :: locerrstat, ipix, radcal_exval, i, imax, n_ref_wvl, cline
-  REAL      (KIND=r8)      :: chisquav, rad_spec_avg
-  LOGICAL                  :: yn_skip_pix, yn_bad_pixel, yn_full_range
+  INTEGER (KIND=i2) :: local_radcal_itnum
+  INTEGER (KIND=i4) :: locerrstat, ipix, radcal_exval, i, imax, n_ref_wvl, cline
+  REAL (KIND=r8) :: chisquav, rad_spec_avg
+  LOGICAL :: yn_skip_pix, yn_bad_pixel, yn_full_range
   CHARACTER (LEN=maxchlen) :: addmsg
-  REAL   (KIND=r8),  DIMENSION(nwavel_max) :: fitres_out
-  REAL   (KIND=r8),  DIMENSION(nwavel_max) :: calibration_wavl
-  REAL   (KIND=r8),  DIMENSION(nwavel_max) :: calibration_spec
-  REAL   (KIND=r8),  DIMENSION(nwavel_max) :: calibration_qflg
-  INTEGER (KIND=i4), DIMENSION (4)            :: select_idx
-  INTEGER (KIND=i4), DIMENSION (2)            :: exclud_idx
-  REAL    (KIND=r8), DIMENSION (n_max_rspec) :: ref_wvl, ref_spc, ref_wgt, rad_wvl
+  REAL (KIND=r8), ALLOCATABLE, DIMENSION(:) :: fitres_out
+  REAL (KIND=r8), ALLOCATABLE, DIMENSION(:) :: calibration_wavl
+  REAL (KIND=r8), ALLOCATABLE, DIMENSION(:) :: calibration_spec
+  REAL (KIND=r8), ALLOCATABLE, DIMENSION(:) :: calibration_qflg
+  INTEGER (KIND=i4), DIMENSION (4) :: select_idx
+  INTEGER (KIND=i4), DIMENSION (2) :: exclud_idx
+  REAL (KIND=r8), DIMENSION (n_max_rspec) :: ref_wvl, ref_spc, ref_wgt, rad_wvl
 
   ! ------------------------------
   ! Name of this module/subroutine
   ! ------------------------------
   CHARACTER (LEN=31), PARAMETER :: modulename = 'xtrack_radiance_wvl_calibration'
 
-
   locerrstat = pge_errstat_ok
 
+  ! Initialize some variables that are to be output
+  radcal_itnum = i2_missval ; radcal_xflag = i2_missval
+  
   fitvar_cal_saved(1:max_calfit_idx) = ctrvar%fitvar_rad_init(1:max_calfit_idx)
 
   ! -------------------------------------------------
   ! Set the number of wavelengths for the common mode
+  ! It has to be the maximum between nwav_radref &
+  ! nwav_rad
   ! -------------------------------------------------
-  n_comm_wvl_out = MAXVAL ( nwav_radref(first_pix:last_pix) )
-  IF ( MAXVAL(nwav_rad(first_pix:last_pix,0)) > n_comm_wvl_out ) &
-  n_comm_wvl_out = MAXVAL(nwav_rad(first_pix:last_pix,0))
+  IF (ctrvar%yn_radiance_reference) THEN
+     n_comm_wvl_out = MAXVAL(nwav_radref)
+  ELSE
+     n_comm_wvl_out = MAXVAL(nwav_rad)
+  END IF
 
   ! ---------------------------------------------------
   ! Find a line close or nearby the center of the swath
+  ! to perform wavelength calibration on that swath if
+  ! not using radiance reference.
   ! ---------------------------------------------------
   cline = INT(NrofScanLines / 2, KIND = i4)
 
@@ -88,8 +95,6 @@ SUBROUTINE xtrack_radiance_wvl_calibration (             &
   ! Loop over cross-track positions. 
   ! --------------------------------
   XTrackWavCal: DO ipix = first_pix, last_pix
-
-     locerrstat = pge_errstat_ok
 
      curr_xtrack_pixnum = ipix
 
@@ -108,17 +113,15 @@ SUBROUTINE xtrack_radiance_wvl_calibration (             &
      ! Assign number of radiance and irradiance wavelengths
      ! ----------------------------------------------------
      n_irradwvl = nwav_irrad(ipix  )
-     n_radwvl   = nwav_rad  (ipix,cline)
-
-     ! -----------------------------------------------------------------
-     ! tpk: Should the following be "> n_fitvar_rad"??? No, because that
-     !      value is set only inside OMI_ADJUST_RADIANCE_DATA!!!
-     ! -----------------------------------------------------------------
-     IF ( n_irradwvl <= 0 .OR. n_radwvl <= 0 ) CYCLE
+     IF ( ctrvar%yn_radiance_reference) THEN
+        n_radwvl = nwav_radref(ipix)
+     ELSE
+        n_radwvl = nwav_rad(ipix,cline)
+     END IF
 
      ! ---------------------------------------------------------------
      ! Restore solar fitting variables for across-track reference in
-     ! Earthshine fitting. Use the Radiance References if appropriate.
+     ! Earthshine fitting.
      ! ---------------------------------------------------------------
      sol_wav_avg = ins_sol_wav_avg(ipix)
      hw1e        = solcal_pars(hwe_idx,ipix)
@@ -128,10 +131,9 @@ SUBROUTINE xtrack_radiance_wvl_calibration (             &
      ! -----------------------------------------------------
      ! Assign (hopefully predetermined) "reference" weights.
      ! -----------------------------------------------------
-     IF ( .NOT. yn_solar_comp ) THEN
+     IF ( .NOT. ctrvar%yn_solar_comp ) THEN
         n_irradwvl            = nwav_irrad(ipix)
         ref_wgt(1:n_irradwvl) = irradiance_wght(1:n_irradwvl,ipix)
-
        ! -----------------------------------------------------
        ! Catch the possibility that N_OMI_RADWVL > N_OMI_IRRADWVL
        ! -----------------------------------------------------
@@ -141,7 +143,7 @@ SUBROUTINE xtrack_radiance_wvl_calibration (             &
           n_irradwvl = n_radwvl
        END IF
      ELSE
-        n_irradwvl          = n_radwvl
+        n_irradwvl = n_radwvl
         ref_wgt(1:n_radwvl) = normweight
      END IF
 
@@ -151,7 +153,12 @@ SUBROUTINE xtrack_radiance_wvl_calibration (             &
      ! the a line close to the center of the swath into position 0 and
      ! performe the calibration with it.
      ! -----------------------------------------------------------------
-     IF ( yn_radiance_reference ) THEN
+     ! First allocate variables
+     ! ------------------------
+     ALLOCATE(calibration_wavl(1:n_radwvl),calibration_spec(1:n_radwvl), &
+          calibration_qflg(1:n_radwvl), fitres_out(1:n_radwvl), &
+          stat = locerrstat)
+     IF ( ctrvar%yn_radiance_reference ) THEN
         calibration_wavl(1:n_radwvl) = radref_wavl(1:n_radwvl,ipix)
         calibration_spec(1:n_radwvl) = radref_spec(1:n_radwvl,ipix)
         calibration_qflg(1:n_radwvl) = radref_qflg(1:n_radwvl,ipix)
@@ -169,15 +176,13 @@ SUBROUTINE xtrack_radiance_wvl_calibration (             &
      select_idx(1:4) = ccdpix_selection(ipix,1:4)
      exclud_idx(1:2) = ccdpix_exclusion(ipix,1:2)
 
-     CALL omi_adjust_radiance_data ( &           ! Set up generic fitting arrays
-          select_idx(1:4), exclud_idx(1:2),            &
-          n_radwvl,                                &
-          calibration_wavl   (1:n_radwvl),         &
-          calibration_spec   (1:n_radwvl),         &
-          n_irradwvl, ref_wgt(1:n_irradwvl),   &
+     CALL omi_adjust_radiance_data ( & ! Set up generic fitting arrays
+          select_idx(1:4), exclud_idx(1:2), n_radwvl, &
+          calibration_wavl(1:n_radwvl), calibration_spec(1:n_radwvl), &
+          n_irradwvl, ref_wgt(1:n_irradwvl), &
           n_rad_wvl, curr_rad_spec(wvl_idx:ccd_idx,1:n_radwvl), rad_spec_avg, &
           yn_skip_pix )
-     
+
      ! ------------------------------------------------------------------------------------
      IF ( yn_skip_pix .OR. locerrstat >= pge_errstat_error ) THEN
         errstat = MAX ( errstat, locerrstat )
@@ -190,17 +195,15 @@ SUBROUTINE xtrack_radiance_wvl_calibration (             &
         CYCLE
      END IF
 
-     ! -----------------------------------------------------
-     ! Assign the solar average wavelength - the wavelength
-     ! calibration will not converge without it!
-     ! -----------------------------------------------------
-     sol_wav_avg = &
-          SUM ( curr_rad_spec(wvl_idx,1:n_radwvl) ) / REAL(n_radwvl,KIND=r8)
+     ! ------------------------
+     ! Proceed with calibration
+     ! ------------------------
      yn_bad_pixel = .FALSE.
-     CALL radiance_wavcal ( &                       ! Radiance wavelength calibration
-          ipix, ctrvar%n_fitres_loop(radcal_idx), ctrvar%fitres_range(radcal_idx),       &
-          n_rad_wvl, curr_rad_spec(wvl_idx:ccd_idx,1:n_rad_wvl),           &
-          radcal_exval, local_radcal_itnum, chisquav, yn_bad_pixel, fitres_out(1:n_rad_wvl), locerrstat )
+     CALL radiance_wavcal ( & ! Radiance wavelength calibration
+          ctrvar%n_fitres_loop(radcal_idx), ctrvar%fitres_range(radcal_idx), &
+          n_rad_wvl, curr_rad_spec(wvl_idx:ccd_idx,1:n_rad_wvl), &
+          radcal_exval, local_radcal_itnum, chisquav, yn_bad_pixel, &
+          fitres_out(1:n_rad_wvl), locerrstat )
 
      IF ( yn_bad_pixel .OR. locerrstat >= pge_errstat_error ) THEN
         errstat = MAX ( errstat, locerrstat )
@@ -223,36 +226,44 @@ SUBROUTINE xtrack_radiance_wvl_calibration (             &
           0, 1, pge_errstat_ok, OMSAO_S_PROGRESS, TRIM(ADJUSTL(addmsg)), &
           vb_lev_omidebug, locerrstat )
      IF ( pcfvar%verb_thresh_lev >= vb_lev_screen ) WRITE (*, '(A)') TRIM(ADJUSTL(addmsg))
-
+     
      ! ---------------------------------
      ! Save crucial variables for output
      ! ---------------------------------
      radcal_pars (1:max_calfit_idx,ipix) = fitvar_cal(1:max_calfit_idx)
-     radcal_xflag(ipix)                  = INT (radcal_exval, KIND=i2)
-     radcal_itnum(ipix)                  = INT (local_radcal_itnum, KIND=i2)
-     radcal_chisq(ipix)                  = chisquav
+     radcal_xflag(ipix) = INT (radcal_exval, KIND=i2)
+     radcal_itnum(ipix) = INT (local_radcal_itnum, KIND=i2)
+     radcal_chisq(ipix) = chisquav
 
-     ! -----------------------------------------------------------------------
-
-     IF ( .NOT. (yn_radiance_reference) ) THEN
+     ! -------------------------------------------------------------
+     ! Save covolved and wavelength calibrated irradiance spectra or
+     ! radiance reference spectra to ref_XXX arrays to be used when
+     ! creating the database of reference cross sections (below).
+     ! -------------------------------------------------------------
+     IF ( .NOT. (ctrvar%yn_radiance_reference) ) THEN
+        ! Solar irradiance
         n_ref_wvl = n_irradwvl
         ref_wvl(1:n_ref_wvl) = irradiance_wavl(1:n_ref_wvl,ipix)
         ref_spc(1:n_ref_wvl) = irradiance_spec(1:n_ref_wvl,ipix)
         ref_wgt(1:n_ref_wvl) = irradiance_wght(1:n_ref_wvl,ipix)
      ELSE
+        ! Radiance reference
         n_ref_wvl = n_rad_wvl
         ref_wvl(1:n_ref_wvl) = curr_rad_spec(wvl_idx,1:n_rad_wvl)
         ref_spc(1:n_ref_wvl) = curr_rad_spec(spc_idx,1:n_rad_wvl)
         ref_wgt(1:n_ref_wvl) = curr_rad_spec(sig_idx,1:n_rad_wvl)
+        ! Update radiance reference
+        nwav_radref(ipix)  = n_ref_wvl
+        radref_wavl(1:n_ref_wvl,ipix) = curr_rad_spec(wvl_idx,1:n_ref_wvl)
+        radref_spec(1:n_ref_wvl,ipix) = curr_rad_spec(spc_idx,1:n_ref_wvl)
+        radref_wght(1:n_ref_wvl,ipix) = curr_rad_spec(sig_idx,1:n_ref_wvl)
+        radref_wght(n_rad_wvl+1:nwavel_max,ipix) = downweight
      END IF
     
-     nwav_radref(ipix)                        = n_ref_wvl
-     radref_wavl(1:n_ref_wvl,ipix)            = curr_rad_spec(wvl_idx,1:n_rad_wvl)
-     radref_spec(1:n_ref_wvl,ipix)            = curr_rad_spec(spc_idx,1:n_rad_wvl)
-     radref_wght(1:n_rad_wvl,ipix)            = curr_rad_spec(sig_idx,1:n_rad_wvl)
-     radref_wght(n_rad_wvl+1:nwavel_max,ipix) = downweight
-
-     CALL he5_write_radiancewavcal ( n_rad_wvl, ipix, fitvar_cal(shi_idx), fitres_out(1:n_rad_wvl), locerrstat)
+!!$     CALL he5_write_radiancewavcal ( n_rad_wvl, ipix, fitvar_cal(shi_idx), fitres_out(1:n_rad_wvl), &
+!!$          locerrstat)
+     DEALLOCATE(calibration_wavl,calibration_spec, calibration_qflg, &
+          fitres_out, stat = locerrstat)
 
      ! ----------------------------------------------------
      ! Spline reference spectra to current wavelength grid.
@@ -274,7 +285,7 @@ SUBROUTINE xtrack_radiance_wvl_calibration (             &
      ! ----------------------------------------------------------------------
      ! Update the radiance reference with the wavelength calibrated values.
      ! ----------------------------------------------------------------------
-     IF ( yn_radiance_reference ) THEN
+     IF ( ctrvar%yn_radiance_reference ) THEN
 
         ! --------------------------------------------------------
         ! Update the solar spectrum entry in OMI_DATABASE. First
@@ -314,7 +325,8 @@ SUBROUTINE xtrack_radiance_wvl_calibration (             &
      END IF
 
   END DO XTrackWavCal
-
+  print*, cross_track_skippix
+  stop
   ! CCM Write splined/convolved databases if necessary
   IF( ctrvar%yn_diagnostic_run ) THEN
      
