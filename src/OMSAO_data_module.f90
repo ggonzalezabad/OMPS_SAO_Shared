@@ -147,7 +147,7 @@ MODULE OMSAO_data_module
   ! --------------------------------
   INTEGER (KIND=i4) :: curr_xtrack_pixnum
 
-  LOGICAL, DIMENSION (nxtrack_max) ::  cross_track_skippix = .FALSE.
+  LOGICAL, ALLOCATABLE, DIMENSION(:) ::  cross_track_skippix
 
   ! ------------------------------------
   ! Number of significant digits to keep
@@ -174,15 +174,18 @@ CONTAINS
             longitudecorner(1:4,1:nx,0:nt-1), szenith(1:nx,0:nt-1), &
             sazimuth(1:nx,0:nt-1),vzenith(1:nx,0:nt-1),vazimuth(1:nx,0:nt-1), &
             razimuth(1:nx,0:nt-1), nwav_irrad(1:nx), nwav_rad(1:nx,0:nt-1), &
-            irradiance_wavl(1:nw,1:nx),irradiance_spec(1:nw,1:nx),irradiance_wght(1:nw,1:nx),ins_sol_wav_avg(1:nx), &
-            ccdpix_selection(nx,4), ccdpix_exclusion(nx,2), radiance_wavl(1:nw,1:nx,0:nt-1), &
-            radiance_spec(1:nw,1:nx,0:nt-1), radiance_prec(1:nw,1:nx,0:nt-1), &
-            radiance_qflg(1:nw,1:nx,0:nt-1), yn_process_pixel(1:nx,0:nt-1), utc_time(0:nt-1), &
+            irradiance_wavl(1:nw,1:nx),irradiance_spec(1:nw,1:nx),irradiance_wght(1:nw,1:nx), &
+            ins_sol_wav_avg(1:nx), ccdpix_selection(nx,4), ccdpix_exclusion(nx,2), &
+            radiance_wavl(1:nw,1:nx,0:nt-1), radiance_spec(1:nw,1:nx,0:nt-1), &
+            radiance_prec(1:nw,1:nx,0:nt-1), radiance_qflg(1:nw,1:nx,0:nt-1), &
+            yn_process_pixel(1:nx,0:nt-1), utc_time(0:nt-1), &
             solcal_itnum(1:nx), radcal_itnum(1:nx), solcal_xflag(1:nx), &
             radcal_xflag(1:nx), radcal_chisq(1:nx), solcal_pars(1:max_calfit_idx,1:nx), &
             radcal_pars(1:max_calfit_idx,1:nx), n_ins_database_wvl(1:nx), &
             ins_database(1:max_rs_idx,1:nw,1:nx), ins_database_wvl(1:nw,1:nx), &
-            database(max_rs_idx, 1:nw), stat=errstat)
+            database(max_rs_idx, 1:nw), cross_track_skippix(1:nx), stat=errstat)
+       ! Initialize some variables
+       cross_track_skippix = .FALSE. !Only bad pixels will be changed to TRUE
     ENDIF
     IF (ctrvar%yn_radiance_reference) THEN
        IF (.NOT. ALLOCATED(radref_sza)) THEN
@@ -212,7 +215,7 @@ CONTAINS
             radiance_spec, radiance_prec, radiance_qflg, yn_process_pixel, utc_time, radcal_chisq, &
             solcal_itnum, radcal_itnum, radref_itnum, solcal_xflag, radcal_xflag, radref_xflag, &
             solcal_pars, radcal_pars, radref_pars, n_ins_database_wvl, ins_database, &
-            ins_database_wvl, database, stat=errstat)
+            ins_database_wvl, database, cross_track_skippix, stat=errstat)
     ENDIF
     IF (ctrvar%yn_radiance_reference) THEN
        IF (ALLOCATED(radref_sza)) THEN
