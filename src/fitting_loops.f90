@@ -11,7 +11,7 @@ SUBROUTINE xtrack_radiance_wvl_calibration ( &
        n_rad_wvl, curr_rad_spec, sol_wav_avg, database, fitvar_cal, &
        fitvar_cal_saved, pcfvar, ctrvar
   USE OMSAO_slitfunction_module, ONLY: saved_shift, saved_squeeze
-  USE OMSAO_data_module, ONLY: nxtrack_max, &
+  USE OMSAO_data_module, ONLY: &
        cross_track_skippix, nwav_radref, radcal_itnum, &
        radcal_xflag, radcal_chisq, n_ins_database_wvl, &
        solcal_pars, ins_sol_wav_avg,  &
@@ -19,8 +19,8 @@ SUBROUTINE xtrack_radiance_wvl_calibration ( &
        irradiance_spec, ins_database, ins_database_wvl, &
        radref_spec, radref_wavl, radref_qflg, radref_wght, &
        nwav_rad, radiance_spec, radiance_wavl, radiance_qflg, &
-       ccdpix_selection, ccdpix_exclusion, &
-       radcal_pars, curr_xtrack_pixnum, n_irradwvl, n_radwvl      
+       ccdpix_selection, ccdpix_exclusion, radcal_pars, &
+       curr_xtrack_pixnum, n_irradwvl, n_radwvl, nxtrack_rad      
   USE OMSAO_errstat_module, ONLY: f_sep, omsao_s_progress, omsao_w_skippix, &
        pge_errstat_error,pge_errstat_ok, pge_errstat_warning, vb_lev_default, &
        vb_lev_omidebug, vb_lev_screen, error_check
@@ -293,11 +293,12 @@ SUBROUTINE xtrack_radiance_wvl_calibration ( &
 
   ! CCM Write splined/convolved databases if necessary
   IF( ctrvar%yn_diagnostic_run ) THEN
+     print*, MAXVAL(n_ins_database_wvl)
      
      ! ins_database maybe ins_database_wvl?
-     CALL he5_write_ins_database(ins_database(1:max_rs_idx,1:n_rad_wvl,1:nxtrack_max), &
-          ins_database_wvl(1:n_rad_wvl, 1:nxtrack_max), &
-          max_rs_idx, n_rad_wvl, nxtrack_max, errstat)
+     CALL he5_write_ins_database(ins_database(1:max_rs_idx,1:n_rad_wvl,1:nxtrack_rad), &
+          ins_database_wvl(1:n_rad_wvl, 1:nxtrack_rad), &
+          max_rs_idx, n_rad_wvl, nxtrack_rad, errstat)
      
   ENDIF
 
