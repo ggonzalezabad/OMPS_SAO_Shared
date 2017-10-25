@@ -153,7 +153,7 @@ SUBROUTINE omi_fitting ( &
   TYPE(omps_nmev_type), ALLOCATABLE :: omps_data_radiance_reference
   INTEGER (KIND=i4) :: nTimesRadRR, nWvlCCDrr, nXtrackRadRR
   INTEGER (KIND=i4) :: first_line, last_line, errstat, first_wc_pix, last_wc_pix, &
-       first_pix, last_pix, omps_reader_status
+       omps_reader_status
   REAl (KIND=r8), DIMENSION (1) :: zerovec = 0.0_r8
   INTEGER (KIND=i2), DIMENSION (1:nXtrackRad,0:nTimesRad-1) :: saomqf
   INTEGER (KIND=i2), ALLOCATABLE, DIMENSION (:,:) :: refmqf
@@ -168,8 +168,6 @@ SUBROUTINE omi_fitting ( &
   ! ----------------------------------------------------------
   INTEGER (KIND=i4), DIMENSION (0:nTimesRad-1,2) :: omi_xtrpix_range
   LOGICAL,           DIMENSION (0:nTimesRad-1)   :: yn_common_range, yn_radfit_range
-
-  INTEGER (KIND=i4), ALLOCATABLE, DIMENSION (:,:) :: omi_xtrpix_range_rr
 
   ! ----------------------------------------------------------
   ! OMI L1b latitudes
@@ -271,15 +269,6 @@ SUBROUTINE omi_fitting ( &
      ! "rr" ones (in this case, the dimensions are the same). Otherwise we
      ! have to read them from the radiance reference granule.
      ! --------------------------------------------------------------------
-     ALLOCATE(omi_xtrpix_range_rr(0:nTimesRadRR-1,1:2))
-     CALL omi_set_xtrpix_range ( &
-          nTimesRadRR, nXtrackRadRR, ctrvar%pixnum_lim(3:4), &
-          omi_xtrpix_range_rr(0:nTimesRadRR-1,1:2), &
-          first_wc_pix, last_wc_pix, errstat )
-     CALL error_check ( errstat, pge_errstat_ok, pge_errstat_fatal, OMSAO_F_SUBROUTINE, &
-          modulename//f_sep//"omi_set_xtrpix_range for radiance reference", vb_lev_default, &
-          pge_error_status )
-     IF (pge_error_status >= pge_errstat_error ) GO TO 666
      CALL create_radiance_reference (omps_data_radiance_reference, nTimesRadRR, nXtrackRadRR, &
           nWvlCCDrr, errstat)
      CALL error_check ( errstat, pge_errstat_ok, pge_errstat_fatal, OMSAO_F_SUBROUTINE, &
@@ -319,13 +308,10 @@ SUBROUTINE omi_fitting ( &
   ! ---------------------------------------------------------------------
   IF ( ctrvar%yn_radiance_reference) THEN 
 
-
 !!$     ! -------------------------------------------------
 !!$     ! Perform radiance reference wavelength calibration
 !!$     ! using solar slit function parameters
 !!$     ! -------------------------------------------------
-!!$     first_pix = MINVAL(omi_xtrpix_range_rr)
-!!$     last_pix  = MAXVAL(omi_xtrpix_range_rr)
 !!$
 !!$     CALL xtrack_radiance_reference_loop ( &
 !!$          ctrvar%yn_radiance_reference, ctrvar%yn_remove_target, &
@@ -341,7 +327,7 @@ SUBROUTINE omi_fitting ( &
 
   END IF
 
-  ! Write splined/convolved databases if necessary
+  ! Write splined/convolved databases
   IF( ctrvar%yn_diagnostic_run ) THEN
      n_rad_wvl = MAXVAL(n_ins_database_wvl)
      CALL he5_write_ins_database(ins_database(1:max_rs_idx,1:n_rad_wvl,1:nxtrackrad), &
@@ -349,7 +335,8 @@ SUBROUTINE omi_fitting ( &
           max_rs_idx, n_rad_wvl, nxtrackrad, errstat) 
   ENDIF
 
-  DEALLOCATE (omps_data_radiance_reference, omi_xtrpix_range_rr)
+  IF ( ctrvar%yn_radiance_reference) &
+       DEALLOCATE (omps_data_radiance_reference)
   stop
 
 
