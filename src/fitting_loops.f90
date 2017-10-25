@@ -20,7 +20,7 @@ SUBROUTINE xtrack_radiance_wvl_calibration ( &
        radref_spec, radref_wavl, radref_qflg, radref_wght, &
        nwav_rad, radiance_spec, radiance_wavl, radiance_qflg, &
        ccdpix_selection, ccdpix_exclusion, radcal_pars, &
-       curr_xtrack_pixnum, n_irradwvl, n_radwvl, nxtrack_rad      
+       curr_xtrack_pixnum, n_irradwvl, n_radwvl
   USE OMSAO_errstat_module, ONLY: f_sep, omsao_s_progress, omsao_w_skippix, &
        pge_errstat_error,pge_errstat_ok, pge_errstat_warning, vb_lev_default, &
        vb_lev_omidebug, vb_lev_screen, error_check
@@ -297,17 +297,7 @@ SUBROUTINE xtrack_radiance_wvl_calibration ( &
 
   END DO XTrackWavCal
 
-  ! Write splined/convolved databases if necessary
-  IF( ctrvar%yn_diagnostic_run ) THEN
-     n_rad_wvl = MAXVAL(n_ins_database_wvl)
-     ! ins_database maybe ins_database_wvl?
-     CALL he5_write_ins_database(ins_database(1:max_rs_idx,1:n_rad_wvl,1:nxtrack_rad), &
-          ins_database_wvl(1:n_rad_wvl, 1:nxtrack_rad), &
-          max_rs_idx, n_rad_wvl, nxtrack_rad, errstat) 
-  ENDIF
-
   errstat = MAX ( errstat, locerrstat )
-
 
   RETURN
 END SUBROUTINE xtrack_radiance_wvl_calibration

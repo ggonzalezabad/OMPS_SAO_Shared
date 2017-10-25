@@ -121,18 +121,17 @@ SUBROUTINE omi_fitting ( &
   USE OMSAO_errstat_module, ONLY: pge_errstat_ok, pge_errstat_fatal, &
        pge_errstat_warning, pge_errstat_error, f_sep, omsao_w_nopixel, &
        omsao_w_subroutine, vb_lev_default, error_check, omsao_f_subroutine
-  USE OMSAO_parameters_module, ONLY: i2_missval
-  USE OMSAO_variables_module, ONLY: ctrvar, pcfvar
+  USE OMSAO_indices_module, ONLY: max_rs_idx
+  USE OMSAO_variables_module, ONLY: ctrvar, pcfvar, n_rad_wvl
   USE OMSAO_data_module, ONLY: latitude, column_amount, &
-       cross_track_skippix, radcal_itnum, radcal_xflag, &
-       longitude, column_uncert, n_comm_wvl, szenith, &
-       fit_rms, vzenith, fitconv_flag, height
+       cross_track_skippix, longitude, column_uncert, &
+       n_comm_wvl, szenith, fit_rms, vzenith, fitconv_flag, height, &
+       ins_database, ins_database_wvl, n_ins_database_wvl
   USE OMSAO_he5_datafields_module
   USE OMSAO_solar_wavcal_module, ONLY: xtrack_solar_calibration_loop
   USE OMSAO_radiance_ref_module, ONLY: &
        xtrack_radiance_reference_loop, create_radiance_reference
   USE OMSAO_wfamf_module, ONLY: read_climatology, amf_calculation_bis
-  USE OMSAO_pixelcorner_module, ONLY: compute_pixel_corners
   USE OMSAO_Reference_sector_module, ONLY: Reference_Sector_Correction
   USE OMSAO_omps_reader, ONLY: omps_nmev_type, omps_nmev_reader
 
@@ -288,33 +287,19 @@ SUBROUTINE omi_fitting ( &
           pge_error_status )
      IF (pge_error_status >= pge_errstat_error ) GO TO 666
 
-     ! -------------------------------------------------
-     ! Perform radiance reference wavelength calibration
-     ! using solar slit function parameters
-     ! -------------------------------------------------
-     first_pix = MINVAL(omi_xtrpix_range_rr)
-     last_pix  = MAXVAL(omi_xtrpix_range_rr)
-
-     CALL xtrack_radiance_reference_loop ( &
-          ctrvar%yn_radiance_reference, ctrvar%yn_remove_target, &
-          nXtrackRadRR, nWvlCCDrr, first_pix, last_pix, pge_error_status )
-
-
-     DEALLOCATE (omps_data_radiance_reference, omi_xtrpix_range_rr)
   END IF
-
-  stop
 
   ! -----------------------------------------------------
   ! Across-track loop for radiance wavelength calibration
+  ! Inside the call it is decided if we use a radiance
+  ! line or the radiance reference calculated above for
+  ! wavelength calibration.
   ! -----------------------------------------------------
-  radcal_itnum = i2_missval ; radcal_xflag = i2_missval
-  CALL xtrack_radiance_wvl_calibration (                          &
-       ctrvar%yn_radiance_reference, ctrvar%yn_solar_comp,                      &
+  CALL xtrack_radiance_wvl_calibration ( &
        first_wc_pix, last_wc_pix, n_max_rspec, n_comm_wvl, errstat )
   pge_error_status = MAX ( pge_error_status, errstat )
   IF ( pge_error_status >= pge_errstat_error )  GO TO 666
-
+  
   ! --------------------------------------------------------------
   ! Terminate on not having any cross-track pixels left to process
   ! --------------------------------------------------------------
@@ -334,15 +319,39 @@ SUBROUTINE omi_fitting ( &
   ! ---------------------------------------------------------------------
   IF ( ctrvar%yn_radiance_reference) THEN 
 
+
+!!$     ! -------------------------------------------------
+!!$     ! Perform radiance reference wavelength calibration
+!!$     ! using solar slit function parameters
+!!$     ! -------------------------------------------------
+!!$     first_pix = MINVAL(omi_xtrpix_range_rr)
+!!$     last_pix  = MAXVAL(omi_xtrpix_range_rr)
+!!$
+!!$     CALL xtrack_radiance_reference_loop ( &
+!!$          ctrvar%yn_radiance_reference, ctrvar%yn_remove_target, &
+!!$          nXtrackRadRR, nWvlCCDrr, first_pix, last_pix, pge_error_status )
+
      ! -------------------------------------------------------------
      ! Write the output from solar/earthshine wavelength calibration
      ! and radiance reference to file. The latter results will be
      ! overwritten in the call to XTRACK_RADIANCE_REFERENCE_LOOP
      ! below, hence we need to write them out here.
      ! -------------------------------------------------------------
-     CALL he5_write_wavcal_output ( nXtrackRad, first_pix, last_pix, errstat )
+!!$     CALL he5_write_wavcal_output ( nXtrackRad, first_pix, last_pix, errstat )
 
   END IF
+
+  ! Write splined/convolved databases if necessary
+  IF( ctrvar%yn_diagnostic_run ) THEN
+     n_rad_wvl = MAXVAL(n_ins_database_wvl)
+     CALL he5_write_ins_database(ins_database(1:max_rs_idx,1:n_rad_wvl,1:nxtrackrad), &
+          ins_database_wvl(1:n_rad_wvl, 1:nxtrackrad), &
+          max_rs_idx, n_rad_wvl, nxtrackrad, errstat) 
+  ENDIF
+
+  DEALLOCATE (omps_data_radiance_reference, omi_xtrpix_range_rr)
+  stop
+
 
   ! -----------------------------------------------------------------
   ! Before we go any further we need to read the L1b latitude values,
