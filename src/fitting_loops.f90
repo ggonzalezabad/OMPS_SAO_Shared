@@ -6,7 +6,7 @@ SUBROUTINE xtrack_radiance_wvl_calibration ( &
        max_calfit_idx, max_rs_idx, hwe_idx, asy_idx, sha_idx, &
        shi_idx, squ_idx, ccd_idx, radcal_idx
   USE OMSAO_parameters_module, ONLY: maxchlen, downweight, normweight, &
-       i2_missval
+       i2_missval, r8_missval
   USE OMSAO_variables_module, ONLY: hw1e, e_asym, g_shap, &
        n_rad_wvl, curr_rad_spec, sol_wav_avg, database, fitvar_cal, &
        fitvar_cal_saved, pcfvar, ctrvar
@@ -70,6 +70,7 @@ SUBROUTINE xtrack_radiance_wvl_calibration ( &
 
   ! Initialize some variables that are to be output
   radcal_itnum = i2_missval ; radcal_xflag = i2_missval
+  ins_database = r8_missval ; ins_database_wvl = r8_missval
   
   fitvar_cal_saved(1:max_calfit_idx) = ctrvar%fitvar_rad_init(1:max_calfit_idx)
 
