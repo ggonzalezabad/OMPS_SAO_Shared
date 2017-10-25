@@ -6,7 +6,7 @@ SUBROUTINE xtrack_radiance_wvl_calibration ( &
        max_calfit_idx, max_rs_idx, hwe_idx, asy_idx, sha_idx, &
        shi_idx, squ_idx, ccd_idx, radcal_idx
   USE OMSAO_parameters_module, ONLY: maxchlen, downweight, normweight, &
-       i2_missval, r8_missval
+       i2_missval, i4_missval, r8_missval
   USE OMSAO_variables_module, ONLY: hw1e, e_asym, g_shap, &
        n_rad_wvl, curr_rad_spec, sol_wav_avg, database, fitvar_cal, &
        fitvar_cal_saved, pcfvar, ctrvar
@@ -70,7 +70,7 @@ SUBROUTINE xtrack_radiance_wvl_calibration ( &
 
   ! Initialize some variables that are to be output
   radcal_itnum = i2_missval ; radcal_xflag = i2_missval
-  ins_database = r8_missval ; ins_database_wvl = r8_missval
+  ins_database = r8_missval ; ins_database_wvl = r8_missval ; n_ins_database_wvl = i4_missval
   
   fitvar_cal_saved(1:max_calfit_idx) = ctrvar%fitvar_rad_init(1:max_calfit_idx)
 
@@ -109,6 +109,11 @@ SUBROUTINE xtrack_radiance_wvl_calibration ( &
      ! For each cross-track position we have to initialize the saved Shift&Squeeze
      ! ---------------------------------------------------------------------------
      saved_shift = -1.0e+30_r8 ; saved_squeeze = -1.0e+30_r8
+
+     ! -------------------
+     ! Initialize database
+     ! -------------------
+     database = r8_missval
 
      ! ----------------------------------------------------
      ! Assign number of radiance and irradiance wavelengths
@@ -292,15 +297,13 @@ SUBROUTINE xtrack_radiance_wvl_calibration ( &
 
   END DO XTrackWavCal
 
-  ! CCM Write splined/convolved databases if necessary
+  ! Write splined/convolved databases if necessary
   IF( ctrvar%yn_diagnostic_run ) THEN
-     print*, MAXVAL(n_ins_database_wvl)
-     
+     n_rad_wvl = MAXVAL(n_ins_database_wvl)
      ! ins_database maybe ins_database_wvl?
      CALL he5_write_ins_database(ins_database(1:max_rs_idx,1:n_rad_wvl,1:nxtrack_rad), &
           ins_database_wvl(1:n_rad_wvl, 1:nxtrack_rad), &
-          max_rs_idx, n_rad_wvl, nxtrack_rad, errstat)
-     
+          max_rs_idx, n_rad_wvl, nxtrack_rad, errstat) 
   ENDIF
 
   errstat = MAX ( errstat, locerrstat )
