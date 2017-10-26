@@ -30,13 +30,13 @@ CONTAINS
          pcfvar, ctrvar
     USE OMSAO_slitfunction_module, ONLY: saved_shift, saved_squeeze
     USE OMSAO_data_module, ONLY: nwav_irrad, irradiance_wght, &
-         cross_track_skippix, curr_xtrack_pixnum, n_radwvl, &
-         max_rs_idx, ins_database, ins_database_wvl, ins_sol_wav_avg, solcal_pars, radref_wavl, &
-         radref_spec, ccdpix_selection, nwav_radref,  &
-         ccdpix_exclusion, radref_wght, &
-         radref_pars, max_calfit_idx, radref_xflag, radref_itnum, &
-         radref_chisq, radref_col, radref_rms, radref_dcol, &
-         radref_xtrcol
+         irradiance_wavl, irradiance_spec, cross_track_skippix, &
+         curr_xtrack_pixnum, n_radwvl, max_rs_idx, ins_database, &
+         ins_sol_wav_avg, &
+         solcal_pars, radref_wavl, radref_spec, ccdpix_selection, &
+         nwav_radref, ccdpix_exclusion, radref_wght, radref_pars, &
+         max_calfit_idx, radref_xflag, radref_itnum, radref_chisq, &
+         radref_col, radref_rms, radref_dcol, radref_xtrcol
 
     IMPLICIT NONE
 
@@ -76,14 +76,10 @@ CONTAINS
     target_var = r8_missval
     fitvar_rad_saved = ctrvar%fitvar_rad_init
 
-    ! ---------------------------------------------------
+    ! --------------------------------------------------
     ! Note that this initialization will overwrite valid
-    ! results on any second call to this subroutine. This
-    ! happens, for example, when YN_RADIANCE_REFERENCE
-    ! and YN_REMOVE_TARGET are selected simultaneously.
-    ! In that case, however, we write the results to file
-    ! before the second call.
-    ! ---------------------------------------------------
+    ! results on any second call to this subroutine.
+    ! --------------------------------------------------
     radref_pars (1:max_calfit_idx,1:nx) = r8_missval
     radref_xflag (1:nx) = i2_missval
     radref_itnum (1:nx) = i2_missval
@@ -141,15 +137,17 @@ CONTAINS
           ! ----------------------------------
           database (1:max_rs_idx,1:n_database_wvl) = ins_database (1:max_rs_idx,1:n_database_wvl,ipix)
 
-          ! -----------------------------------------------------------------------
+          ! --------------------------------------------------------------------------------
           ! Restore solar fitting variables for across-track reference in Earthshine fitting
+          ! We can not retrieve the BrO column in the radiance reference spectrum against it
+          ! self!!!
           ! --------------------------------------------------------------------------------
           sol_wav_avg = ins_sol_wav_avg(ipix)
           hw1e = solcal_pars(hwe_idx,ipix)
           e_asym = solcal_pars(asy_idx,ipix)
           g_shap = solcal_pars(sha_idx,ipix)
-          curr_sol_spec(wvl_idx,1:n_solar_pts) = ins_database_wvl(1:n_solar_pts,ipix)
-          curr_sol_spec(spc_idx,1:n_solar_pts) = ins_database(solar_idx,1:n_solar_pts,ipix)
+          curr_sol_spec(wvl_idx,1:n_solar_pts) = irradiance_wavl(1:n_solar_pts,ipix)
+          curr_sol_spec(spc_idx,1:n_solar_pts) = irradiance_spec(1:n_solar_pts,ipix)
           
           ! --------------------------------------
           ! Prepare radiance reference for fitting
@@ -166,7 +164,6 @@ CONTAINS
                n_rad_wvl, curr_rad_spec(wvl_idx:ccd_idx,1:n_radwvl), rad_spec_avg, &
                yn_skip_pix )
 
-          print*, yn_skip_pix
           ! --------------------------------------------------------------------
           ! Update the weights for the Reference/Wavelength Calibration Radiance
           ! --------------------------------------------------------------------
@@ -180,8 +177,8 @@ CONTAINS
           radfit_exval = INT(i2_missval, KIND=i4)
           radfit_itnum = INT(i2_missval, KIND=i4)
           rms          = r8_missval
-
           addmsg = ''
+
           IF ( MAXVAL(curr_rad_spec(spc_idx,1:n_rad_wvl)) > 0.0_r8 .AND.     &
                n_rad_wvl > n_fitvar_rad .AND. (.NOT. yn_skip_pix)              ) THEN
              yn_bad_pixel     = .FALSE.
@@ -195,7 +192,7 @@ CONTAINS
                   corr_matrix_tmp(1:n_fitvar_rad), yn_bad_pixel, fitspctmp(1:n_rad_wvl) )
 
              yn_reference_fit = .FALSE.
-
+ 
              IF ( yn_bad_pixel ) CYCLE
 
              WRITE (addmsg, '(A,I2,5(A,1PE10.3),2(A,I5))') 'RADIANCE Reference #', ipix, &
@@ -212,7 +209,7 @@ CONTAINS
           CALL error_check ( &
                0, 1, pge_errstat_ok, OMSAO_S_PROGRESS, TRIM(ADJUSTL(addmsg)), vb_lev_omidebug, errstat )
           IF ( pcfvar%verb_thresh_lev >= vb_lev_screen ) WRITE (*, '(A)') TRIM(ADJUSTL(addmsg))
-          stop
+          
           ! -----------------------------------
           ! Assign pixel values to final arrays
           ! -----------------------------------
@@ -223,6 +220,7 @@ CONTAINS
           radref_col  (ipix)                  = fitcol
           radref_dcol (ipix)                  = dfitcol
           radref_rms  (ipix)                  = rms
+          write(*,'(3E13.6)') radref_col(ipix), radref_dcol(ipix), radref_rms(ipix)
 
           ! -------------------------------------------------------------------------
           ! Remember weights for the reference radiance, to be used as starting point
@@ -246,14 +244,15 @@ CONTAINS
        CALL remove_target_from_radiance (                              &
             fpix, lpix, ctrvar%n_fincol_idx, ctrvar%fincol_idx(1:2,1:ctrvar%n_fincol_idx),  &
             ctrvar%target_npol, target_var(1:ctrvar%n_fincol_idx,fpix:lpix), radref_xtrcol(fpix:lpix) )
+
+       ! -----------------------------------------------
+       ! Update the solar spectrum entry in OMI_DATABASE
+       ! -----------------------------------------------
+       IF ( yn_radiance_reference ) &
+            ins_database (solar_idx,1:n_rad_wvl,fpix:lpix) = radref_spec(1:n_rad_wvl,fpix:lpix)
+
        
     END IF
-
-    ! -----------------------------------------------
-    ! Update the solar spectrum entry in OMI_DATABASE
-    ! -----------------------------------------------
-    IF ( yn_radiance_reference ) &
-         ins_database (solar_idx,1:n_rad_wvl,fpix:lpix) = radref_spec(1:n_rad_wvl,fpix:lpix)
 
 
 
