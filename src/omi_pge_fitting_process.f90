@@ -308,26 +308,31 @@ SUBROUTINE omi_fitting ( &
   ! ---------------------------------------------------------------------
   IF ( ctrvar%yn_radiance_reference) THEN 
 
-!!$     ! -------------------------------------------------
-!!$     ! Perform radiance reference wavelength calibration
-!!$     ! using solar slit function parameters
-!!$     ! -------------------------------------------------
-!!$
-!!$     CALL xtrack_radiance_reference_loop ( &
-!!$          ctrvar%yn_radiance_reference, ctrvar%yn_remove_target, &
-!!$          nXtrackRadRR, nWvlCCDrr, first_pix, last_pix, pge_error_status )
+     ! --------------------------------------------------
+     ! Retrieve target column in radiance reference using
+     ! the solar irradiance. If ctrvar%yn_remove_target
+     ! then the target column is substracted from
+     ! radiance reference.
+     ! -------------------------------------------------
+     CALL xtrack_radiance_reference_loop ( .TRUE., ctrvar%yn_remove_target, &
+          nXtrackRadRR, nWvlCCDrr, first_wc_pix, last_wc_pix, pge_error_status )
 
-     ! -------------------------------------------------------------
-     ! Write the output from solar/earthshine wavelength calibration
-     ! and radiance reference to file. The latter results will be
-     ! overwritten in the call to XTRACK_RADIANCE_REFERENCE_LOOP
-     ! below, hence we need to write them out here.
-     ! -------------------------------------------------------------
-!!$     CALL he5_write_wavcal_output ( nXtrackRad, first_pix, last_pix, errstat )
-
+     IF (ctrvar%yn_remove_target) &
+          ! -----------------------------------------------------------------
+          ! Because we have updated the radiance reference after substracting
+          ! the target column we can now retrieve the target column against
+          ! the radiance reference stored in the ins_database as a security
+          ! check.
+          ! -----------------------------------------------------------------
+          CALL xtrack_radiance_reference_loop ( .FALSE.,.FALSE., &
+          nXtrackRadRR, nWvlCCDrr, first_wc_pix, last_wc_pix, pge_error_status )
+     
   END IF
 
-  ! Write splined/convolved databases
+  ! ------------------------------------
+  ! Output database of reference spectra
+  ! to L2 file
+  ! ------------------------------------
   IF( ctrvar%yn_diagnostic_run ) THEN
      n_rad_wvl = MAXVAL(n_ins_database_wvl)
      CALL he5_write_ins_database(ins_database(1:max_rs_idx,1:n_rad_wvl,1:nxtrackrad), &

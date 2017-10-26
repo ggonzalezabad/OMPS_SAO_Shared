@@ -19,7 +19,7 @@ MODULE OMSAO_radiance_ref_module
 CONTAINS
 
   SUBROUTINE xtrack_radiance_reference_loop (     &
-       yn_radiance_reference, yn_remove_target, nx, nw, fpix, lpix, errstat )
+       yn_sun, yn_remove_target, nx, nw, fpix, lpix, errstat )
 
     USE OMSAO_indices_module, ONLY: solar_idx, wvl_idx, spc_idx, sig_idx, &
          hwe_idx, asy_idx, shi_idx, sha_idx, squ_idx, &
@@ -32,7 +32,7 @@ CONTAINS
     USE OMSAO_data_module, ONLY: nwav_irrad, irradiance_wght, &
          irradiance_wavl, irradiance_spec, cross_track_skippix, &
          curr_xtrack_pixnum, n_radwvl, max_rs_idx, ins_database, &
-         ins_sol_wav_avg, &
+         ins_database_wvl, n_ins_database_wvl, ins_sol_wav_avg, &
          solcal_pars, radref_wavl, radref_spec, ccdpix_selection, &
          nwav_radref, ccdpix_exclusion, radref_wght, radref_pars, &
          max_calfit_idx, radref_xflag, radref_itnum, radref_chisq, &
@@ -44,7 +44,7 @@ CONTAINS
     ! Input Variables
     ! ---------------
     INTEGER (KIND=i4), INTENT (IN) :: nx, nw, fpix, lpix
-    LOGICAL, INTENT (IN) :: yn_radiance_reference, yn_remove_target
+    LOGICAL, INTENT (IN) :: yn_sun, yn_remove_target
 
     ! -----------------
     ! Modified variable
@@ -115,11 +115,18 @@ CONTAINS
 
        ! ------------------------------------------------------------------
        ! Assign number of irradiance wavelengths and the fitting weights
-       ! from the solar wavelength calibration. Why? gga
+       ! from the solar wavelength calibration if retrieving against the
+       ! Sun spectra, otherwise use the ins_database info
        ! ------------------------------------------------------------------
-       n_solar_pts = nwav_irrad(ipix)
-       n_database_wvl = n_solar_pts
-       solar_wgt(1:n_solar_pts) = irradiance_wght(1:n_solar_pts,ipix)
+       IF (yn_sun) THEN
+          n_solar_pts = nwav_irrad(ipix)
+          n_database_wvl = n_solar_pts
+          solar_wgt(1:n_solar_pts) = irradiance_wght(1:n_solar_pts,ipix)
+       ELSE
+          n_solar_pts = n_ins_database_wvl(ipix)
+          n_database_wvl = n_solar_pts
+          solar_wgt(1:n_solar_pts) = radref_wght(1:n_solar_pts,ipix)
+       END IF
 
        ! -----------------------------------------------------
        ! Catch the possibility that N_RADWVL > N_SOLAR_PTS
@@ -140,14 +147,21 @@ CONTAINS
           ! --------------------------------------------------------------------------------
           ! Restore solar fitting variables for across-track reference in Earthshine fitting
           ! We can not retrieve the BrO column in the radiance reference spectrum against it
-          ! self!!!
+          ! self. If yn_sun we do it against the solar irradiance, if yn_sun = .FALSE. then
+          ! we do it against the radiance reference with the target column substracted in a
+          ! first pass and saved in ins_database.
           ! --------------------------------------------------------------------------------
           sol_wav_avg = ins_sol_wav_avg(ipix)
           hw1e = solcal_pars(hwe_idx,ipix)
           e_asym = solcal_pars(asy_idx,ipix)
           g_shap = solcal_pars(sha_idx,ipix)
-          curr_sol_spec(wvl_idx,1:n_solar_pts) = irradiance_wavl(1:n_solar_pts,ipix)
-          curr_sol_spec(spc_idx,1:n_solar_pts) = irradiance_spec(1:n_solar_pts,ipix)
+          IF (yn_sun) THEN
+             curr_sol_spec(wvl_idx,1:n_solar_pts) = irradiance_wavl(1:n_solar_pts,ipix)
+             curr_sol_spec(spc_idx,1:n_solar_pts) = irradiance_spec(1:n_solar_pts,ipix)
+          ELSE
+             curr_sol_spec(wvl_idx,1:n_solar_pts) = ins_database_wvl(1:n_solar_pts,ipix)
+             curr_sol_spec(spc_idx,1:n_solar_pts) = ins_database(solar_idx,1:n_solar_pts,ipix)
+          END IF
           
           ! --------------------------------------
           ! Prepare radiance reference for fitting
@@ -234,8 +248,9 @@ CONTAINS
 
     ! -----------------------------------------
     ! Remove target gas from radiance reference
+    ! Only if we are fitting against the Sun
     ! -----------------------------------------
-    IF ( yn_remove_target ) THEN
+    IF ( yn_remove_target .AND. yn_sun ) THEN
        ! ----------------------------------------------------------------
        ! Removing the target gas from the radiance reference will alter
        ! OMI_RADREF_SPEC (1:NWVL,FPIX:LPIX). This is being passed to the
@@ -244,17 +259,7 @@ CONTAINS
        CALL remove_target_from_radiance (                              &
             fpix, lpix, ctrvar%n_fincol_idx, ctrvar%fincol_idx(1:2,1:ctrvar%n_fincol_idx),  &
             ctrvar%target_npol, target_var(1:ctrvar%n_fincol_idx,fpix:lpix), radref_xtrcol(fpix:lpix) )
-
-       ! -----------------------------------------------
-       ! Update the solar spectrum entry in OMI_DATABASE
-       ! -----------------------------------------------
-       IF ( yn_radiance_reference ) &
-            ins_database (solar_idx,1:n_rad_wvl,fpix:lpix) = radref_spec(1:n_rad_wvl,fpix:lpix)
-
-       
     END IF
-
-
 
     errstat = MAX ( errstat, locerrstat )
 
@@ -269,6 +274,7 @@ CONTAINS
     USE OMSAO_data_module, ONLY: radref_spec, ins_database, nwav_radref, nwavel_max
     USE OMSAO_variables_module, ONLY: refspecs_original
     USE OMSAO_median_module, ONLY: median
+    USE OMSAO_indices_module, ONLY: solar_idx
 
     IMPLICIT NONE
 
@@ -338,10 +344,7 @@ CONTAINS
        ! (b) the number of cross-track points we can fit.
        ! ----------------------------------------------------
        IF ( npol > 0 .AND. jpix-ipix+1 > npol ) THEN
-
-          !IF ( npol >=0 .AND. nfit > npol ) THEN
-          !eps  = -0.1_r8  ! Chose the best-fitting order
-           
+         
           eps =  0.0_r8  ! Fit the complete NPOL polynomial
           ndeg = npol
           x(1:nx) = (/ ( REAL(i-nx/2, KIND=r8), i = 1, nx ) /) / REAL(nx/2, KIND=r8)
@@ -353,9 +356,6 @@ CONTAINS
           END WHERE
           CALL dpolft (&
                nx, x(1:nx), y(1:nx), w(1:nx), npol, ndeg, eps, yf(1:nx), ierr, a )
-
-          !CALL dpolft (&
-          !     nfit, x(1:fit), y(1:nfit), w(1:nfit), npol, ndeg, eps, yf(1:nfit), ierr, a )
 
        ELSE
           ! -----------------------------------------------------------------
@@ -387,7 +387,12 @@ CONTAINS
              tmpexp = MINEXPONENT(1.0_r8) + 1.0_r8
           ENDWHERE
 
-          radref_spec(1:nwvl,i) = radref_spec(1:nwvl,i) * &
+          ! -------------------------------------
+          ! Update the radiance reference with
+          ! the target column density substracted
+          ! in the reference spectra database.
+          ! -------------------------------------
+          ins_database (solar_idx,1:nwvl,i) = radref_spec(1:nwvl,i) * &
                EXP(+tmpexp(1:nwvl))
 
           target_fit(i) = target_fit(i) + yfloc/refspecs_original(k)%NormFactor
