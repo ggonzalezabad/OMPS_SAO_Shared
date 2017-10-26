@@ -234,14 +234,12 @@ CONTAINS
           radref_col  (ipix)                  = fitcol
           radref_dcol (ipix)                  = dfitcol
           radref_rms  (ipix)                  = rms
-          write(*,'(3E13.6)') radref_col(ipix), radref_dcol(ipix), radref_rms(ipix)
 
           ! -------------------------------------------------------------------------
           ! Remember weights for the reference radiance, to be used as starting point
           ! in the regular radiance fitting
           ! -------------------------------------------------------------------------
           radref_wght(1:n_rad_wvl,ipix) = curr_rad_spec(sig_idx,1:n_rad_wvl)
-
        END IF
       
     END DO XTrackPix
@@ -344,7 +342,7 @@ CONTAINS
        ! (b) the number of cross-track points we can fit.
        ! ----------------------------------------------------
        IF ( npol > 0 .AND. jpix-ipix+1 > npol ) THEN
-         
+          print*, 'Polynomial'
           eps =  0.0_r8  ! Fit the complete NPOL polynomial
           ndeg = npol
           x(1:nx) = (/ ( REAL(i-nx/2, KIND=r8), i = 1, nx ) /) / REAL(nx/2, KIND=r8)
@@ -356,13 +354,19 @@ CONTAINS
           END WHERE
           CALL dpolft (&
                nx, x(1:nx), y(1:nx), w(1:nx), npol, ndeg, eps, yf(1:nx), ierr, a )
-
+       ELSE IF (npol .EQ. 0) THEN
+          ! --------------------------------------
+          ! Just assing each cross track possition
+          ! --------------------------------------
+          print*, 'Individual'
+          yf(1:nx) = target_var(j,ipix:jpix)
        ELSE
           ! -----------------------------------------------------------------
           ! The Median is a better choice than the Mean, since the former
           ! is less sensitive to outliers. The Mean may be skewed towards
           ! abnormally high values at the edges of the swath.
           ! -----------------------------------------------------------------
+          print*, 'Median'
           nfit = nx
           yf(1:nx) = median(nx, target_var(j,ipix:jpix))
        END IF
