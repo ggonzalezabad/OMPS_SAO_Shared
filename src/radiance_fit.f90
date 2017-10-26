@@ -45,14 +45,14 @@ SUBROUTINE radiance_fit ( &
   ! ------------------
   ! Modified variables
   ! ------------------
-  LOGICAL,                                     INTENT (OUT) :: yn_bad_pixel
-  INTEGER (KIND=i4),                           INTENT (OUT) :: radfit_exval, radfit_itnum
-  REAL    (KIND=r8),                           INTENT (OUT) :: fitcol, rms, dfitcol, chisquav
+  LOGICAL, INTENT (OUT) :: yn_bad_pixel
+  INTEGER (KIND=i4), INTENT (OUT) :: radfit_exval, radfit_itnum
+  REAL    (KIND=r8), INTENT (OUT) :: fitcol, rms, dfitcol, chisquav
   REAL    (KIND=r8), DIMENSION (n_fitvar_rad), INTENT (OUT) :: allfit, allerr, corrmat
   REAL    (KIND=r8), DIMENSION (ctrvar%n_fincol_idx), INTENT (OUT) :: target_var
 
-  ! CCM Also return fitted spectrum
-  REAL    (KIND=r8), DIMENSION (n_rad_wvl),    INTENT (OUT) :: fitspc_out 
+  ! Also return fitted spectrum
+  REAL (KIND=r8), DIMENSION (n_rad_wvl), INTENT (OUT) :: fitspc_out 
 
   ! ---------------
   ! Local variables
@@ -63,7 +63,6 @@ SUBROUTINE radiance_fit ( &
   REAL    (KIND=r8)                                         :: mean, mdev, sdev, loclim, normfac, mfac
   REAL    (KIND=r8), DIMENSION (n_rad_wvl)                  :: fitres, fitspec, tmp
   REAL    (KIND=r8), DIMENSION (n_max_fitpars)              :: fitvar
-  REAL    (KIND=r8), DIMENSION (n_fitvar_rad, n_fitvar_rad) :: covar_matrix
   REAL    (KIND=r8), DIMENSION (:,:), ALLOCATABLE           :: covar
 
   REAL    (KIND=r8) :: fitcol_saved
@@ -80,11 +79,10 @@ SUBROUTINE radiance_fit ( &
   ! ============================================================
   ! Assign LL_RAD, LU_RAD, and SIG for each earthshine radiance
   ! ============================================================
-  ll_rad = fit_winwav_idx(2)  ;  lu_rad = fit_winwav_idx(3)
-
   fitwavs   (1:n_rad_wvl) = curr_rad_spec(wvl_idx,1:n_rad_wvl)
   currspec  (1:n_rad_wvl) = curr_rad_spec(spc_idx,1:n_rad_wvl)
   fitweights(1:n_rad_wvl) = curr_rad_spec(sig_idx,1:n_rad_wvl)
+
   ! ---------------------------------------------------------------
   ! High pass filtering for DOAS. First, take log (rad/irrad), then
   ! filter by subtracting a cubic, then re-add the log (irradiance).
@@ -97,6 +95,7 @@ SUBROUTINE radiance_fit ( &
   ! ---------------------------------------------------------------
   IF ( ctrvar%yn_doas ) THEN
      currspec(1:n_rad_wvl) = LOG ( currspec(1:n_rad_wvl) / database(solar_idx,1:n_rad_wvl) )
+     ll_rad = fit_winwav_idx(2)  ;  lu_rad = fit_winwav_idx(3)
      CALL subtract_cubic_meas (fitwavs(1:n_rad_wvl), n_rad_wvl, currspec(1:n_rad_wvl), ll_rad, lu_rad)
      currspec(1:n_rad_wvl) = currspec(1:n_rad_wvl) + LOG ( database(solar_idx,1:n_rad_wvl) )
   END IF
@@ -119,7 +118,7 @@ SUBROUTINE radiance_fit ( &
   rad_wav_avg = asum / ssum
   
   radfit_exval = 0
-     
+
   ! --------------------------------------------------------------------
   ! Initialize the fitting variables with the initial guess. Rather than
   ! subjecting ourselves to the vagarities of a wrong convergence, we
@@ -148,6 +147,7 @@ SUBROUTINE radiance_fit ( &
      lobnd (i) = ctrvar%lo_radbnd(idx)
      upbnd (i) = ctrvar%up_radbnd(idx)
   END DO
+
   ! ----------------------------------------------------------------------
   ! Check whether we have enough spectral points to carry out the fitting.
   ! If not, call it a bad pixel and return.
@@ -161,6 +161,7 @@ SUBROUTINE radiance_fit ( &
   ! -------------------------------------
   ALLOCATE ( covar(1:n_fitvar_rad,1:n_fitvar_rad) )
   covar = r8_missval
+
   ! ------------------------------------------------------------------------------
   ! For certain PGEs we use a fitting function that corrects the O3 cross sections
   ! with a quadratic polynomial in wavelength, to account for the fact that O3
@@ -179,7 +180,6 @@ SUBROUTINE radiance_fit ( &
           covar(1:n_fitvar_rad, 1:n_fitvar_rad), fitspec(1:n_rad_wvl), &
           fitres(1:n_rad_wvl), radfit_exval, locitnum, specfit_func      )
   END IF
-  covar_matrix(1:n_fitvar_rad,1:n_fitvar_rad) = covar(1:n_fitvar_rad,1:n_fitvar_rad)
 
   ! ------------------------------------------
   ! Assign iteration number from the first fit
@@ -229,7 +229,6 @@ SUBROUTINE radiance_fit ( &
                 covar(1:n_fitvar_rad, 1:n_fitvar_rad), fitspec(1:n_rad_wvl),  &
                 fitres(1:n_rad_wvl), radfit_exval, locitnum, specfit_func       )
         END IF
-        covar_matrix(1:n_fitvar_rad,1:n_fitvar_rad) = covar(1:n_fitvar_rad,1:n_fitvar_rad)
 
         ! -----------------------------
         ! Add any subsequent iterations
@@ -264,23 +263,16 @@ SUBROUTINE radiance_fit ( &
      END DO fitloop
   END IF
 
-  ! ----------------------------------------
-  ! De-allocate memory for COVARIANCE MATRIX
-  ! ----------------------------------------
-  IF ( ALLOCATED (covar) ) DEALLOCATE (covar)
-
-  ! ---------------------------------------------------------------------
-  ! Save correlation information from covariance matrix !gga to real corr
-  ! elation. Only correlation of the main variable (retrieved molecule) w
-  ! ith the other variables is kept
-  ! ---------------------------------------------------------------------
+  ! -------------------------------------------------------------------
+  ! Save correlation information from covariance matrix to correlation.
+  ! Only correlation of the main variable (retrieved molecule) with the
+  ! other variables is kept
+  ! -------------------------------------------------------------------
   corrmat = r8_missval
   index   = ctrvar%fincol_idx(1,1)
   DO i = 1, n_fitvar_rad
-     IF (covar_matrix (i,i) .EQ. 0.0 .OR. covar_matrix(index,index) .EQ. 0.0) CYCLE
-     corrmat(i) =       covar_matrix ( index, i               ) / &
-                  SQRT( covar_matrix ( index, index ) *           &
-                        covar_matrix ( i              , i )   )
+     IF (covar(i,i) .EQ. 0.0 .OR. covar(index,index) .EQ. 0.0) CYCLE
+     corrmat(i) = covar(index,i) / SQRT(covar(index,index ) * covar(i,i ))
   END DO
 
   ! --------------------------------------------------------------------
@@ -288,7 +280,7 @@ SUBROUTINE radiance_fit ( &
   ! --------------------------------------------------------------------
   curr_rad_spec(sig_idx,1:n_rad_wvl) = fitweights(1:n_rad_wvl)
 
-  ! CCM save fitted spectrum
+  ! Save fitted spectrum
   fitspc_out = fitspec(1:n_rad_wvl)
 
   ! --------------------------------------------------------------------
@@ -347,14 +339,14 @@ SUBROUTINE radiance_fit ( &
         j1 = ctrvar%fincol_idx(1, i) ; k1 = ctrvar%fincol_idx(2,i)
 
         fitcol  = fitcol  + ctrvar%pm_one * fitvar(j1) / refspecs_original(k1)%NormFactor
-        dfitcol = dfitcol + covar_matrix(j1,j1) / refspecs_original(k1)%NormFactor**2
+        dfitcol = dfitcol + covar(j1,j1) / refspecs_original(k1)%NormFactor**2
 
         ! -------------------------------------------------------------------------
         ! Then add the contributions from off-diagonal elements (correlations)
         ! -------------------------------------------------------------------------
         DO l = i+1, ctrvar%n_fincol_idx
            j2 = ctrvar%fincol_idx(1,l) ; k2 = ctrvar%fincol_idx(2,l)
-           dfitcol = dfitcol + 2.0_r8 * covar_matrix(j1,j2) / &
+           dfitcol = dfitcol + 2.0_r8 * covar(j1,j2) / &
                 (refspecs_original(k1)%NormFactor*refspecs_original(k2)%NormFactor)
         END DO
 
@@ -370,7 +362,7 @@ SUBROUTINE radiance_fit ( &
      ! ------------------------------------------------------------
      DO i = 1, n_fitvar_rad
         allfit(i) = fitvar(i)
-        allerr(i) = covar_matrix(i,i)
+        allerr(i) = covar(i,i)
         j = all_radfit_idx(i)
         IF ( j > max_calfit_idx ) THEN
            j = j - max_calfit_idx
@@ -437,6 +429,11 @@ SUBROUTINE radiance_fit ( &
      fitcol = r8_missval ; dfitcol = r8_missval
      ! -------------------------------------------------------------------
   END SELECT
+
+  ! ----------------------------------------
+  ! De-allocate memory for COVARIANCE MATRIX
+  ! ----------------------------------------
+  IF ( ALLOCATED (covar) ) DEALLOCATE (covar)
 
   fitcol_saved = fitcol
 
