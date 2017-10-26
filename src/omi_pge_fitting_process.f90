@@ -317,15 +317,15 @@ SUBROUTINE omi_fitting ( &
      CALL xtrack_radiance_reference_loop ( .TRUE., ctrvar%yn_remove_target, &
           nXtrackRadRR, nWvlCCDrr, first_wc_pix, last_wc_pix, pge_error_status )
 
-!!$     IF (ctrvar%yn_remove_target) &
-!!$          ! -----------------------------------------------------------------
-!!$          ! Because we have updated the radiance reference after substracting
-!!$          ! the target column we can now retrieve the target column against
-!!$          ! the radiance reference stored in the ins_database as a security
-!!$          ! check.
-!!$          ! -----------------------------------------------------------------
-!!$          CALL xtrack_radiance_reference_loop ( .FALSE.,.FALSE., &
-!!$          nXtrackRadRR, nWvlCCDrr, first_wc_pix, last_wc_pix, pge_error_status )
+     IF (ctrvar%yn_remove_target) &
+          ! -----------------------------------------------------------------
+          ! Because we have updated the radiance reference after substracting
+          ! the target column we can now retrieve the target column against
+          ! the radiance reference stored in the ins_database as a security
+          ! check.
+          ! -----------------------------------------------------------------
+          CALL xtrack_radiance_reference_loop ( .FALSE.,.FALSE., &
+          nXtrackRadRR, nWvlCCDrr, first_wc_pix, last_wc_pix, pge_error_status )
      
   END IF
 
