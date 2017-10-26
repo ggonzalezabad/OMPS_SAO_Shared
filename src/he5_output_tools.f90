@@ -438,142 +438,6 @@ FUNCTION he5_define_fields ( ) RESULT ( he5stat )
   RETURN
 END FUNCTION he5_define_fields
 
-
-SUBROUTINE he5_write_wavcal_output ( nXtloc, fpix, lpix, errstat )
-
-  USE OMSAO_indices_module, ONLY: max_calfit_idx
-  USE OMSAO_he5_module
-  USE OMSAO_he5_datafields_module, ONLY: sol_calfit_he5fields, &
-       rad_calfit_he5fields, rad_reffit_he5fields
-  USE OMSAO_errstat_module, ONLY: pge_errstat_ok, pge_errstat_error, &
-       he5_stat_ok, error_check, vb_lev_default, &
-       omsao_e_he5swwrfld
-  USE OMSAO_data_module,   ONLY: &
-       n_roff_dig,                                            &
-       solcal_xflag,  radcal_xflag, radref_xflag, &
-       solcal_pars,   radcal_pars,  radref_pars,  &
-       radref_col,    radref_dcol,  radref_rms,   &
-       radref_xtrcol
-  USE OMSAO_variables_module, ONLY: ctrvar
-
-  IMPLICIT NONE
-
-  ! ------------------------------
-  ! Name of this module/subroutine
-  ! ------------------------------
-  CHARACTER (LEN=23), PARAMETER :: modulename = 'he5_write_wavcal_output'
-
-  ! ---------------
-  ! Input variables
-  ! ---------------
-  INTEGER (KIND=i4), INTENT (IN) :: nXtloc, fpix, lpix
-
-  ! ---------------
-  ! Output variable
-  ! ---------------
-  INTEGER (KIND=i4), INTENT (INOUT) :: errstat
-
-  ! ---------------
-  ! Local variables
-  ! ---------------
-  INTEGER (KIND=i4)                             :: locerrstat, i, j, npix
-  REAL    (KIND=r8), DIMENSION (max_calfit_idx) :: tmpr8
-  locerrstat = pge_errstat_ok
-
-  ! -----------------------------------------------
-  ! Number of cross-track pixels actually processed
-  ! -----------------------------------------------
-  npix = lpix - fpix + 1
-
-  ! -------------------------------------------------------------------------------------------
-  ! Write results for solar and radiance wavelength calibration, and the radiance reference fit
-  ! -------------------------------------------------------------------------------------------
-  DO j = fpix, lpix
-     tmpr8(1:max_calfit_idx) = solcal_pars(1:max_calfit_idx,j)
-     CALL roundoff_1darr_r8 ( n_roff_dig, max_calfit_idx, tmpr8(1:max_calfit_idx) )
-     solcal_pars(1:max_calfit_idx,j) = tmpr8(1:max_calfit_idx)
-
-     tmpr8(1:max_calfit_idx) = radcal_pars(1:max_calfit_idx,j)
-     CALL roundoff_1darr_r8 ( n_roff_dig, max_calfit_idx, tmpr8(1:max_calfit_idx) )
-     radcal_pars(1:max_calfit_idx,j) = tmpr8(1:max_calfit_idx)
-
-     tmpr8(1:max_calfit_idx) = radref_pars(1:max_calfit_idx,j)
-     CALL roundoff_1darr_r8 ( n_roff_dig, max_calfit_idx, tmpr8(1:max_calfit_idx) )
-     radref_pars(1:max_calfit_idx,j) = tmpr8(1:max_calfit_idx)
-  END DO
-
-  ! --------------------------------------------------
-  ! There is only one variable in the data field array
-  ! --------------------------------------------------
-  i = 1
-
-  ! ------------------------------------------
-  ! The remaining parameters are 1-dimensional
-  ! ------------------------------------------
-  he5_start_2d  = (/                0, 0 /)
-  he5_stride_2d = (/                1, 0 /)
-  he5_edge_2d   = (/ INT(nXtloc,KIND=C_LONG), 0_i8 /)
-
-  ! -----------------------------
-  ! Exit value of Fitting Routine
-  ! -----------------------------
-  locerrstat = HE5_SWWRFLD (  &
-       sol_calfit_he5fields(i)%Swath_ID, TRIM(ADJUSTL(swccf_field)), &
-       he5_start_2d, he5_stride_2d, he5_edge_2d, solcal_xflag(1:nXtloc) )
-  locerrstat = HE5_SWWRFLD (  &
-       rad_calfit_he5fields(i)%Swath_ID, TRIM(ADJUSTL(rwccf_field)), &
-       he5_start_2d, he5_stride_2d, he5_edge_2d, radcal_xflag(1:nXtloc) )
-  locerrstat = HE5_SWWRFLD (  &
-       rad_reffit_he5fields(i)%Swath_ID, TRIM(ADJUSTL(rrcf_field )), &
-       he5_start_2d, he5_stride_2d, he5_edge_2d, radref_xflag(1:nXtloc) )
-
-  ! --------------------------------------------------------------------------
-  ! Special output for radiance wavelength calibration, and the possibility of
-  ! the usage of a radiance reference spectrum.
-  ! --------------------------------------------------------------------------
-  he5_start_2d  = (/ 0, 0 /) 
-  he5_stride_2d = (/ 1, 0 /)
-  he5_edge_2d   = (/ 2, 0 /)
-
-  locerrstat = HE5_SWWRFLD (                                                  &
-       rad_reffit_he5fields(i)%Swath_ID, TRIM(ADJUSTL(rrlr_field )),          &
-       he5_start_2d(1), he5_stride_2d(1), he5_edge_2d(1), ctrvar%radref_latrange(1:2) )
-
-  ! ---------------------------------------------------------------------------
-  ! Write results for column and column uncertainty from radiance reference fit
-  ! ---------------------------------------------------------------------------
-  CALL roundoff_1darr_r8 ( n_roff_dig, npix, radref_col   (fpix:lpix) )
-  CALL roundoff_1darr_r8 ( n_roff_dig, npix, radref_dcol  (fpix:lpix) )
-  CALL roundoff_1darr_r8 ( n_roff_dig, npix, radref_rms   (fpix:lpix) )
-  CALL roundoff_1darr_r8 ( n_roff_dig, npix, radref_xtrcol(fpix:lpix) )
-
-  he5_start_2d  = (/ 0, 0 /) 
-  he5_stride_2d = (/ 1, 0 /)
-  he5_edge_2d   = (/ INT(nXtloc,KIND=C_LONG), INT(0, KIND=C_LONG) /)
-  locerrstat = HE5_SWWRFLD ( &
-       rad_reffit_he5fields(i)%Swath_ID, TRIM(ADJUSTL(rrcol_field)), &
-       he5_start_2d(1), he5_stride_2d(1), he5_edge_2d(1), radref_col(1:nXtloc) )
-  locerrstat = HE5_SWWRFLD ( &
-       rad_reffit_he5fields(i)%Swath_ID, TRIM(ADJUSTL(rrdcol_field)), &
-       he5_start_2d(1), he5_stride_2d(1), he5_edge_2d(1), radref_dcol(1:nXtloc) )
-  locerrstat = HE5_SWWRFLD ( &
-       rad_reffit_he5fields(i)%Swath_ID, TRIM(ADJUSTL(rrxcol_field)), &
-       he5_start_2d(1), he5_stride_2d(1), he5_edge_2d(1), radref_xtrcol(1:nXtloc) )
-  locerrstat = HE5_SWWRFLD ( &
-       rad_reffit_he5fields(i)%Swath_ID, TRIM(ADJUSTL(rrrms_field)), &
-       he5_start_2d(1), he5_stride_2d(1), he5_edge_2d(1), radref_rms(1:nXtloc) )
-
-  ! ------------------
-  ! Check error status
-  ! ------------------
-
-  CALL error_check ( locerrstat, HE5_STAT_OK, pge_errstat_error, OMSAO_E_HE5SWWRFLD, &
-       modulename, vb_lev_default, errstat )
-
-  RETURN
-END SUBROUTINE he5_write_wavcal_output
-
-
 SUBROUTINE he5_write_radfit_output ( &
      pge_idx, iline, nXtrack, fpix, lpix, &
      all_fitted_columns, all_fitted_errors, correlation_columns,&
@@ -2467,3 +2331,105 @@ SUBROUTINE he5_write_radiancewavcal ( nw, ip, squeeze, shift, residual, locerrst
   RETURN
 
 END SUBROUTINE he5_write_radiancewavcal
+
+
+SUBROUTINE he5_write_radrefcal ( nXtloc, fpix, lpix, errstat )
+
+  USE OMSAO_precision_module, ONLY: i4
+  USE OMSAO_he5_module, ONLY: he5_start_1d, he5_stride_1d, he5_edge_1d, &
+       pge_swath_id, rrcf_field, rrcol_field, rrdcol_field, rrlr_field, &
+       rrrms_field, rrxcol_field, he5_swwrfld
+  USE OMSAO_errstat_module, ONLY: pge_errstat_ok, pge_errstat_error, &
+       he5_stat_ok, error_check, vb_lev_default, &
+       omsao_e_he5swwrfld
+  USE OMSAO_data_module, ONLY: n_roff_dig, radref_xflag, radref_col, &
+       radref_dcol, radref_rms, radref_xtrcol
+  USE OMSAO_variables_module, ONLY: ctrvar
+
+  IMPLICIT NONE
+
+  ! ------------------------------
+  ! Name of this module/subroutine
+  ! ------------------------------
+  CHARACTER (LEN=19), PARAMETER :: modulename = 'he5_write_radrefcal'
+
+  ! ---------------
+  ! Input variables
+  ! ---------------
+  INTEGER (KIND=i4), INTENT (IN) :: nXtloc, fpix, lpix
+
+  ! ---------------
+  ! Output variable
+  ! ---------------
+  INTEGER (KIND=i4), INTENT (INOUT) :: errstat
+
+  ! ---------------
+  ! Local variables
+  ! ---------------
+  INTEGER (KIND=i4) :: locerrstat, npix
+
+  locerrstat = pge_errstat_ok
+
+  ! -----------------------------------------------
+  ! Number of cross-track pixels actually processed
+  ! -----------------------------------------------
+  npix = lpix - fpix + 1
+
+  ! ------------------------------------------
+  ! The remaining parameters are 1-dimensional
+  ! ------------------------------------------
+  he5_start_1d = 0; he5_stride_1d = 1; he5_edge_1d = nXtloc
+
+  ! ---------------------------------------------------------------------------
+  ! Write results for column and column uncertainty from radiance reference fit
+  ! ---------------------------------------------------------------------------
+  CALL roundoff_1darr_r8 ( n_roff_dig, npix, radref_col   (fpix:lpix) )
+  CALL roundoff_1darr_r8 ( n_roff_dig, npix, radref_dcol  (fpix:lpix) )
+  CALL roundoff_1darr_r8 ( n_roff_dig, npix, radref_rms   (fpix:lpix) )
+  CALL roundoff_1darr_r8 ( n_roff_dig, npix, radref_xtrcol(fpix:lpix) )
+
+  he5_start_1d = 0; he5_stride_1d = 1; he5_edge_1d = nXtloc
+
+  ! -----------------------------
+  ! Exit value of Fitting Routine
+  ! -----------------------------
+  locerrstat = HE5_SWWRFLD ( pge_swath_id, TRIM(ADJUSTL(rrcf_field )), &
+       he5_start_1d, he5_stride_1d, he5_edge_1d, radref_xflag(1:nXtloc) )
+
+  ! Column
+  locerrstat = HE5_SWWRFLD ( &
+       pge_swath_id, TRIM(ADJUSTL(rrcol_field)), &
+       he5_start_1d, he5_stride_1d, he5_edge_1d, radref_col(1:nXtloc) )
+  ! Uncertainty
+  locerrstat = HE5_SWWRFLD ( &
+       pge_swath_id, TRIM(ADJUSTL(rrdcol_field)), &
+       he5_start_1d, he5_stride_1d, he5_edge_1d, radref_dcol(1:nXtloc) )
+  ! Smoothed column
+  locerrstat = HE5_SWWRFLD ( &
+       pge_swath_id, TRIM(ADJUSTL(rrxcol_field)), &
+       he5_start_1d, he5_stride_1d, he5_edge_1d, radref_xtrcol(1:nXtloc) )
+  ! RMS
+  locerrstat = HE5_SWWRFLD ( &
+       pge_swath_id, TRIM(ADJUSTL(rrrms_field)), &
+       he5_start_1d, he5_stride_1d, he5_edge_1d, radref_rms(1:nXtloc) )
+
+
+  ! --------------------------------------------------------------------------
+  ! Special output for radiance wavelength calibration, and the possibility of
+  ! the usage of a radiance reference spectrum.
+  ! --------------------------------------------------------------------------
+  he5_start_1d  = 0; he5_stride_1d = 1; he5_edge_1d   = 2
+
+  locerrstat = HE5_SWWRFLD ( pge_swath_id, TRIM(ADJUSTL(rrlr_field )), &
+       he5_start_1d, he5_stride_1d, he5_edge_1d, ctrvar%radref_latrange(1:2) )
+
+  ! ------------------
+  ! Check error status
+  ! ------------------
+
+  CALL error_check ( locerrstat, HE5_STAT_OK, pge_errstat_error, OMSAO_E_HE5SWWRFLD, &
+       modulename, vb_lev_default, errstat )
+
+  RETURN
+END SUBROUTINE he5_write_radrefcal
+

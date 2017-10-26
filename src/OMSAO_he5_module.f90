@@ -398,7 +398,7 @@ MODULE OMSAO_he5_module
   CHARACTER (LEN=12), DIMENSION ( 3, n_radref_fields ), PARAMETER :: &
        radref_field_specs = RESHAPE ( (/ &
        "NoUnits     ", "nXtrack     ", "i2          ",   &
-       "NoUnits     ", "4           ", "r4          ",   &
+       "NoUnits     ", "2           ", "r4          ",   &
        "molec/cm2   ", "nXtrack     ", "r8          ",   &
        "molec/cm2   ", "nXtrack     ", "r8          ",   &
        "molec/cm2   ", "nXtrack     ", "r8          ",   &

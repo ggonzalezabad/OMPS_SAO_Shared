@@ -59,11 +59,11 @@ CONTAINS
     REAL    (KIND=r8), DIMENSION (n_fitvar_rad)        :: corr_matrix_tmp, allfit_cols_tmp, allfit_errs_tmp
     LOGICAL                  :: yn_skip_pix
     CHARACTER (LEN=maxchlen) :: addmsg
-    LOGICAL                                          :: yn_bad_pixel
-    INTEGER (KIND=i4), DIMENSION (4)                 :: select_idx
-    INTEGER (KIND=i4), DIMENSION (2)                 :: exclud_idx
-    INTEGER (KIND=i4)                                :: n_solar_pts
-    REAL    (KIND=r8), DIMENSION (1:nw)              :: solar_wgt
+    LOGICAL :: yn_bad_pixel
+    INTEGER (KIND=i4), DIMENSION (4) :: select_idx
+    INTEGER (KIND=i4), DIMENSION (2) :: exclud_idx
+    INTEGER (KIND=i4) :: n_solar_pts, npix
+    REAL    (KIND=r8), DIMENSION (1:nw) :: solar_wgt
     REAL    (KIND=r8), DIMENSION (ctrvar%n_fincol_idx,1:nx) :: target_var 
 
     ! CCM fitted spectrum now returned from radiance_fit.f90
@@ -87,7 +87,7 @@ CONTAINS
     radref_col (1:nx) = r8_missval
     radref_dcol (1:nx) = r8_missval
     radref_rms (1:nx) = r8_missval
-    radref_xtrcol(1:nx) = r8_missval
+    npix = lpix-fpix+1 ! For output
 
     XTrackPix: DO ipix = fpix, lpix
 
@@ -254,10 +254,18 @@ CONTAINS
        ! OMI_RADREF_SPEC (1:NWVL,FPIX:LPIX). This is being passed to the
        ! subroutine via MODULE use rather than through the argument list.
        ! ----------------------------------------------------------------
+       radref_xtrcol(1:nx) = r8_missval
        CALL remove_target_from_radiance (                              &
             fpix, lpix, ctrvar%n_fincol_idx, ctrvar%fincol_idx(1:2,1:ctrvar%n_fincol_idx),  &
             ctrvar%target_npol, target_var(1:ctrvar%n_fincol_idx,fpix:lpix), radref_xtrcol(fpix:lpix) )
     END IF
+
+    ! ----------------------------------------
+    ! Write radiance reference fitting results
+    ! If we go over it twice results be over
+    ! written.
+    ! ----------------------------------------
+    IF (ctrvar%yn_diagnostic_run) CALL he5_write_radrefcal(npix, fpix, lpix, errstat)
 
     errstat = MAX ( errstat, locerrstat )
 
@@ -342,7 +350,6 @@ CONTAINS
        ! (b) the number of cross-track points we can fit.
        ! ----------------------------------------------------
        IF ( npol > 0 .AND. jpix-ipix+1 > npol ) THEN
-          print*, 'Polynomial'
           eps =  0.0_r8  ! Fit the complete NPOL polynomial
           ndeg = npol
           x(1:nx) = (/ ( REAL(i-nx/2, KIND=r8), i = 1, nx ) /) / REAL(nx/2, KIND=r8)
@@ -358,7 +365,6 @@ CONTAINS
           ! --------------------------------------
           ! Just assing each cross track possition
           ! --------------------------------------
-          print*, 'Individual'
           yf(1:nx) = target_var(j,ipix:jpix)
        ELSE
           ! -----------------------------------------------------------------
@@ -366,7 +372,6 @@ CONTAINS
           ! is less sensitive to outliers. The Mean may be skewed towards
           ! abnormally high values at the edges of the swath.
           ! -----------------------------------------------------------------
-          print*, 'Median'
           nfit = nx
           yf(1:nx) = median(nx, target_var(j,ipix:jpix))
        END IF
