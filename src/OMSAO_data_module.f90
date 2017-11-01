@@ -64,8 +64,8 @@ MODULE OMSAO_data_module
   ! -------------------------------------------------------------------
   INTEGER (KIND=i2), ALLOCATABLE, DIMENSION (:,:) :: irradiance_qflg, radref_qflg
   REAL    (KIND=r4), ALLOCATABLE, DIMENSION (:) :: radref_sza, radref_vza
-  INTEGER (KIND=i4), ALLOCATABLE, DIMENSION(:,:) :: ccdpix_selection
-  INTEGER (KIND=i4), ALLOCATABLE, DIMENSION(:,:) :: ccdpix_exclusion
+  INTEGER (KIND=i4), ALLOCATABLE, DIMENSION (:,:) :: ccdpix_selection
+  INTEGER (KIND=i4), ALLOCATABLE, DIMENSION (:,:) :: ccdpix_exclusion
 
   ! ----------------------------------
   ! Arrays for common mode calculation
@@ -198,6 +198,11 @@ CONTAINS
                radref_col(1:nx), radref_dcol(1:nx), radref_rms(1:nx), radref_xtrcol(1:nx), stat=errstat)
        END IF
     END IF
+    IF (ctrvar%yn_common_iter) THEN
+       IF (.NOT. ALLOCATED(common_cnt)) THEN
+          ALLOCATE (common_cnt(1:nx), common_wvl(1:nx,1:nw), common_spc(1:nx,1:nw), stat=errstat)
+       END IF
+    END IF
 
   END SUBROUTINE allocate_variables  
 
@@ -225,6 +230,11 @@ CONTAINS
           DEALLOCATE(radref_sza, radref_vza, nwav_radref, radref_spec, radref_wavl, radref_wght, &
                radref_qflg, radref_pars, radref_xflag, radref_itnum, radref_chisq, radref_col, &
                radref_dcol, radref_rms, radref_xtrcol, stat=errstat)
+       END IF
+    END IF
+    IF (ctrvar%yn_common_iter) THEN
+       IF (ALLOCATED(common_cnt)) THEN
+          DEALLOCATE(common_cnt, common_wvl, common_spc, stat=errstat)
        END IF
     END IF
 
