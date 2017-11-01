@@ -15,7 +15,8 @@ SUBROUTINE radiance_fit ( &
   USE OMSAO_precision_module
   USE OMSAO_indices_module, ONLY: solar_idx, n_max_fitpars, wvl_idx, &
        spc_idx, sig_idx, ccd_idx, max_calfit_idx
-  USE OMSAO_parameters_module, ONLY: r8_missval, i2_missval, downweight
+  USE OMSAO_parameters_module, ONLY: r8_missval, i2_missval, downweight, &
+       elsunc_less_is_noise
   USE OMSAO_variables_module, ONLY: &
        database, rad_wav_avg, fitvar_rad, &
        fitvar_rad_saved,  n_fitvar_rad, &
@@ -298,7 +299,6 @@ SUBROUTINE radiance_fit ( &
      ! Update common mode spectrum
      ! ---------------------------
      IF ( yn_common_fit ) THEN
-        fitres(1:n_rad_wvl) = fitres(1:n_rad_wvl) / fitweights(1:n_rad_wvl)
         CALL compute_common_mode ( &
              yn_common_fit, ipix, n_rad_wvl, fitwavs(1:n_rad_wvl), &
              fitres(1:n_rad_wvl), .FALSE. )
@@ -410,13 +410,13 @@ SUBROUTINE radiance_fit ( &
      !          dangerous. By going back to the initial guess, we may
      !          lose some speed, but we gain predictability.
      ! -------------------------------------------------------------------
-     !IF ( (radfit_exval >= INT(elsunc_less_is_noise, KIND=i4)) .AND. &
-     !     (fitcol+1.0_r8*dfitcol >= 0.0_r8)                    .AND. &
-     !     ( .NOT. yn_common_fit )                                  )  THEN
-     !   fitvar_rad_saved(1:n_max_fitpars) = fitvar_rad(1:n_max_fitpars)
-     !ELSE
+     IF ( (radfit_exval >= INT(elsunc_less_is_noise, KIND=i4)) .AND. &
+          (fitcol+1.0_r8*dfitcol >= 0.0_r8) )  THEN
+        fitvar_rad_saved(1:n_max_fitpars) = fitvar_rad(1:n_max_fitpars)
+     ELSE
         fitvar_rad_saved(1:n_max_fitpars) = ctrvar%fitvar_rad_init(1:n_max_fitpars)
-     !END IF
+     END IF
+
      ! ======================================================
      ! Anything but EXVAL > 0 means that trouble has occurred, 
      ! and the fit most likely is screwed.
