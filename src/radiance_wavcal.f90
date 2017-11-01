@@ -12,6 +12,7 @@ SUBROUTINE radiance_wavcal (                              &
        fitvar_cal, fitvar_cal_saved, &
        mask_fitvar_cal, n_fitvar_cal, lobnd, upbnd, &
        hw1e, e_asym, g_shap, sol_wav_avg, ctrvar
+  USE OMSAO_data_module, ONLY: curr_xtrack_pixnum
   USE OMSAO_errstat_module
 
   IMPLICIT NONE
@@ -62,13 +63,15 @@ SUBROUTINE radiance_wavcal (                              &
   currspec (1:n_rad_wvl) = curr_rad_spec(spc_idx, 1:n_rad_wvl)
   fitweights(1:n_rad_wvl) = curr_rad_spec(sig_idx, 1:n_rad_wvl)
 
-  ! ------------------------------------------
-  ! Update wavelegths for common mode spectrum
-  ! (the .TRUE. in the call below selects the
-  !  "wavelength update only" branch)
-  ! ------------------------------------------
-!!$  CALL compute_common_mode ( &
-!!$       .TRUE., ipix, n_rad_wvl, fitwavs(1:n_rad_wvl), currspec(1:n_rad_wvl), .FALSE. )        
+  ! -------------------------------
+  ! Initialze common mode variables
+  ! -------------------------------
+  IF (ctrvar%yn_common_iter) THEN
+     CALL compute_common_mode ( &
+          .FALSE., & !Logical for common mode fit or not
+          curr_xtrack_pixnum, n_rad_wvl, fitwavs(1:n_rad_wvl), currspec(1:n_rad_wvl), &
+          .FALSE. ) !Logical for final call to common mode (to save spectra to database)
+  END IF
 
   ! -------------------------------------------------------------
   ! Initialize the fitting variables. FITVAR_CAL_SAVED has been
