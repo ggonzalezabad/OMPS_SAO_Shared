@@ -1174,7 +1174,7 @@ END SUBROUTINE common_mode_save_vars
 
 
 SUBROUTINE compute_common_mode ( &
-     yn_reference_fit, xti, nwvl, fitwvl, fitres, yn_final_call )
+     yn_common_fit, xti, nwvl, fitwvl, fitres, yn_final_call )
 
   USE OMSAO_precision_module, ONLY: i2, i4, r8
   USE OMSAO_indices_module,   ONLY: max_calfit_idx, comm_idx, mxs_idx
@@ -1190,7 +1190,7 @@ SUBROUTINE compute_common_mode ( &
   ! ---------------
   ! Input variables
   ! ---------------
-  LOGICAL,                             INTENT (IN) :: yn_reference_fit, yn_final_call
+  LOGICAL,                             INTENT (IN) :: yn_common_fit, yn_final_call
   INTEGER (KIND=i4),                   INTENT (IN) :: xti, nwvl
   REAL    (KIND=r8), DIMENSION (nwvl), INTENT (IN) :: fitwvl, fitres
 
@@ -1252,7 +1252,7 @@ SUBROUTINE compute_common_mode ( &
      RETURN
   END IF
 
-  IF ( yn_reference_fit ) THEN
+  IF ( .NOT. yn_common_fit ) THEN
      ! -------------------------------------------------------------
      ! The Radiance Reference Fit branch saves the wavelength values
      ! and initializes the count and spectrum arrays for the current
@@ -1289,6 +1289,8 @@ SUBROUTINE compute_common_mode ( &
 
      common_mode_spec%CCDPixel(xti,1) = INT(ccdpix_selection(xti,1), KIND=i2)
      common_mode_spec%CCDPixel(xti,2) = INT(ccdpix_selection(xti,4), KIND=i2)
+     print*, 'End initialize common mode'
+     stop
   ELSE
      ! --------------------------------------------------------
      ! The Reguar Fitting branch updates the spectrum and count
