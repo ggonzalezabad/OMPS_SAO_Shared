@@ -1,5 +1,6 @@
 SUBROUTINE radiance_fit ( &
-     ipix, n_fitres_loop, fitres_range, yn_common_fit, &
+     ipix, n_fitres_loop, fitres_range, &
+     yn_common_fit, & !Logical to activate common mode branch
      n_rad_wvl, curr_rad_spec,                                     &
      fitcol, rms, dfitcol, radfit_exval, radfit_itnum, chisquav,   &
      target_var, allfit, allerr, corrmat, &
