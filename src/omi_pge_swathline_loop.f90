@@ -1,6 +1,7 @@
 SUBROUTINE omi_pge_swathline_loop ( &
      pge_idx, nt, nx, n_max_rspec, yn_process,  &
-     xtrange, yn_commit, errstat)
+     xtrange, yn_commit, yn_common_fit, & 
+     errstat)
 
 
   USE OMSAO_precision_module, ONLY: i4, r8
@@ -25,7 +26,7 @@ SUBROUTINE omi_pge_swathline_loop ( &
   INTEGER (KIND=i4), INTENT(IN) :: pge_idx, nx, nt, n_max_rspec
   INTEGER (KIND=i4), DIMENSION (0:nt-1,1:2), INTENT (IN) :: xtrange
   LOGICAL, DIMENSION(0:nt-1), INTENT(IN) :: yn_process
-  LOGICAL, INTENT(IN) :: yn_commit
+  LOGICAL, INTENT(IN) :: yn_commit, yn_common_fit
 
   ! ------------------
   ! Modified variables
@@ -110,7 +111,7 @@ SUBROUTINE omi_pge_swathline_loop ( &
      fpix = xtrange(iline,1)
      lpix = xtrange(iline,2)
      
-     CALL xtrack_radiance_fitting_loop ( &
+     CALL xtrack_radiance_fitting_loop ( yn_common_fit, &
           n_max_rspec, fpix, lpix, iline, &
           n_fitvar_rad, &
           all_fitted_columns (1:n_fitvar_rad,fpix:lpix,iline),   &
