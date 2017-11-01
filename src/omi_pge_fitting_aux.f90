@@ -1289,31 +1289,25 @@ SUBROUTINE compute_common_mode ( &
 
      common_mode_spec%CCDPixel(xti,1) = INT(ccdpix_selection(xti,1), KIND=i2)
      common_mode_spec%CCDPixel(xti,2) = INT(ccdpix_selection(xti,4), KIND=i2)
-     print*, 'End initialize common mode'
-     stop
   ELSE
      ! --------------------------------------------------------
      ! The Reguar Fitting branch updates the spectrum and count
      ! --------------------------------------------------------
-     IF ( latitude(xti,scanline_no) >= ctrvar%common_latrange(1) .AND. &
-          latitude(xti,scanline_no) <= ctrvar%common_latrange(2)         )  THEN
-
-        comnorm = 1.0_r8
-        IF ( nwvl > 0 ) THEN
-           comnorm = SUM(ABS(fitres(1:nwvl)))/REAL(nwvl, KIND=r8)
-           IF ( comnorm == 0.0_r8 ) comnorm = 1.0_r8
-        END IF
-
-        common_cnt(xti)        = common_cnt(xti) + 1
-        common_spc(xti,1:nwvl) = common_spc(xti,1:nwvl) + fitres(1:nwvl)/comnorm
-
-        common_mode_spec%RefSpecWavs(xti,1:nwvl)  = &
-             common_mode_spec%RefSpecWavs(xti,1:nwvl) + fitwvl(1:nwvl)
-        common_mode_spec%RefSpecData(xti,1:nwvl)  = &
-             common_mode_spec%RefSpecData(xti,1:nwvl) + fitres(1:nwvl)/comnorm
-        common_mode_spec%RefSpecCount(xti)        = &
-             common_mode_spec%RefSpecCount(xti) + 1
+     comnorm = 1.0_r8
+     IF ( nwvl > 0 ) THEN
+        comnorm = SUM(ABS(fitres(1:nwvl)))/REAL(nwvl, KIND=r8)
+        IF ( comnorm == 0.0_r8 ) comnorm = 1.0_r8
      END IF
+     
+     common_cnt(xti)        = common_cnt(xti) + 1
+     common_spc(xti,1:nwvl) = common_spc(xti,1:nwvl) + fitres(1:nwvl)/comnorm
+     
+     common_mode_spec%RefSpecWavs(xti,1:nwvl)  = &
+          common_mode_spec%RefSpecWavs(xti,1:nwvl) + fitwvl(1:nwvl)
+     common_mode_spec%RefSpecData(xti,1:nwvl)  = &
+          common_mode_spec%RefSpecData(xti,1:nwvl) + fitres(1:nwvl)/comnorm
+     common_mode_spec%RefSpecCount(xti)        = &
+          common_mode_spec%RefSpecCount(xti) + 1
   END IF
 
   RETURN
