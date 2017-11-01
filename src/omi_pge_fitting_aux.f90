@@ -1049,7 +1049,7 @@ SUBROUTINE omi_set_xtrpix_range ( &
   ! ------------------------------------------
   ! Find the range of XT pixels to process
   ! ------------------------------------------
-  IF (pixnum_limits(1) < 1 .OR. pixnum_limits(2) < 2) THEN
+  IF (pixnum_limits(1) < 1 .OR. pixnum_limits(2) < 1) THEN
      first_wc_pix = 1
      last_wc_pix = nXtrack
   ELSE
