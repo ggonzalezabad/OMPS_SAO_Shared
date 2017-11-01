@@ -296,8 +296,8 @@ SUBROUTINE radiance_fit ( &
      ! ---------------------------
      ! Update common mode spectrum
      ! ---------------------------
-     IF ( .NOT. yn_common_fit ) THEN
-        !fitres(1:n_rad_wvl) = fitres(1:n_rad_wvl) !/ fitweights(1:n_rad_wvl)
+     IF ( yn_common_fit ) THEN
+        fitres(1:n_rad_wvl) = fitres(1:n_rad_wvl) / fitweights(1:n_rad_wvl)
         CALL compute_common_mode ( &
              yn_common_fit, ipix, n_rad_wvl, fitwavs(1:n_rad_wvl), &
              fitres(1:n_rad_wvl), .FALSE. )
