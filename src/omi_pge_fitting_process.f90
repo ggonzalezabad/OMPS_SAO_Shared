@@ -371,13 +371,14 @@ SUBROUTINE omi_fitting ( &
           pge_idx, nTimesRad, nxtrackRad, n_max_rspec, &
           yn_common_range(0:nTimesRad-1),              &
           omi_xtrpix_range(0:nTimesRad-1,1:2),         &
-          .FALSE., pge_error_status )
-     
+          .FALSE., .TRUE., pge_error_status ) !Logicals for commiting (writing out) and common mode fit
+     stop
      ! ---------------------------------------------------
      ! Set the index value of the Common Mode spectrum and
      ! assign values to the fitting parameter arrays
      ! ---------------------------------------------------
      CALL compute_common_mode ( .FALSE., nXtrackRad, 1, zerovec, zerovec, .TRUE. )
+
      ! -------------------------------------------
      ! Write the just computed common mode to file
      ! -------------------------------------------
