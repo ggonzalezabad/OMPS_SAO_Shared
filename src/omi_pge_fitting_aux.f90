@@ -1183,7 +1183,7 @@ SUBROUTINE compute_common_mode ( &
        refspecs_original, ctrvar
   USE OMSAO_data_module,   ONLY:                                           &
        common_spc, common_wvl, common_cnt, n_ins_database_wvl, ins_database,  &
-       ccdpix_selection, scanline_no, latitude, n_comm_wvl
+       ccdpix_selection, n_comm_wvl
 
   IMPLICIT NONE
 
