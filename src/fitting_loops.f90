@@ -304,7 +304,7 @@ SUBROUTINE xtrack_radiance_wvl_calibration ( &
 END SUBROUTINE xtrack_radiance_wvl_calibration
 
 
-SUBROUTINE xtrack_radiance_fitting_loop ( &
+SUBROUTINE xtrack_radiance_fitting_loop ( yn_common_fit, &
      n_max_rspec, first_pix, last_pix, iloop, &
      n_fitvar_rad, allfit_cols, allfit_errs, corr_matrix, &
      target_var, errstat, fitspc_out, fitspc_out_dim0                 )
@@ -316,7 +316,6 @@ SUBROUTINE xtrack_radiance_fitting_loop ( &
   USE OMSAO_parameters_module, ONLY: i2_missval, r8_missval
   USE OMSAO_variables_module,  ONLY: database, curr_sol_spec, n_rad_wvl, &
        curr_rad_spec, sol_wav_avg, hw1e, e_asym, g_shap, n_database_wvl, ctrvar
-  USE OMSAO_radiance_ref_module, ONLY: yn_reference_fit
   USE OMSAO_slitfunction_module, ONLY: saved_shift, saved_squeeze
   USE OMSAO_data_module, ONLY: nxtrack_max, n_comm_wvl, &
        column_uncert, column_amount, fit_rms, radfit_chisq, &
@@ -337,6 +336,7 @@ SUBROUTINE xtrack_radiance_fitting_loop ( &
   INTEGER (KIND=i4), INTENT (IN) :: &
        iloop, first_pix, last_pix, n_max_rspec, n_fitvar_rad, &
        fitspc_out_dim0
+  LOGICAL :: yn_common_fit
 
   ! -----------------
   ! Modified variable
@@ -356,7 +356,7 @@ SUBROUTINE xtrack_radiance_fitting_loop ( &
   ! ---------------
   ! Local variables
   ! ---------------
-  INTEGER (KIND=i4) :: locerrstat, ipix, radfit_exval, radfit_itnum,i
+  INTEGER (KIND=i4) :: locerrstat, ipix, radfit_exval, radfit_itnum
   REAL    (KIND=r8) :: fitcol, rms, dfitcol, chisquav, rad_spec_avg  
   LOGICAL                                     :: yn_skip_pix, yn_cycle_this_pix
   LOGICAL                                     :: yn_bad_pixel
@@ -445,7 +445,6 @@ SUBROUTINE xtrack_radiance_fitting_loop ( &
      radfit_itnum = INT(i2_missval, KIND=i4)
      rms = r8_missval
 
-     yn_reference_fit = .FALSE.
      IF ( MAXVAL(curr_rad_spec(spc_idx,1:n_rad_wvl)) > 0.0_r8 .AND.     &
           n_rad_wvl > n_fitvar_rad .AND. (.NOT. yn_skip_pix)          ) THEN
 
@@ -453,7 +452,7 @@ SUBROUTINE xtrack_radiance_fitting_loop ( &
 
         CALL radiance_fit ( &
              ipix, ctrvar%n_fitres_loop(radfit_idx), ctrvar%fitres_range(radfit_idx),   &
-             yn_reference_fit,                                                     &
+             yn_common_fit,                                                     &
              n_rad_wvl, curr_rad_spec(wvl_idx:ccd_idx,1:n_rad_wvl),                &
              fitcol, rms, dfitcol, radfit_exval, radfit_itnum, chisquav,           &
              target_var(1:ctrvar%n_fincol_idx,ipix),             &
