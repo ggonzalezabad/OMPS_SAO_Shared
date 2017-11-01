@@ -252,7 +252,6 @@ SUBROUTINE xtrack_radiance_wvl_calibration ( &
         ref_wvl(1:n_ref_wvl) = irradiance_wavl(1:n_ref_wvl,ipix)
         ref_spc(1:n_ref_wvl) = irradiance_spec(1:n_ref_wvl,ipix)
         ref_wgt(1:n_ref_wvl) = irradiance_wght(1:n_ref_wvl,ipix)
-        radref_wght(1:n_ref_wvl,ipix) = irradiance_wght(1:n_ref_wvl,ipix)
      ELSE
         ! Radiance reference
         n_ref_wvl = n_rad_wvl
@@ -321,11 +320,11 @@ SUBROUTINE xtrack_radiance_fitting_loop ( yn_common_fit, &
        column_uncert, column_amount, fit_rms, radfit_chisq, &
        itnum_flag, fitconv_flag, solcal_pars, ins_sol_wav_avg, &
        n_ins_database_wvl, nwav_rad, szenith, &
-       cross_track_skippix, n_radwvl, n_irradwvl, &
+       cross_track_skippix, n_radwvl, &
        curr_xtrack_pixnum, radiance_wavl, &
        ccdpix_exclusion, ccdpix_selection, ins_database, &
        ins_database_wvl, max_rs_idx, radiance_spec, &
-       radref_wght
+       radref_wght, irradiance_wght
   USE OMSAO_errstat_module, ONLY: pge_errstat_ok
      
   IMPLICIT NONE
@@ -363,7 +362,7 @@ SUBROUTINE xtrack_radiance_fitting_loop ( yn_common_fit, &
   INTEGER (KIND=i4), DIMENSION (4)            :: select_idx
   INTEGER (KIND=i4), DIMENSION (2)            :: exclud_idx
   INTEGER (KIND=i4)                           :: n_solar_pts
-  REAL    (KIND=r8), DIMENSION (n_max_rspec)  :: solar_wvl
+  REAL    (KIND=r8), DIMENSION (n_max_rspec)  :: solar_wvl, ref_wgh
 
   ! CCM Array for holding fitted spectra
   REAL    (KIND=r8), DIMENSION (n_comm_wvl)   :: fitspc
@@ -381,7 +380,7 @@ SUBROUTINE xtrack_radiance_fitting_loop ( yn_common_fit, &
      IF (cross_track_skippix(ipix) .OR. ctrvar%szamax < szenith(ipix,iloop) ) CYCLE
     
      n_database_wvl = n_ins_database_wvl(ipix)
-     n_radwvl = nwav_rad (ipix,iloop)
+     n_radwvl = nwav_rad(ipix,iloop)
 
      ! ---------------------------------------------------------------------------
      ! For each cross-track position we have to initialize the saved Shift&Squeeze
@@ -397,7 +396,6 @@ SUBROUTINE xtrack_radiance_fitting_loop ( yn_common_fit, &
      if (n_solar_pts < 1) cycle
 
      solar_wvl(1:n_solar_pts) = ins_database_wvl (1:n_solar_pts, ipix)
-     n_irradwvl = n_solar_pts
 
      CALL check_wavelength_overlap ( &
           n_fitvar_rad, &
@@ -427,12 +425,25 @@ SUBROUTINE xtrack_radiance_fitting_loop ( yn_common_fit, &
      select_idx(1:4) = ccdpix_selection(ipix,1:4)
      exclud_idx(1:2) = ccdpix_exclusion(ipix,1:2)
 
+     ! --------------------------------------------
+     ! Depending on using radiance reference or not
+     ! the weighting comes from irradiance_wght or
+     ! from radref_wght
+     ! --------------------------------------------
+     IF ( .NOT. (ctrvar%yn_radiance_reference) ) THEN
+        ! Solar irradiance
+        ref_wgh(1:n_radwvl) = irradiance_wght(1:n_radwvl,ipix)
+     ELSE
+        ! Radiance reference
+        ref_wgh(1:n_radwvl) = radref_wght(1:n_radwvl,ipix)
+     END IF
+
      CALL omi_adjust_radiance_data ( & ! Set up generic fitting arrays
           select_idx(1:4), exclud_idx(1:2), &
           n_radwvl, &
           radiance_wavl(1:n_radwvl,ipix,iloop), &
           radiance_spec(1:n_radwvl,ipix,iloop), &
-          n_radwvl, radref_wght(1:n_radwvl,ipix), &
+          n_radwvl, ref_wgh(1:n_radwvl), &
           n_rad_wvl, curr_rad_spec(wvl_idx:ccd_idx,1:n_radwvl),&
           rad_spec_avg, yn_skip_pix )
 
@@ -461,7 +472,7 @@ SUBROUTINE xtrack_radiance_fitting_loop ( yn_common_fit, &
 
         IF ( yn_bad_pixel ) CYCLE
      END IF
-
+     
      ! -----------------------------------
      ! Assign pixel values to final arrays
      ! -----------------------------------
