@@ -183,7 +183,9 @@ CONTAINS
             radcal_xflag(1:nx), radcal_chisq(1:nx), solcal_pars(1:max_calfit_idx,1:nx), &
             radcal_pars(1:max_calfit_idx,1:nx), n_ins_database_wvl(1:nx), &
             ins_database(1:max_rs_idx,1:nw,1:nx), ins_database_wvl(1:nw,1:nx), &
-            database(max_rs_idx, 1:nw), cross_track_skippix(1:nx), stat=errstat)
+            database(max_rs_idx, 1:nw), cross_track_skippix(1:nx), itnum_flag(1:nx,0:nt-1), &
+            fitconv_flag(1:nx,0:nt-1), column_amount(1:nx,0:nt-1), column_uncert(1:nx,0:nt-1), &
+            fit_rms(1:nx,0:nt-1), stat=errstat)
        ! Initialize some variables
        cross_track_skippix = .FALSE. !Only bad pixels will be changed to TRUE
     ENDIF
@@ -215,7 +217,8 @@ CONTAINS
             radiance_spec, radiance_prec, radiance_qflg, yn_process_pixel, utc_time, radcal_chisq, &
             solcal_itnum, radcal_itnum, radref_itnum, solcal_xflag, radcal_xflag, radref_xflag, &
             solcal_pars, radcal_pars, radref_pars, n_ins_database_wvl, ins_database, &
-            ins_database_wvl, database, cross_track_skippix, stat=errstat)
+            ins_database_wvl, database, cross_track_skippix, itnum_flag, fitconv_flag, &
+            column_amount, column_uncert, fit_rms, stat=errstat)
     ENDIF
     IF (ctrvar%yn_radiance_reference) THEN
        IF (ALLOCATED(radref_sza)) THEN
