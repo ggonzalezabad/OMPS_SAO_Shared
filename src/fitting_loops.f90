@@ -252,6 +252,7 @@ SUBROUTINE xtrack_radiance_wvl_calibration ( &
         ref_wvl(1:n_ref_wvl) = irradiance_wavl(1:n_ref_wvl,ipix)
         ref_spc(1:n_ref_wvl) = irradiance_spec(1:n_ref_wvl,ipix)
         ref_wgt(1:n_ref_wvl) = irradiance_wght(1:n_ref_wvl,ipix)
+        radref_wght(1:n_ref_wvl,ipix) = irradiance_wght(1:n_ref_wvl,ipix)
      ELSE
         ! Radiance reference
         n_ref_wvl = n_rad_wvl
@@ -355,7 +356,7 @@ SUBROUTINE xtrack_radiance_fitting_loop ( &
   ! ---------------
   ! Local variables
   ! ---------------
-  INTEGER (KIND=i4) :: locerrstat, ipix, radfit_exval, radfit_itnum
+  INTEGER (KIND=i4) :: locerrstat, ipix, radfit_exval, radfit_itnum,i
   REAL    (KIND=r8) :: fitcol, rms, dfitcol, chisquav, rad_spec_avg  
   LOGICAL                                     :: yn_skip_pix, yn_cycle_this_pix
   LOGICAL                                     :: yn_bad_pixel
@@ -377,38 +378,33 @@ SUBROUTINE xtrack_radiance_fitting_loop ( &
      ! If we already determined that this cross track pixel position carries
      ! an error, we don't even have to start processing.
      ! ---------------------------------------------------------------------
-     IF ( cross_track_skippix(ipix) .OR. ctrvar%szamax < szenith(ipix,iloop) ) CYCLE
+     IF (cross_track_skippix(ipix) .OR. ctrvar%szamax < szenith(ipix,iloop) ) CYCLE
     
-     locerrstat = pge_errstat_ok
-
      n_database_wvl = n_ins_database_wvl(ipix)
-     n_radwvl   = nwav_rad      (ipix,iloop)
+     n_radwvl = nwav_rad (ipix,iloop)
 
      ! ---------------------------------------------------------------------------
      ! For each cross-track position we have to initialize the saved Shift&Squeeze
      ! ---------------------------------------------------------------------------
      saved_shift = -1.0e+30_r8 ; saved_squeeze = -1.0e+30_r8
 
-     ! ----------------------------------------------------------------------------
+     ! ---------------------------------------------------------------------------
      ! Assign the solar wavelengths. Those should be current in the DATABASE array
      ! and can be taken from there no matter which case - YN_SOLAR_COMP and/or
      ! YN_RADIANCE_REFRENCE we are processing.
-     ! ----------------------------------------------------------------------------
-     n_solar_pts              = n_ins_database_wvl(ipix)
-     if (n_solar_pts < 1) cycle  ! JED fix
+     ! ---------------------------------------------------------------------------
+     n_solar_pts = n_ins_database_wvl(ipix)
+     if (n_solar_pts < 1) cycle
 
-     solar_wvl(1:n_solar_pts) = ins_database_wvl  (1:n_solar_pts, ipix)
-     n_irradwvl           = n_solar_pts
+     solar_wvl(1:n_solar_pts) = ins_database_wvl (1:n_solar_pts, ipix)
+     n_irradwvl = n_solar_pts
 
      CALL check_wavelength_overlap ( &
-          n_fitvar_rad,                                                &
-          n_solar_pts,          solar_wvl (1:n_solar_pts),             &
+          n_fitvar_rad, &
+          n_solar_pts, solar_wvl (1:n_solar_pts), &
           n_radwvl, radiance_wavl (1:n_radwvl,ipix,iloop), &
           yn_cycle_this_pix )
-
-     IF ( yn_cycle_this_pix                .OR. &
-          (n_database_wvl <= 0) .OR. (n_radwvl <= 0) ) CYCLE
-          !(n_database_wvl <= n_fitvar_rad) .OR. (n_radwvl <= n_fitvar_rad) ) CYCLE
+     IF ( yn_cycle_this_pix .OR. n_database_wvl <= 0 .OR. n_radwvl <= 0) CYCLE
 
      ! ----------------------------------------------
      ! Restore DATABASE from OMI_DATABASE (see above)
@@ -417,38 +413,37 @@ SUBROUTINE xtrack_radiance_fitting_loop ( &
                  
      ! ---------------------------------------------------------------------------------
      ! Restore solar fitting variables for across-track reference in Earthshine fitting.
-     ! Note that, for the YN_SOLAR_COMP case, some variables have been assigned already
-     ! in the XTRACK_RADIANCE_WAVCAL loop.
      ! ---------------------------------------------------------------------------------
-     sol_wav_avg                             = ins_sol_wav_avg(ipix)
-     hw1e                                    = solcal_pars(hwe_idx,ipix)
-     e_asym                                  = solcal_pars(asy_idx,ipix)
-     g_shap                                  = solcal_pars(sha_idx,ipix)
+     sol_wav_avg = ins_sol_wav_avg(ipix)
+     hw1e = solcal_pars(hwe_idx,ipix)
+     e_asym = solcal_pars(asy_idx,ipix)
+     g_shap = solcal_pars(sha_idx,ipix)
      curr_sol_spec(wvl_idx,1:n_database_wvl) = ins_database_wvl(1:n_database_wvl,ipix)
-     curr_sol_spec(spc_idx,1:n_database_wvl) = ins_database    (solar_idx,1:n_database_wvl,ipix)
-     ! --------------------------------------------------------------------------------
+     curr_sol_spec(spc_idx,1:n_database_wvl) = ins_database(solar_idx,1:n_database_wvl,ipix)
 
-     ! -------------------------------------------------------------------------
+     ! --------------------------------------
+     ! Exclude data from fitting if necessary
+     ! --------------------------------------
      select_idx(1:4) = ccdpix_selection(ipix,1:4)
      exclud_idx(1:2) = ccdpix_exclusion(ipix,1:2)
 
-     CALL omi_adjust_radiance_data ( &           ! Set up generic fitting arrays
-          select_idx(1:4), exclud_idx(1:2),                        &
-          n_radwvl,                                            &
-          radiance_wavl  (1:n_radwvl,ipix,iloop),          &
-          radiance_spec  (1:n_radwvl,ipix,iloop),          &
-          n_radwvl, radref_wght(1:n_radwvl,ipix),      &
+     CALL omi_adjust_radiance_data ( & ! Set up generic fitting arrays
+          select_idx(1:4), exclud_idx(1:2), &
+          n_radwvl, &
+          radiance_wavl(1:n_radwvl,ipix,iloop), &
+          radiance_spec(1:n_radwvl,ipix,iloop), &
+          n_radwvl, radref_wght(1:n_radwvl,ipix), &
           n_rad_wvl, curr_rad_spec(wvl_idx:ccd_idx,1:n_radwvl),&
           rad_spec_avg, yn_skip_pix )
 
      ! --------------------
      ! The radiance fitting
      ! --------------------
-     fitcol       = r8_missval
-     dfitcol      = r8_missval
+     fitcol = r8_missval
+     dfitcol = r8_missval
      radfit_exval = INT(i2_missval, KIND=i4)
      radfit_itnum = INT(i2_missval, KIND=i4)
-     rms          = r8_missval
+     rms = r8_missval
 
      yn_reference_fit = .FALSE.
      IF ( MAXVAL(curr_rad_spec(spc_idx,1:n_rad_wvl)) > 0.0_r8 .AND.     &
