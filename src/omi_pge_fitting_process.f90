@@ -169,11 +169,6 @@ SUBROUTINE omi_fitting ( &
   INTEGER (KIND=i4), DIMENSION (0:nTimesRad-1,2) :: omi_xtrpix_range
   LOGICAL,           DIMENSION (0:nTimesRad-1)   :: yn_common_range, yn_radfit_range
 
-  ! ----------------------------------------------------------
-  ! OMI L1b latitudes
-  ! ----------------------------------------------------------
-  REAL (KIND=r4), DIMENSION (1:nXtrackRad, 0:nTimesRad-1) :: l1b_latitudes
-
   ! ------------------------------
   ! Name of this module/subroutine
   ! ------------------------------
@@ -340,11 +335,6 @@ SUBROUTINE omi_fitting ( &
           max_rs_idx, n_rad_wvl, nxtrackrad, errstat) 
   ENDIF
 
-  IF ( ctrvar%yn_radiance_reference) &
-       DEALLOCATE (omps_data_radiance_reference)
-  stop
-
-
   ! -----------------------------------------------------------------
   ! Before we go any further we need to read the L1b latitude values,
   ! since we base our screening of which swath lines to process on
@@ -360,10 +350,10 @@ SUBROUTINE omi_fitting ( &
   ! read, particularly since the current algorithm settings would
   ! require it anyway.
   ! -----------------------------------------------------------------
-  ! For OMPS it is enough to copy the values of latitude in
-  ! l1b_latitudes
-  ! -----------------------------------------------------------
-  l1b_latitudes(1:nXtrackRad,0:nTimesRad-1) = latitude(1:nXtrackRad,0:nTimesRad-1)
+
+  IF ( ctrvar%yn_radiance_reference) &
+       DEALLOCATE (omps_data_radiance_reference)
+  stop
 
   ! -----------------------------------------------------------------
   ! Now we enter the on-line computation of the common mode spectrum.
@@ -376,7 +366,7 @@ SUBROUTINE omi_fitting ( &
      ! ----------------------------------------------------------
      yn_common_range(0:nTimesRad-1) = .FALSE.
      CALL find_swathline_range ( &
-          nTimesRad, nXtrackRad, l1b_latitudes(1:nXtrackRad,0:nTimesRad-1),       &
+          nTimesRad, nXtrackRad, latitude(1:nXtrackRad,0:nTimesRad-1),       &
           ctrvar%common_latrange(1:2), yn_common_range(0:nTimesRad-1), errstat             )
 
      ! -------------------------------------------------------------
@@ -442,7 +432,7 @@ SUBROUTINE omi_fitting ( &
      IF ( ctrvar%radfit_latrange(1) > -90.0_r4    .OR. &
           ctrvar%radfit_latrange(2) < +90.0_r4           ) THEN
         CALL find_swathline_range ( &
-             nTimesRad, nXtrackRad, l1b_latitudes(1:nXtrackRad,0:nTimesRad-1),       &
+             nTimesRad, nXtrackRad, latitude(1:nXtrackRad,0:nTimesRad-1),       &
              ctrvar%radfit_latrange(1:2), yn_radfit_range(0:nTimesRad-1), errstat             )
      ELSE
         yn_radfit_range = .TRUE.
