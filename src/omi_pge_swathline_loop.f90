@@ -13,7 +13,8 @@ SUBROUTINE omi_pge_swathline_loop ( &
        scanline_no, n_comm_wvl, &
        itnum_flag, fitconv_flag, column_amount, &
        column_uncert, fit_rms
-  USE OMSAO_errstat_module
+  USE OMSAO_errstat_module, ONLY: omsao_s_progress, pge_errstat_ok, &
+       vb_lev_omidebug, vb_lev_screen, omi_smf_setmsg
 
   IMPLICIT NONE
 
