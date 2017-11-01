@@ -434,7 +434,7 @@ SUBROUTINE omi_fitting ( &
        pge_idx, nTimesRad, nXtrackRad, n_max_rspec, &
        yn_radfit_range(0:nTimesRad-1),              &
        omi_xtrpix_range(0:nTimesRad-1,1:2),         &
-       .TRUE., pge_error_status )
+       .TRUE., .FALSE. pge_error_status ) ! Logical for commiting and common mode
 
   ! ---------------------------
   ! SCD to VCD (AMF calculation
