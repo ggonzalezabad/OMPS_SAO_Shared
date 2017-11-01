@@ -13,7 +13,6 @@ MODULE OMSAO_radiance_ref_module
   ! -------------------------------------------------------
   ! Variables connected with  a radiance reference spectrum
   ! -------------------------------------------------------
-  LOGICAL                          :: yn_reference_fit
   INTEGER (KIND=i4), DIMENSION (2) :: radiance_reference_lnums
 
 CONTAINS
@@ -198,14 +197,12 @@ CONTAINS
              yn_bad_pixel     = .FALSE.
              CALL radiance_fit ( &
                   ipix, ctrvar%n_fitres_loop(radref_idx), ctrvar%fitres_range(radref_idx), &
-                  yn_reference_fit,                                                         &
+                  .FALSE., & !Common mode fit logical
                   n_rad_wvl, curr_rad_spec(wvl_idx:ccd_idx,1:n_rad_wvl),                    &
                   fitcol, rms, dfitcol, radfit_exval, radfit_itnum, chisquav,               &
                   target_var(1:ctrvar%n_fincol_idx,ipix),                 &
                   allfit_cols_tmp(1:n_fitvar_rad), allfit_errs_tmp(1:n_fitvar_rad),         &
                   corr_matrix_tmp(1:n_fitvar_rad), yn_bad_pixel, fitspctmp(1:n_rad_wvl) )
-
-             yn_reference_fit = .FALSE.
  
              IF ( yn_bad_pixel ) CYCLE
 
