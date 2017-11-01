@@ -80,7 +80,6 @@ SUBROUTINE omi_pge_swathline_loop ( &
      ! -----------------------------------------
      ! Skip if we don't have anything to process
      ! -----------------------------------------
-     print*, yn_process(iline)
      IF ( .NOT. ( yn_process(iline) ) ) CYCLE
 
      ! -------------------------------------
@@ -94,34 +93,34 @@ SUBROUTINE omi_pge_swathline_loop ( &
      ! Both values are initialized here.
      ! --------------------------------------------------------------------
      scanline_no  = iline
-
-     IF ( scanline_no > nt-1 ) EXIT ScanLines
+     IF (iline > nt-1 ) EXIT ScanLines
 
      ! ----------------------------------------------------------
      ! Skip this line if it isn't in the list of those to process
      ! ----------------------------------------------------------
-     IF ( .NOT. yn_process(scanline_no) ) CYCLE
+     IF ( .NOT. yn_process(iline) ) CYCLE
 
      ! ------------------
      ! Report on progress
      ! ------------------
      addmsg = ''
-     WRITE (addmsg,'(A,I5)') 'Working on scan line', scanline_no
+     WRITE (addmsg,'(A,I5)') 'Working on scan line', iline
      estat = OMI_SMF_setmsg ( OMSAO_S_PROGRESS, TRIM(ADJUSTL(addmsg)), " ", vb_lev_omidebug )
 
-     fpix = xtrange(scanline_no,1)
-     lpix = xtrange(scanline_no,2)
+     fpix = xtrange(iline,1)
+     lpix = xtrange(iline,2)
      
-     CALL xtrack_radiance_fitting_loop (                         &
-          n_max_rspec, fpix, lpix, iline,               &
-          n_fitvar_rad,                              &
+     CALL xtrack_radiance_fitting_loop ( &
+          n_max_rspec, fpix, lpix, iline, &
+          n_fitvar_rad, &
           all_fitted_columns (1:n_fitvar_rad,fpix:lpix,iline),   &
           all_fitted_errors  (1:n_fitvar_rad,fpix:lpix,iline),   &
           correlation_columns(1:n_fitvar_rad,fpix:lpix,iline),   &
           target_var(1:ctrvar%n_fincol_idx,fpix:lpix), locerrstat, fitspc_tmp, n_comm_wvl )
+     stop
      ipix = (fpix+lpix)/2
      addmsg = ''
-     WRITE (addmsg,'(I5, I3,1P,(3E15.5),I5)') scanline_no, ipix, &
+     WRITE (addmsg,'(I5, I3,1P,(3E15.5),I5)') iline, ipix, &
           column_amount(ipix, iline), column_uncert(ipix, iline), &
           fit_rms   (ipix, iline), MAX(INT(-1,KIND=2),itnum_flag(ipix, iline))
      estat = OMI_SMF_setmsg ( OMSAO_S_PROGRESS, TRIM(addmsg), " ", vb_lev_omidebug )
