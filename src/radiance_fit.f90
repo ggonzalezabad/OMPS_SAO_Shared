@@ -1,5 +1,5 @@
 SUBROUTINE radiance_fit ( &
-     ipix, n_fitres_loop, fitres_range, yn_reference_fit, &
+     ipix, n_fitres_loop, fitres_range, yn_common_fit, &
      n_rad_wvl, curr_rad_spec,                                     &
      fitcol, rms, dfitcol, radfit_exval, radfit_itnum, chisquav,   &
      target_var, allfit, allerr, corrmat, &
@@ -35,7 +35,7 @@ SUBROUTINE radiance_fit ( &
   ! Input variables
   ! ---------------
   INTEGER (KIND=i4), INTENT (IN) :: ipix, n_rad_wvl, n_fitres_loop, fitres_range
-  LOGICAL,           INTENT (IN) :: yn_reference_fit
+  LOGICAL,           INTENT (IN) :: yn_common_fit
 
   ! -----------------------------
   ! (Possibly) Modified Variables
@@ -296,10 +296,10 @@ SUBROUTINE radiance_fit ( &
      ! ---------------------------
      ! Update common mode spectrum
      ! ---------------------------
-     IF ( .NOT. yn_reference_fit ) THEN
+     IF ( .NOT. yn_common_fit ) THEN
         !fitres(1:n_rad_wvl) = fitres(1:n_rad_wvl) !/ fitweights(1:n_rad_wvl)
         CALL compute_common_mode ( &
-             yn_reference_fit, ipix, n_rad_wvl, fitwavs(1:n_rad_wvl), &
+             yn_common_fit, ipix, n_rad_wvl, fitwavs(1:n_rad_wvl), &
              fitres(1:n_rad_wvl), .FALSE. )
      END IF
 
@@ -411,7 +411,7 @@ SUBROUTINE radiance_fit ( &
      ! -------------------------------------------------------------------
      !IF ( (radfit_exval >= INT(elsunc_less_is_noise, KIND=i4)) .AND. &
      !     (fitcol+1.0_r8*dfitcol >= 0.0_r8)                    .AND. &
-     !     ( .NOT. yn_reference_fit )                                  )  THEN
+     !     ( .NOT. yn_common_fit )                                  )  THEN
      !   fitvar_rad_saved(1:n_max_fitpars) = fitvar_rad(1:n_max_fitpars)
      !ELSE
         fitvar_rad_saved(1:n_max_fitpars) = ctrvar%fitvar_rad_init(1:n_max_fitpars)
