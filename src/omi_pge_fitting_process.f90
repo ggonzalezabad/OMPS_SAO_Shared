@@ -199,7 +199,7 @@ SUBROUTINE omi_fitting ( &
   CALL error_check ( errstat, pge_errstat_ok, pge_errstat_fatal, OMSAO_F_SUBROUTINE, &
        modulename//f_sep//"omi_set_xtrpix_range", vb_lev_default, pge_error_status )
   IF (pge_error_status >= pge_errstat_error ) GO TO 666
- 
+
   ! -----------------------------------------------------
   ! Obtain number of levels in climatology and if present
   ! read values for molecule of intetest (<--FIXME)  
@@ -336,26 +336,6 @@ SUBROUTINE omi_fitting ( &
   ENDIF
 
   ! -----------------------------------------------------------------
-  ! Before we go any further we need to read the L1b latitude values,
-  ! since we base our screening of which swath lines to process on
-  ! those values. Both common mode, if used, and the radiance fit
-  ! uses the same arrays, so we read this only ones.
-  !
-  ! We could shave off some fractional minute from the run time by
-  ! not reading the latitudes in cases where no radiance reference
-  ! is used, i.e., where both radiance granule and radiance reference
-  ! granule are the same. The down-side is an increase in virtual
-  ! memory program uses, plus some more logic to find out whether to
-  ! read the latitudes or not. For now we are going with a second
-  ! read, particularly since the current algorithm settings would
-  ! require it anyway.
-  ! -----------------------------------------------------------------
-
-  IF ( ctrvar%yn_radiance_reference) &
-       DEALLOCATE (omps_data_radiance_reference)
-  stop
-
-  ! -----------------------------------------------------------------
   ! Now we enter the on-line computation of the common mode spectrum.
   ! -----------------------------------------------------------------
   IF ( ctrvar%yn_common_iter ) THEN
@@ -391,9 +371,8 @@ SUBROUTINE omi_fitting ( &
           pge_idx, nTimesRad, nxtrackRad, n_max_rspec, &
           yn_common_range(0:nTimesRad-1),              &
           omi_xtrpix_range(0:nTimesRad-1,1:2),         &
-          ctrvar%yn_radiance_reference, .FALSE.,       &
           .FALSE., pge_error_status )
- 
+     
      ! ---------------------------------------------------
      ! Set the index value of the Common Mode spectrum and
      ! assign values to the fitting parameter arrays
@@ -406,6 +385,10 @@ SUBROUTINE omi_fitting ( &
           CALL he5_write_common_mode ( nXtrackRad, n_comm_wvl, pge_error_status )
 
   END IF
+
+  IF ( ctrvar%yn_radiance_reference) &
+       DEALLOCATE (omps_data_radiance_reference)
+  stop
   
   ! ----------------------------------------------------------
   ! Now into the proper fitting, with or without common mode.
@@ -450,7 +433,6 @@ SUBROUTINE omi_fitting ( &
        pge_idx, nTimesRad, nXtrackRad, n_max_rspec, &
        yn_radfit_range(0:nTimesRad-1),              &
        omi_xtrpix_range(0:nTimesRad-1,1:2),         &
-       ctrvar%yn_radiance_reference, .FALSE.,       &
        .TRUE., pge_error_status )
 
   ! ---------------------------

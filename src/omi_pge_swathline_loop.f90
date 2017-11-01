@@ -1,23 +1,20 @@
 SUBROUTINE omi_pge_swathline_loop ( &
      pge_idx, nt, nx, n_max_rspec, yn_process,  &
-     xtrange, yn_radiance_reference, yn_remove_target, &
-     yn_commit, errstat)
+     xtrange, yn_commit, errstat)
 
 
-  USE OMSAO_precision_module,  ONLY: i4, r8
+  USE OMSAO_precision_module, ONLY: i4, r8
   USE OMSAO_parameters_module, ONLY: i2_missval, r8_missval, maxchlen
-  USE OMSAO_indices_module,    ONLY: n_max_fitpars
-  USE OMSAO_variables_module,  ONLY:  &
+  USE OMSAO_indices_module, ONLY: n_max_fitpars
+  USE OMSAO_variables_module, ONLY:  &
        n_fitvar_rad, fitvar_rad_saved, &
        pcfvar, ctrvar
-  USE OMSAO_data_module,    ONLY:  &
-       nlines_max, nUTCdim, scanline_no, &
+  USE OMSAO_data_module, ONLY:  &
+       scanline_no, n_comm_wvl, &
        itnum_flag, fitconv_flag, column_amount, &
-       column_uncert, time_utc, fit_rms,  &
-       nwavel_max
+       column_uncert, fit_rms
   USE OMSAO_prefitcol_module
   USE OMSAO_errstat_module
-  USE OMSAO_radiance_ref_module, ONLY: remove_target_from_radiance
 
   IMPLICIT NONE
 
@@ -25,10 +22,10 @@ SUBROUTINE omi_pge_swathline_loop ( &
   ! ---------------
   ! Input variables
   ! ---------------
-  INTEGER (KIND=i4), INTENT (IN) :: pge_idx, nx, nt, n_max_rspec
-  INTEGER (KIND=i4), DIMENSION (0:nt-1,1:2),  INTENT (IN) :: xtrange
-  LOGICAL,           DIMENSION (0:nt-1),      INTENT (IN) :: yn_process
-  LOGICAL,           INTENT (IN) :: yn_commit, yn_radiance_reference, yn_remove_target
+  INTEGER (KIND=i4), INTENT(IN) :: pge_idx, nx, nt, n_max_rspec
+  INTEGER (KIND=i4), DIMENSION (0:nt-1,1:2), INTENT (IN) :: xtrange
+  LOGICAL, DIMENSION(0:nt-1), INTENT(IN) :: yn_process
+  LOGICAL, INTENT(IN) :: yn_commit
 
   ! ------------------
   ! Modified variables
@@ -38,29 +35,27 @@ SUBROUTINE omi_pge_swathline_loop ( &
   ! ---------------
   ! Local variables
   ! ---------------
-  INTEGER   (KIND=i4)      :: iline, fpix, lpix, ipix, estat, locerrstat
+  INTEGER (KIND=i4) :: iline, fpix, lpix, ipix, estat, locerrstat
   CHARACTER (LEN=maxchlen) :: addmsg
 
   ! ---------------------------------------------------------------
   ! Variables to remove target gas from radiance reference spectrum
   ! ---------------------------------------------------------------
-  REAL (KIND=r8), DIMENSION (ctrvar%n_fincol_idx,1:nx) :: target_var, targsum, targcnt
-  REAL (KIND=r8), DIMENSION (1:nx)              :: target_fit, target_col
+  REAL (KIND=r8), DIMENSION (ctrvar%n_fincol_idx,1:nx) :: target_var
 
   ! ---------------------------------------------------------------------------------
   ! CCM Array to hold (1) Fitted Spec (2) Observed Spec (3) Spec Pos (4) Weight flags
   ! ---------------------------------------------------------------------------------
-  REAL (KIND=r8), DIMENSION (nwavel_max,nxtrack_max,4)        :: fitspc_tmp
-!!$  REAL (KIND=r8), DIMENSION (n_comm_wvl,nxtrack_max,4,0:nt-1) :: omi_fitspc
+  REAL (KIND=r8), DIMENSION (1:n_comm_wvl,1:nx,1:4) :: fitspc_tmp
 
   ! -------------------------------------
   ! Correlations with main output product 
   ! -------------------------------------
-  REAL (KIND=r8), DIMENSION (n_fitvar_rad,nx,0:nlines_max-1) :: &
+  REAL (KIND=r8), DIMENSION (n_fitvar_rad,nx,0:nt-1) :: &
        all_fitted_columns, all_fitted_errors, correlation_columns
 
   locerrstat = pge_errstat_ok
-
+  
   ! --------------------------------
   ! Initialize fitting output arrays
   ! --------------------------------
@@ -68,25 +63,15 @@ SUBROUTINE omi_pge_swathline_loop ( &
   all_fitted_errors  =  r8_missval
   correlation_columns = r8_missval
 
-
-  IF ( yn_radiance_reference .AND. yn_remove_target ) THEN
-     target_var = 0.0_r8
-     targsum    = 0.0_r8
-     targcnt    = 0.0_r8
-     target_fit = 0.0_r8
-     target_col = 0.0_r8
-  END IF
-
   ! ------------------------------------------
   ! Initialize output fields with MissingValue
   ! ------------------------------------------
-  itnum_flag   (1:nx,     0:nt-1) = i2_missval
-  fitconv_flag (1:nx,     0:nt-1) = i2_missval
-  column_amount(1:nx,     0:nt-1) = r8_missval
-  column_uncert(1:nx,     0:nt-1) = r8_missval
-  fit_rms      (1:nx,     0:nt-1) = r8_missval
-  time_utc     (1:nUTCdim,0:nt-1) = i2_missval
-
+  itnum_flag(1:nx, 0:nt-1) = i2_missval
+  fitconv_flag(1:nx, 0:nt-1) = i2_missval
+  column_amount(1:nx, 0:nt-1) = r8_missval
+  column_uncert(1:nx, 0:nt-1) = r8_missval
+  fit_rms(1:nx, 0:nt-1) = r8_missval
+  
   ! ---------------
   ! Loop over lines
   ! ---------------
@@ -95,6 +80,7 @@ SUBROUTINE omi_pge_swathline_loop ( &
      ! -----------------------------------------
      ! Skip if we don't have anything to process
      ! -----------------------------------------
+     print*, yn_process(iline)
      IF ( .NOT. ( yn_process(iline) ) ) CYCLE
 
      ! -------------------------------------
@@ -132,7 +118,7 @@ SUBROUTINE omi_pge_swathline_loop ( &
           all_fitted_columns (1:n_fitvar_rad,fpix:lpix,iline),   &
           all_fitted_errors  (1:n_fitvar_rad,fpix:lpix,iline),   &
           correlation_columns(1:n_fitvar_rad,fpix:lpix,iline),   &
-          target_var(1:ctrvar%n_fincol_idx,fpix:lpix), locerrstat, fitspc_tmp, nwavel_max )
+          target_var(1:ctrvar%n_fincol_idx,fpix:lpix), locerrstat, fitspc_tmp, n_comm_wvl )
      ipix = (fpix+lpix)/2
      addmsg = ''
      WRITE (addmsg,'(I5, I3,1P,(3E15.5),I5)') scanline_no, ipix, &
