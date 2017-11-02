@@ -349,21 +349,6 @@ SUBROUTINE omi_fitting ( &
           nTimesRad, nXtrackRad, latitude(1:nXtrackRad,0:nTimesRad-1),       &
           ctrvar%common_latrange(1:2), yn_common_range(0:nTimesRad-1), errstat             )
 
-     ! -------------------------------------------------------------
-     ! First and last swath line number will be overwritten. Hence
-     ! we save them for further reference.
-     ! -------------------------------------------------------------
-     !first_line_save = first_line
-     !last_line_save  = last_line
-
-     ! ------------------------------------------------------------------
-     ! There is a time saver catch built into the assignment below, 
-     ! which we probably want to rethink. If we are only doing a few
-     ! lines but the common mode extends over a wide range of a
-     ! latitudes, then we would be processing a lot of lines to derive
-     ! the common mode. This is currently being excluded, but the better
-     ! way may be to remember that we can control everything through
-     ! the fitting control file.
      ! ------------------------------------------------------------------
      ! Interface to the loop over all swath lines
      ! ------------------------------------------
@@ -371,20 +356,29 @@ SUBROUTINE omi_fitting ( &
           pge_idx, nTimesRad, nxtrackRad, n_max_rspec, &
           yn_common_range(0:nTimesRad-1),              &
           omi_xtrpix_range(0:nTimesRad-1,1:2),         &
-          .FALSE., .TRUE., pge_error_status ) !Logicals for commiting (writing out) and common mode fit
-     stop
+          .FALSE., .TRUE., pge_error_status ) !Logicals for writing out and common mode fit
+
      ! ---------------------------------------------------
      ! Set the index value of the Common Mode spectrum and
      ! assign values to the fitting parameter arrays
      ! ---------------------------------------------------
      CALL compute_common_mode ( .FALSE., nXtrackRad, 1, zerovec, zerovec, .TRUE. )
-
+     
      ! -------------------------------------------
      ! Write the just computed common mode to file
      ! -------------------------------------------
      IF ( ctrvar%yn_diagnostic_run ) &
           CALL he5_write_common_mode ( nXtrackRad, n_comm_wvl, pge_error_status )
 
+     ! -----------------------------------------------
+     ! Write the database with the common mode to file
+     ! -----------------------------------------------
+     IF( ctrvar%yn_diagnostic_run ) THEN
+        n_rad_wvl = MAXVAL(n_ins_database_wvl)
+        CALL he5_write_ins_database(ins_database(1:max_rs_idx,1:n_rad_wvl,1:nxtrackrad), &
+             ins_database_wvl(1:n_rad_wvl, 1:nxtrackrad), &
+             max_rs_idx, n_rad_wvl, nxtrackrad, errstat) 
+     END IF
   END IF
 
   IF ( ctrvar%yn_radiance_reference) &
@@ -434,7 +428,7 @@ SUBROUTINE omi_fitting ( &
        pge_idx, nTimesRad, nXtrackRad, n_max_rspec, &
        yn_radfit_range(0:nTimesRad-1),              &
        omi_xtrpix_range(0:nTimesRad-1,1:2),         &
-       .TRUE., .FALSE. pge_error_status ) ! Logical for commiting and common mode
+       .TRUE., .FALSE., pge_error_status ) ! Logical for commiting and common mode
 
   ! ---------------------------
   ! SCD to VCD (AMF calculation
