@@ -11,7 +11,7 @@ SUBROUTINE omi_pge_swathline_loop ( &
        n_fitvar_rad, fitvar_rad_saved, &
        pcfvar, ctrvar
   USE OMSAO_data_module, ONLY:  &
-       scanline_no, n_comm_wvl, &
+       n_comm_wvl, &
        itnum_flag, fitconv_flag, column_amount, &
        column_uncert, fit_rms
   USE OMSAO_errstat_module, ONLY: omsao_s_progress, pge_errstat_ok, &
@@ -72,6 +72,11 @@ SUBROUTINE omi_pge_swathline_loop ( &
   column_amount(1:nx, 0:nt-1) = r8_missval
   column_uncert(1:nx, 0:nt-1) = r8_missval
   fit_rms(1:nx, 0:nt-1) = r8_missval
+
+  ! -------------------------------------
+  ! Re-initialize saved fitting variables
+  ! -------------------------------------
+  fitvar_rad_saved(1:n_max_fitpars ) = ctrvar%fitvar_rad_init(1:n_max_fitpars)
   
   ! ---------------
   ! Loop over lines
@@ -83,17 +88,9 @@ SUBROUTINE omi_pge_swathline_loop ( &
      ! -----------------------------------------
      IF ( .NOT. ( yn_process(iline) ) ) CYCLE
 
-     ! -------------------------------------
-     ! Re-initialize saved fitting variables
-     ! -------------------------------------
-     fitvar_rad_saved(1:n_max_fitpars ) = ctrvar%fitvar_rad_init(1:n_max_fitpars)
-
-     ! --------------------------------------------------------------------
-     ! Further down, in deeper layers of the algorithm, we require both the
-     ! current line in the data block and the absolute swath line number.
-     ! Both values are initialized here.
-     ! --------------------------------------------------------------------
-     scanline_no  = iline
+     ! ----------------------------
+     ! Not too fancy security check
+     ! ----------------------------
      IF (iline > nt-1 ) EXIT ScanLines
 
      ! ----------------------------------------------------------
@@ -118,12 +115,12 @@ SUBROUTINE omi_pge_swathline_loop ( &
           all_fitted_errors  (1:n_fitvar_rad,fpix:lpix,iline),   &
           correlation_columns(1:n_fitvar_rad,fpix:lpix,iline),   &
           target_var(1:ctrvar%n_fincol_idx,fpix:lpix), locerrstat, fitspc_tmp, n_comm_wvl )
-     stop
+     
      ipix = (fpix+lpix)/2
      addmsg = ''
      WRITE (addmsg,'(I5, I3,1P,(3E15.5),I5)') iline, ipix, &
           column_amount(ipix, iline), column_uncert(ipix, iline), &
-          fit_rms   (ipix, iline), MAX(INT(-1,KIND=2),itnum_flag(ipix, iline))
+          fit_rms(ipix, iline), MAX(INT(-1,KIND=2),itnum_flag(ipix, iline))
      estat = OMI_SMF_setmsg ( OMSAO_S_PROGRESS, TRIM(addmsg), " ", vb_lev_omidebug )
      IF ( pcfvar%verb_thresh_lev >= vb_lev_screen ) WRITE (*, '(A)') TRIM(addmsg)
      
