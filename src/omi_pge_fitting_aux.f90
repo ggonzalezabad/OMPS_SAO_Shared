@@ -1183,7 +1183,7 @@ SUBROUTINE compute_common_mode ( &
        refspecs_original, ctrvar
   USE OMSAO_data_module,   ONLY:                                           &
        common_spc, common_wvl, common_cnt, n_ins_database_wvl, ins_database,  &
-       ccdpix_selection, n_comm_wvl
+       ccdpix_selection, n_comm_wvl, ins_database_wvl
 
   IMPLICIT NONE
 
@@ -1197,8 +1197,10 @@ SUBROUTINE compute_common_mode ( &
   ! ---------------
   ! Local Variables
   ! ---------------
-  INTEGER (KIND=i4) :: i, j, k
-  REAL    (KIND=r8) :: comnorm
+  INTEGER (KIND=i4) :: i, j, k, errstat
+  REAL (KIND=r8) :: comnorm
+  LOGICAL :: yn_full_range
+  REAL (KIND=r8), ALLOCATABLE, DIMENSION(:) :: database_common_mode
 
   IF ( yn_final_call ) THEN
      ! ---------------------------------------------------
@@ -1211,7 +1213,9 @@ SUBROUTINE compute_common_mode ( &
      ctrvar%up_radbnd      (i) = ctrvar%common_fitvar(3)
      DO i = 1, xti  ! NOTE: "xti == nxtrack" for this call
         j = n_ins_database_wvl(i)
-
+        ! Cycle if we are not using this xtrack
+        IF (j < 0) CYCLE
+        ALLOCATE(database_common_mode(1:j))
         ! ------------------------------------------
         ! Average the wavelength and spectrum arrays
         ! ------------------------------------------
@@ -1236,7 +1240,14 @@ SUBROUTINE compute_common_mode ( &
         ! -------------------------------------------------
         ! Assign the common mode to the OMI data base array
         ! -------------------------------------------------
-        ins_database(comm_idx,1:j,i) = common_mode_spec%RefSpecData(i,1:j)
+        ! First interpolate to database wavelength
+        ! ----------------------------------------------------------------------------
+        CALL interpolation ( &
+             j, common_mode_spec%RefSpecWavs(i,1:j), common_mode_spec%RefSpecData(i,1:j), &
+             j, ins_database_wvl(1:j,i), database_common_mode(1:j), &
+             'endpoints', 0.0_r8, yn_full_range, errstat )
+        ins_database(comm_idx,1:j,i) = database_common_mode(1:j)
+        DEALLOCATE(database_common_mode)
 
         ! --------------------------------------------------------------
         ! Now assign a normalization factor to the original data base of
