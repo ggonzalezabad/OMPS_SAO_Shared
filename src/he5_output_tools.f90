@@ -635,10 +635,10 @@ SUBROUTINE he5_write_common_mode ( nXtrack, npts, errstat )
   USE OMSAO_errstat_module, ONLY: pge_errstat_ok, pge_errstat_error, he5_stat_ok, &
        error_check, vb_lev_default, omsao_e_he5swwrfld
   USE OMSAO_he5_module
-  USE OMSAO_indices_module,   ONLY: commcnt_didx, commspc_didx, &
+  USE OMSAO_indices_module, ONLY: commcnt_didx, commspc_didx, &
        commwvl_didx, ccdpix_didx
   USE OMSAO_variables_module, ONLY: common_mode_spec, ctrvar
-  USE OMSAO_data_module,   ONLY: n_roff_dig
+  USE OMSAO_data_module, ONLY: n_roff_dig
 
   IMPLICIT NONE
 
@@ -660,36 +660,21 @@ SUBROUTINE he5_write_common_mode ( nXtrack, npts, errstat )
   ! ---------------
   ! Local variables
   ! ---------------
-  INTEGER   (KIND=i4)                            :: locerrstat, j1, j2
-  INTEGER   (KIND=i2), DIMENSION (nXtrack,2)     :: locccd
-  INTEGER   (KIND=i4), DIMENSION (nXtrack)       :: loccnt
+  INTEGER   (KIND=i4) :: locerrstat
+  INTEGER   (KIND=i2), DIMENSION (nXtrack,2) :: locccd
+  INTEGER   (KIND=i4), DIMENSION (nXtrack) :: loccnt
   REAL      (KIND=r4), DIMENSION (nXtrack, npts) :: locwvl
   REAL      (KIND=r8), DIMENSION (nXtrack, npts) :: locspc
 
   locerrstat = pge_errstat_ok
 
-  ! ----------------------------------------------------------------------------
-  ! Geolocation Fields: Latitiude, Longitude, Solar Zenith, Viewing Zenith, Time
-  ! ----------------------------------------------------------------------------
-  ! NOTE: The Aura Altitude and TIME fields are one-dimensional, and so require
-  !       a different stride for writing. We write those ones first, then set
-  !       the strides for the rest of the fields.
-  ! ----------------------------------------------------------------------------
-  j1                       =       1
-  j2                       = nXtrack
-  locccd(1:nXtrack,1:2)    =        common_mode_spec%CCDPixel    (j1:j2,1:2)
-  loccnt(1:nXtrack)        =        common_mode_spec%RefSpecCount(j1:j2)
-  locspc(1:nXtrack,1:npts) =        common_mode_spec%RefSpecData (j1:j2,1:npts)
-  locwvl(1:nXtrack,1:npts) = REAL ( common_mode_spec%RefSpecWavs (j1:j2,1:npts), KIND=r4 )
-
-  !DO j1 = 1, npts
-  !   WRITE (22,'(0PF10.4, 1PE15.5)') locwvl(10,j1), locspc(10,j1)
-  !END DO
-
+  locccd(1:nXtrack,1:2) = common_mode_spec%CCDPixel (1:nxtrack,1:2)
+  loccnt(1:nXtrack) = common_mode_spec%RefSpecCount(1:nxtrack)
+  locspc(1:nXtrack,1:npts) = common_mode_spec%RefSpecData (1:nxtrack,1:npts)
+  locwvl(1:nXtrack,1:npts) = REAL ( common_mode_spec%RefSpecWavs (1:nxtrack,1:npts), KIND=r4 )
 
   CALL roundoff_2darr_r4 ( n_roff_dig, nXtrack, npts, locwvl (1:nXtrack,1:npts) )
   CALL roundoff_2darr_r8 ( n_roff_dig, nXtrack, npts, locspc (1:nXtrack,1:npts) )
-
 
   ! ------------------------------------------
   ! Common Mode Spectrum - Count for Averaging
@@ -709,10 +694,12 @@ SUBROUTINE he5_write_common_mode ( nXtrack, npts, errstat )
      locerrstat = HE5_SWWRFLD ( &
           pge_swath_id, commwvl_field, he5_start_2d, he5_stride_2d, he5_edge_2d, locwvl(1:nXtrack,1:npts) )
   ENDIF
+
   IF( yn_output_diag(commspc_didx) ) THEN
      locerrstat = HE5_SWWRFLD ( &
           pge_swath_id, commspc_field, he5_start_2d, he5_stride_2d, he5_edge_2d, locspc(1:nXtrack,1:npts) )
   ENDIF
+
   ! --------------------------
   ! CCD Pixel - First and Last
   ! --------------------------
@@ -721,6 +708,7 @@ SUBROUTINE he5_write_common_mode ( nXtrack, npts, errstat )
      locerrstat = HE5_SWWRFLD ( &
           pge_swath_id, ccdpix_field, he5_start_2d, he5_stride_2d, he5_edge_2d, locccd(1:nXtrack,1:2) )
   END IF
+
   ! ------------------
   ! Check error status
   ! ------------------
