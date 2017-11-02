@@ -632,9 +632,11 @@ END SUBROUTINE he5_write_radfit_output
 
 SUBROUTINE he5_write_common_mode ( nXtrack, npts, errstat )
 
+  USE OMSAO_precision_module, OnLY: i2, i4, r4, r8
   USE OMSAO_errstat_module, ONLY: pge_errstat_ok, pge_errstat_error, he5_stat_ok, &
        error_check, vb_lev_default, omsao_e_he5swwrfld
-  USE OMSAO_he5_module
+  USE OMSAO_he5_module, ONLY: ccdpix_field, commcnt_field, commspc_field, commwvl_field, &
+       he5_edge_2d, he5_start_2d, he5_stride_2d, yn_output_diag, pge_swath_id, HE5_SWWRFLD
   USE OMSAO_indices_module, ONLY: commcnt_didx, commspc_didx, &
        commwvl_didx, ccdpix_didx
   USE OMSAO_variables_module, ONLY: common_mode_spec, ctrvar
