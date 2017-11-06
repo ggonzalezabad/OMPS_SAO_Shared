@@ -313,14 +313,15 @@ SUBROUTINE xtrack_radiance_fitting_loop ( yn_common_fit, &
        hwe_idx, asy_idx, sha_idx, &
        solar_idx, ccd_idx, radfit_idx
   USE OMSAO_parameters_module, ONLY: i2_missval, r8_missval
-  USE OMSAO_variables_module,  ONLY: database, curr_sol_spec, n_rad_wvl, &
-       curr_rad_spec, sol_wav_avg, hw1e, e_asym, g_shap, n_database_wvl, ctrvar
+  USE OMSAO_variables_module,  ONLY: database, curr_sol_spec, &
+       curr_rad_spec, sol_wav_avg, hw1e, e_asym, g_shap, ctrvar, &
+       n_database_wvl
   USE OMSAO_slitfunction_module, ONLY: saved_shift, saved_squeeze
-  USE OMSAO_data_module, ONLY: nxtrack_max, n_comm_wvl, &
+  USE OMSAO_data_module, ONLY: n_comm_wvl, &
        column_uncert, column_amount, fit_rms, radfit_chisq, &
        itnum_flag, fitconv_flag, solcal_pars, ins_sol_wav_avg, &
-       n_ins_database_wvl, nwav_rad, szenith, &
-       cross_track_skippix, n_radwvl, &
+       n_ins_database_wvl, szenith, nwav_rad, &
+       cross_track_skippix, &
        curr_xtrack_pixnum, radiance_wavl, &
        ccdpix_exclusion, ccdpix_selection, ins_database, &
        ins_database_wvl, max_rs_idx, radiance_spec, &
@@ -341,7 +342,7 @@ SUBROUTINE xtrack_radiance_fitting_loop ( yn_common_fit, &
   ! Modified variable
   ! -----------------
   INTEGER (KIND=i4), INTENT (INOUT) :: errstat
-  REAL    (KIND=r8), INTENT (OUT  ), DIMENSION (n_fitvar_rad,first_pix:last_pix) :: &
+  REAL    (KIND=r8), INTENT (OUT), DIMENSION (n_fitvar_rad,first_pix:last_pix) :: &
        allfit_cols, allfit_errs, corr_matrix
 
   ! ---------------------------------------------------------
@@ -350,22 +351,22 @@ SUBROUTINE xtrack_radiance_fitting_loop ( yn_common_fit, &
   REAL (KIND=r8), DIMENSION(ctrvar%n_fincol_idx,first_pix:last_pix), INTENT (OUT) :: target_var
 
   ! CCM Output fit spectra
-  REAL (KIND=r8), DIMENSION(fitspc_out_dim0,nxtrack_max,4), INTENT (OUT) :: fitspc_out
+  REAL (KIND=r8), DIMENSION(fitspc_out_dim0,first_pix:last_pix,4), INTENT (OUT) :: fitspc_out
 
   ! ---------------
   ! Local variables
   ! ---------------
   INTEGER (KIND=i4) :: locerrstat, ipix, radfit_exval, radfit_itnum
   REAL    (KIND=r8) :: fitcol, rms, dfitcol, chisquav, rad_spec_avg  
-  LOGICAL                                     :: yn_skip_pix, yn_cycle_this_pix
-  LOGICAL                                     :: yn_bad_pixel
-  INTEGER (KIND=i4), DIMENSION (4)            :: select_idx
-  INTEGER (KIND=i4), DIMENSION (2)            :: exclud_idx
-  INTEGER (KIND=i4)                           :: n_solar_pts
-  REAL    (KIND=r8), DIMENSION (n_max_rspec)  :: solar_wvl, ref_wgh
+  LOGICAL :: yn_skip_pix, yn_cycle_this_pix
+  LOGICAL :: yn_bad_pixel
+  INTEGER (KIND=i4), DIMENSION (4) :: select_idx
+  INTEGER (KIND=i4), DIMENSION (2) :: exclud_idx
+  INTEGER (KIND=i4) :: n_solar_pts, n_l1b_wvl, n_l1b_adj_wvl
+  REAL    (KIND=r8), DIMENSION (n_max_rspec) :: solar_wvl, ref_wgh
 
   ! CCM Array for holding fitted spectra
-  REAL    (KIND=r8), DIMENSION (n_comm_wvl)   :: fitspc
+  REAL    (KIND=r8), DIMENSION (n_comm_wvl) :: fitspc
 
   locerrstat = pge_errstat_ok
 
@@ -380,7 +381,7 @@ SUBROUTINE xtrack_radiance_fitting_loop ( yn_common_fit, &
      IF (cross_track_skippix(ipix) .OR. ctrvar%szamax < szenith(ipix,iloop) ) CYCLE
     
      n_database_wvl = n_ins_database_wvl(ipix)
-     n_radwvl = nwav_rad(ipix,iloop)
+     n_l1b_wvl = nwav_rad(ipix,iloop)
 
      ! ---------------------------------------------------------------------------
      ! For each cross-track position we have to initialize the saved Shift&Squeeze
@@ -400,9 +401,9 @@ SUBROUTINE xtrack_radiance_fitting_loop ( yn_common_fit, &
      CALL check_wavelength_overlap ( &
           n_fitvar_rad, &
           n_solar_pts, solar_wvl (1:n_solar_pts), &
-          n_radwvl, radiance_wavl (1:n_radwvl,ipix,iloop), &
+          n_l1b_wvl, radiance_wavl (1:n_l1b_wvl,ipix,iloop), &
           yn_cycle_this_pix )
-     IF ( yn_cycle_this_pix .OR. n_database_wvl <= 0 .OR. n_radwvl <= 0) CYCLE
+     IF ( yn_cycle_this_pix .OR. n_database_wvl <= 0 .OR. n_l1b_wvl <= 0) CYCLE
 
      ! ----------------------------------------------
      ! Restore DATABASE from OMI_DATABASE (see above)
@@ -432,20 +433,23 @@ SUBROUTINE xtrack_radiance_fitting_loop ( yn_common_fit, &
      ! --------------------------------------------
      IF ( .NOT. (ctrvar%yn_radiance_reference) ) THEN
         ! Solar irradiance
-        ref_wgh(1:n_radwvl) = irradiance_wght(1:n_radwvl,ipix)
+        ref_wgh(1:n_l1b_wvl) = irradiance_wght(1:n_l1b_wvl,ipix)
      ELSE
         ! Radiance reference
-        ref_wgh(1:n_radwvl) = radref_wght(1:n_radwvl,ipix)
+        ref_wgh(1:n_l1b_wvl) = radref_wght(1:n_l1b_wvl,ipix)
      END IF
 
      CALL omi_adjust_radiance_data ( & ! Set up generic fitting arrays
           select_idx(1:4), exclud_idx(1:2), &
-          n_radwvl, &
-          radiance_wavl(1:n_radwvl,ipix,iloop), &
-          radiance_spec(1:n_radwvl,ipix,iloop), &
-          n_radwvl, ref_wgh(1:n_radwvl), &
-          n_rad_wvl, curr_rad_spec(wvl_idx:ccd_idx,1:n_radwvl),&
+          n_l1b_wvl, &
+          radiance_wavl(1:n_l1b_wvl,ipix,iloop), &
+          radiance_spec(1:n_l1b_wvl,ipix,iloop), &
+          n_l1b_wvl, ref_wgh(1:n_l1b_wvl), &
+          n_l1b_adj_wvl, curr_rad_spec(wvl_idx:ccd_idx,1:n_l1b_wvl),&
           rad_spec_avg, yn_skip_pix )
+
+!!$     WRITE(*,'(2I4,2E11.4)') ipix,iloop, curr_rad_spec(wvl_idx,INT(n_l1b_wvl/2)), &
+!!$          curr_rad_spec(spc_idx,INT(n_l1b_wvl/2))
 
      ! --------------------
      ! The radiance fitting
@@ -456,23 +460,23 @@ SUBROUTINE xtrack_radiance_fitting_loop ( yn_common_fit, &
      radfit_itnum = INT(i2_missval, KIND=i4)
      rms = r8_missval
 
-     IF ( MAXVAL(curr_rad_spec(spc_idx,1:n_rad_wvl)) > 0.0_r8 .AND.     &
-          n_rad_wvl > n_fitvar_rad .AND. (.NOT. yn_skip_pix)          ) THEN
+     IF ( MAXVAL(curr_rad_spec(spc_idx,1:n_l1b_adj_wvl)) > 0.0_r8 .AND.     &
+          n_l1b_adj_wvl > n_fitvar_rad .AND. (.NOT. yn_skip_pix) ) THEN
 
         yn_bad_pixel = .FALSE.
 
         CALL radiance_fit ( &
              ipix, ctrvar%n_fitres_loop(radfit_idx), ctrvar%fitres_range(radfit_idx),   &
              yn_common_fit,                                                     &
-             n_rad_wvl, curr_rad_spec(wvl_idx:ccd_idx,1:n_rad_wvl),                &
+             n_l1b_adj_wvl, curr_rad_spec(wvl_idx:ccd_idx,1:n_l1b_adj_wvl),                &
              fitcol, rms, dfitcol, radfit_exval, radfit_itnum, chisquav,           &
              target_var(1:ctrvar%n_fincol_idx,ipix),             &
              allfit_cols(1:n_fitvar_rad,ipix), allfit_errs(1:n_fitvar_rad,ipix),   &
-             corr_matrix(1:n_fitvar_rad,ipix), yn_bad_pixel, fitspc(1:n_rad_wvl) )
-
+             corr_matrix(1:n_fitvar_rad,ipix), yn_bad_pixel, fitspc(1:n_l1b_adj_wvl) )
         IF ( yn_bad_pixel ) CYCLE
+
      END IF
-     
+!!$     write(*,'(3E13.4,I6)') fitcol, dfitcol, rms, radfit_exval
      ! -----------------------------------
      ! Assign pixel values to final arrays
      ! -----------------------------------
@@ -484,10 +488,10 @@ SUBROUTINE xtrack_radiance_fitting_loop ( yn_common_fit, &
      column_uncert(ipix,iloop) = dfitcol
 
      ! CCM assign fit residual
-     fitspc_out(1:n_rad_wvl,ipix,1) = fitspc(1:n_rad_wvl)
-     fitspc_out(1:n_rad_wvl,ipix,2) = curr_rad_spec(spc_idx,1:n_rad_wvl)
-     fitspc_out(1:n_rad_wvl,ipix,3) = curr_rad_spec(wvl_idx,1:n_rad_wvl)
-     fitspc_out(1:n_rad_wvl,ipix,4) = curr_rad_spec(sig_idx,1:n_rad_wvl)
+     fitspc_out(1:n_l1b_adj_wvl,ipix,1) = fitspc(1:n_l1b_adj_wvl)
+     fitspc_out(1:n_l1b_adj_wvl,ipix,2) = curr_rad_spec(spc_idx,1:n_l1b_adj_wvl)
+     fitspc_out(1:n_l1b_adj_wvl,ipix,3) = curr_rad_spec(wvl_idx,1:n_l1b_adj_wvl)
+     fitspc_out(1:n_l1b_adj_wvl,ipix,4) = curr_rad_spec(sig_idx,1:n_l1b_adj_wvl)
 
   END DO XTrackPix
 
