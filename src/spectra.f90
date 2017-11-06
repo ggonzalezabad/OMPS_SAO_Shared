@@ -90,7 +90,8 @@ SUBROUTINE spectrum_solar ( &
         solar_spec_convolved = 0.0_r8
         CALL omi_slitfunc_convolve (                                  &
              curr_xtrack_pixnum, npts, solar_pos(1:npts),             &
-             solar_spec(1:npts), solar_spec_convolved(1:npts), errstat )
+             solar_spec(1:npts), solar_spec_convolved(1:npts), &
+             fitvar_cal(sha_idx), errstat )
         CALL error_check ( &
              errstat, pge_errstat_ok, pge_errstat_error, OMSAO_E_INTERPOL, &
              modulename//f_sep//'Convolution', vb_lev_default, errstat )
