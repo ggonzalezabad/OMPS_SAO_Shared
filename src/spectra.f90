@@ -57,8 +57,7 @@ SUBROUTINE spectrum_solar ( &
   npts               = refspecs_original(solar_idx)%nPoints
   solar_pos (1:npts) = refspecs_original(solar_idx)%RefSpecWavs(1:npts)
   solar_spec(1:npts) = refspecs_original(solar_idx)%RefSpecData(1:npts)
-  IF ( .NOT. ctrvar%yn_spectrum_norm ) &
-       solar_spec(1:npts) = solar_spec(1:npts) * refspecs_original(solar_idx)%NormFactor
+  solar_spec(1:npts) = solar_spec(1:npts) * refspecs_original(solar_idx)%NormFactor
 
   ! =========================================================================
   !     Spectrum Calculation for Solar and Radiance Wavelength Calibration
@@ -269,7 +268,7 @@ SUBROUTINE spectrum_earthshine ( &
   ! already interpolated spectra, we use the original solar composites here as base for the
   ! interpolation to the final radiance wavelengths.
   ! -----------------------------------------------------------------------------------------
-  n_sunpos                = n_database_wvl
+  n_sunpos = n_database_wvl
   sunpos_ss  (1:n_sunpos) = curr_sol_spec(wvl_idx,1:n_sunpos)
   sunspec_loc(1:n_sunpos) = curr_sol_spec(spc_idx,1:n_sunpos)
 
