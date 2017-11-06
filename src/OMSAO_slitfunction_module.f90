@@ -27,7 +27,7 @@ MODULE OMSAO_slitfunction_module
 
 CONTAINS
 
-  SUBROUTINE omi_slitfunc_convolve ( xtrack_pix, nwvl, wvl, spec_in, specmod, errstat )
+  SUBROUTINE omi_slitfunc_convolve ( xtrack_pix, nwvl, wvl, spec_in, specmod, stretch, errstat )
 
     IMPLICIT NONE
 
@@ -51,6 +51,7 @@ CONTAINS
     ! ---------------
     INTEGER (KIND=i4),                  INTENT (IN) :: nwvl, xtrack_pix
     REAL    (KIND=r8), DIMENSION(nwvl), INTENT (IN) :: wvl, spec_in
+    REAL    (KIND=r8),                  INTENT (IN) :: stretch
     
     ! ------------------
     ! Modified variables
@@ -76,7 +77,7 @@ CONTAINS
     ! OMPS slit function
     ! ------------------
     INTEGER (KIND=i4), PARAMETER       :: maxbands  = 300
-    INTEGER (KIND=i4), PARAMETER       :: maxpoints = 38
+    INTEGER (KIND=i4), PARAMETER       :: maxpoints = 250
     REAL    (KIND=r8), PARAMETER       :: startpoint = -1.9, endpoint = 1.9
     REAL    (KIND=r8)                  :: delvar
     LOGICAL                            :: LFAIL
@@ -125,8 +126,8 @@ CONTAINS
 
     ! -----------------------------------------------------------
     ! Working out the slit function profiles we are interested in
-    ! for each point +- 1.99nm with a resolution of ~0.001. I may
-    ! adjust this to improve performace vs accuracy
+    ! for each point +- 1.99nm with a resolution of 3.98/500.
+    ! I may adjust this to improve performace vs accuracy
     ! -----------------------------------------------------------
     delvar = (endpoint - startpoint) / REAL (maxpoints-1, KIND=r8)
     DO ixa = 1, maxpoints
@@ -142,7 +143,7 @@ CONTAINS
        ! ---------------------------------------
        iband = MINLOC(ABS(wls(1:nwls) - wvl(ixa)), 1)
        sf_wvals(ixa,1:maxpoints)  = wvl(ixa) + xa(1:maxpoints)
-       sf_profiles(ixa,1:maxpoints) = OMPS_SlitA( xa(1:maxpoints), bandIdx(iband), iXt)
+       sf_profiles(ixa,1:maxpoints) = OMPS_SlitA( xa(1:maxpoints), bandIdx(iband), iXt, stretch)
     End Do
 
     ! -----------------------------------------------------------------------------
@@ -233,7 +234,7 @@ CONTAINS
        ! Save to temporal arrays
        ! -----------------------
        convtmp(k1:k2) = convtmp(k1:k2) / sf_area
-              
+
        ! ----------------------------------------------------------------------------
        ! Done normalization, we perform the convolution of the spectrum with the slit
        ! function.
@@ -342,7 +343,7 @@ CONTAINS
           eslit = npoints+i+j ; rwvl = - cwvl + wvl_temp(eslit)
           sf_val(sslit) = EXP(-(ABS(lwvl / ( hw1e + signdp(lwvl)*e_asym ) ) )**g_shap )
           sf_val(eslit) = EXP(-(ABS(rwvl / ( hw1e + signdp(rwvl)*e_asym ) ) )**g_shap ) 
-          IF ( sf_val(sslit) < 0.0005_r8 .AND. sf_val(sslit) < 0.0005_r8 ) EXIT getslit
+          IF ( sf_val(eslit) < 0.0005_r8 .AND. sf_val(sslit) < 0.0005_r8 ) EXIT getslit
        END DO getslit
 
        ! ----------------------------------
