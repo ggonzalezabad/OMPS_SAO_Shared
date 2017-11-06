@@ -60,7 +60,7 @@ SUBROUTINE undersample ( xtrack_pix, n_sensor_pts, curr_wvl, hw1e, e_asym, g_sha
 
   IF ( ctrvar%yn_use_labslitfunc ) THEN
      CALL omi_slitfunc_convolve ( &
-          xtrack_pix, npts, locwvl(1:npts), locspec(1:npts), specmod(1:npts), locerrstat )
+          xtrack_pix, npts, locwvl(1:npts), locspec(1:npts), specmod(1:npts), g_shap, locerrstat )
   ELSE
      CALL super_gaussian_sf ( &
           npts, hw1e, e_asym, g_shap, locwvl(1:npts), locspec(1:npts), specmod(1:npts))
@@ -243,7 +243,7 @@ SUBROUTINE undersample_new ( xtrack_pix, n_sensor_pts, curr_wvl, n_solar_pts, so
 
   IF ( ctrvar%yn_use_labslitfunc ) THEN
      CALL omi_slitfunc_convolve ( &
-          xtrack_pix, npts, locwvl(1:npts), locspec(1:npts), specmod(1:npts), locerrstat )
+          xtrack_pix, npts, locwvl(1:npts), locspec(1:npts), specmod(1:npts), g_shap, locerrstat )
   ELSE
      CALL super_gaussian_sf ( &
           npts, hw1e, e_asym, g_shap, locwvl(1:npts), locspec(1:npts), specmod(1:npts))
