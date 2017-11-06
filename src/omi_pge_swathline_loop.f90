@@ -7,11 +7,9 @@ SUBROUTINE omi_pge_swathline_loop ( &
   USE OMSAO_precision_module, ONLY: i4, r8
   USE OMSAO_parameters_module, ONLY: i2_missval, r8_missval, maxchlen
   USE OMSAO_indices_module, ONLY: n_max_fitpars
-  USE OMSAO_variables_module, ONLY:  &
-       n_fitvar_rad, fitvar_rad_saved, &
+  USE OMSAO_variables_module, ONLY: n_fitvar_rad, fitvar_rad_saved, &
        pcfvar, ctrvar
-  USE OMSAO_data_module, ONLY:  &
-       n_comm_wvl, &
+  USE OMSAO_data_module, ONLY:  n_comm_wvl, &
        itnum_flag, fitconv_flag, column_amount, &
        column_uncert, fit_rms
   USE OMSAO_errstat_module, ONLY: omsao_s_progress, pge_errstat_ok, &
@@ -114,7 +112,8 @@ SUBROUTINE omi_pge_swathline_loop ( &
           all_fitted_columns (1:n_fitvar_rad,fpix:lpix,iline),   &
           all_fitted_errors  (1:n_fitvar_rad,fpix:lpix,iline),   &
           correlation_columns(1:n_fitvar_rad,fpix:lpix,iline),   &
-          target_var(1:ctrvar%n_fincol_idx,fpix:lpix), locerrstat, fitspc_tmp, n_comm_wvl )
+          target_var(1:ctrvar%n_fincol_idx,fpix:lpix), locerrstat, &
+          fitspc_tmp(1:n_comm_wvl,fpix:lpix,1:4), n_comm_wvl )
      
      ipix = (fpix+lpix)/2
      addmsg = ''
@@ -139,7 +138,6 @@ SUBROUTINE omi_pge_swathline_loop ( &
         errstat = MAX ( errstat, locerrstat )
 
      END IF
-     
      
   END DO ScanLines
 
