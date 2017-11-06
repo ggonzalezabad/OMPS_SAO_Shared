@@ -259,7 +259,7 @@ SUBROUTINE convolve_data (                                     &
   ! -----------------------------------------------------------------
   IF ( yn_labslit ) THEN
      CALL omi_slitfunc_convolve (                     &
-          xtrack_pix, npts, wvl_in(1:npts), spec_in(1:npts), spec_conv(1:npts), errstat )
+          xtrack_pix, npts, wvl_in(1:npts), spec_in(1:npts), spec_conv(1:npts), sha, errstat )
      CALL error_check ( &
           errstat, pge_errstat_ok, pge_errstat_warning, OMSAO_W_INTERPOL, &
           modulename//f_sep//'Convolution', vb_lev_default, errstat )
