@@ -54,12 +54,12 @@ CONTAINS
     ! ------------------------------
     CHARACTER (LEN=29), PARAMETER :: modulename = 'xtrack_solar_calibration_loop'
 
-    fitvar_cal_saved(1:max_calfit_idx) = ctrvar%fitvar_sol_init(1:max_calfit_idx)
-
     ! ---------------------------------------------------------------
     ! Loop for solar wavelength calibration and slit function fitting
     ! ---------------------------------------------------------------
     XtrackSolCal: DO ipix = first_pix, last_pix
+
+       fitvar_cal_saved(1:max_calfit_idx) = ctrvar%fitvar_sol_init(1:max_calfit_idx)
 
        locerrstat = pge_errstat_ok
        curr_xtrack_pixnum = ipix
@@ -153,7 +153,7 @@ CONTAINS
        ! --------------------------------------
        IF ( ctrvar%yn_spectrum_norm ) &
             curr_sol_spec(spc_idx,1:n_irradwvl) = curr_sol_spec(spc_idx,1:n_irradwvl) / sol_spec_avg
-       
+
        ! ---------------------------------------------
        ! Calculate SOL_WAV_AVG of measured solar spectra here,
        ! for use in calculated spectra.
@@ -198,7 +198,7 @@ CONTAINS
             curr_sol_spec(sig_idx,1:ccdpix_selection(ipix,2)-ccdpix_selection(ipix,1)+1) = downweight
        IF ( ccdpix_selection(ipix,3) < ccdpix_selection(ipix,4) ) &
             curr_sol_spec(sig_idx,ccdpix_selection(ipix,3)-ccdpix_selection(ipix,1)+1:n_irradwvl) = downweight
-              
+
        ! ------------------------------------------------------------------------
        ! Also any window excluded by the user (specified in fitting control file)
        ! ------------------------------------------------------------------------
@@ -268,7 +268,7 @@ CONTAINS
     END DO XtrackSolCal
     
     errstat = MAX ( errstat, locerrstat )
-
+    
     RETURN
   END SUBROUTINE xtrack_solar_calibration_loop
 
