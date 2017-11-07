@@ -53,11 +53,11 @@ SUBROUTINE spectrum_solar ( &
      idx = mask_fitvar_cal(i)
      fitvar_cal(idx) = fitvar(i)
   END DO
-
   npts               = refspecs_original(solar_idx)%nPoints
   solar_pos (1:npts) = refspecs_original(solar_idx)%RefSpecWavs(1:npts)
   solar_spec(1:npts) = refspecs_original(solar_idx)%RefSpecData(1:npts)
-  solar_spec(1:npts) = solar_spec(1:npts) * refspecs_original(solar_idx)%NormFactor
+  IF (ctrvar%yn_spectrum_norm) &
+       solar_spec(1:npts) = solar_spec(1:npts) * refspecs_original(solar_idx)%NormFactor
 
   ! =========================================================================
   !     Spectrum Calculation for Solar and Radiance Wavelength Calibration
