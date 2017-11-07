@@ -10,12 +10,10 @@ MODULE OMSAO_slitfunction_module
 
   USE OMSAO_precision_module,  ONLY: i4, r8
   USE OMSAO_data_module,    ONLY: nxtrack_max
-  USE OMSAO_OMPS_SLIT_READER
+  USE OMPS_macroSlitNOAA_m
   USE OMSAO_errstat_module
 
   IMPLICIT NONE
-
-  LOGICAL, PRIVATE :: Slit_read = .TRUE.
 
   ! ---------------------------------------------------------------------
   ! The following two quantities are used to determine whether we need to
@@ -23,7 +21,6 @@ MODULE OMSAO_slitfunction_module
   ! changed from one iteration to the other is a reconvolution necessary.
   ! ---------------------------------------------------------------------
   REAL (KIND=r8) :: saved_shift = -1.0E+30_r8, saved_squeeze = -1.0E+30_r8
-
 
 CONTAINS
 
@@ -67,187 +64,126 @@ CONTAINS
     ! Local variables
     ! ---------------
     INTEGER (KIND=i4) :: locerrstat
-    INTEGER (KIND=i4) :: l, j, j1, j2, k1, k2
-    REAL    (KIND=r8) :: sf_area
-    LOGICAL           :: yn_full_range
-    INTEGER (KIND=i4) :: ntmp
-    REAL    (KIND=r8), DIMENSION (nwvl) :: convtmp, spectro
+    INTEGER (KIND=i4) :: j
 
     ! ------------------
     ! OMPS slit function
     ! ------------------
-    INTEGER (KIND=i4), PARAMETER       :: maxbands  = 300
-    INTEGER (KIND=i4), PARAMETER       :: maxpoints = 250
-    REAL    (KIND=r8), PARAMETER       :: startpoint = -1.9, endpoint = 1.9
-    REAL    (KIND=r8)                  :: delvar
-    LOGICAL                            :: LFAIL
-    CHARACTER(LEN=256)                 :: msg
-    REAL(KIND=8), DIMENSION(2)         :: wlr
-    INTEGER                            :: iXt, ixa, iband
-    INTEGER                            :: nwls
-    REAL(KIND=8), DIMENSION(maxbands)  :: wls
-    INTEGER,      DIMENSION(maxbands)  :: bandIdx
-    REAL(KIND=8), DIMENSION(maxpoints) :: xa
-    !! result
-    REAL(KIND=r8), DIMENSION (nwvl, maxpoints) :: sf_wvals, sf_profiles
-    ! The MAX(,) dimension prevents array bound problems for small values of NWVL
-    REAL(KIND=r8), DIMENSION (maxpoints)       :: sfwvl_tmp, sfpro_tmp
-    
+    REAL (KIND=r8), PARAMETER :: dhalf = 2.0
+    REAL (KIND=r8) :: delwvl, slitsum
+    INTEGER :: fidx, lidx, nhalf, i
+    INTEGER :: sidx, eidx, nslit, fpnt, lpnt
+    REAL(KIND=8), DIMENSION(nwvl) :: locsli
+    INTEGER, DIMENSION(nwvl) :: idxs    
 
     ! ---------------------------------------------------
     ! Initialize important output and temporary variables
     ! ---------------------------------------------------
-    spectro(1:nwvl) = spec_in(1:nwvl)
-    locerrstat      = pge_errstat_ok
-    specmod(1:nwvl) = 0.0_r8
-    sf_area         = 0.0_r8 ; delvar  = 0.0_r8
-    sf_wvals        = 0.0_r8 ; sf_profiles = 0.0_r8
+    locerrstat = pge_errstat_ok
+    specmod(1:nwvl) = spec_in(1:nwvl)
+    fidx = 1; lidx = nwvl
+    delwvl = wvl(fidx+1)-wvl(fidx)
+    nhalf = CEILING(dhalf / delwvl)
+    nslit = nhalf * 2 + 1
+    sidx = MAX(fidx, nhalf + 1)
+    eidx = MIN(lidx, nwvl - nhalf)
 
-
-    ! ------------------------
-    ! Read OMPS Slit functions
-    ! ------------------------
-    IF (slit_read) THEN
-       CALL OMPS_macroSlit_read( ompsSlitFN, ompsBcwlFN,  &
-            nbands, nXts, nSiltPts, slitMacroTab,&
-            wlMacroTab, wlRelTab, wlRelminTab,   &
-            wlRelmaxTab, wlStepTab, LFAIL, msg )
-       slit_read = .FALSE.
-    ENDIF
-
-    ! --------------------
-    ! Getting band indices
-    ! --------------------
-    iXt = xtrack_pix
-    delvar = wvl(2) - wvl(1)
-    wlr(1) = wvl(1) ; wlr(2) = wvl(nwvl)
-    
-    CALL OMPS_wlr2bands( wlr, iXt, wls, bandIdx, nwls, LFAIL, msg )
-
-    ! -----------------------------------------------------------
-    ! Working out the slit function profiles we are interested in
-    ! for each point +- 1.99nm with a resolution of 3.98/500.
-    ! I may adjust this to improve performace vs accuracy
-    ! -----------------------------------------------------------
-    delvar = (endpoint - startpoint) / REAL (maxpoints-1, KIND=r8)
-    DO ixa = 1, maxpoints
-     xa(ixa) = startpoint + (ixa-1.0) * delvar
+    ! Safe convolution
+    DO i = sidx, eidx
+       CALL compute_slitprofile (xtrack_pix, stretch, wvl(i),nslit, wvl(i-nhalf:i+nhalf), &
+            locsli(1:nslit))
+       slitsum = SUM(locsli(1:nslit))
+       specmod(i) = DOT_PRODUCT(locsli(1:nslit), spec_in(i-nhalf:i+nhalf)) / slitsum
     END DO
 
-    Do ixa = 1, nwvl
-       ! ------------------------------------------------------
-       ! Working out the wavelenghts for one band
-       ! Find which band is closest to this particular wvl(ixa)
-       ! ---------------------------------------
-       ! Find the closed band center to wvl(ixa)
-       ! ---------------------------------------
-       iband = MINLOC(ABS(wls(1:nwls) - wvl(ixa)), 1)
-       sf_wvals(ixa,1:maxpoints)  = wvl(ixa) + xa(1:maxpoints)
-       sf_profiles(ixa,1:maxpoints) = OMPS_SlitA( xa(1:maxpoints), bandIdx(iband), iXt, stretch)
-    End Do
+    CALL compute_slitprofile (xtrack_pix, stretch, wvl(sidx),nslit, wvl(sidx-nhalf:sidx+nhalf), &
+         locsli(1:nslit))
+    slitsum = SUM(locsli(1:nslit))
 
-    ! -----------------------------------------------------------------------------
-    ! In the following loop over the wavelengths in the input spectrum, we perform
-    ! the following steps:
-    ! (1) Interpolation of the slit function to the spectrum wavelength:
-    !     (a) Find indices J1 and J2 in the slit function wavelength array SF_WVALS
-    !         bounding the non-zero part of the slit function from left and right;
-    !     (b) Find indices K1 and K2 in the spectrum wavelength array WVL such that
-    !         SF_WVALS(J1) <= WVL(K1)  < WVL(K2) <= SF_WAVLS(J2)
-    !     (c) Interpolation.
-    ! (2) Normalize the interpolated slit function to AREA=1.
-    ! (3) Convolve the spectrum.
-    ! -----------------------------------------------------------------------------
-    ! gga
+    ! Left wrap mode
+    DO i = fidx, sidx - 1
+       idxs(1:nslit) = (/(j, j = i - nhalf, i+nhalf)/)
+       lpnt = nhalf - i + 1
+       idxs(1 : lpnt) = ABS(idxs(1 : lpnt)) + 2
+       specmod(i) = DOT_PRODUCT(locsli(1:nslit), spec_in(idxs(1:nslit))) / slitsum
+    ENDDO
 
-    DO l = 1, nwvl
+    CALL compute_slitprofile (xtrack_pix, stretch, wvl(eidx),nslit, wvl(eidx-nhalf:eidx+nhalf), &
+         locsli(1:nslit))
+    slitsum = SUM(locsli(1:nslit))
 
-       convtmp = 0.0_r8
-    
-       ! ----------------------------------------------
-       ! Find indices J1 and J2; add 1 at either end to
-       ! assure that we include the ZERO values.
-       ! -----------------------------------------------------------------
-       ! J1 is the minimum position of SF > 0 minus 1, but not less than 1
-       ! -----------------------------------------------------------------
-       j1  = 1
-       get_sf_start: DO j = 2, maxpoints
-          IF ( sf_profiles(l,j) > 0.0_r8 ) THEN
-             j1 = j+1 ; EXIT get_sf_start
-          END IF
-       END DO get_sf_start
-       ! ------------------------------------------------------------------------
-       ! J2 is the maximum position of SF > 0 plus 1, but not more than N_SF_NPTS
-       ! ------------------------------------------------------------------------
-       j2  = maxpoints
-       get_sf_end: DO j = maxpoints-1, 1, -1
-          IF ( sf_profiles(l,j) > 0.0_r8 ) THEN
-             j2 = j+1 ; EXIT get_sf_end
-          END IF
-       END DO get_sf_end
-       IF ( j2 <= 0 ) j2 = maxpoints
-
-       ! ----------------------------------------------------------------------------
-       ! Now find the bounding indices K1 and K2 in the extended spectrum wavelengths
-       ! ----------------------------------------------------------------------------
-       CALL array_locate_r8 ( nwvl, wvl(1:nwvl), sf_wvals(l,j1), 'GE', k1 )
-       CALL array_locate_r8 ( nwvl, wvl(1:nwvl), sf_wvals(l,j2), 'LE', k2 )
-       IF (k1 == k2) THEN
-          CYCLE
-       END IF
-
-       ! -----------------------------------------------------------------------------
-       ! Now interpolate the slit function to the spectrum wavlengths. We are doing it
-       ! this way disregard of the number of spectral points in either array (i.e., we
-       ! do not interpolate the lower resolution grid to the higher resolution one)
-       ! because we don't want to worry about introducing any additional undersampling
-       ! effects. This may or may not be an issue but better safe than sorry.
-       ! -----------------------------------------------------------------------------
-       ! Copy to temporary arrays to avoid creation of same in call to subroutine
-       ! ------------------------------------------------------------------------
-       ntmp              = j2-j1+1
-       sfwvl_tmp(1:ntmp) = sf_wvals   (l,j1:j2)
-       sfpro_tmp(1:ntmp) = sf_profiles(l,j1:j2)
-       
-       ! -------------------------------------------------------
-       ! Interpolation of the extended SF to obtain the area for
-       ! normalization applied below
-       ! -------------------------------------------------------
-       CALL interpolation ( &
-            ntmp, sfwvl_tmp(1:ntmp), sfpro_tmp(1:ntmp),                 &
-            k2-k1+1, wvl(k1:k2), convtmp(k1:k2), 'endpoints', 0.0_r8, &
-            yn_full_range, locerrstat )
-       
-       ! ------------------------------------------------
-       ! If the SF doesn't contribute between nwvl(1) and 
-       ! nwvl(nwvl) then we can skip this l.
-       ! ------------------------------------------------
-       IF (wvl(k2) < wvl(1) .OR. wvl(k1) > wvl(nwvl)) CYCLE
-       
-       ! --------------------------------------------------------
-       ! Renormalize the slit function to AREA = 1, then convolve
-       ! --------------------------------------------------------
-       sf_area = SUM(convtmp)
-       IF ( sf_area == 0.0_r8 ) sf_area = 1.0_r8
-       
-       ! -----------------------
-       ! Save to temporal arrays
-       ! -----------------------
-       convtmp(k1:k2) = convtmp(k1:k2) / sf_area
-
-       ! ----------------------------------------------------------------------------
-       ! Done normalization, we perform the convolution of the spectrum with the slit
-       ! function.
-       ! ----------------------------------------------------------------------------
-       specmod(k1:k2) = specmod(k1:k2) + spectro(l) * convtmp(k1:k2)
-
-    END DO
-    ! gga 
+    ! Right wrap mode
+    DO i = eidx + 1, lidx
+       idxs(1:nslit) = (/(j, j = i - nhalf, i+nhalf)/)
+       fpnt = nhalf + (nwvl - i) + 1
+       idxs(fpnt:nslit) =  nwvl * 2 - idxs(fpnt:nslit)
+       specmod(i) = DOT_PRODUCT(locsli(1:nslit), spec_in(idxs(1:nslit))) / slitsum
+    ENDDO
     
     errstat = MAX ( errstat, locerrstat )
 
     RETURN
   END SUBROUTINE omi_slitfunc_convolve
+
+  SUBROUTINE OMPS_Slit_DRIVER (ixt, wlc, scaling,  nslit, xa, slit )
+    USE OMPS_macroSlitNOAA_m, ONLY : OMPS_SlitF, OMPS_SlitA, &
+         OMPS_wlr2bands, OMPS_wl2band
+    
+    IMPLICIT NONE
+    ! INPUT VARIABLES
+    INTEGER, INTENT (IN)      :: iXt     ! idx of cross-track position
+    REAL (KIND=8), INTENT(IN) :: wlc     ! band center
+    REAL (KIND=8), INTENT(IN) :: scaling ! shape parameter for broadening/squeezing the slit function
+    INTEGER, INTENT (IN)      :: nslit   ! the number of slit    
+    REAL (KIND=8), INTENT(IN), DIMENSION (nslit) :: xa ! slit position relative to band center
+    ! OUTPUT VARIABLES
+    REAL(KIND=8), INTENT(OUT), DIMENSION(nslit) :: slit ! slitfunction
+    ! LOCAL VARIABLES
+    INTEGER :: ii, ib
+    LOGICAL :: LFAIL
+    CHARACTER(LEN=255) :: msg
+    
+    !! OMPS slit is tabulated according to cross track 1 to 36,
+    IF ( ixt < 1 .or. ixt > 36 ) THEN
+       write (*,'(A)') ' check the pixel range in OMPS Slit Deriver'
+       stop
+    ENDIF
+    !! band index (1 to 196)
+    !! Given a band center wavelength index, this function
+    !! returns the band index to be used
+    ib =  OMPS_wl2band( wlc, iXt, LFAIL, msg )
+    IF ( ib < 1 .or. ib > 196 ) THEN
+       write (*,'(A)') ' check the wave range in OMPS Slit Deriver'
+       stop
+    ENDIF
+    !! scaling = 1.0, OMPS_SlitF is equal to database.
+    !! scaling > 1.0, slitF is broadened.
+    !! scaling < 1.0, slitF is squeezed.
+    !! Normally sclaing should not go below 0.5 or above 1.5
+    DO ii = 1, nslit
+       slit(ii) = OMPS_SlitF( xa(ii), ib, iXt, scaling )
+    ENDDO
+  END SUBROUTINE OMPS_Slit_DRIVER
+  
+  SUBROUTINE compute_slitprofile (currpix, scailing, bandcenter, nslit, slitwave, slit)
+    
+    IMPLICIT NONE
+    ! Input/Output variables   
+    INTEGER, INTENT(IN) :: nslit, currpix
+    REAL (KIND=8), INTENT(IN) :: bandcenter, scailing
+    REAL (KIND=8), DIMENSION(nslit), INTENT(IN)  :: slitwave
+    REAL (KIND=8), DIMENSION(nslit), INTENT(OUT) :: slit
+    ! Local variables
+    REAL(KIND=8), DIMENSION(nslit) :: xa
+    
+    IF ( scailing < 0.1 .and. scailing > 2.0 ) THEN
+       print * , 'check omps_slit_scaling in omps_slit_module'
+       stop
+    ENDIF
+    xa(1:nslit) = slitwave(1:nslit) - bandcenter
+    call omps_slit_driver (currpix, bandcenter, scailing, nslit, xa, slit)
+    RETURN
+  END SUBROUTINE compute_slitprofile
 
   SUBROUTINE super_gaussian_sf ( npoints, hw1e, e_asym, g_shap, wvlarr, specarr, specmod)
 
