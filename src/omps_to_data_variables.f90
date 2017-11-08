@@ -10,8 +10,9 @@ SUBROUTINE omps_to_data_variables (omps_data,nt,nx,nw)
   USE OMSAO_data_module, ONLY: spacecraft_alt, time, utc_time, xtrflg, instrument_flag, &
        latitude, latitudecorner, longitude, longitudecorner, szenith, sazimuth, &
        vzenith, vazimuth, vzenith, vazimuth, razimuth, nwav_irrad, nwav_rad, &
-       ccdpix_selection, radiance_wavl, radiance_spec, radiance_prec, radiance_qflg, &
-       nwav_rad, ins_sol_wav_avg, irradiance_wavl, irradiance_spec, ccdpix_exclusion, &
+       radiance_wavl, radiance_spec, radiance_prec, radiance_qflg, &
+       nwav_rad, ins_sol_wav_avg, irradiance_wavl, irradiance_spec, &
+       ccdpix_selection, ccdpix_exclusion, ccdpix_selection_rad, ccdpix_exclusion_rad, &
        EarthSunDistance, yn_process_pixel, ntime_rad, nxtrack_rad
   USE OMSAO_OMPS_READER, ONLY: omps_nmev_type
   USE OMSAO_he5_module, ONLY: granule_day, granule_month, granule_year
@@ -99,14 +100,14 @@ SUBROUTINE omps_to_data_variables (omps_data,nt,nx,nw)
         DO j = 1, 3, 2
            CALL array_locate_r8 ( &
                 nw, tmp_wvl(1:nw), REAL(ctrvar%fit_winwav_lim(j  ),KIND=r8), 'LE', &
-                ccdpix_selection(ix,j  ) )
+                ccdpix_selection_rad(ix,it,j) )
            CALL array_locate_r8 ( &
                 nw, tmp_wvl(1:nw), REAL(ctrvar%fit_winwav_lim(j+1),KIND=r8), 'GE', &
-                ccdpix_selection(ix,j+1) )
+                ccdpix_selection_rad(ix,it,j+1) )
         END DO
         
-        imin = ccdpix_selection(ix,1)
-        imax = ccdpix_selection(ix,4)
+        imin = ccdpix_selection_rad(ix,it,1)
+        imax = ccdpix_selection_rad(ix,it,4)
         icnt = imax - imin + 1
         
         radiance_wavl(1:icnt,ix,it) = REAL ( OMPS_data%BandCenterWavelengths(imin:imax,ix,it+1), KIND=r8 )
@@ -115,6 +116,16 @@ SUBROUTINE omps_to_data_variables (omps_data,nt,nx,nw)
         radiance_qflg(1:icnt,ix,it) = OMPS_data%PixelQualityFlags(imin:imax,ix,it+1)
         nwav_rad (ix,it) = icnt
         
+        ccdpix_exclusion_rad(ix,it,1:2) = -1
+        IF ( MINVAL(ctrvar%fit_winexc_lim(1:2)) > 0.0_r8 ) THEN
+           CALL array_locate_r8 ( &
+                nw, tmp_wvl(1:nw), REAL(ctrvar%fit_winexc_lim(1),KIND=r8), 'GE', &
+                ccdpix_exclusion_rad(ix,it,1) )
+           CALL array_locate_r8 ( &
+                nw, tmp_wvl(1:nw), REAL(ctrvar%fit_winexc_lim(2),KIND=r8), 'LE', &
+                ccdpix_exclusion_rad(ix,it,2) )
+        END IF
+
      END DO
   END DO
   
