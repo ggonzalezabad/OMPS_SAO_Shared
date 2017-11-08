@@ -179,14 +179,6 @@ SUBROUTINE xtrack_radiance_wvl_calibration ( &
         exclud_idx(1:2) = ccdpix_exclusion_rad(ipix,cline,1:2)
      END IF
 
-     ! ---------------------------------------------------------------------------
-     ! Set up generic fitting arrays. Remember that OMI_RADIANCE_XXX arrays are
-     ! 3-dim with the last dimension being the scan line numbers. For the radiance
-     ! wavelength calibration we only have one scan line at index "0".
-     ! ---------------------------------------------------------------------------
-!!$     select_idx(1:4) = ccdpix_selection_rad(ipix,cline,1:4)
-!!$     exclud_idx(1:2) = ccdpix_exclusion_rad(ipix,cline,1:2)
-
      CALL omi_adjust_radiance_data ( & ! Set up generic fitting arrays
           select_idx(1:4), exclud_idx(1:2), n_radwvl, &
           calibration_wavl(1:n_radwvl), calibration_spec(1:n_radwvl), &
