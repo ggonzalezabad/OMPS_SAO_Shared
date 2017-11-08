@@ -188,7 +188,7 @@ SUBROUTINE xtrack_radiance_wvl_calibration ( &
      CALL omi_adjust_radiance_data ( & ! Set up generic fitting arrays
           select_idx(1:4), exclud_idx(1:2), n_radwvl, &
           calibration_wavl(1:n_radwvl), calibration_spec(1:n_radwvl), &
-          n_radwvl, calibration_wght(1:n_radwvl), &
+          calibration_wght(1:n_radwvl), &
           n_rad_wvl, curr_rad_spec(wvl_idx:ccd_idx,1:n_radwvl), rad_spec_avg, &
           yn_skip_pix )
 
@@ -454,7 +454,7 @@ SUBROUTINE xtrack_radiance_fitting_loop ( yn_common_fit, &
           n_l1b_wvl, &
           radiance_wavl(1:n_l1b_wvl,ipix,iloop), &
           radiance_spec(1:n_l1b_wvl,ipix,iloop), &
-          n_l1b_wvl, ref_wgh(1:n_l1b_wvl), &
+          ref_wgh(1:n_l1b_wvl), &
           n_l1b_adj_wvl, curr_rad_spec(wvl_idx:ccd_idx,1:n_l1b_wvl),&
           rad_spec_avg, yn_skip_pix )
 
