@@ -224,8 +224,8 @@ CONTAINS
             ins_sol_wav_avg, ccdpix_selection, ccdpix_exclusion, ccdpix_selection_rad, &
             ccdpix_exclusion_rad, radiance_wavl, &
             radiance_spec, radiance_prec, radiance_qflg, yn_process_pixel, utc_time, radcal_chisq, &
-            solcal_itnum, radcal_itnum, radref_itnum, solcal_xflag, radcal_xflag, radref_xflag, &
-            solcal_pars, radcal_pars, radref_pars, n_ins_database_wvl, ins_database, &
+            solcal_itnum, radcal_itnum, solcal_xflag, radcal_xflag, &
+            solcal_pars, radcal_pars, n_ins_database_wvl, ins_database, &
             ins_database_wvl, database, cross_track_skippix, itnum_flag, fitconv_flag, &
             column_amount, column_uncert, fit_rms, radfit_chisq, stat=errstat)
     ENDIF
