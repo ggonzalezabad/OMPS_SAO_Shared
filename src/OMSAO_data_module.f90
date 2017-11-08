@@ -66,6 +66,8 @@ MODULE OMSAO_data_module
   REAL    (KIND=r4), ALLOCATABLE, DIMENSION (:) :: radref_sza, radref_vza
   INTEGER (KIND=i4), ALLOCATABLE, DIMENSION (:,:) :: ccdpix_selection
   INTEGER (KIND=i4), ALLOCATABLE, DIMENSION (:,:) :: ccdpix_exclusion
+  INTEGER (KIND=i4), ALLOCATABLE, DIMENSION (:,:,:) :: ccdpix_selection_rad
+  INTEGER (KIND=i4), ALLOCATABLE, DIMENSION (:,:,:) :: ccdpix_exclusion_rad
 
   ! ----------------------------------
   ! Arrays for common mode calculation
@@ -175,7 +177,8 @@ CONTAINS
             sazimuth(1:nx,0:nt-1),vzenith(1:nx,0:nt-1),vazimuth(1:nx,0:nt-1), &
             razimuth(1:nx,0:nt-1), nwav_irrad(1:nx), nwav_rad(1:nx,0:nt-1), &
             irradiance_wavl(1:nw,1:nx),irradiance_spec(1:nw,1:nx),irradiance_wght(1:nw,1:nx), &
-            ins_sol_wav_avg(1:nx), ccdpix_selection(nx,4), ccdpix_exclusion(nx,2), &
+            ins_sol_wav_avg(1:nx), ccdpix_selection(1:nx,1:4), ccdpix_exclusion(1:nx,1:2), &
+            ccdpix_selection_rad(1:nx,0:nt-1,1:4), ccdpix_exclusion_rad(1:nx,0:nt-1,1:2), &
             radiance_wavl(1:nw,1:nx,0:nt-1), radiance_spec(1:nw,1:nx,0:nt-1), &
             radiance_prec(1:nw,1:nx,0:nt-1), radiance_qflg(1:nw,1:nx,0:nt-1), &
             yn_process_pixel(1:nx,0:nt-1), utc_time(0:nt-1), &
@@ -218,7 +221,8 @@ CONTAINS
        DEALLOCATE(spacecraft_alt,time,xtrflg,instrument_flag, latitude, latitudecorner, &
             longitude, longitudecorner, szenith, sazimuth, vzenith, vazimuth, &
             razimuth, nwav_irrad, nwav_rad, irradiance_wavl, irradiance_spec, irradiance_wght, &
-            ins_sol_wav_avg, ccdpix_selection, ccdpix_exclusion, radiance_wavl, &
+            ins_sol_wav_avg, ccdpix_selection, ccdpix_exclusion, ccdpix_selection_rad, &
+            ccdpix_exclusion_rad, radiance_wavl, &
             radiance_spec, radiance_prec, radiance_qflg, yn_process_pixel, utc_time, radcal_chisq, &
             solcal_itnum, radcal_itnum, radref_itnum, solcal_xflag, radcal_xflag, radref_xflag, &
             solcal_pars, radcal_pars, radref_pars, n_ins_database_wvl, ins_database, &
