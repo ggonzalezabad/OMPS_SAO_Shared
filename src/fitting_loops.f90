@@ -57,7 +57,8 @@ SUBROUTINE xtrack_radiance_wvl_calibration ( &
   REAL (KIND=r8), ALLOCATABLE, DIMENSION(:) :: fitres_out
   REAL (KIND=r8), ALLOCATABLE, DIMENSION(:) :: calibration_wavl
   REAL (KIND=r8), ALLOCATABLE, DIMENSION(:) :: calibration_spec
-  REAL (KIND=r8), ALLOCATABLE, DIMENSION(:) :: calibration_qflg
+  REAL (KIND=r8), ALLOCATABLE, DIMENSION(:) :: calibration_wght
+  INTEGER (KIND=i2), ALLOCATABLE, DIMENSION(:) :: qflg_mask
   INTEGER (KIND=i4), DIMENSION (4) :: select_idx
   INTEGER (KIND=i4), DIMENSION (2) :: exclud_idx
   REAL (KIND=r8), DIMENSION (n_max_rspec) :: ref_wvl, ref_spc, ref_wgt, rad_wvl
@@ -92,7 +93,7 @@ SUBROUTINE xtrack_radiance_wvl_calibration ( &
   ! not using radiance reference.
   ! ---------------------------------------------------
   cline = INT(NrofScanLines / 2, KIND = i4)
-
+  
   ! --------------------------------
   ! Loop over cross-track positions. 
   ! --------------------------------
@@ -163,18 +164,23 @@ SUBROUTINE xtrack_radiance_wvl_calibration ( &
      ! First allocate variables
      ! ------------------------
      ALLOCATE(calibration_wavl(1:n_radwvl),calibration_spec(1:n_radwvl), &
-          calibration_qflg(1:n_radwvl), fitres_out(1:n_radwvl), &
+          calibration_wght(1:n_radwvl), qflg_mask(1:n_radwvl), &
+          fitres_out(1:n_radwvl), &
           stat = locerrstat)
      IF ( ctrvar%yn_radiance_reference ) THEN
         calibration_wavl(1:n_radwvl) = radref_wavl(1:n_radwvl,ipix)
         calibration_spec(1:n_radwvl) = radref_spec(1:n_radwvl,ipix)
-        calibration_qflg(1:n_radwvl) = radref_qflg(1:n_radwvl,ipix)
+        calibration_wght(1:n_radwvl) = radref_wght(1:n_radwvl,ipix)
         select_idx(1:4) = ccdpix_selection(ipix,1:4)
         exclud_idx(1:2) = ccdpix_exclusion(ipix,1:2)
      ELSE
         calibration_wavl(1:n_radwvl) = radiance_wavl(1:n_radwvl,ipix,cline)
         calibration_spec(1:n_radwvl) = radiance_spec(1:n_radwvl,ipix,cline)
-        calibration_qflg(1:n_radwvl) = radiance_qflg(1:n_radwvl,ipix,cline)
+        calibration_wght(1:n_radwvl) = ref_wgt(1:n_radwvl)
+        qflg_mask(1:n_radwvl) = radiance_qflg(1:n_radwvl,ipix,cline)
+        WHERE ( qflg_mask(1:n_radwvl) > 0_i2)
+           calibration_wght(1:n_radwvl) = downweight
+        END WHERE
         select_idx(1:4) = ccdpix_selection_rad(ipix,cline,1:4)
         exclud_idx(1:2) = ccdpix_exclusion_rad(ipix,cline,1:2)
      END IF
@@ -182,7 +188,7 @@ SUBROUTINE xtrack_radiance_wvl_calibration ( &
      CALL omi_adjust_radiance_data ( & ! Set up generic fitting arrays
           select_idx(1:4), exclud_idx(1:2), n_radwvl, &
           calibration_wavl(1:n_radwvl), calibration_spec(1:n_radwvl), &
-          n_irradwvl, ref_wgt(1:n_irradwvl), &
+          n_radwvl, calibration_wght(1:n_radwvl), &
           n_rad_wvl, curr_rad_spec(wvl_idx:ccd_idx,1:n_radwvl), rad_spec_avg, &
           yn_skip_pix )
 
@@ -272,7 +278,7 @@ SUBROUTINE xtrack_radiance_wvl_calibration ( &
      ! --------------------
      ! Deallocate variables
      ! --------------------
-     DEALLOCATE(calibration_wavl,calibration_spec, calibration_qflg, &
+     DEALLOCATE(calibration_wavl,calibration_spec, calibration_wght, qflg_mask, &
           fitres_out, stat = locerrstat)
 
      ! ----------------------------------------------------
@@ -309,7 +315,7 @@ SUBROUTINE xtrack_radiance_fitting_loop ( yn_common_fit, &
   USE OMSAO_indices_module, ONLY: wvl_idx, spc_idx, sig_idx, &
        hwe_idx, asy_idx, sha_idx, &
        solar_idx, ccd_idx, radfit_idx
-  USE OMSAO_parameters_module, ONLY: i2_missval, r8_missval
+  USE OMSAO_parameters_module, ONLY: i2_missval, r8_missval, downweight
   USE OMSAO_variables_module,  ONLY: database, curr_sol_spec, &
        curr_rad_spec, sol_wav_avg, hw1e, e_asym, g_shap, ctrvar, &
        n_database_wvl
@@ -318,7 +324,7 @@ SUBROUTINE xtrack_radiance_fitting_loop ( yn_common_fit, &
        column_uncert, column_amount, fit_rms, radfit_chisq, &
        itnum_flag, fitconv_flag, solcal_pars, ins_sol_wav_avg, &
        n_ins_database_wvl, szenith, nwav_rad, &
-       cross_track_skippix, &
+       cross_track_skippix, radiance_qflg, &
        curr_xtrack_pixnum, radiance_wavl, &
        ccdpix_exclusion_rad, ccdpix_selection_rad, ins_database, &
        ins_database_wvl, max_rs_idx, radiance_spec, &
@@ -361,6 +367,7 @@ SUBROUTINE xtrack_radiance_fitting_loop ( yn_common_fit, &
   INTEGER (KIND=i4), DIMENSION (2) :: exclud_idx
   INTEGER (KIND=i4) :: n_solar_pts, n_l1b_wvl, n_l1b_adj_wvl
   REAL    (KIND=r8), DIMENSION (n_max_rspec) :: solar_wvl, ref_wgh
+  INTEGER (KIND=i2), DIMENSION (n_max_rspec) :: qflg_mask
 
   ! CCM Array for holding fitted spectra
   REAL    (KIND=r8), DIMENSION (n_comm_wvl) :: fitspc
@@ -436,6 +443,12 @@ SUBROUTINE xtrack_radiance_fitting_loop ( yn_common_fit, &
         ref_wgh(1:n_l1b_wvl) = radref_wght(1:n_l1b_wvl,ipix)
      END IF
 
+     ! Bad radiance pixels are downweighted
+     qflg_mask(1:n_l1b_wvl) = radiance_qflg(1:n_l1b_wvl,ipix,iloop)
+     WHERE ( qflg_mask(1:n_l1b_wvl) > 0_i2)
+        ref_wgh(1:n_l1b_wvl) = downweight
+     END WHERE
+
      CALL omi_adjust_radiance_data ( & ! Set up generic fitting arrays
           select_idx(1:4), exclud_idx(1:2), &
           n_l1b_wvl, &
@@ -444,9 +457,6 @@ SUBROUTINE xtrack_radiance_fitting_loop ( yn_common_fit, &
           n_l1b_wvl, ref_wgh(1:n_l1b_wvl), &
           n_l1b_adj_wvl, curr_rad_spec(wvl_idx:ccd_idx,1:n_l1b_wvl),&
           rad_spec_avg, yn_skip_pix )
-
-!!$     WRITE(*,'(2I4,2E11.4)') ipix,iloop, curr_rad_spec(wvl_idx,INT(n_l1b_wvl/2)), &
-!!$          curr_rad_spec(spc_idx,INT(n_l1b_wvl/2))
 
      ! --------------------
      ! The radiance fitting
