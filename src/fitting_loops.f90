@@ -19,8 +19,9 @@ SUBROUTINE xtrack_radiance_wvl_calibration ( &
        irradiance_spec, ins_database, ins_database_wvl, &
        radref_spec, radref_wavl, radref_qflg, radref_wght, &
        nwav_rad, radiance_spec, radiance_wavl, radiance_qflg, &
-       ccdpix_selection, ccdpix_exclusion, radcal_pars, &
-       curr_xtrack_pixnum, n_irradwvl, n_radwvl
+       ccdpix_selection_rad, ccdpix_exclusion_rad, &
+       ccdpix_selection, ccdpix_exclusion, &
+       radcal_pars, curr_xtrack_pixnum, n_irradwvl, n_radwvl
   USE OMSAO_errstat_module, ONLY: f_sep, omsao_s_progress, omsao_w_skippix, &
        pge_errstat_error,pge_errstat_ok, pge_errstat_warning, vb_lev_default, &
        vb_lev_omidebug, vb_lev_screen, error_check
@@ -168,10 +169,14 @@ SUBROUTINE xtrack_radiance_wvl_calibration ( &
         calibration_wavl(1:n_radwvl) = radref_wavl(1:n_radwvl,ipix)
         calibration_spec(1:n_radwvl) = radref_spec(1:n_radwvl,ipix)
         calibration_qflg(1:n_radwvl) = radref_qflg(1:n_radwvl,ipix)
+        select_idx(1:4) = ccdpix_selection(ipix,1:4)
+        exclud_idx(1:2) = ccdpix_exclusion(ipix,1:2)
      ELSE
         calibration_wavl(1:n_radwvl) = radiance_wavl(1:n_radwvl,ipix,cline)
         calibration_spec(1:n_radwvl) = radiance_spec(1:n_radwvl,ipix,cline)
         calibration_qflg(1:n_radwvl) = radiance_qflg(1:n_radwvl,ipix,cline)
+        select_idx(1:4) = ccdpix_selection_rad(ipix,cline,1:4)
+        exclud_idx(1:2) = ccdpix_exclusion_rad(ipix,cline,1:2)
      END IF
 
      ! ---------------------------------------------------------------------------
@@ -179,8 +184,8 @@ SUBROUTINE xtrack_radiance_wvl_calibration ( &
      ! 3-dim with the last dimension being the scan line numbers. For the radiance
      ! wavelength calibration we only have one scan line at index "0".
      ! ---------------------------------------------------------------------------
-     select_idx(1:4) = ccdpix_selection(ipix,1:4)
-     exclud_idx(1:2) = ccdpix_exclusion(ipix,1:2)
+!!$     select_idx(1:4) = ccdpix_selection_rad(ipix,cline,1:4)
+!!$     exclud_idx(1:2) = ccdpix_exclusion_rad(ipix,cline,1:2)
 
      CALL omi_adjust_radiance_data ( & ! Set up generic fitting arrays
           select_idx(1:4), exclud_idx(1:2), n_radwvl, &
@@ -323,7 +328,7 @@ SUBROUTINE xtrack_radiance_fitting_loop ( yn_common_fit, &
        n_ins_database_wvl, szenith, nwav_rad, &
        cross_track_skippix, &
        curr_xtrack_pixnum, radiance_wavl, &
-       ccdpix_exclusion, ccdpix_selection, ins_database, &
+       ccdpix_exclusion_rad, ccdpix_selection_rad, ins_database, &
        ins_database_wvl, max_rs_idx, radiance_spec, &
        radref_wght, irradiance_wght
   USE OMSAO_errstat_module, ONLY: pge_errstat_ok
@@ -423,8 +428,8 @@ SUBROUTINE xtrack_radiance_fitting_loop ( yn_common_fit, &
      ! --------------------------------------
      ! Exclude data from fitting if necessary
      ! --------------------------------------
-     select_idx(1:4) = ccdpix_selection(ipix,1:4)
-     exclud_idx(1:2) = ccdpix_exclusion(ipix,1:2)
+     select_idx(1:4) = ccdpix_selection_rad(ipix,iloop,1:4)
+     exclud_idx(1:2) = ccdpix_exclusion_rad(ipix,iloop,1:2)
 
      ! --------------------------------------------
      ! Depending on using radiance reference or not
