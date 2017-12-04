@@ -171,9 +171,9 @@ CONTAINS
           CALL omi_adjust_radiance_data ( &           ! Set up generic fitting arrays
                select_idx(1:4), exclud_idx(1:2), &
                n_radwvl, &
-               radref_wavl(1:n_radwvl,ipix),        &
-               radref_spec(1:n_radwvl,ipix),        &
-               n_solar_pts, solar_wgt(1:n_solar_pts),       &
+               radref_wavl(1:n_radwvl,ipix), &
+               radref_spec(1:n_radwvl,ipix), &
+               solar_wgt(1:n_radwvl),  &
                n_rad_wvl, curr_rad_spec(wvl_idx:ccd_idx,1:n_radwvl), rad_spec_avg, &
                yn_skip_pix )
 
