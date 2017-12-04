@@ -76,7 +76,6 @@ SUBROUTINE radiance_fit ( &
 
   radfit_exval = INT(i2_missval, KIND=i4)
   radfit_itnum = INT(i2_missval, KIND=i4)
-  chisquav     = r8_missval
 
   ! ============================================================
   ! Assign LL_RAD, LU_RAD, and SIG for each earthshine radiance
