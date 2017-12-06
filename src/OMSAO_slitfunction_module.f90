@@ -221,8 +221,8 @@ CONTAINS
     ! Local variables
     ! ---------------
     INTEGER (KIND=i4)                        :: i, j, nslit, sslit, eslit
-    REAL    (KIND=r8)                        :: slitsum, sliterr, cwvl, lwvl, rwvl
-    REAL    (KIND=r8), DIMENSION (3*npoints) :: spc_temp, wvl_temp, sf_val, xtmp, ytmp
+    REAL    (KIND=r8)                        :: slitsum, cwvl, lwvl, rwvl
+    REAL    (KIND=r8), DIMENSION (3*npoints) :: spc_temp, wvl_temp, sf_val
 
     REAL (KIND=r8) :: signdp
     EXTERNAL signdp
@@ -237,28 +237,21 @@ CONTAINS
     ! -----------------------------------------------
     IF ( hw1e == 0.0_r8 ) RETURN
 
-
-    ! ------------------------------------------------------------------------
+    ! -----------------------------------------------------------------------
     ! One temporary variable is SPC_TEMP, which is three times the size of
-    ! SPEC. For the convolution routine to work (hopefully) in each and
-    ! every case, we reflect the spectrum at its end points to always have a
-    ! fully filled slit function. But this causes some real index headaches
-    ! when the slit function wraps around at the ends. Performing the mirror
-    ! imaging before we get to the convolution helps to keep things a little
-    ! more simple.
-    !
-    ! Note that this approach is the same as for the pre-tabulated OMI lab
-    ! slit function. It is adopted here because now we not only convolve the
-    ! solar spectrum, but also any higher resolution reference cross sections,
-    ! and these may not necessarily be equidistant in wavelength.
-    ! ------------------------------------------------------------------------
+    ! SPEC. For the convolution routine to work in each and every case, we 
+    ! reflect the spectrum at its end points to always have a fully filled 
+    ! slit function. But this causes some real index headaches when the slit
+    ! function wraps around at the ends. Performing the mirror imaging before
+    ! we get to the convolution helps to keep things a little more simple.
+    ! -----------------------------------------------------------------------
     spc_temp(npoints+1:2*npoints) = specarr(1:npoints)
     wvl_temp(npoints+1:2*npoints) = wvlarr (1:npoints)
     DO i = 1, npoints
        spc_temp(npoints+1-i) = specarr(i)
-       wvl_temp(npoints+1-i) = 2.0_r8*wvlarr(1)-wvlarr(i) -0.001_r8
+       wvl_temp(npoints+1-i) = 2.0_r8*wvlarr(1)-wvlarr(i) - 0.001_r8
        spc_temp(2*npoints+i) = specarr(npoints+1-i)
-       wvl_temp(2*npoints+i) = 2.0_r8*wvlarr(npoints)-wvlarr(npoints+1-i) +0.001_r8
+       wvl_temp(2*npoints+i) = 2.0_r8*wvlarr(npoints)-wvlarr(npoints+1-i) + 0.001_r8
     END DO
 
     ! ------------------------------------------------------------------------
@@ -279,37 +272,21 @@ CONTAINS
           eslit = npoints+i+j ; rwvl = - cwvl + wvl_temp(eslit)
           sf_val(sslit) = EXP(-(ABS(lwvl / ( hw1e + signdp(lwvl)*e_asym ) ) )**g_shap )
           sf_val(eslit) = EXP(-(ABS(rwvl / ( hw1e + signdp(rwvl)*e_asym ) ) )**g_shap ) 
-          IF ( sf_val(eslit) < 0.0005_r8 .AND. sf_val(sslit) < 0.0005_r8 ) EXIT getslit
+          IF ( sf_val(eslit) < 0.001_r8 .AND. sf_val(sslit) < 0.001_r8 ) EXIT getslit
        END DO getslit
-
+       
        ! ----------------------------------
        ! The number of slit function points
        ! ----------------------------------
        nslit = eslit - sslit + 1
-       ! ----------------------------------------------------------------
-       ! Compute the norm of the slitfunction. It should be close to 1
-       ! already, but making sure doesn't hurt.
-       ! ----------------------------------------------------------------
-       xtmp(1:nslit) = wvl_temp(sslit:eslit)-cwvl
-       ytmp(1:nslit) = sf_val  (sslit:eslit)
-       CALL cubint ( &
-            nslit, xtmp(1:nslit), ytmp(1:nslit), 1, nslit, slitsum, sliterr)
-
-       IF ( slitsum > 0.0_r8 ) sf_val(sslit:eslit) = sf_val(sslit:eslit) / slitsum
-
-       ! ---------------------------------------------------------------------
-       ! Prepare array for integration: Multiply slit function values with the
-       ! spectrum array to be convolved.
-       ! ---------------------------------------------------------------------
-       ytmp(1:nslit) = sf_val(sslit:eslit) * spc_temp(sslit:eslit)
-
-       ! ----------------------------------------------------------
-       ! Folding (a.k.a. integration) of spectrum and slit function
-       ! ----------------------------------------------------------
-       CALL cubint ( &
-            nslit, xtmp(1:nslit), ytmp(1:nslit), 1, nslit, specmod(i), sliterr)
+       
+       ! ----------------
+       ! Safe convolution
+       ! ----------------
+       slitsum = SUM(sf_val(sslit:eslit))
+       specmod(i) = DOT_PRODUCT(sf_val(sslit:eslit), spc_temp(sslit:eslit))/slitsum
     END DO
-
+    
     RETURN
   END SUBROUTINE super_gaussian_sf
 
