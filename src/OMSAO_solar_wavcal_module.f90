@@ -54,14 +54,14 @@ CONTAINS
     ! ------------------------------
     CHARACTER (LEN=29), PARAMETER :: modulename = 'xtrack_solar_calibration_loop'
 
+    locerrstat = pge_errstat_ok
+
     ! ---------------------------------------------------------------
     ! Loop for solar wavelength calibration and slit function fitting
     ! ---------------------------------------------------------------
     XtrackSolCal: DO ipix = first_pix, last_pix
 
        fitvar_cal_saved(1:max_calfit_idx) = ctrvar%fitvar_sol_init(1:max_calfit_idx)
-
-       locerrstat = pge_errstat_ok
        curr_xtrack_pixnum = ipix
 
        n_irradwvl = nwav_irrad(ipix)
