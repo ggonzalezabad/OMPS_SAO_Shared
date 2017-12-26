@@ -90,7 +90,7 @@ CONTAINS
 
     ! Safe convolution
     DO i = sidx, eidx
-       CALL compute_slitprofile (xtrack_pix, stretch, wvl(i),nslit, wvl(i-nhalf:i+nhalf), &
+       CALL compute_slitprofile (xtrack_pix, stretch, wvl(i),nslit,wvl(i-nhalf:i+nhalf), &
             locsli(1:nslit))
        slitsum = SUM(locsli(1:nslit))
        specmod(i) = DOT_PRODUCT(locsli(1:nslit), spec_in(i-nhalf:i+nhalf)) / slitsum
@@ -220,10 +220,12 @@ CONTAINS
     ! ---------------
     ! Local variables
     ! ---------------
-    INTEGER (KIND=i4)                        :: i, j, nslit, sslit, eslit
-    REAL    (KIND=r8)                        :: slitsum, cwvl, lwvl, rwvl
-    REAL    (KIND=r8), DIMENSION (3*npoints) :: spc_temp, wvl_temp, sf_val
-
+    REAL (KIND=r8), PARAMETER :: dhalf = 2.0
+    REAL (KIND=r8) :: delwvl
+    INTEGER (KIND=i4) :: i, nslit, sslit, nhalf
+    REAL (KIND=r8) :: slitsum, wvl
+    REAL (KIND=r8), DIMENSION (3*npoints) :: spc_temp
+    REAL (KIND=r8), DIMENSION (npoints) :: sf_val
     REAL (KIND=r8) :: signdp
     EXTERNAL signdp
 
@@ -246,47 +248,37 @@ CONTAINS
     ! we get to the convolution helps to keep things a little more simple.
     ! -----------------------------------------------------------------------
     spc_temp(npoints+1:2*npoints) = specarr(1:npoints)
-    wvl_temp(npoints+1:2*npoints) = wvlarr (1:npoints)
     DO i = 1, npoints
        spc_temp(npoints+1-i) = specarr(i)
-       wvl_temp(npoints+1-i) = 2.0_r8*wvlarr(1)-wvlarr(i) - 0.001_r8
        spc_temp(2*npoints+i) = specarr(npoints+1-i)
-       wvl_temp(2*npoints+i) = 2.0_r8*wvlarr(npoints)-wvlarr(npoints+1-i) + 0.001_r8
     END DO
 
-    ! ------------------------------------------------------------------------
-    ! We now compute the asymmetric Gaussian for every point in the spectrum.
-    ! Starting from the center point, we go outwards and stop accumulating
-    ! points when both sides are less than 0.001 of the maximum slit function.
-    ! Since we are starting at the center wavelength, this can be set to 1.0.
-    ! Remember that the original wavelength array is now located at indices
-    ! NPOINTS+1:2*NPOINTS
-    ! ------------------------------------------------------------------------
-    DO i = 1, npoints
-       sf_val = 0.0_r8
-       cwvl = wvl_temp(npoints+i)
+    ! ---------------------------------------------------------------------------
+    ! Because all reference cross sections are provided in regular grids, equally
+    ! spaced we only need to work out the super Gaussian slit functin once.
+    ! ---------------------------------------------------------------------------
+    delwvl = wvlarr(2) - wvlarr(1)
+    nhalf = CEILING (dhalf/delwvl)
+    nslit = nhalf*2+1
+    getslit: DO i = 1, nslit
+       wvl = delwvl * (i-1) - dhalf
+       sf_val(i) = EXP(-(ABS(wvl / ( hw1e + signdp(wvl)*e_asym ) ) )**g_shap )
+    END DO getslit
+    slitsum = SUM(sf_val(1:nslit))
 
-       sf_val(npoints+i) = 1.0_r8
-       getslit: DO j = 1, npoints
-          sslit = npoints+i-j ; lwvl = - cwvl + wvl_temp(sslit)
-          eslit = npoints+i+j ; rwvl = - cwvl + wvl_temp(eslit)
-          sf_val(sslit) = EXP(-(ABS(lwvl / ( hw1e + signdp(lwvl)*e_asym ) ) )**g_shap )
-          sf_val(eslit) = EXP(-(ABS(rwvl / ( hw1e + signdp(rwvl)*e_asym ) ) )**g_shap ) 
-          IF ( sf_val(eslit) < 0.001_r8 .AND. sf_val(sslit) < 0.001_r8 ) EXIT getslit
-       END DO getslit
-       
-       ! ----------------------------------
-       ! The number of slit function points
-       ! ----------------------------------
-       nslit = eslit - sslit + 1
-       
+    ! ------------------------
+    ! Proceed with convolution
+    ! ------------------------
+    DO i = 1, npoints
+       ! -----------------------------------------------------
+       ! Starting index of spectra contributing to convolution
+       ! -----------------------------------------------------
+       sslit = npoints+1-nhalf+i  
        ! ----------------
        ! Safe convolution
        ! ----------------
-       slitsum = SUM(sf_val(sslit:eslit))
-       specmod(i) = DOT_PRODUCT(sf_val(sslit:eslit), spc_temp(sslit:eslit))/slitsum
+       specmod(i) = DOT_PRODUCT(sf_val(1:nslit), spc_temp(sslit:sslit+nslit-1))/slitsum
     END DO
-    
     RETURN
   END SUBROUTINE super_gaussian_sf
 
