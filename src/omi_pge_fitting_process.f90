@@ -380,15 +380,10 @@ SUBROUTINE omi_fitting ( &
              max_rs_idx, n_rad_wvl, nxtrackrad, errstat) 
      END IF
   END IF
-
-  IF ( ctrvar%yn_radiance_reference) &
-       DEALLOCATE (omps_data_radiance_reference)
-  stop
   
   ! ----------------------------------------------------------
   ! Now into the proper fitting, with or without common mode.
   ! ----------------------------------------------------------
-
   ! ----------------------------------------------------------
   ! Set the logical YN array that determines which swath lines
   ! will be processed. Unless we have constrained either swath
@@ -402,16 +397,15 @@ SUBROUTINE omi_fitting ( &
   IF ( ctrvar%pixnum_lim(2) > 0 ) last_line  = MAX( MIN(ctrvar%pixnum_lim(2), last_line), first_line )
 
   yn_radfit_range = .FALSE.
-  IF ( first_line         > 0           .OR. &
-       last_line          < nTimesRad-1 .OR. &
-       ctrvar%radfit_latrange(1) > -90.0_r4    .OR. &
-       ctrvar%radfit_latrange(2) < +90.0_r4           ) THEN
-
-     IF ( ctrvar%radfit_latrange(1) > -90.0_r4    .OR. &
-          ctrvar%radfit_latrange(2) < +90.0_r4           ) THEN
+  IF ( first_line > 0 .OR. &
+       last_line < nTimesRad-1 .OR. &
+       ctrvar%radfit_latrange(1) > -90.0_r4 .OR. &
+       ctrvar%radfit_latrange(2) < +90.0_r4 ) THEN
+     IF ( ctrvar%radfit_latrange(1) > -90.0_r4 .OR. &
+          ctrvar%radfit_latrange(2) < +90.0_r4 ) THEN
         CALL find_swathline_range ( &
-             nTimesRad, nXtrackRad, latitude(1:nXtrackRad,0:nTimesRad-1),       &
-             ctrvar%radfit_latrange(1:2), yn_radfit_range(0:nTimesRad-1), errstat             )
+             nTimesRad, nXtrackRad, latitude(1:nXtrackRad,0:nTimesRad-1), &
+             ctrvar%radfit_latrange(1:2), yn_radfit_range(0:nTimesRad-1), errstat )
      ELSE
         yn_radfit_range = .TRUE.
         IF ( first_line > 0           ) yn_radfit_range(0:first_line-1)          = .FALSE.
@@ -420,7 +414,7 @@ SUBROUTINE omi_fitting ( &
   ELSE
      yn_radfit_range = .TRUE.
   END IF
-  
+
   ! ------------------------------------------
   ! Interface to the loop over all swath lines
   ! ------------------------------------------
@@ -429,6 +423,11 @@ SUBROUTINE omi_fitting ( &
        yn_radfit_range(0:nTimesRad-1),              &
        omi_xtrpix_range(0:nTimesRad-1,1:2),         &
        .TRUE., .FALSE., pge_error_status ) ! Logical for commiting and common mode
+
+  IF ( ctrvar%yn_radiance_reference) &
+       DEALLOCATE (omps_data_radiance_reference)
+  stop
+
 
   ! ---------------------------
   ! SCD to VCD (AMF calculation
