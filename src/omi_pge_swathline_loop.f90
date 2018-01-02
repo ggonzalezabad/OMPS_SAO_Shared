@@ -61,6 +61,7 @@ SUBROUTINE omi_pge_swathline_loop ( &
   all_fitted_columns =  r8_missval
   all_fitted_errors  =  r8_missval
   correlation_columns = r8_missval
+  fitspc_tmp = r8_missval
 
   ! ------------------------------------------
   ! Initialize output fields with MissingValue
@@ -122,23 +123,21 @@ SUBROUTINE omi_pge_swathline_loop ( &
           fit_rms(ipix, iline), MAX(INT(-1,KIND=2),itnum_flag(ipix, iline))
      estat = OMI_SMF_setmsg ( OMSAO_S_PROGRESS, TRIM(addmsg), " ", vb_lev_omidebug )
      IF ( pcfvar%verb_thresh_lev >= vb_lev_screen ) WRITE (*, '(A)') TRIM(addmsg)
-     
-     ! ----------------------------------------------------------------
-     ! AMF calculation and update of fitting statistics only need to be
-     ! done for the final round throught the common mode iteration loop
-     ! ----------------------------------------------------------------
-     IF ( yn_commit ) THEN
 
+     ! ---------------------------------------------------------------
+     ! Write out diagnostic results of radiance fitting (if yn_commit)
+     ! ---------------------------------------------------------------
+     IF ( yn_commit ) THEN 
         CALL he5_write_radfit_output (                       &
              pge_idx, iline, nx, fpix, lpix,         &
-             all_fitted_columns (1:n_fitvar_rad,1:nx,iline), &
-             all_fitted_errors  (1:n_fitvar_rad,1:nx,iline), &
-             correlation_columns(1:n_fitvar_rad,1:nx,iline), &
+             all_fitted_columns (1:n_fitvar_rad,fpix:lpix,iline), &
+             all_fitted_errors  (1:n_fitvar_rad,fpix:lpix,iline), &
+             correlation_columns(1:n_fitvar_rad,fpix:lpix,iline), &
              fitspc_tmp,locerrstat )
         errstat = MAX ( errstat, locerrstat )
-
      END IF
-     
+
+          
   END DO ScanLines
 
   RETURN
