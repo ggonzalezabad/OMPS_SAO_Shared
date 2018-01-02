@@ -418,11 +418,12 @@ SUBROUTINE omi_fitting ( &
   ! ------------------------------------------
   ! Interface to the loop over all swath lines
   ! ------------------------------------------
+  print*, ctrvar%yn_diagnostic_run
   CALL omi_pge_swathline_loop (                     &
        pge_idx, nTimesRad, nXtrackRad, n_max_rspec, &
        yn_radfit_range(0:nTimesRad-1),              &
        omi_xtrpix_range(0:nTimesRad-1,1:2),         &
-       .TRUE., .FALSE., pge_error_status ) ! Logical for commiting and common mode
+       ctrvar%yn_diagnostic_run, .FALSE., pge_error_status ) ! Logical for commiting and common mode
 
   IF ( ctrvar%yn_radiance_reference) &
        DEALLOCATE (omps_data_radiance_reference)
