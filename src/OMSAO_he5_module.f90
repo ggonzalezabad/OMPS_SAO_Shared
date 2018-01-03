@@ -161,7 +161,6 @@ MODULE OMSAO_he5_module
   CHARACTER (LEN=19), PARAMETER ::  spcobs_field   = "FitMeasuredSpectrum"
   CHARACTER (LEN=21), PARAMETER ::  posobs_field   = "FitMeasuredWavelength"
   CHARACTER (LEN=20), PARAMETER ::  fitwt_field    = "FitSpectralFitWeight"
-  CHARACTER (LEN=19), PARAMETER ::  spcres_field   = "FitResidualSpectrum"
   ! Spectral Database
   CHARACTER (LEN=12), PARAMETER ::  spdata_field   = "DatabaseSpec"
   CHARACTER (LEN=12), PARAMETER ::  spdatw_field   = "DatabaseWavl"
@@ -539,7 +538,7 @@ MODULE OMSAO_he5_module
   ! -------------------------------------------
   
   ! CCM n_diag_fields 10 -> 18
-  INTEGER (KIND=i4), PARAMETER :: n_diag_fields = 19
+  INTEGER (KIND=i4), PARAMETER :: n_diag_fields = 18
   
   ! CCM Add All fit residuals
   CHARACTER (LEN=41), DIMENSION (2,n_diag_fields), PARAMETER ::  &
@@ -561,8 +560,7 @@ MODULE OMSAO_he5_module
        "DatabaseWavl                             ", "Reference Spectra Wavelengths            ",    &
        "DatabaseNormFactor                       ", "Normalisation factors for DatabaseSpec   ",    &
        "DatabaseSpecNames                        ", "Species Names for DatabaseSpec           ",    &
-       "FitIterationCount                        ", "Radiance Fit Iteration Count             ",    &
-       "FitResidualSpectrum                      ", "Residual Spectrum                        " /), &
+       "FitIterationCount                        ", "Radiance Fit Iteration Count             " /), &
        (/ 2, n_diag_fields /) )
   CHARACTER (LEN=27), DIMENSION (3,n_diag_fields), PARAMETER ::  &
        diagnostic_field_specs = RESHAPE ( (/ &
@@ -583,8 +581,7 @@ MODULE OMSAO_he5_module
        "nm                         ","nWaves,nXtrack             ","r8                         ",   &
        "NoUnits                    ","nRfSpec                    ","r8                         ",   &
        "NoUnits                    ","nRfSpec                    ","ch                         ",   &
-       "NoUnits                    ","nXtrack,nTimes             ","i2                         ",   &
-       "NoUnits                    ","nWaves,nXtrack,nTimes      ","r8                         " /),&
+       "NoUnits                    ","nXtrack,nTimes             ","i2                         " /),&
        (/3, n_diag_fields /) )
        
   ! Output control logicals CCM
@@ -606,7 +603,6 @@ MODULE OMSAO_he5_module
        .TRUE. ,&  ! DatabaseWavl
        .TRUE. ,&  ! DatabaseNormFactor
        .TRUE. ,&  ! DatabaseSpecNames
-       .TRUE. ,&  ! IterationCount
        .TRUE. /)  ! ResidualSpectrum
 
   ! -----------------------------------------------------------------
