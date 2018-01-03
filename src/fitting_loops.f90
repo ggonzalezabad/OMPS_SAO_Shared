@@ -73,8 +73,6 @@ SUBROUTINE xtrack_radiance_wvl_calibration ( &
   ! Initialize some variables that are to be output
   radcal_itnum = i2_missval ; radcal_xflag = i2_missval
   ins_database = r8_missval ; ins_database_wvl = r8_missval ; n_ins_database_wvl = i4_missval
-  
-  fitvar_cal_saved(1:max_calfit_idx) = ctrvar%fitvar_rad_init(1:max_calfit_idx)
 
   ! -------------------------------------------------
   ! Set the number of wavelengths for the common mode
@@ -98,6 +96,8 @@ SUBROUTINE xtrack_radiance_wvl_calibration ( &
   ! Loop over cross-track positions. 
   ! --------------------------------
   XTrackWavCal: DO ipix = first_pix, last_pix
+
+     fitvar_cal_saved(1:max_calfit_idx) = ctrvar%fitvar_rad_init(1:max_calfit_idx)
 
      curr_xtrack_pixnum = ipix
 
@@ -481,9 +481,8 @@ SUBROUTINE xtrack_radiance_fitting_loop ( yn_common_fit, &
              allfit_cols(1:n_fitvar_rad,ipix), allfit_errs(1:n_fitvar_rad,ipix),   &
              corr_matrix(1:n_fitvar_rad,ipix), yn_bad_pixel, fitspc(1:n_l1b_adj_wvl) )
         IF ( yn_bad_pixel ) CYCLE
-
      END IF
-!!$     write(*,'(3E13.4,I6)') fitcol, dfitcol, rms, radfit_exval
+
      ! -----------------------------------
      ! Assign pixel values to final arrays
      ! -----------------------------------
