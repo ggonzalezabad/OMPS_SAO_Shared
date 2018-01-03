@@ -442,10 +442,9 @@ SUBROUTINE he5_write_radfit_output ( iline, nXtrack, fpix, lpix, &
      nwav, all_fitted_columns, all_fitted_errors, correlation_columns,&
      omi_fitspc, errstat )
 
-  USE OMSAO_variables_module, ONLY: n_fitvar_rad, n_rad_wvl
+  USE OMSAO_variables_module, ONLY: n_fitvar_rad
   USE OMSAO_indices_module, ONLY: corr_didx,  corrcol_didx, correrr_didx, itnum_didx,  &
-       fitwt_didx, posobs_didx,  spcobs_didx,  spcfit_didx, &
-       spcres_didx
+       fitwt_didx, posobs_didx,  spcobs_didx,  spcfit_didx
   USE OMSAO_data_module, ONLY: itnum_flag
   USE OMSAO_he5_module
   USE OMSAO_errstat_module, ONLY: pge_errstat_ok, pge_errstat_error, he5_stat_ok, &
@@ -462,13 +461,8 @@ SUBROUTINE he5_write_radfit_output ( iline, nXtrack, fpix, lpix, &
   ! Input variables
   ! ---------------
   INTEGER (KIND=i4), INTENT (IN) :: iline, nXtrack, fpix, lpix, nwav
-
-  ! CCM 
   REAL (KIND=r8), INTENT (IN), DIMENSION(1:nwav,1:nXtrack,4) :: omi_fitspc
   
-  ! Temporary array 
-  REAL (KIND=r8),DIMENSION(1:nwav,1:nXtrack) :: tmp_fitspc
-
   ! ----------------------
   ! Modified variables gga
   ! --------------------------------------------------------------
@@ -486,21 +480,13 @@ SUBROUTINE he5_write_radfit_output ( iline, nXtrack, fpix, lpix, &
   ! -------------------
   ! Local variables gga
   ! -------------------
-  INTEGER   (KIND=i4) :: locerrstat, npix
-
-  ! CCM loop indices
-  INTEGER (KIND=i4) :: ii,jj
+  INTEGER   (KIND=i4) :: locerrstat
 
   locerrstat = pge_errstat_ok
 
   ! ---------------------------------------------------
   ! Write current data block fitting output to HE5 file
   ! ---------------------------------------------------
-  ! -----------------------------------------------
-  ! Number of cross-track pixels actually processed
-  ! -----------------------------------------------
-  npix = lpix - fpix + 1
-
   ! --------------------------------------------------
   ! Correlation Information (requires additional rank)
   ! --------------------------------------------------
@@ -530,7 +516,7 @@ SUBROUTINE he5_write_radfit_output ( iline, nXtrack, fpix, lpix, &
 
   ! ---------------------------
   ! Write Fit residuals to disk
-  ! ---------------------------          
+  ! ---------------------------
   he5_start_3d  = (/ 0,      fpix-1, iline /)
   he5_stride_3d = (/ 1,           1,     1 /)
   he5_edge_3d   = (/ nwav,  nXtrack,     1 /)
@@ -554,17 +540,6 @@ SUBROUTINE he5_write_radfit_output ( iline, nXtrack, fpix, lpix, &
   IF( yn_output_diag( fitwt_didx ) ) THEN
      locerrstat = HE5_SWWRFLD ( pge_swath_id,fitwt_field, he5_start_3d, he5_stride_3d, he5_edge_3d, &
           omi_fitspc(1:nwav,1:nXtrack,4) )
-  ENDIF
-  
-  ! Residual Spectrum 
-  IF( yn_output_diag( spcres_didx ) ) THEN 
-     DO ii=1,n_rad_wvl
-        DO jj=1,nXtrack
-           tmp_fitspc(ii,jj) = omi_fitspc(ii,jj,2) - omi_fitspc(ii,jj,1)
-        ENDDO
-     ENDDO     
-     locerrstat = HE5_SWWRFLD ( pge_swath_id,spcres_field, he5_start_3d, he5_stride_3d, he5_edge_3d, &
-          tmp_fitspc(1:nwav,1:nXtrack) )
   ENDIF
   
   ! ------------------
