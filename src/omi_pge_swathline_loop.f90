@@ -1,5 +1,5 @@
 SUBROUTINE omi_pge_swathline_loop ( &
-     pge_idx, nt, nx, n_max_rspec, yn_process,  &
+     nt, nx, n_max_rspec, yn_process,  &
      xtrange, yn_commit, yn_common_fit, & 
      errstat)
 
@@ -21,7 +21,7 @@ SUBROUTINE omi_pge_swathline_loop ( &
   ! ---------------
   ! Input variables
   ! ---------------
-  INTEGER (KIND=i4), INTENT(IN) :: pge_idx, nx, nt, n_max_rspec
+  INTEGER (KIND=i4), INTENT(IN) :: nx, nt, n_max_rspec
   INTEGER (KIND=i4), DIMENSION (0:nt-1,1:2), INTENT (IN) :: xtrange
   LOGICAL, DIMENSION(0:nt-1), INTENT(IN) :: yn_process
   LOGICAL, INTENT(IN) :: yn_commit, yn_common_fit
