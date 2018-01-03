@@ -34,7 +34,7 @@ SUBROUTINE omi_pge_swathline_loop ( &
   ! ---------------
   ! Local variables
   ! ---------------
-  INTEGER (KIND=i4) :: iline, fpix, lpix, ipix, estat, locerrstat
+  INTEGER (KIND=i4) :: iline, fpix, lpix, ipix, estat, locerrstat, npix
   CHARACTER (LEN=maxchlen) :: addmsg
 
   ! ---------------------------------------------------------------
@@ -127,13 +127,13 @@ SUBROUTINE omi_pge_swathline_loop ( &
      ! ---------------------------------------------------------------
      ! Write out diagnostic results of radiance fitting (if yn_commit)
      ! ---------------------------------------------------------------
+     npix = lpix-fpix+1
      IF ( yn_commit ) THEN 
-        CALL he5_write_radfit_output (                       &
-             pge_idx, iline, nx, fpix, lpix,         &
+        CALL he5_write_radfit_output (iline, npix, fpix, lpix, n_comm_wvl, &
              all_fitted_columns (1:n_fitvar_rad,fpix:lpix,iline), &
              all_fitted_errors  (1:n_fitvar_rad,fpix:lpix,iline), &
              correlation_columns(1:n_fitvar_rad,fpix:lpix,iline), &
-             fitspc_tmp,locerrstat )
+             fitspc_tmp(1:n_comm_wvl,fpix:lpix,1:4), locerrstat )
         errstat = MAX ( errstat, locerrstat )
      END IF
 
