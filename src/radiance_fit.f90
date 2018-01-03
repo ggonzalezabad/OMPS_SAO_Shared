@@ -120,13 +120,6 @@ SUBROUTINE radiance_fit ( &
   
   radfit_exval = 0
 
-  ! --------------------------------------------------------------------
-  ! Initialize the fitting variables with the initial guess. Rather than
-  ! subjecting ourselves to the vagarities of a wrong convergence, we
-  ! bite the computationally more expensive bullet of starting from
-  ! scratch each and every time.
-  ! --------------------------------------------------------------------
-
   ! -----------------------------------------------------------
   ! Initialize the fitting variables. FITVAR_RAD_SAVED has been
   ! set to the initial values in the calling routine outside the
@@ -134,7 +127,13 @@ SUBROUTINE radiance_fit ( &
   ! updated with current values from the previous fit if that 
   ! fit has gone well.
   ! -----------------------------------------------------------
-  fitvar_rad(1:n_max_fitpars) = fitvar_rad_saved(1:n_max_fitpars)
+  ! --------------------------------------------------------------------
+  ! Initialize the fitting variables with the initial guess. Rather than
+  ! subjecting ourselves to the vagarities of a wrong convergence, we
+  ! bite the computationally more expensive bullet of starting from
+  ! scratch each and every time.
+  ! --------------------------------------------------------------------
+  fitvar_rad(1:n_max_fitpars) = ctrvar%fitvar_rad_init(1:n_max_fitpars) 
 
   ! -----------------------------------------------------------------
   ! Create a condensed array of fitting variables that only contains
@@ -398,22 +397,6 @@ SUBROUTINE radiance_fit ( &
         mfac = SQRT ( chisquav / REAL(n_fitwav_rad-n_fitvar_rad, KIND=r8) )
         dfitcol                = SQRT ( dfitcol )                * mfac
         allerr(1:n_fitvar_rad) = SQRT ( allerr(1:n_fitvar_rad) ) * mfac
-     END IF
-
-     ! -------------------------------------------------------------------
-     ! The following assignment makes sense only because FITVAR_RAD is
-     ! updated with FITVAR (using the proper mask) in SPECTRUM_EARTHSHINE.
-     !
-     ! HOWEVER: The OMI data are rather noisy, and fitting uncertainties
-     !          are generally large. Hence this assignment is rather
-     !          dangerous. By going back to the initial guess, we may
-     !          lose some speed, but we gain predictability.
-     ! -------------------------------------------------------------------
-     IF ( (radfit_exval >= INT(elsunc_less_is_noise, KIND=i4)) .AND. &
-          (fitcol+1.0_r8*dfitcol >= 0.0_r8) )  THEN
-        fitvar_rad_saved(1:n_max_fitpars) = fitvar_rad(1:n_max_fitpars)
-     ELSE
-        fitvar_rad_saved(1:n_max_fitpars) = ctrvar%fitvar_rad_init(1:n_max_fitpars)
      END IF
 
      ! ======================================================
