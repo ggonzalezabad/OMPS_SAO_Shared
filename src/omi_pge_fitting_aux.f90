@@ -327,16 +327,11 @@ SUBROUTINE compute_fitting_statistics ( &
 
   locerrstat = pge_errstat_ok
 
-  ! ---------------------------------------------------------
-  ! The total number of input samples is simply the number of
-  ! pixels in the granule
-  ! ---------------------------------------------------------
-  NrofInputSamples = nxtrack*ntimes
-
   ! ------------------------------------------------------------------
   ! Compute all other fitting statistics variables over two nice loops
   ! ------------------------------------------------------------------
   saomqf                        = i2_missval
+  NrofInputSamples              = 0_i4
   NrofGoodInputSamples          = 0_i4
   NrofGoodOutputSamples         = 0_i4
   NrofSuspectOutputSamples      = 0_i4
@@ -357,6 +352,13 @@ SUBROUTINE compute_fitting_statistics ( &
         col2sig = saocol(ix,it)+2.0_r8*saodco(ix,it)
         col3sig = saocol(ix,it)+3.0_r8*saodco(ix,it)
 
+        ! ---------------------------------------------------------
+        ! The total number of input samples is simply the number of
+        ! pixels in the granule
+        ! ---------------------------------------------------------
+        NrofInputSamples = NrofInputSamples + 1
+
+
         ! ------------------------------------------------------
         ! The Good: Columns are postive within two sigma fitting
         !           uncertainty and the fitting has converged. 
@@ -365,6 +367,7 @@ SUBROUTINE compute_fitting_statistics ( &
         ! ------------------------------------------------------
         IF ( (saofcf(ix,it)      >= INT(elsunc_less_is_noise,KIND=i4)) .AND. &
              (saocol(ix,it)      >  r8_missval                       ) .AND. &
+             (saodco(ix,it)      >  r8_missval                       ) .AND. &
              (ABS(saocol(ix,it)) <= ctrvar%max_good_col            ) ) THEN 
 
            saomqf(ix,it) = main_qa_good
@@ -387,7 +390,8 @@ SUBROUTINE compute_fitting_statistics ( &
         !          pixels can count towards both the number of out-
         !          of bounds and the failed convergence samples.
         ! ----------------------------------------------------------
-        IF ( (saofcf(ix,it)      > i2_missval .AND. saofcf(ix,it) < 0_i2) ) THEN
+        IF ( ( saofcf(ix,it) < 0_i2 ) .OR. &
+             ( saodco(ix,it) .EQ. r8_missval) ) THEN
 
            saomqf(ix,it) = main_qa_bad
 
@@ -403,14 +407,13 @@ SUBROUTINE compute_fitting_statistics ( &
         ! ----------------------------------------------------------
         ! The Ugly: Whatever is left (outside plain missing columns)
         ! ----------------------------------------------------------
-        IF ( saocol(ix,it) > r8_missval ) THEN
+        IF ( saocol(ix,it) > r8_missval) THEN
 
            IF ( (saofcf(ix,it) >= 0_i2 .AND. saofcf(ix,it) < elsunc_less_is_noise) .OR. &
-                (ABS(saocol(ix,it)) > ctrvar%max_good_col                       ))  THEN
+                (ABS(saocol(ix,it)) > ctrvar%max_good_col                        ) .OR. &
+                (col3sig < 0) )  THEN
 
               saomqf(ix,it) = main_qa_suspect
-
-              NrofGoodInputSamples     = NrofGoodInputSamples     + 1
               NrofSuspectOutputSamples = NrofSuspectOutputSamples + 1
 
               CYCLE
