@@ -426,30 +426,28 @@ SUBROUTINE omi_fitting ( &
 
   IF ( ctrvar%yn_radiance_reference) &
        DEALLOCATE (omps_data_radiance_reference)
-  stop
-
 
   ! ---------------------------
   ! SCD to VCD (AMF calculation
   ! ---------------------------
-  CALL amf_calculation_bis ( pge_idx, pcfvar%cld_fname, &
-       nTimesRad, nXtrackRad,                                &
-       latitude(1:nXtrackRad,0:nTimesRad-1),             &
-       longitude(1:nXtrackRad,0:nTimesRad-1),            &
-       szenith(1:nXtrackRad,0:nTimesRad-1),              &
-       vzenith(1:nXtrackRad,0:nTimesRad-1),              &
-       omi_xtrpix_range(0:nTimesRad-1,1:2),                  &
-       column_amount(1:nXtrackRad,0:nTimesRad-1),        &
-       column_uncert(1:nXtrackRad,0:nTimesRad-1),        &
-       saoamf(1:nXtrackRad,0:nTimesRad-1),                   &
-       amfflg(1:nXtrackRad,0:nTimesRad-1),                   &
-       height(1:nXtrackRad,0:nTimesRad-1), .TRUE.,       &
-       errstat)       
+!!$  CALL amf_calculation_bis ( pge_idx, pcfvar%cld_fname, &
+!!$       nTimesRad, nXtrackRad,                                &
+!!$       latitude(1:nXtrackRad,0:nTimesRad-1),             &
+!!$       longitude(1:nXtrackRad,0:nTimesRad-1),            &
+!!$       szenith(1:nXtrackRad,0:nTimesRad-1),              &
+!!$       vzenith(1:nXtrackRad,0:nTimesRad-1),              &
+!!$       omi_xtrpix_range(0:nTimesRad-1,1:2),                  &
+!!$       column_amount(1:nXtrackRad,0:nTimesRad-1),        &
+!!$       column_uncert(1:nXtrackRad,0:nTimesRad-1),        &
+!!$       saoamf(1:nXtrackRad,0:nTimesRad-1),                   &
+!!$       amfflg(1:nXtrackRad,0:nTimesRad-1),                   &
+!!$       height(1:nXtrackRad,0:nTimesRad-1), .TRUE.,       &
+!!$       errstat)       
 
   ! ---------------------------
   ! Work out fitting statistics
   ! ---------------------------
-  CALL compute_fitting_statistics (pge_idx, nTimesRad, nXtrackRad, &
+  CALL compute_fitting_statistics (nTimesRad, nXtrackRad, &
        omi_xtrpix_range(0:nTimesRad-1,1:2), &
        column_amount(1:nXtrackRad,0:nTimesRad-1), &
        column_uncert(1:nXtrackRad,0:nTimesRad-1), &
@@ -465,7 +463,7 @@ SUBROUTINE omi_fitting ( &
   !   fit_rms(r8) -------------> Fitting RMS(r8)
   ! -------------------------------------------------------------
   CALL he5_write_results ( nTimesRad, nXtrackRad, errstat)
-
+  stop
   ! -----------------------------------------------------
   ! Compute reference sector correction:
   ! 0. Save radiance reference data in to omi variables

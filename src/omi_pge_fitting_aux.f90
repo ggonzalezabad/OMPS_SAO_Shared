@@ -274,7 +274,7 @@ END SUBROUTINE omi_create_solcomp_irradiance
 
 
 SUBROUTINE compute_fitting_statistics ( &
-     pge_idx, ntimes, nxtrack, xtrange, saocol, saodco, saorms, saofcf, saomqf, output, errstat )
+     ntimes, nxtrack, xtrange, saocol, saodco, saorms, saofcf, saomqf, output, errstat )
 
   USE OMSAO_precision_module,  ONLY: i2, i4, r4, r8
   USE OMSAO_parameters_module, ONLY: &
@@ -300,7 +300,7 @@ SUBROUTINE compute_fitting_statistics ( &
   ! ---------------
   ! Input variables
   ! ---------------
-  INTEGER (KIND=i4), INTENT (IN) :: pge_idx, ntimes, nxtrack
+  INTEGER (KIND=i4), INTENT (IN) :: ntimes, nxtrack
   INTEGER (KIND=i4), DIMENSION (0:ntimes-1,1:2),     INTENT (IN) :: xtrange
   REAL    (KIND=r8), DIMENSION (nxtrack,0:ntimes-1), INTENT (IN) :: saocol, saodco, saorms
   INTEGER (KIND=i2), DIMENSION (nxtrack,0:ntimes-1), INTENT (IN) :: saofcf
