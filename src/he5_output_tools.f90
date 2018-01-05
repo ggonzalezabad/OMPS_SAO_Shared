@@ -730,7 +730,7 @@ SUBROUTINE he5_write_ins_database ( database_he5, database_he5_wvl, nRefSpec,  n
 END SUBROUTINE he5_write_ins_database
 
 SUBROUTINE he5_write_fitting_statistics ( &
-     pge_idx, nx, nt, saomqf, avg_col, avg_dcol, avg_rms, errstat )
+     nx, nt, saomqf, avg_col, avg_dcol, avg_rms, errstat )
 
   USE OMSAO_indices_module, ONLY: sao_molecule_names, correlm_didx
   USE OMSAO_he5_module
@@ -750,7 +750,7 @@ SUBROUTINE he5_write_fitting_statistics ( &
   ! ---------------
   ! Input variables
   ! ---------------
-  INTEGER (KIND=i4),                          INTENT (IN) :: pge_idx, nx, nt
+  INTEGER (KIND=i4),                          INTENT (IN) :: nx, nt
   REAL    (KIND=r8),                          INTENT (IN) :: avg_col, avg_dcol, avg_rms
   INTEGER (KIND=i2), DIMENSION (1:nx,0:nt-1), INTENT (IN) :: saomqf
 
@@ -771,12 +771,6 @@ SUBROUTINE he5_write_fitting_statistics ( &
   ! ---------------------------------------------------
 
   locerrstat = pge_errstat_ok
-
-  ! ----------------------------------------------------------
-  ! Average fields have the PGE molecule name appended to them
-  ! ----------------------------------------------------------
-  molstr = sao_molecule_names(pge_idx)
-
 
   ! ----------------------------------------
   ! Write the Main Data Quality Flag to file

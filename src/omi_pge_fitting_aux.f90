@@ -477,9 +477,9 @@ SUBROUTINE compute_fitting_statistics ( &
   END IF
 
   IF (output) THEN
-     CALL he5_write_fitting_statistics (                                        &
-          pge_idx, nxtrack, ntimes, saomqf(1:nxtrack,0:ntimes-1), &
-          fitcol_avg, dfitcol_avg, rms_avg, locerrstat                            )
+     CALL he5_write_fitting_statistics ( &
+          nxtrack, ntimes, saomqf(1:nxtrack,0:ntimes-1), &
+          fitcol_avg, dfitcol_avg, rms_avg, locerrstat)
      errstat = MAX ( locerrstat, errstat )
   ENDIF
 
