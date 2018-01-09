@@ -576,7 +576,7 @@ SUBROUTINE find_radiance_fitting_variables ( errstat )
   USE OMSAO_indices_module, ONLY: max_rs_idx, max_calfit_idx, mns_idx, mxs_idx,       &
        calfit_titles,  radfit_titles,  refspec_titles,     &
        calfit_strings, radfit_strings, refspec_strings,    &
-       comm_idx
+       comm_idx, o3_t1_idx, o3_t2_idx, o3_t3_idx, ad1_idx, ad2_idx
   USE OMSAO_variables_module, ONLY: &
        n_fitvar_rad, all_radfit_idx, mask_fitvar_rad, &
        ctrvar
@@ -669,7 +669,6 @@ SUBROUTINE find_radiance_fitting_variables ( errstat )
            correlation_names(n_fitvar_rad) = &
                 TRIM(ADJUSTL(refspec_strings(i)))//' - '//TRIM(ADJUSTL(radfit_strings(j)))//&
                 ": "//TRIM(ADJUSTL(refspec_titles(i)))//" "//TRIM(ADJUSTL(radfit_titles(j)))
-
            ! --------------------------------------------------------------------------
            ! And here the loop over the final column molecules. We have to match the
            ! FITCOL_IDX with the current molecule index, and then remember the position
@@ -685,11 +684,29 @@ SUBROUTINE find_radiance_fitting_variables ( errstat )
                  EXIT getfincol
               END IF
            END DO getfincol
+           IF ( (i == o3_t1_idx .OR. i == o3_t2_idx .OR. i == o3_t3_idx) .AND. &
+                (ctrvar%yn_o3amf_cor) ) THEN
+              n_fitvar_rad = n_fitvar_rad + 1
+              mask_fitvar_rad(n_fitvar_rad) = idx + ad1_idx
+              all_radfit_idx(n_fitvar_rad) = max_calfit_idx + i
+              correlation_names(n_fitvar_rad) = TRIM(ADJUSTL(refspec_strings(i)))//'- linear term'
+              ctrvar%fitvar_rad_init(mask_fitvar_rad(n_fitvar_rad)) = ctrvar%fitvar_rad_init(idx+j)
+              ctrvar%lo_radbnd(mask_fitvar_rad(n_fitvar_rad)) = ctrvar%lo_radbnd(idx+j)
+              ctrvar%up_radbnd(mask_fitvar_rad(n_fitvar_rad)) = ctrvar%up_radbnd(idx+j)
+              n_fitvar_rad = n_fitvar_rad + 1
+              mask_fitvar_rad(n_fitvar_rad) = idx + ad2_idx
+              all_radfit_idx(n_fitvar_rad) = max_calfit_idx + i
+              correlation_names(n_fitvar_rad) = TRIM(ADJUSTL(refspec_strings(i)))//'- quadratic term'
+              ctrvar%fitvar_rad_init(mask_fitvar_rad(n_fitvar_rad)) = ctrvar%fitvar_rad_init(idx+j)
+              ctrvar%lo_radbnd(mask_fitvar_rad(n_fitvar_rad)) = ctrvar%lo_radbnd(idx+j)
+              ctrvar%up_radbnd(mask_fitvar_rad(n_fitvar_rad)) = ctrvar%up_radbnd(idx+j)
+              EXIT
+           END IF
 
         END IF
 
      END DO
-
+     
      ! ---------------------------------------------------------------
      ! Finally, check for Common Mode Iteration. If selected, we have
      ! to add the fitting parameter information here but keep it fixed
@@ -721,7 +738,7 @@ SUBROUTINE find_radiance_fitting_variables ( errstat )
      END IF
 
   END DO
-
+  
   ! ------------------------------------------------------------------------------------
   ! Concatinate the names of fitting elements that will appear in the correlation matrix
   ! ------------------------------------------------------------------------------------
