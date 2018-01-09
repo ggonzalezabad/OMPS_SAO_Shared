@@ -465,8 +465,7 @@ SUBROUTINE spectrum_earthshine_o3exp ( &
   USE OMSAO_variables_module,  ONLY: &
        n_database_wvl, curr_sol_spec, fitvar_rad, mask_fitvar_rad, fitweights, &
        ctrvar
-  USE OMSAO_prefitcol_module,  ONLY: prefit_fitidx, prefit_var
-  USE OMSAO_data_module,      ONLY: curr_xtrack_pixnum, solcal_pars
+  USE OMSAO_data_module, ONLY: curr_xtrack_pixnum, solcal_pars
   USE OMSAO_slitfunction_module, ONLY: saved_shift, saved_squeeze
   USE OMSAO_errstat_module
   USE OMSAO_solcomp_module
@@ -555,16 +554,13 @@ SUBROUTINE spectrum_earthshine_o3exp ( &
   shift   = fitvar_rad(shi_idx)
   squeeze = fitvar_rad(squ_idx)
 
-  IF ( ctrvar%yn_prefit(1) .AND. (.NOT. ctrvar%yn_prefit(2)) .AND. prefit_var /= 0.0_r8 ) &
-       fitvar_rad(prefit_fitidx) = prefit_var
-
   ! ---------------------------------------------------------------------------------
   ! Assign current solar spectrum to local arrays. This depends on whether we are
   ! using actual measured solar spectra or solar composites. Since there is no point
   ! to interpolate already interpolated spectra, we use the original solar composites
   ! here as base for the interpolation to the final radiance wavelengths.
   ! ---------------------------------------------------------------------------------
-  n_sunpos                = n_database_wvl
+  n_sunpos = n_database_wvl
   sunpos_ss  (1:n_sunpos) = curr_sol_spec(wvl_idx,1:n_sunpos)
   sunspec_loc(1:n_sunpos) = curr_sol_spec(spc_idx,1:n_sunpos)
 
@@ -636,21 +632,20 @@ SUBROUTINE spectrum_earthshine_o3exp ( &
   !     do DOAS I only need to be careful to include just linear
   !     contributions, since I already high-pass filtered them.
 
-  IF ( j1 > 1    )  fitweights(1:j1-1)       = downweight
+  IF ( j1 > 1    )  fitweights(1:j1-1)    = downweight
   IF ( j2 < npts )  fitweights(j2+1:npts) = downweight
 
   fit = 0.0_r8
 
-  ! --------------------------------------------------------
+  ! ------------------------------------------------------------
   ! Compute abcissae for exponential x-section modification:
-  ! Values between -1 and +1 on the fitting wavelength grid.
-  ! --------------------------------------------------------
+  ! Values between -0.5 and +0.5 on the fitting wavelength grid.
+  ! ------------------------------------------------------------
   del(j1:j2) = (locwvl(j1:j2) - locwvl(j1))/(locwvl(j2)-locwvl(j1)) - 0.5_r8
 
   ! ==================================================================
   ! For BOAS or any wavelength calibration, we have the following line
   ! ==================================================================
-
 
   fit(j1:j2) = fitvar_rad(sin_idx) * sunspec_ss(j1:j2)
 
@@ -684,6 +679,7 @@ SUBROUTINE spectrum_earthshine_o3exp ( &
            fit(j1:j2) = fit(j1:j2) + fitvar_rad(i) * database(j,j1:j2)
         END IF
      END DO
+     
      ! -----------------------------
      ! Beer's law contributions.
      ! -----------------------------
@@ -696,12 +692,18 @@ SUBROUTINE spectrum_earthshine_o3exp ( &
         IF ( j /= solar_idx ) THEN
            tmpexp = 0.0_r8
            i = max_calfit_idx + (j-1)*mxs_idx + lbe_idx
+           ! -------------------------------------
+           ! For O3 cross sections if yn_o3amf_cor
+           ! we need to initialize the linear and
+           ! quadratic terms saved in ad1 and ad2
+           ! possitions
+           ! -------------------------------------
            IF ( j == o3_t1_idx .OR. j == o3_t2_idx .OR. j == o3_t3_idx ) THEN
               k1 = max_calfit_idx + (j-1)*mxs_idx + ad1_idx
               k2 = max_calfit_idx + (j-1)*mxs_idx + ad2_idx
-              tmpexp(j1:j2) = fitvar_rad(i)*database(j,j1:j2) *  &
-                   (1.0_r8 + fitvar_rad(k1)*del(j1:j2) + &
-                   fitvar_rad(k2)*del(j1:j2)*del(j1:j2))                   
+              tmpexp(j1:j2) = fitvar_rad(i)*database(j,j1:j2) &
+                   + fitvar_rad(k1)*del(j1:j2)*database(j,j1:j2) &
+                   + fitvar_rad(k2)*database(j,j1:j2)*database(j,j1:j2)
            ELSE
               tmpexp(j1:j2) = fitvar_rad(i)*database(j,j1:j2)
            END IF
@@ -715,6 +717,7 @@ SUBROUTINE spectrum_earthshine_o3exp ( &
            sumexp(j1:j2) = sumexp(j1:j2) - tmpexp(j1:j2)
         END IF
      END DO
+     
      WHERE ( sumexp(j1:j2) >= expmax )
         sumexp(j1:j2) = expmax
      ENDWHERE
@@ -733,7 +736,6 @@ SUBROUTINE spectrum_earthshine_o3exp ( &
      END DO
 
   END IF
-
 
   ! ----------------------------------------
   ! Compute abcissae for closure polynomials
