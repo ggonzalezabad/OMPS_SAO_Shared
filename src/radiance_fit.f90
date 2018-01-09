@@ -15,11 +15,10 @@ SUBROUTINE radiance_fit ( &
   USE OMSAO_precision_module
   USE OMSAO_indices_module, ONLY: solar_idx, n_max_fitpars, wvl_idx, &
        spc_idx, sig_idx, ccd_idx, max_calfit_idx
-  USE OMSAO_parameters_module, ONLY: r8_missval, i2_missval, downweight, &
-       elsunc_less_is_noise
+  USE OMSAO_parameters_module, ONLY: r8_missval, i2_missval, downweight
   USE OMSAO_variables_module, ONLY: &
        database, rad_wav_avg, fitvar_rad, &
-       fitvar_rad_saved,  n_fitvar_rad, &
+       n_fitvar_rad, &
        lobnd, upbnd, fitweights, currspec, fitwavs, &
        fit_winwav_idx, mask_fitvar_rad, refspecs_original, &
        all_radfit_idx, ctrvar
@@ -180,7 +179,7 @@ SUBROUTINE radiance_fit ( &
           covar(1:n_fitvar_rad, 1:n_fitvar_rad), fitspec(1:n_rad_wvl), &
           fitres(1:n_rad_wvl), radfit_exval, locitnum, specfit_func      )
   END IF
-
+  
   ! ------------------------------------------
   ! Assign iteration number from the first fit
   ! ------------------------------------------
@@ -204,6 +203,10 @@ SUBROUTINE radiance_fit ( &
      rms      = r8_missval
      chisquav = r8_missval
   END IF
+
+  ! -----------------------
+  ! Loops for spike removal
+  ! -----------------------
 
   IF ( ( n_fitres_loop                    >  0             ) .AND. &
        ( loclim                           >  0.0_r8        ) .AND. &
@@ -332,11 +335,11 @@ SUBROUTINE radiance_fit ( &
      ! --------------------------------------------------------------------------
      fitcol = 0.0_r8  ;  dfitcol = 0.0_r8 ; target_var = 1.0_r8
      DO i = 1, ctrvar%n_fincol_idx
+
         ! --------------------------------------------------
         ! First add the contribution of the diagonal element
         ! --------------------------------------------------
         j1 = ctrvar%fincol_idx(1, i) ; k1 = ctrvar%fincol_idx(2,i)
-
         fitcol  = fitcol  + ctrvar%pm_one * fitvar(j1) / refspecs_original(k1)%NormFactor
         dfitcol = dfitcol + covar(j1,j1) / refspecs_original(k1)%NormFactor**2
 
