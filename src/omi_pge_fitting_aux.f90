@@ -319,7 +319,7 @@ SUBROUTINE compute_fitting_statistics ( &
   ! ----------------
   ! Local variables
   ! ----------------
-  INTEGER (KIND=i4) :: locerrstat, ix, it, spix, epix
+  INTEGER (KIND=i4) :: locerrstat, ix, it, spix, epix, Nrofr8missvalUncertSamples
   REAL    (KIND=r4) :: PercentOutofBoundsSamples
   REAL    (KIND=r8) :: fitcol_avg, rms_avg, dfitcol_avg, nfitcol
   REAL    (KIND=r8) :: col2sig, col3sig
@@ -341,6 +341,7 @@ SUBROUTINE compute_fitting_statistics ( &
   NrofFailedConvergenceSamples  = 0_i4
   NrofExceededIterationsSamples = 0_i4
   NrofMissingSamples            = 0_i4
+  Nrofr8missvalUncertSamples    = 0_i4
 
   nfitcol    = 0.0_r8
   fitcol_avg = 0.0_r8 ; rms_avg = 0.0_r8 ; dfitcol_avg = 0.0_r8
@@ -357,7 +358,6 @@ SUBROUTINE compute_fitting_statistics ( &
         ! pixels in the granule
         ! ---------------------------------------------------------
         NrofInputSamples = NrofInputSamples + 1
-
 
         ! ------------------------------------------------------
         ! The Good: Columns are postive within two sigma fitting
@@ -400,7 +400,8 @@ SUBROUTINE compute_fitting_statistics ( &
                 NrofFailedConvergenceSamples  = NrofFailedConvergenceSamples  + 1
            IF ( saofcf(ix,it) == elsunc_maxiter_eval )                      &
                 NrofExceededIterationsSamples = NrofExceededIterationsSamples + 1
-
+           IF ( saodco(ix,it) == r8_missval ) &
+                Nrofr8missvalUncertSamples = Nrofr8missvalUncertSamples + 1
            CYCLE
         END IF
 
@@ -445,19 +446,19 @@ SUBROUTINE compute_fitting_statistics ( &
 
   PercentGoodOutputSamples      = 100_r4    * &
        REAL(NrofGoodOutputSamples, KIND=r4) / &
-       MAX ( 1.0_r4, REAL(NrofGoodInputSamples,  KIND=r4) )
+       MAX ( 1.0_r4, REAL(NrofInputSamples,  KIND=r4) )
 
   PercentBadOutputSamples       = 100_r4        * &
        REAL(NrofBadOutputSamples, KIND=r4) / &
-       MAX ( 1.0_r4, REAL(NrofGoodInputSamples, KIND=r4) )
+       MAX ( 1.0_r4, REAL(NrofInputSamples, KIND=r4) )
 
   PercentSuspectOutputSamples   =  100.0_r4         * &
        REAL(NrofSuspectOutputSamples, KIND=r4) / &
-       MAX ( 1.0_r4, REAL(NrofGoodInputSamples, KIND=r4) )
+       MAX ( 1.0_r4, REAL(NrofInputSamples, KIND=r4) )
 
   PercentOutofBoundsSamples     =  100.0_r4         * &
        REAL(NrofOutofBoundsSamples, KIND=r4) / &
-       MAX ( 1.0_r4, REAL(NrofGoodInputSamples, KIND=r4) )
+       MAX ( 1.0_r4, REAL(NrofInputSamples, KIND=r4) )
 
   AbsolutePercentMissingSamples = 100_r4 * &
        REAL(NrofMissingSamples, KIND=r4) / &
@@ -474,9 +475,16 @@ SUBROUTINE compute_fitting_statistics ( &
   IF ( pcfvar%verb_thresh_lev >= vb_lev_screen ) THEN
      WRITE (*, '(A, 3(1PE15.5))')          'Col-DCol-RMS: ', fitcol_avg, dfitcol_avg, rms_avg
      WRITE (*, '(A, I7,A,I7,A,F7.1,A)')  'Statistics:   ', &
-          MAX(NrofGoodOutputSamples,0), ' of ', MAX(NrofGoodInputSamples,0), ' converged - ', &
+          MAX(NrofGoodOutputSamples,0), ' of ', MAX(NrofInputSamples,0), ' converged - ', &
           MAX(PercentGoodOutputSamples, 0.0), '%'
-     WRITE (*, '(A, F7.1)') 'Nfitcol =', nfitcol
+     WRITE (*, '(A, I7,A,I7,A)')  'Statistics:   ', &
+          MAX(NrofFailedConvergenceSamples,0), ' of ', MAX(NrofInputSamples,0), ' did not converge'
+     WRITE (*, '(A, I7,A,I7,A,F7.1,A)')  'Statistics:   ', &
+          MAX(NrofExceededIterationsSamples,0), ' of ', MAX(NrofInputSamples,0), ' exceded maximum number of iterations'
+     WRITE (*, '(A, I7,A,I7,A,F7.1,A)')  'Statistics:   ', &
+          MAX(Nrofr8missvalUncertSamples,0), ' of ', MAX(NrofInputSamples,0), ' have r8_missval uncertainty'
+     WRITE (*, '(A, I7,A,I7,A,F7.1,A)')  'Statistics:   ', &
+          MAX(NrofOutofBoundsSamples,0), ' of ', MAX(NrofInputSamples,0), ' are ugly'
   END IF
 
   IF (output) THEN
