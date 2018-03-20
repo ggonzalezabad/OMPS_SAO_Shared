@@ -43,7 +43,7 @@ SUBROUTINE prepare_databases ( &
   ! -----------------------------------
   IF ( ANY (ctrvar%have_undersampling) ) &
        CALL undersample ( xtrack_pix, n_rad_wvl, curr_rad_wvl(1:n_rad_wvl), &
-       hw1e, e_asym, g_shap, ctrvar%phase, locerrstat )
+       n_sol_wvl, sol_wvl(1:n_sol_wvl), hw1e, e_asym, g_shap, ctrvar%phase, locerrstat )
   errstat = MAX ( errstat, locerrstat )
   IF ( errstat >= pge_errstat_error ) RETURN
   
