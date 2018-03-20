@@ -1,5 +1,5 @@
-SUBROUTINE undersample ( xtrack_pix, n_sensor_pts, curr_wvl, hw1e, e_asym, g_shap, &
-     phase, errstat )
+SUBROUTINE undersample ( xtrack_pix, n_sensor_pts, curr_wvl, n_solar_pts, solar_wvl, &
+     hw1e, e_asym, g_shap, phase, errstat )
 
   ! -----------------------------------------------------------------------
   ! Convolves input spectrum with Super Gaussian slit function of specified
@@ -24,9 +24,10 @@ SUBROUTINE undersample ( xtrack_pix, n_sensor_pts, curr_wvl, hw1e, e_asym, g_sha
   ! ---------------
   ! Input variables
   ! ---------------
-  INTEGER (KIND=i4), INTENT (IN) :: n_sensor_pts, xtrack_pix
+  INTEGER (KIND=i4), INTENT (IN) :: n_sensor_pts, n_solar_pts, xtrack_pix
   REAL    (KIND=r8), INTENT (IN) :: hw1e, e_asym, g_shap, phase
   REAL    (KIND=r8), DIMENSION (n_sensor_pts), INTENT (IN) :: curr_wvl
+  REAL    (KIND=r8), DIMENSION (n_solar_pts), INTENT (IN)  :: solar_wvl
 
   ! ---------------
   ! Output variable
@@ -216,7 +217,7 @@ SUBROUTINE undersample_new ( xtrack_pix, n_sensor_pts, curr_wvl, n_solar_pts, so
   REAL (KIND=r8), DIMENSION (max_spec_pts)    :: &
        locwvl, locspec, specmod, tmpwav, over, under, resample
 
-  INTEGER (KIND=i4) :: npts, locerrstat
+  INTEGER (KIND=i4) :: npts, locerrstat, i
 
   ! ------------------------------
   ! Name of this subroutine/module
@@ -224,7 +225,6 @@ SUBROUTINE undersample_new ( xtrack_pix, n_sensor_pts, curr_wvl, n_solar_pts, so
   CHARACTER (LEN=23), PARAMETER :: modulename = 'undersample_new'
 
   locerrstat = pge_errstat_ok
-
   ! ==================================================
   ! Assign solar reference spectrum to local variables
   ! ==================================================
@@ -232,14 +232,13 @@ SUBROUTINE undersample_new ( xtrack_pix, n_sensor_pts, curr_wvl, n_solar_pts, so
   locwvl (1:npts) = refspecs_original(solar_idx)%RefSpecWavs(1:npts)
   locspec(1:npts) = refspecs_original(solar_idx)%RefSpecData(1:npts)
 
-  tmpwav(2:n_solar_pts) = solar_wvl
+  tmpwav(2:n_solar_pts) = solar_wvl(2:n_solar_pts)
   tmpwav(1)             = curr_wvl(1)
   tmpwav(n_solar_pts)   = curr_wvl(n_sensor_pts)
+
   IF ( tmpwav(2) <= tmpwav(1) ) tmpwav(2) = (tmpwav(1)+tmpwav(3))/2.0_r8
   IF ( tmpwav(n_solar_pts-1) >= tmpwav(n_solar_pts) ) tmpwav(n_solar_pts-1) = &
                                (tmpwav(n_solar_pts)+tmpwav(n_solar_pts-2))/2.0_r8
-
-
 
   IF ( ctrvar%yn_use_labslitfunc ) THEN
      CALL omi_slitfunc_convolve ( &
@@ -248,6 +247,7 @@ SUBROUTINE undersample_new ( xtrack_pix, n_sensor_pts, curr_wvl, n_solar_pts, so
      CALL super_gaussian_sf ( &
           npts, hw1e, e_asym, g_shap, locwvl(1:npts), locspec(1:npts), specmod(1:npts))
   END IF
+
   CALL error_check ( &
        locerrstat, pge_errstat_ok, pge_errstat_error, OMSAO_E_INTERPOL, &
        modulename//f_sep//'Convolution', vb_lev_default, errstat )
@@ -255,7 +255,6 @@ SUBROUTINE undersample_new ( xtrack_pix, n_sensor_pts, curr_wvl, n_solar_pts, so
 
   ! Phase1 calculation: Calculate spline derivatives for KPNO data
   !                     Calculate solar spectrum at OMI radiance positions
-
   CALL interpolation (                                                                &
        npts, locwvl(1:npts), specmod(1:npts), n_sensor_pts, curr_wvl(1:n_sensor_pts), &
        over(1:n_sensor_pts), 'endpoints', 0.0_r8, yn_full_range, locerrstat )
@@ -316,6 +315,6 @@ SUBROUTINE undersample_new ( xtrack_pix, n_sensor_pts, curr_wvl, n_solar_pts, so
   ! it is saved to both under sample spectra but only one of them needs to be used.
   database(us1_idx,1:n_sensor_pts) = underspec (1,1:n_sensor_pts)
   database(us2_idx,1:n_sensor_pts) = underspec (1,1:n_sensor_pts)
-
+  
   RETURN
 END SUBROUTINE undersample_new
