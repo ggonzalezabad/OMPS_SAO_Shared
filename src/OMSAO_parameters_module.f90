@@ -94,15 +94,15 @@ MODULE OMSAO_parameters_module
   ! Logicals to do correction CCM
   LOGICAL, DIMENSION(27), PARAMETER :: &
        yn_i0_spc = (/ .FALSE.,& ! solar
-       .FALSE.,& ! ring
+       .TRUE.,& ! ring
        .TRUE. ,& ! o3_t1
        .TRUE. ,& ! o3_t2
-       .FALSE.,& ! o3_t3
+       .TRUE.,& ! o3_t3
        .TRUE.,& ! no2_t1
-       .FALSE., & ! no2_t2
+       .TRUE., & ! no2_t2
        .FALSE.,& ! o2o2
        .FALSE.,& ! so2 
-       .TRUE.,& ! bro
+       .FALSE.,& ! bro
        .FALSE.,& ! oclo
        .FALSE.,& ! hcho
        .FALSE., & ! h2o
