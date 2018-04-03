@@ -273,17 +273,9 @@ SUBROUTINE omi_fitting ( &
 
   END IF
 
-  ! -----------------------------------------------------
-  ! Across-track loop for radiance wavelength calibration
-  ! Inside the call it is decided if we use a radiance
-  ! line or the radiance reference calculated above for
-  ! wavelength calibration.
-  ! -----------------------------------------------------
-  CALL xtrack_radiance_wvl_calibration ( &
+  CALL xtrack_prepare_database( &
        first_wc_pix, last_wc_pix, n_max_rspec, n_comm_wvl, errstat )
-  pge_error_status = MAX ( pge_error_status, errstat )
-  IF ( pge_error_status >= pge_errstat_error )  GO TO 666
-  
+
   ! --------------------------------------------------------------
   ! Terminate on not having any cross-track pixels left to process
   ! --------------------------------------------------------------
@@ -334,7 +326,7 @@ SUBROUTINE omi_fitting ( &
           ins_database_wvl(1:n_rad_wvl, 1:nxtrackrad), &
           max_rs_idx, n_rad_wvl, nxtrackrad, errstat) 
   ENDIF
-
+  
   ! -----------------------------------------------------------------
   ! Now we enter the on-line computation of the common mode spectrum.
   ! -----------------------------------------------------------------
