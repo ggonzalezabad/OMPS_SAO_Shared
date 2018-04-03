@@ -56,6 +56,9 @@ CONTAINS
 
     locerrstat = pge_errstat_ok
 
+    ! Initialize some variables that are to be output
+    ins_database = r8_missval ; ins_database_wvl = r8_missval ; n_ins_database_wvl = i4_missval
+
     ! ---------------------------------------------------------------
     ! Loop for solar wavelength calibration and slit function fitting
     ! ---------------------------------------------------------------
