@@ -28,7 +28,7 @@ CONTAINS
          fitvar_rad_saved, n_database_wvl, fitvar_rad, &
          pcfvar, ctrvar
     USE OMSAO_slitfunction_module, ONLY: saved_shift, saved_squeeze
-    USE OMSAO_data_module, ONLY: nwav_irrad, irradiance_wght, &
+    USE OMSAO_data_module, ONLY: irradiance_wght, &
          irradiance_wavl, irradiance_spec, cross_track_skippix, &
          curr_xtrack_pixnum, n_radwvl, max_rs_idx, ins_database, &
          ins_database_wvl, n_ins_database_wvl, ins_sol_wav_avg, &
@@ -54,7 +54,7 @@ CONTAINS
     ! Local variables
     ! ---------------
     INTEGER (KIND=i4) :: locerrstat, ipix, radfit_exval, radfit_itnum, i
-    REAL    (KIND=r8) :: fitcol, rms, dfitcol, chisquav, rad_spec_avg
+    REAL    (KIND=r8) :: fitcol, rms, dfitcol, chisquav, rad_spec_avg, rad_wav_avg
     REAL    (KIND=r8), DIMENSION (n_fitvar_rad)        :: corr_matrix_tmp, allfit_cols_tmp, allfit_errs_tmp
     LOGICAL                  :: yn_skip_pix
     CHARACTER (LEN=maxchlen) :: addmsg
@@ -105,8 +105,6 @@ CONTAINS
        ! ---------------------------------------------------------------------
        IF ( cross_track_skippix(ipix) ) CYCLE
 
-       n_radwvl = nwav_radref(ipix)
-
        ! ---------------------------------------------------------------------------
        ! For each cross-track position we have to initialize the saved Shift&Squeeze
        ! ---------------------------------------------------------------------------
@@ -117,19 +115,24 @@ CONTAINS
        ! from the solar wavelength calibration if retrieving against the
        ! Sun spectra, otherwise use the ins_database info
        ! ------------------------------------------------------------------
+       n_solar_pts = n_ins_database_wvl(ipix)
+       n_database_wvl = n_solar_pts
        IF (yn_sun) THEN
-          n_solar_pts = nwav_irrad(ipix)
-          n_database_wvl = n_solar_pts
           solar_wgt(1:n_solar_pts) = irradiance_wght(1:n_solar_pts,ipix)
        ELSE
-          n_solar_pts = n_ins_database_wvl(ipix)
-          n_database_wvl = n_solar_pts
           solar_wgt(1:n_solar_pts) = radref_wght(1:n_solar_pts,ipix)
        END IF
 
-       ! -----------------------------------------------------
+       ! ------------------------
+       ! Number of wavelengths in
+       ! the radiance reference
+       ! ------------------------
+       n_radwvl = nwav_radref(ipix)
+
+       ! -------------------------------------------------
        ! Catch the possibility that N_RADWVL > N_SOLAR_PTS
-       ! -----------------------------------------------------
+       ! Not a very good fix!!!
+       ! -------------------------------------------------
        IF ( n_radwvl > n_solar_pts ) THEN
           i = n_radwvl - n_solar_pts
           solar_wgt(n_solar_pts+1:n_solar_pts+i) = downweight
@@ -137,7 +140,6 @@ CONTAINS
        END IF
 
        IF ( n_solar_pts > 0 .AND. n_radwvl > 0 ) THEN
-
           ! ----------------------------------
           ! Restore DATABASE from OMI_DATABASE
           ! ----------------------------------
@@ -151,7 +153,7 @@ CONTAINS
           ! first pass and saved in ins_database.
           ! --------------------------------------------------------------------------------
           sol_wav_avg = ins_sol_wav_avg(ipix)
-          hw1e = solcal_pars(hwe_idx,ipix)
+          hw1e   = solcal_pars(hwe_idx,ipix)
           e_asym = solcal_pars(asy_idx,ipix)
           g_shap = solcal_pars(sha_idx,ipix)
           IF (yn_sun) THEN
@@ -179,8 +181,12 @@ CONTAINS
 
           ! --------------------------------------------------------------------
           ! Update the weights for the Reference/Wavelength Calibration Radiance
+          ! and the mean fitting window wavelength value.
           ! --------------------------------------------------------------------
           radref_wght(1:n_radwvl,ipix) = curr_rad_spec(sig_idx,1:n_radwvl)
+          rad_wav_avg = (SUM ( curr_rad_spec(wvl_idx,1:n_rad_wvl) * curr_rad_spec(sig_idx,1:n_rad_wvl) * &
+               curr_rad_spec(sig_idx,1:n_rad_wvl) )  / SUM (curr_rad_spec(sig_idx,1:n_rad_wvl) * &
+               curr_rad_spec(sig_idx,1:n_rad_wvl) ) )
 
           ! --------------------
           ! The radiance fitting
@@ -237,6 +243,12 @@ CONTAINS
           ! in the regular radiance fitting
           ! -------------------------------------------------------------------------
           radref_wght(1:n_rad_wvl,ipix) = curr_rad_spec(sig_idx,1:n_rad_wvl)
+
+          ! ---------------------------------------------
+          ! Update wavelength grid with shift and squeeze
+          ! ---------------------------------------------
+          radref_wavl(1:n_rad_wvl,ipix) = curr_rad_spec(wvl_idx,1:n_rad_wvl) - fitvar_rad(shi_idx) + &
+               (rad_wav_avg * fitvar_rad(squ_idx) / ( 1.0_r8 + fitvar_rad(squ_idx) ) )
        END IF
       
     END DO XTrackPix
@@ -414,7 +426,7 @@ SUBROUTINE create_radiance_reference (omps_data, nt, nx, nw, locerrstat)
   USE OMSAO_data_module, ONLY: &
        ccdpix_selection, nwav_radref, radref_spec, radref_wavl,     &
        radref_qflg, radref_sza, radref_vza, radref_wght,            &
-       ccdpix_exclusion, ins_sol_wav_avg 
+       ccdpix_exclusion
   USE OMSAO_variables_module, ONLY : ctrvar
   USE OMSAO_omps_reader, ONLY: omps_nmev_type
 
@@ -603,12 +615,6 @@ SUBROUTINE create_radiance_reference (omps_data, nt, nx, nw, locerrstat)
      radref_qflg(1:icnt,ix) = 0_i2
      radref_wght(1:icnt,ix) = normweight
      nwav_radref(ix) = icnt
-
-     ! ----------------------------------------------------------------
-     ! Re-assign the average solar wavelength variable, since from here
-     ! on we are concerned with radiances.
-     ! ----------------------------------------------------------------
-     ins_sol_wav_avg(ix) = SUM( radref_wavl(1:icnt,ix) ) / REAL(icnt, KIND=r8)
 
      ! ------------------------------------------------------------------
      ! Set weights and quality flags to "bad" for missing spectral points
