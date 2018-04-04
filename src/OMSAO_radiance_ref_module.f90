@@ -24,7 +24,7 @@ CONTAINS
          hwe_idx, asy_idx, shi_idx, sha_idx, squ_idx, &
          ccd_idx, radref_idx
     USE OMSAO_variables_module,  ONLY: database, curr_sol_spec, n_rad_wvl, &
-         curr_rad_spec, sol_wav_avg, hw1e, e_asym, g_shap, n_fitvar_rad, &
+         curr_rad_spec, hw1e, e_asym, g_shap, n_fitvar_rad, &
          fitvar_rad_saved, n_database_wvl, fitvar_rad, &
          pcfvar, ctrvar
     USE OMSAO_slitfunction_module, ONLY: saved_shift, saved_squeeze
@@ -152,7 +152,6 @@ CONTAINS
           ! we do it against the radiance reference with the target column substracted in a
           ! first pass and saved in ins_database.
           ! --------------------------------------------------------------------------------
-          sol_wav_avg = ins_sol_wav_avg(ipix)
           hw1e   = solcal_pars(hwe_idx,ipix)
           e_asym = solcal_pars(asy_idx,ipix)
           g_shap = solcal_pars(sha_idx,ipix)
@@ -250,7 +249,6 @@ CONTAINS
           radref_wavl(1:n_rad_wvl,ipix) = curr_rad_spec(wvl_idx,1:n_rad_wvl) - fitvar_rad(shi_idx) + &
                (rad_wav_avg * fitvar_rad(squ_idx) / ( 1.0_r8 + fitvar_rad(squ_idx) ) )
        END IF
-      
     END DO XTrackPix
 
     ! -----------------------------------------
