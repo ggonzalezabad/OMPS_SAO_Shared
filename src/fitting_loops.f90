@@ -286,11 +286,11 @@ SUBROUTINE xtrack_prepare_database ( &
         ref_wgt(1:n_irradwvl) = normweight
      END IF
 
-     ! ----------------------------------------------------------
-     ! Save covolved and wavelength calibrated irradiance spectra
+     ! --------------------------------------------------------
+     ! Save wavelength calibrated irradiance spectra
      ! to be used when creating the database of reference cross
      ! sections (below).
-     ! ----------------------------------------------------------
+     ! ---------------------------------------------------------
      ! Solar irradiance
      n_ref_wvl = n_irradwvl
      ref_wvl(1:n_ref_wvl) = irradiance_wavl(1:n_ref_wvl,ipix)
