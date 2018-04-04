@@ -28,8 +28,8 @@ CONTAINS
          fitvar_rad_saved, n_database_wvl, fitvar_rad, &
          pcfvar, ctrvar
     USE OMSAO_slitfunction_module, ONLY: saved_shift, saved_squeeze
-    USE OMSAO_data_module, ONLY: irradiance_wght, &
-         irradiance_wavl, irradiance_spec, cross_track_skippix, &
+    USE OMSAO_data_module, ONLY: irradiance_wght, irradiance_wavl, &
+         irradiance_spec, nwav_irrad, cross_track_skippix, &
          curr_xtrack_pixnum, n_radwvl, max_rs_idx, ins_database, &
          ins_database_wvl, n_ins_database_wvl, ins_sol_wav_avg, &
          solcal_pars, radref_wavl, radref_spec, ccdpix_selection, &
@@ -209,7 +209,10 @@ CONTAINS
                   allfit_cols_tmp(1:n_fitvar_rad), allfit_errs_tmp(1:n_fitvar_rad),         &
                   corr_matrix_tmp(1:n_fitvar_rad), yn_bad_pixel, fitspctmp(1:n_rad_wvl) )
  
-             IF ( yn_bad_pixel ) CYCLE
+             IF ( yn_bad_pixel ) THEN
+                 cross_track_skippix(ipix) = .TRUE.
+                 CYCLE
+              END IF
 
              WRITE (addmsg, '(A,I2,5(A,1PE10.3),2(A,I5))') 'RADIANCE Reference #', ipix, &
                   ': hw 1/e = ', hw1e, '; e_asy = ', e_asym, '; g_sha = ', g_shap, '; shift = ', &
@@ -246,8 +249,10 @@ CONTAINS
           ! ---------------------------------------------
           ! Update wavelength grid with shift and squeeze
           ! ---------------------------------------------
+          print*, rad_wav_avg
           radref_wavl(1:n_rad_wvl,ipix) = curr_rad_spec(wvl_idx,1:n_rad_wvl) - fitvar_rad(shi_idx) + &
                (rad_wav_avg * fitvar_rad(squ_idx) / ( 1.0_r8 + fitvar_rad(squ_idx) ) )
+
        END IF
     END DO XTrackPix
 
@@ -267,13 +272,39 @@ CONTAINS
             ctrvar%target_npol, target_var(1:ctrvar%n_fincol_idx,fpix:lpix), radref_xtrcol(fpix:lpix) )
     END IF
 
+    ! --------------------------------------------------------
+    ! Update values of the solar spectra. We need that for the 
+    ! second call to xtrack_prepare_database since we will be 
+    ! doing the fitting against the radiance reference. 
+    ! This will only have an effect the first time we call 
+    ! xtrack_radiance_reference_loop since the database
+    ! is not recalculated after the second call
+    ! --------------------------------------------------------
+    DO ipix = fpix, lpix
+       ! ---------------------------------------------------------------------
+       ! If we already determined that this cross track pixel position carries
+       ! an error, we skip this step
+       ! ---------------------------------------------------------------------
+       IF ( cross_track_skippix(ipix) ) CYCLE
+
+       ! Calculate average wavelength
+       rad_wav_avg = (SUM ( radref_wavl(1:n_rad_wvl,ipix) * radref_wght(1:n_rad_wvl,ipix) * &
+            radref_wght(1:n_rad_wvl,ipix) )  / SUM (radref_wght(1:n_rad_wvl,ipix) * &
+            radref_wght(1:n_rad_wvl,ipix) ) )
+       print*, rad_wav_avg
+       nwav_irrad(ipix) = n_rad_wvl
+       ins_sol_wav_avg(ipix) = rad_wav_avg
+       irradiance_wght(1:nwav_irrad(ipix),ipix) = radref_wght(1:n_rad_wvl,ipix)
+       irradiance_wavl(1:nwav_irrad(ipix),ipix) = radref_wavl(1:n_rad_wvl,ipix)
+       irradiance_spec(1:nwav_irrad(ipix),ipix) = radref_spec(1:n_rad_wvl,ipix)
+    END DO
+
     ! ----------------------------------------
     ! Write radiance reference fitting results
     ! If we go over it twice results be over
     ! written.
     ! ----------------------------------------
     IF (ctrvar%yn_diagnostic_run) CALL he5_write_radrefcal(npix, fpix, lpix, errstat)
-
     errstat = MAX ( errstat, locerrstat )
 
     RETURN
@@ -284,10 +315,9 @@ CONTAINS
        ipix, jpix, n_fincol_idx, fincol_idx, &
        target_npol, target_var, target_fit   )
 
-    USE OMSAO_data_module, ONLY: radref_spec, ins_database, nwav_radref, nwavel_max
+    USE OMSAO_data_module, ONLY: radref_spec, nwav_radref, nwavel_max, ins_database
     USE OMSAO_variables_module, ONLY: refspecs_original
     USE OMSAO_median_module, ONLY: median
-    USE OMSAO_indices_module, ONLY: solar_idx
 
     IMPLICIT NONE
 
@@ -408,7 +438,7 @@ CONTAINS
           ! the target column density substracted
           ! in the reference spectra database.
           ! -------------------------------------
-          ins_database (solar_idx,1:nwvl,i) = radref_spec(1:nwvl,i) * &
+          radref_spec(1:nwvl,i) = radref_spec(1:nwvl,i) * &
                EXP(+tmpexp(1:nwvl))
 
           target_fit(i) = target_fit(i) + yfloc/refspecs_original(k)%NormFactor
