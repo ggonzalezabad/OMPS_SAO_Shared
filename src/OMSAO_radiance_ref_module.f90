@@ -214,9 +214,9 @@ CONTAINS
                  CYCLE
               END IF
 
-             WRITE (addmsg, '(A,I2,5(A,1PE10.3),2(A,I5))') 'RADIANCE Reference #', ipix, &
+             WRITE (addmsg, '(A,I2,6(A,1PE8.2),A,I5,A,I3)') 'RADIANCE Reference #', ipix, &
                   ': hw 1/e = ', hw1e, '; e_asy = ', e_asym, '; g_sha = ', g_shap, '; shift = ', &
-                  fitvar_rad(shi_idx), '; squeeze = ', fitvar_rad(squ_idx),&
+                  fitvar_rad(shi_idx), '; squeeze = ', fitvar_rad(squ_idx), '; RMS = ', rms, &
                   '; exit val = ', radfit_exval, '; iter num = ', radfit_itnum
           ELSE
              WRITE (addmsg, '(A,I2,A)') 'RADIANCE Reference #', ipix, ': Skipped!'
