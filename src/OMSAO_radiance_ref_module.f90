@@ -249,7 +249,6 @@ CONTAINS
           ! ---------------------------------------------
           ! Update wavelength grid with shift and squeeze
           ! ---------------------------------------------
-          print*, rad_wav_avg
           radref_wavl(1:n_rad_wvl,ipix) = curr_rad_spec(wvl_idx,1:n_rad_wvl) - fitvar_rad(shi_idx) + &
                (rad_wav_avg * fitvar_rad(squ_idx) / ( 1.0_r8 + fitvar_rad(squ_idx) ) )
 
@@ -291,7 +290,6 @@ CONTAINS
        rad_wav_avg = (SUM ( radref_wavl(1:n_rad_wvl,ipix) * radref_wght(1:n_rad_wvl,ipix) * &
             radref_wght(1:n_rad_wvl,ipix) )  / SUM (radref_wght(1:n_rad_wvl,ipix) * &
             radref_wght(1:n_rad_wvl,ipix) ) )
-       print*, rad_wav_avg
        nwav_irrad(ipix) = n_rad_wvl
        ins_sol_wav_avg(ipix) = rad_wav_avg
        irradiance_wght(1:nwav_irrad(ipix),ipix) = radref_wght(1:n_rad_wvl,ipix)
