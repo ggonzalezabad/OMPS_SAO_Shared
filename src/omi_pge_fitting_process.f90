@@ -304,6 +304,14 @@ SUBROUTINE omi_fitting ( &
      CALL xtrack_radiance_reference_loop ( .TRUE., ctrvar%yn_remove_target, &
           nXtrackRadRR, nWvlCCDrr, first_wc_pix, last_wc_pix, pge_error_status )
 
+     ! -------------------------------------------
+     ! Once we have the radiance reference ready
+     ! we have to update the database of reference 
+     ! cross sections.
+     ! -------------------------------------------
+     CALL xtrack_prepare_database( &
+          first_wc_pix, last_wc_pix, n_max_rspec, n_comm_wvl, errstat )
+
      IF (ctrvar%yn_remove_target) &
           ! -----------------------------------------------------------------
           ! Because we have updated the radiance reference after substracting
