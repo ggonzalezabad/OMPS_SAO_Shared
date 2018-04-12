@@ -208,7 +208,7 @@ CONTAINS
     ! -----------------------------------
     IF ( ANY (ctrvar%have_undersampling) ) &
          CALL undersample ( xtrack_pix, n_rad_wvl, curr_rad_wvl(1:n_rad_wvl), &
-         hw1e, e_asym, g_shap, ctrvar%phase, locerrstat )
+         ctrvar%phase, locerrstat )
     errstat = MAX ( errstat, locerrstat )
     IF ( errstat >= pge_errstat_error ) RETURN
     
@@ -420,6 +420,7 @@ CONTAINS
          nsol, solar_wvl(1:nsol), solar_conv(1:nsol), &
          nhr, hr_grid(1:nhr), hr_database(solar_idx,1:nhr), &
          'fillvalue', 0.0_r8, yn_full_range, locerrstat )
+    ins_hr_database(solar_idx,1:nhr,xtrack_pix) = hr_database(solar_idx,1:nhr)
 
     ! ---------------------------------------------------------------------
     ! Load results into the database array. The order of the spectra is
@@ -639,7 +640,7 @@ CONTAINS
   END SUBROUTINE convolve_data
 
   SUBROUTINE undersample ( xtrack_pix, n_sensor_pts, curr_wvl, &
-       hw1e, e_asym, g_shap, phase, errstat )
+       phase, errstat )
     
     ! -----------------------------------------------------------------------
     ! Convolves input spectrum with Super Gaussian slit function of specified
@@ -656,7 +657,7 @@ CONTAINS
     ! Input variables
     ! ---------------
     INTEGER (KIND=i4), INTENT (IN) :: n_sensor_pts, xtrack_pix
-    REAL    (KIND=r8), INTENT (IN) :: hw1e, e_asym, g_shap, phase
+    REAL    (KIND=r8), INTENT (IN) :: phase
     REAL    (KIND=r8), DIMENSION (n_sensor_pts), INTENT (IN) :: curr_wvl
     
     ! ---------------
@@ -684,23 +685,11 @@ CONTAINS
     ! ==================================================
     ! Assign solar reference spectrum to local variables
     ! ==================================================
-    npts = refspecs_original(solar_idx)%nPoints
+    npts = nhr
     IF (.NOT. ALLOCATED(locwvl)) &
          ALLOCATE(locwvl(1:npts),locspec(1:npts),specmod(1:npts), stat=locerrstat)
-    locwvl (1:npts) = refspecs_original(solar_idx)%RefSpecWavs(1:npts)
-    locspec(1:npts) = refspecs_original(solar_idx)%RefSpecData(1:npts)
-        
-    IF ( ctrvar%yn_use_labslitfunc ) THEN
-       CALL omi_slitfunc_convolve ( &
-            xtrack_pix, npts, locwvl(1:npts), locspec(1:npts), specmod(1:npts), g_shap, locerrstat )
-    ELSE
-       CALL super_gaussian_sf ( &
-            npts, hw1e, e_asym, g_shap, locwvl(1:npts), locspec(1:npts), specmod(1:npts))
-    END IF
-    CALL error_check ( &
-         locerrstat, pge_errstat_ok, pge_errstat_error, OMSAO_E_INTERPOL, &
-         modulename//f_sep//'Convolution', vb_lev_default, errstat )
-    IF ( locerrstat >= pge_errstat_error ) RETURN
+    locwvl(1:npts) = hr_grid(1:npts)
+    specmod(1:npts) = ins_hr_database(solar_idx,1:npts,xtrack_pix)
     
     ! Phase1 calculation: Interpolate high resolution solar spectrum to instrument positions (resample)
     CALL interpolation (                                                                &
@@ -717,9 +706,10 @@ CONTAINS
     IF ( .NOT. yn_full_range ) CALL error_check (           &
          0, 1, pge_errstat_warning, OMSAO_W_INTERPOL_RANGE, &
          modulename//f_sep//'Phase 1a', vb_lev_develop, errstat )
-    
+
+    ! ---------------------------------------------------------------------------------
     ! Calculate solar spectrum at instrument + phase positions, original and resampled.
-    ! ------------------------------------------------------------------------------
+    ! ---------------------------------------------------------------------------------
     ! The original ("modified K.C.) scheme to compute the UNDERSPEC wavelength array
     ! ------------------------------------------------------------------------------
     ! ( assumes ABS(PHASE) < 1.0 )
