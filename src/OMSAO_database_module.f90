@@ -65,8 +65,8 @@ CONTAINS
     ! -------------------------------------------------
     IF (.NOT. ALLOCATED(hr_grid)) THEN
        ! Work out number of points of the grid
-       hrd = refspecs_original(solar_idx)%RefSpecWavs(2) - &
-            refspecs_original(solar_idx)%RefSpecWavs(1)
+       hrd = (refspecs_original(solar_idx)%RefSpecWavs(2) - &
+            refspecs_original(solar_idx)%RefSpecWavs(1))
        nhr = INT((ctrvar%fit_winwav_lim(4) - ctrvar%fit_winwav_lim(1)) / &
             hrd, KIND=i4) + 1
        ! Allocate variables
@@ -403,22 +403,24 @@ CONTAINS
        ALLOCATE ( xsec_i0_spc(1:nsol), STAT=ios )
     END IF
     
-    ! --------------------------------------
-    ! Compute correction for Solar I0 effect
-    ! --------------------------------------
+    ! ----------------------------------
     ! work out convolved high resolution
     ! solar spectrum
     ! ----------------------------------
-    IF ( ctrvar%yn_solar_i0 ) THEN
-       idx  = solar_idx
-       solar_wvl(1:nsol) = refspecs_original(idx)%RefSpecWavs(1:nsol)
-       solar_spc(1:nsol) = refspecs_original(idx)%RefSpecData(1:nsol)
-       CALL convolve_data ( &
-            xtrack_pix, nsol,  solar_wvl(1:nsol), solar_spc(1:nsol), ctrvar%yn_use_labslitfunc, &
-            solcal_pars(hwe_idx,xtrack_pix), solcal_pars(asy_idx,xtrack_pix), &
-            solcal_pars(sha_idx,xtrack_pix), solar_conv(1:nsol), errstat )
-    END IF
-    
+    solar_wvl(1:nsol) = refspecs_original(solar_idx)%RefSpecWavs(1:nsol)
+    solar_spc(1:nsol) = refspecs_original(solar_idx)%RefSpecData(1:nsol)
+    CALL convolve_data ( &
+         xtrack_pix, nsol,  solar_wvl(1:nsol), solar_spc(1:nsol), ctrvar%yn_use_labslitfunc, &
+         solcal_pars(hwe_idx,xtrack_pix), solcal_pars(asy_idx,xtrack_pix), &
+         solcal_pars(sha_idx,xtrack_pix), solar_conv(1:nsol), errstat )
+    ! ----------------------
+    ! Save it in hr_database
+    ! ----------------------
+    CALL interpolation ( &
+         nsol, solar_wvl(1:nsol), solar_conv(1:nsol), &
+         nhr, hr_grid(1:nhr), hr_database(solar_idx,1:nhr), &
+         'fillvalue', 0.0_r8, yn_full_range, locerrstat )
+
     ! ---------------------------------------------------------------------
     ! Load results into the database array. The order of the spectra is
     ! determined by the molecule indices in OMSAO_indices_module. Only 
