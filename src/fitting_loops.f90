@@ -6,7 +6,7 @@ SUBROUTINE xtrack_radiance_fitting_loop ( yn_common_fit, &
   USE OMSAO_precision_module, ONLY: i2, i4, r8
   USE OMSAO_indices_module, ONLY: wvl_idx, spc_idx, sig_idx, &
        hwe_idx, asy_idx, sha_idx, &
-       solar_idx, ccd_idx, radfit_idx
+       solar_idx, ccd_idx, radfit_idx, us1_idx, us2_idx, comm_idx
   USE OMSAO_parameters_module, ONLY: i2_missval, r8_missval!, downweight
   USE OMSAO_variables_module,  ONLY: database, curr_sol_spec, &
        curr_rad_spec, sol_wav_avg, hw1e, e_asym, g_shap, ctrvar, &
@@ -21,7 +21,9 @@ SUBROUTINE xtrack_radiance_fitting_loop ( yn_common_fit, &
        ccdpix_exclusion_rad, ccdpix_selection_rad, ins_database, &
        ins_database_wvl, max_rs_idx, radiance_spec, &
        radref_wght, irradiance_wght
-  USE OMSAO_errstat_module, ONLY: pge_errstat_ok
+  USE OMSAO_database_module, ONLY: ins_hr_database, hr_grid, nhr, undersample
+  USE OMSAO_errstat_module, ONLY: pge_errstat_ok, omsao_e_interpol, &
+       pge_errstat_error, vb_lev_default, error_check
      
   IMPLICIT NONE
 
@@ -51,10 +53,10 @@ SUBROUTINE xtrack_radiance_fitting_loop ( yn_common_fit, &
   ! ---------------
   ! Local variables
   ! ---------------
-  INTEGER (KIND=i4) :: locerrstat, ipix, radfit_exval, radfit_itnum
+  INTEGER (KIND=i4) :: locerrstat, ipix, radfit_exval, radfit_itnum, idx
   REAL    (KIND=r8) :: fitcol, rms, dfitcol, chisquav, rad_spec_avg  
   LOGICAL :: yn_skip_pix, yn_cycle_this_pix
-  LOGICAL :: yn_bad_pixel
+  LOGICAL :: yn_bad_pixel, yn_full_range
   INTEGER (KIND=i4), DIMENSION (4) :: select_idx
   INTEGER (KIND=i4), DIMENSION (2) :: exclud_idx
   INTEGER (KIND=i4) :: n_solar_pts, n_l1b_wvl, n_l1b_adj_wvl
@@ -105,7 +107,7 @@ SUBROUTINE xtrack_radiance_fitting_loop ( yn_common_fit, &
      ! Restore DATABASE from OMI_DATABASE (see above)
      ! ----------------------------------------------
      database (1:max_rs_idx,1:n_database_wvl) = ins_database (1:max_rs_idx,1:n_database_wvl,ipix)
-                 
+       
      ! ---------------------------------------------------------------------------------
      ! Restore solar fitting variables for across-track reference in Earthshine fitting.
      ! ---------------------------------------------------------------------------------
@@ -149,6 +151,44 @@ SUBROUTINE xtrack_radiance_fitting_loop ( yn_common_fit, &
           ref_wgh(1:n_l1b_wvl), &
           n_l1b_adj_wvl, curr_rad_spec(wvl_idx:ccd_idx,1:n_l1b_wvl),&
           rad_spec_avg, yn_skip_pix )
+
+     ! --------------------------------------------------------------------------------
+     ! Interpol DATABASE from ins_hr_database to curr_rad_spec(wvl_idx,1:n_l1b_adj_wvl)
+     ! or from database for common mode and undersampling.
+     ! --------------------------------------------------------------------------------
+     n_database_wvl = n_l1b_adj_wvl
+     DO idx = 1, max_rs_idx
+        IF ( idx == solar_idx) THEN
+!!$           curr_sol_spec(wvl_idx,1:n_database_wvl) = curr_rad_spec(wvl_idx,1:n_l1b_adj_wvl)
+!!$           n_solar_pts = n_l1b_adj_wvl
+!!$           CALL interpolation (                                        &
+!!$                nhr, hr_grid(1:nhr), ins_hr_database(idx,1:nhr,ipix), &
+!!$                n_l1b_adj_wvl, curr_rad_spec(wvl_idx,1:n_l1b_adj_wvl), &
+!!$                curr_sol_spec(spc_idx,1:n_database_wvl), 'endpoints', 0.0_r8, yn_full_range, errstat )
+!!$           CALL error_check ( &
+!!$                errstat, pge_errstat_ok, pge_errstat_error, OMSAO_E_INTERPOL, &
+!!$                'Resampling solar irradiance to Radiance Grid -- interpolation', &
+!!$                vb_lev_default, errstat )
+        ELSE IF (idx == us1_idx .OR. idx == us2_idx) THEN ! .OR. idx == comm_idx ) THEN
+           ! For undersampling just calculate one for each different wavelength grid
+           CALL undersample(ipix, n_l1b_adj_wvl, curr_rad_spec(wvl_idx,1:n_l1b_adj_wvl), &
+                ctrvar%phase, errstat)
+        ELSE
+           CALL interpolation (                                        &
+                nhr, hr_grid(1:nhr), ins_hr_database(idx,1:nhr,ipix),      &
+                n_l1b_adj_wvl, curr_rad_spec(wvl_idx,1:n_l1b_adj_wvl), &
+                database(idx,1:n_l1b_adj_wvl), 'endpoints', 0.0_r8, yn_full_range, errstat )
+           CALL error_check ( &
+                errstat, pge_errstat_ok, pge_errstat_error, OMSAO_E_INTERPOL, &
+                'Resampling hr_database to Radiance Grid -- interpolation', &
+                vb_lev_default, errstat )
+        END IF
+     END DO
+
+!!$     DO idx = 1, n_l1b_adj_wvl
+!!$        write(*,'(F7.3,12E11.3)') curr_rad_spec(wvl_idx,idx), database(1:12,idx)
+!!$     END DO
+!!$     stop
 
      ! --------------------
      ! The radiance fitting
