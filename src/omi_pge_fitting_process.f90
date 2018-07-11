@@ -134,6 +134,7 @@ SUBROUTINE omi_fitting ( &
   USE OMSAO_wfamf_module, ONLY: read_climatology, amf_calculation_bis
   USE OMSAO_Reference_sector_module, ONLY: Reference_Sector_Correction
   USE OMSAO_omps_reader, ONLY: omps_nmev_type, omps_nmev_reader
+  USE OMSAO_database_module, ONLY: xtrack_prepare_database, deallocate_hr_database
 
   IMPLICIT NONE
 
@@ -237,6 +238,15 @@ SUBROUTINE omi_fitting ( &
   CALL xtrack_solar_calibration_loop ( first_wc_pix, last_wc_pix, errstat )
   pge_error_status = MAX ( pge_error_status, errstat )
   IF ( pge_error_status >= pge_errstat_error )  GO TO 666
+
+  ! ---------------------------------------
+  ! If we are not using radiance reference
+  ! this call to prepare database is enough
+  ! otherwise we have call it again after
+  ! calculating the radiance reference
+  ! ---------------------------------------
+  CALL xtrack_prepare_database( &
+       first_wc_pix, last_wc_pix, n_max_rspec, n_comm_wvl, errstat )
   
   ! ------------------------------------------------
   ! If use radiance reference we read the radiance
@@ -272,9 +282,6 @@ SUBROUTINE omi_fitting ( &
      IF (pge_error_status >= pge_errstat_error ) GO TO 666
 
   END IF
-
-  CALL xtrack_prepare_database( &
-       first_wc_pix, last_wc_pix, n_max_rspec, n_comm_wvl, errstat )
 
   ! --------------------------------------------------------------
   ! Terminate on not having any cross-track pixels left to process
@@ -426,6 +433,12 @@ SUBROUTINE omi_fitting ( &
 
   IF ( ctrvar%yn_radiance_reference) &
        DEALLOCATE (omps_data_radiance_reference)
+
+  CALL deallocate_hr_database(errstat)
+  IF (errstat /= pge_errstat_ok) THEN
+     WRITE(*,*) 'Error deallocating high resolution database'
+     STOP
+  END IF
 
   ! ---------------------------
   ! SCD to VCD (AMF calculation
