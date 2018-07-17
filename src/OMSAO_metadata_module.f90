@@ -16,8 +16,6 @@ MODULE OMSAO_metadata_module
 
   ! NULL element value
   CHARACTER(LEN=4), PARAMETER :: null_element='NULL'
-  ! File with metadata table initialization
-  CHARACTER(LEN=29), PARAMETER :: metadata_table_file='../tbl/metadata_def_table.cvs'
 
   ! Define metadata type
   TYPE met_type
@@ -252,6 +250,7 @@ MODULE OMSAO_metadata_module
 CONTAINS
   SUBROUTINE read_metadata_table ()
 
+    USE OMSAO_variables_module, ONLY: pcfvar
     IMPLICIT NONE
 
     ! Local variables
@@ -263,7 +262,7 @@ CONTAINS
 
     ! Get number of elements
     num_lines=0; num_hdr=0
-    OPEN(funit, file=metadata_table_file, status='old', action='read')
+    OPEN(funit, file=TRIM(pcfvar%mtd_fname), status='old', action='read')
     DO
        READ(funit,'(A)',END=10) tmp_line
        IF (tmp_line(1:1) .EQ. hdr_chr) num_hdr = num_hdr + 1
