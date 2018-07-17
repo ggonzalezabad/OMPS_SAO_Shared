@@ -1,5 +1,6 @@
 MODULE OMSAO_omps_reader
 
+  USE HDF5
   USE ReadH5dataset, ONLY: H5ReadDataset, H5ReadAttribute, ErrorFlag, &
        ErrorMessage ! Contains the generic HDF5 reading routines
 
@@ -8,13 +9,14 @@ MODULE OMSAO_omps_reader
   PRIVATE
   PUBLIC :: omps_nmev_type, omps_nmto3_type, &
        omps_nmev_reader, omps_nmto3_reader
-  INTEGER (KIND = 4), PARAMETER :: MAX_NAME_LENGTH = 256
+  INTEGER (KIND = 4), PARAMETER :: MAX_NAME_LENGTH = 500
 
   TYPE omps_nmev_type
      CHARACTER (LEN=MAX_NAME_LENGTH) :: filename
      INTEGER(KIND=4)                 :: nLines
      INTEGER(KIND=4)                 :: nXtrack
      INTEGER(KIND=4)                 :: nWavel
+     INTEGER(KIND=4)                 :: nattr
      ! ======================
      ! Data storage variables
      ! ======================
@@ -64,6 +66,9 @@ MODULE OMSAO_omps_reader
      REAL(KIND=4), DIMENSION(:,:,:), POINTER :: RawCounts => NULL()
      INTEGER(KIND=4), DIMENSION(:), POINTER :: ReportIntQualFlags => NULL()
      INTEGER(KIND=4), DIMENSION(:), POINTER :: SensorStatusBits => NULL()
+     ! Attributes
+     CHARACTER(LEN=MAX_NAME_LENGTH), DIMENSION(:), POINTER :: global_attributes => NULL()
+     CHARACTER(LEN=MAX_NAME_LENGTH), DIMENSION(:), POINTER :: global_attributes_values => NULL()
   END TYPE omps_nmev_type
 
   TYPE omps_nmto3_type
@@ -112,7 +117,11 @@ CONTAINS
 
     CHARACTER (LEN=*) :: filename
     TYPE(omps_nmev_type), INTENT(INOUT) :: this
-    INTEGER(KIND=4) :: status, ierr
+    INTEGER(KIND=4) :: status, ierr, fid, attr_id, type_id, &
+         native_type_id, hdferr, int_buf
+    INTEGER(KIND=8) :: iatt, attr_size
+    REAL (KIND = 4) :: flt_buf
+    CHARACTER(LEN=500) :: chr_buf
     
     ! -------------------------------------
     ! Make sure pointers are not associated
@@ -554,6 +563,58 @@ CONTAINS
     CALL H5ReadDataset(filename, &
          "/BinScheme1/ScienceData/SensorStatusBits", this%SensorStatusBits)
     IF (ErrorFlag.NE.0) GOTO 990
+
+    ! -----------------
+    ! Global attributes
+    ! -----------------
+    IF (ASSOCIATED(this%global_attributes)) DEALLOCATE(this%global_attributes)
+    IF (ASSOCIATED(this%global_attributes_values)) DEALLOCATE(this%global_attributes_values)
+
+    ! Get number of attributes
+    CALL H5OPEN_f(hdferr)
+    CALL H5FOPEN_f(filename,H5F_ACC_RDONLY_F,fid,hdferr)
+    CALL H5AGET_NUM_ATTRS_f(fid, this%nattr, hdferr)
+
+    ! Allocate space for global attributes
+    ALLOCATE(this%global_attributes(this%nattr), STAT = ierr)
+    IF ( ierr .NE. 0 ) THEN
+       ErrorMessage = 'Error allocating global_attributes'
+       GOTO 990
+    END IF
+    ALLOCATE(this%global_attributes_values(this%nattr), STAT = ierr)
+    IF ( ierr .NE. 0 ) THEN
+       ErrorMessage = 'Error allocating global_attributes_values'
+       GOTO 990
+    END IF
+
+    ! Loop over attributes
+    DO iatt = 1, this%nattr
+       attr_size = INT(MAX_NAME_LENGTH,KIND=8)
+       CALL H5AOPEN_by_idx_f(fid,'.',H5_INDEX_NAME_F,H5_ITER_INC_F, iatt-1, attr_id, hdferr)
+       CALL H5AGET_name_f(attr_id,attr_size,this%global_attributes(iatt),hdferr)
+       CALL H5AGET_type_f(attr_id,type_id,hdferr)
+       CALL H5TGET_size_f(type_id,attr_size,hdferr)
+       CALL H5TGET_class_f(type_id,native_type_id,hdferr)
+       SELECT CASE (native_type_id)
+       CASE (0) !Integer
+          CALL H5AREAD_f(attr_id,type_id,int_buf,(/attr_size/),hdferr)
+          IF (attr_size .EQ. 2) THEN
+             WRITE(this%global_attributes_values(iatt),'(I10)') INT(int_buf,KIND=2)
+          ELSE
+             WRITE(this%global_attributes_values(iatt),'(I10)') int_buf
+          END IF
+       CASE (1) !Float
+          CALL H5AREAD_f(attr_id,type_id,flt_buf,(/attr_size/),hdferr)
+          WRITE(this%global_attributes_values(iatt),'(F15.5)') flt_buf
+       CASE (3) !String
+          CALL H5AREAD_f(attr_id,type_id,chr_buf,(/attr_size/),hdferr)
+          WRITE(this%global_attributes_values(iatt),'(A)') chr_buf(1:attr_size)
+       END SELECT
+       CALL H5TCLOSE_f(type_id,hdferr)
+       CALL H5ACLOSE_F(attr_id,hdferr)
+    END DO
+    CALL H5FCLOSE_f(fid,hdferr)
+    CALL H5CLOSE_f(hdferr)  
     
     status = ErrorFlag
     RETURN
