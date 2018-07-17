@@ -14,6 +14,27 @@ MODULE OMSAO_metadata_module
   INCLUDE "PGS_MET.f"
   INCLUDE "PGS_PC.f"
 
+  ! NULL element value
+  CHARACTER(LEN=4), PARAMETER :: null_element='NULL'
+  ! File with metadata table initialization
+  CHARACTER(LEN=29), PARAMETER :: metadata_table_file='../tbl/metadata_def_table.cvs'
+
+  ! Define metadata type
+  TYPE met_type
+     CHARACTER(LEN=maxchlen) :: element, element_description, element_value
+     LOGICAL :: yn_dynamic
+  END type met_type
+
+  ! Variable holding number of elements
+  INTEGER(KIND=4) :: number_of_metadata_elements
+  ! Number of metadata elements
+  TYPE(met_type), ALLOCATABLE :: metadata_struct(:)
+
+  ! String for date and time data
+  INTEGER(KIND=4), PARAMETER :: dt_len = 25
+  CHARACTER(LEN=dt_len) :: dt_str
+
+  ! Define metadata elements. If yn_dynamic element_value will be filled up somewhere else
 
   ! -----------------------
   ! MetaData STRING Objects
@@ -228,5 +249,211 @@ MODULE OMSAO_metadata_module
   CHARACTER (LEN=maxchlen) :: mcf_shortname
   CHARACTER (LEN=maxchlen) :: pcf_granule_s_time, pcf_granule_e_time
 
+CONTAINS
+  SUBROUTINE read_metadata_table ()
+
+    IMPLICIT NONE
+
+    ! Local variables
+    INTEGER(KIND=4), PARAMETER :: funit = 37, nfld=4
+    CHARACTER(LEN=1), PARAMETER :: hdr_chr = '#', sep_chr = ','
+    CHARACTER(LEN=maxchlen) :: tmp_line
+    INTEGER(KIND=4) :: num_lines, num_hdr, iline, ichr, ifld
+    INTEGER(KIND=4), DIMENSION(4) :: fchr, lchr
+
+    ! Get number of elements
+    num_lines=0; num_hdr=0
+    OPEN(funit, file=metadata_table_file, status='old', action='read')
+    DO
+       READ(funit,'(A)',END=10) tmp_line
+       IF (tmp_line(1:1) .EQ. hdr_chr) num_hdr = num_hdr + 1
+       num_lines = num_lines + 1 
+    END DO
+    10 REWIND(funit)
+    ! Fill up initial metadata_struct values    
+    number_of_metadata_elements = num_lines-num_hdr
+    ALLOCATE(metadata_struct(1:number_of_metadata_elements))
+    DO iline = 1, num_lines
+       READ(funit,'(A)') tmp_line
+       IF (iline .LE. num_hdr) CYCLE
+       ! Split tmp_line in different fields (comma separated) and save them
+       ! to metadata_struct
+       fchr=1;lchr=1;ifld=1
+       DO ichr = 1, maxchlen
+          IF (tmp_line(ichr:ichr) .EQ. sep_chr) THEN
+             lchr(ifld) = ichr-1
+             ifld=ifld+1
+             fchr(ifld) = ichr+1
+             IF (ifld .EQ. nfld) THEN
+                lchr(ifld) = maxchlen
+                CONTINUE
+             END IF
+          END IF
+       END DO
+       metadata_struct(iline-num_hdr)%element=tmp_line(fchr(1):lchr(1))
+       metadata_struct(iline-num_hdr)%element_value=tmp_line(fchr(2):lchr(2))
+       IF (tmp_line(fchr(3):lchr(3)) .EQ. 'static') metadata_struct(iline-num_hdr)%yn_dynamic=.FALSE.
+       IF (tmp_line(fchr(3):lchr(3)) .EQ. 'dynamic') metadata_struct(iline-num_hdr)%yn_dynamic=.TRUE.
+       metadata_struct(iline-num_hdr)%element_description=tmp_line(fchr(4):lchr(4))
+    END DO
+    CLOSE(funit)
+
+  END SUBROUTINE read_metadata_table
+
+  SUBROUTINE check_metadata()
+
+    IMPLICIT NONE
+    CHARACTER(LEN=14), PARAMETER :: location = 'check_metadata'
+    INTEGER(KIND=4) :: imet
+
+    CALL generate_date_and_time()
+    DO imet = 1, number_of_metadata_elements
+
+       IF (metadata_struct(imet)%yn_dynamic) THEN
+          IF (TRIM(metadata_struct(imet)%element_value) .EQ. 'NULL') &
+          write(*,10) dt_str, location, TRIM(metadata_struct(imet)%element)
+       ENDIF
+
+    END DO
+10  FORMAT(A,'---',A,': ',A,' not allocated at runtime!!!')
+
+  END SUBROUTINE check_metadata
+
+  SUBROUTINE write_metadata()
+
+    USE HDF5
+    USE OMSAO_he5_module, ONLY: pge_swath_file_id, HE5_SWclose
+    USE OMSAO_variables_module, ONLY: pcfvar
+    IMPLICIT NONE
+
+    ! Local variables
+    CHARACTER(LEN=14), PARAMETER :: location = 'write_metadata'
+    CHARACTER(len=maxchlen) :: sublocation
+    INTEGER(KIND=4) :: hdferr, fid, grpid, imet, dspace_id, dset_id, attr_id, atype_id
+
+    ! Close L2 outfile
+    hdferr = HE5_SWclose (pge_swath_file_id, hdferr)
+
+    ! Open L2 file using HDF5 interface
+    CALL H5OPEN_f(hdferr)
+    IF (hdferr .NE. 0) THEN
+       sublocation = 'H5OPEN_f'
+       write(*,10) dt_str,location,TRIM(sublocation)
+    END IF
+    CALL H5FOPEN_f(TRIM(ADJUSTL(pcfvar%l2_fname)), H5F_ACC_RDWR_F, fid, hdferr)
+    IF (hdferr .NE. 0) THEN
+       sublocation = 'H5FOPEN_f'
+       write(*,10) dt_str,location,TRIM(sublocation)
+    END IF
+
+    ! Open HDFEOS INFORMATION group
+    CALL H5GOPEN_f(fid,'HDFEOS INFORMATION',grpid,hdferr)    
+    IF (hdferr .NE. 0) THEN
+       sublocation = 'H5GOPEN_f'
+       write(*,10) dt_str,location,TRIM(sublocation)
+    END IF
+
+    ! Create GranuleMetadata dataset
+    CALL h5screate_simple_f(1,(/INT(1,KIND=8)/),dspace_id,hdferr)
+    CALL H5DCREATE_f(grpid,'GranuleMetadata',H5T_NATIVE_CHARACTER,dspace_id,dset_id,hdferr)    
+    IF (hdferr .NE. 0) THEN
+       sublocation = 'H5DCREATE_f'
+       write(*,10) dt_str,location,TRIM(sublocation)
+    END IF
+
+    
+    ! Write metadata to GranuleMetadata group
+    DO imet = 1, number_of_metadata_elements
+       CALL H5TCOPY_F(H5T_NATIVE_CHARACTER,atype_id,hdferr)
+       IF (hdferr .NE. 0) THEN
+          sublocation = 'H5TCOPY_f'
+          write(*,10) dt_str,location,TRIM(sublocation)
+       END IF
+       CALL H5TSET_SIZE_F(atype_id,LEN(TRIM(metadata_struct(imet)%element_value),KIND=8), &
+            hdferr)
+       IF (hdferr .NE. 0) THEN
+          sublocation = 'H5TSET_SIZE_f'
+          write(*,10) dt_str,location,TRIM(sublocation)
+       END IF
+       CALL H5ACREATE_f(dset_id, TRIM(metadata_struct(imet)%element), &
+            atype_id,dspace_id,attr_id,hdferr)
+       IF (hdferr .NE. 0) THEN
+          sublocation = 'H5ACREATE_f'
+          write(*,10) dt_str,location,TRIM(sublocation)
+       END IF
+       CALL H5AWRITE_F(attr_id,atype_id, &
+            TRIM(metadata_struct(imet)%element_value), (/INT(1,KIND=8)/),hdferr)
+       IF (hdferr .NE. 0) THEN
+          sublocation = 'H5AWRITE_f'
+          write(*,10) dt_str,location,TRIM(sublocation)
+       END IF
+    END DO
+
+    ! Close GranuleMetadata dateset
+    CALL H5DCLOSE_F(dset_id,hdferr)
+    IF (hdferr .NE. 0) THEN
+       sublocation = 'H5DCLOSE_f'
+       write(*,10) dt_str,location,TRIM(sublocation)
+    END IF
+
+    ! Close GranuleMetadata dateset
+    CALL H5SCLOSE_F(dspace_id,hdferr)
+    IF (hdferr .NE. 0) THEN
+       sublocation = 'H5SCLOSE_f'
+       write(*,10) dt_str,location,TRIM(sublocation)
+    END IF
+
+    ! Close HDFEOS INFORMATION group
+    CALL H5GCLOSE_F(grpid,hdferr)
+    IF (hdferr .NE. 0) THEN
+       sublocation = 'H5GCLOSE_f'
+       write(*,10) dt_str,location,TRIM(sublocation)
+    END IF
+
+    ! Close L2 file
+    CALL H5FCLOSE_f(fid,hdferr)
+    IF (hdferr .NE. 0) THEN
+       sublocation = 'H5FCLOSE_f'
+       write(*,10) dt_str,location,TRIM(sublocation)
+    END IF
+
+10  FORMAT(A,'---',A,': ',A,' error !!!')
+    
+  END SUBROUTINE write_metadata
+
+  SUBROUTINE deallocate_metadata()
+
+    IMPLICIT NONE
+    IF (ALLOCATED(metadata_struct)) DEALLOCATE(metadata_struct)
+
+  END SUBROUTINE deallocate_metadata
+
+  SUBROUTINE generate_date_and_time ()
+
+    IMPLICIT NONE
+    
+    !Local variables
+    INTEGER(KIND=4), DIMENSION(8) :: values
+    INTEGER(KIND=4) :: hour, min
+
+    ! Get local time values
+    CALL date_and_time(values=values)
+
+    ! Get hours form UTC
+    hour = INT(values(4)/60,KIND=4)
+    min  = MOD(values(4),60)
+
+    ! Define output format
+    IF (hour .LT. 0 .OR. min .LT. 0) THEN
+       WRITE(dt_str,10) values(1),values(2),values(3),values(5),values(6),values(7),ABS(hour),ABS(min)
+    ELSE
+       WRITE(dt_str,20) values(1),values(2),values(3),values(5),values(6),values(7),hour,min
+    END IF
+
+10  FORMAT(I0.4,'-',I0.2,'-',I0.2,'T',I0.2,':',I0.2,':',I0.2,'+',I0.2,':',I0.2)
+20  FORMAT(I0.4,'-',I0.2,'-',I0.2,'T',I0.2,':',I0.2,':',I0.2,'-',I0.2,':',I0.2)
+
+
+  END SUBROUTINE generate_date_and_time
 
 END MODULE OMSAO_metadata_module
