@@ -18,7 +18,8 @@ SUBROUTINE read_pcf_file ( pge_error_status )
        icf_idx, prefit_lun, molid_lun, to3_lun, &
        versionid_lun, swathname_lun, instrument_name_lun, &
        version_lun, proclevel_lun, granule_e_lun, granule_s_lun, &
-       orbitnumber_lun, verbosity_lun, amf_table_lun, cld_lun, cld_climatology_lun
+       orbitnumber_lun, verbosity_lun, amf_table_lun, cld_lun, cld_climatology_lun, &
+       mcf_lun
   USE OMSAO_errstat_module, ONLY: pge_errstat_ok, f_sep, &
        omsao_f_get_molindex, omsao_f_getlun, omsao_s_get_molindex, omsao_w_getlun, &
        omsao_w_subroutine, pge_errstat_error, pge_errstat_fatal, pge_errstat_warning, &
@@ -395,6 +396,16 @@ SUBROUTINE read_pcf_file ( pge_error_status )
   errstat = PGS_SMF_TestStatusLevel(errstat)
   CALL error_check ( errstat, PGS_SMF_MASK_LEV_S, pge_errstat_fatal, OMSAO_F_GETLUN, &
        modulename//f_sep//"PREFIT_LUN ", vb_lev_default, pge_error_status )
+  IF ( pge_error_status >= pge_errstat_error ) RETURN
+
+  ! ---------------------------------------
+  ! Read metadata definition table filename
+  ! ---------------------------------------
+  version = 1
+  errstat = PGS_PC_GetReference (mcf_lun, version, pcfvar%mtd_fname)
+  errstat = PGS_SMF_TestStatusLevel(errstat)
+  CALL error_check ( errstat, PGS_SMF_MASK_LEV_S, pge_errstat_fatal, OMSAO_F_GETLUN, &
+       modulename//f_sep//"MCF_LUN ", vb_lev_default, pge_error_status )
   IF ( pge_error_status >= pge_errstat_error ) RETURN
 
   RETURN
