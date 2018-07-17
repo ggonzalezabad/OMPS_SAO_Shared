@@ -19,8 +19,8 @@ MODULE OMSAO_metadata_module
 
   ! Define metadata type
   TYPE met_type
-     CHARACTER(LEN=maxchlen) :: element, element_description, element_value
-     LOGICAL :: yn_dynamic
+     CHARACTER(LEN=maxchlen) :: element
+     CHARACTER(LEN=maxchlen) :: element_value
   END type met_type
 
   ! Variable holding number of elements
@@ -254,11 +254,11 @@ CONTAINS
     IMPLICIT NONE
 
     ! Local variables
-    INTEGER(KIND=4), PARAMETER :: funit = 37, nfld=4
+    INTEGER(KIND=4), PARAMETER :: funit = 37
     CHARACTER(LEN=1), PARAMETER :: hdr_chr = '#', sep_chr = ','
     CHARACTER(LEN=maxchlen) :: tmp_line
-    INTEGER(KIND=4) :: num_lines, num_hdr, iline, ichr, ifld
-    INTEGER(KIND=4), DIMENSION(4) :: fchr, lchr
+    INTEGER(KIND=4) :: num_lines, num_hdr, iline, ichr
+    INTEGER(KIND=4) :: fchr, lchr
 
     ! Get number of elements
     num_lines=0; num_hdr=0
@@ -277,26 +277,18 @@ CONTAINS
        IF (iline .LE. num_hdr) CYCLE
        ! Split tmp_line in different fields (comma separated) and save them
        ! to metadata_struct
-       fchr=1;lchr=1;ifld=1
+       fchr=1;lchr=1
        DO ichr = 1, maxchlen
           IF (tmp_line(ichr:ichr) .EQ. sep_chr) THEN
-             lchr(ifld) = ichr-1
-             ifld=ifld+1
-             fchr(ifld) = ichr+1
-             IF (ifld .EQ. nfld) THEN
-                lchr(ifld) = maxchlen
-                CONTINUE
-             END IF
+             lchr = ichr-1
+             CONTINUE
           END IF
        END DO
-       metadata_struct(iline-num_hdr)%element=tmp_line(fchr(1):lchr(1))
-       metadata_struct(iline-num_hdr)%element_value=tmp_line(fchr(2):lchr(2))
-       IF (tmp_line(fchr(3):lchr(3)) .EQ. 'static') metadata_struct(iline-num_hdr)%yn_dynamic=.FALSE.
-       IF (tmp_line(fchr(3):lchr(3)) .EQ. 'dynamic') metadata_struct(iline-num_hdr)%yn_dynamic=.TRUE.
-       metadata_struct(iline-num_hdr)%element_description=tmp_line(fchr(4):lchr(4))
+       metadata_struct(iline-num_hdr)%element=tmp_line(fchr:lchr)
+       metadata_struct(iline-num_hdr)%element_value=null_element
     END DO
     CLOSE(funit)
-
+    
   END SUBROUTINE read_metadata_table
 
   SUBROUTINE check_metadata()
@@ -307,12 +299,8 @@ CONTAINS
 
     CALL generate_date_and_time()
     DO imet = 1, number_of_metadata_elements
-
-       IF (metadata_struct(imet)%yn_dynamic) THEN
-          IF (TRIM(metadata_struct(imet)%element_value) .EQ. 'NULL') &
-          write(*,10) dt_str, location, TRIM(metadata_struct(imet)%element)
-       ENDIF
-
+       IF (TRIM(metadata_struct(imet)%element_value) .EQ. 'NULL') &
+            write(*,10) dt_str, location, TRIM(metadata_struct(imet)%element)
     END DO
 10  FORMAT(A,'---',A,': ',A,' not allocated at runtime!!!')
 
