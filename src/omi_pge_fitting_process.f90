@@ -11,6 +11,8 @@ SUBROUTINE omi_pge_fitting_process ( pge_idx, n_max_rspec,             &
   USE OMSAO_solcomp_module, ONLY: soco_pars_deallocate
   USE OMSAO_omps_reader, ONLY: omps_nmev_type, omps_nmto3_type, &
        omps_nmev_reader, omps_nmto3_reader
+  USE OMSAO_metadata_module, ONLY: fill_l1b_metadata_values, read_metadata_table, &
+       fill_run_metadata_values, fill_pcf_metadata_values
 
   IMPLICIT NONE
 
@@ -60,7 +62,14 @@ SUBROUTINE omi_pge_fitting_process ( pge_idx, n_max_rspec,             &
   ! Copy and assing values to data variables from omps_data
   CALL omps_to_data_variables ( omps_data, &
        omps_data%nlines, omps_data%nxtrack, omps_data%nwavel)
-  
+
+  ! Fill up metadata information extracted from L1b file
+  CALL read_metadata_table()
+  CALL fill_l1b_metadata_values( omps_data )
+  CALL fill_run_metadata_values( omps_data )
+  CALL fill_pcf_metadata_values()
+
+  ! Read O3 OMPS file
   omps_reader_status = OMPS_NMTO3_READER(omps_to3_data,TRIM(ADJUSTL(pcfvar%l2_to3_fname)))
   CALL error_check ( INT(omps_reader_status,KIND=i4), pge_errstat_ok, pge_errstat_fatal, &
        OMSAO_F_SUBROUTINE, &
@@ -135,6 +144,8 @@ SUBROUTINE omi_fitting ( &
   USE OMSAO_Reference_sector_module, ONLY: Reference_Sector_Correction
   USE OMSAO_omps_reader, ONLY: omps_nmev_type, omps_nmev_reader
   USE OMSAO_database_module, ONLY: xtrack_prepare_database, deallocate_hr_database
+  USE OMSAO_metadata_module, ONLY: read_metadata_table, check_metadata, &
+       write_metadata, deallocate_metadata
 
   IMPLICIT NONE
 
@@ -476,6 +487,14 @@ SUBROUTINE omi_fitting ( &
   !   fit_rms(r8) -------------> Fitting RMS(r8)
   ! -------------------------------------------------------------
   CALL he5_write_results ( nTimesRad, nXtrackRad, errstat)
+
+  ! --------------------------------
+  ! Save granule metadata to L2 file
+  ! --------------------------------
+  CALL check_metadata ()
+  CALL write_metadata ()
+  CALL deallocate_metadata ()
+
   stop
   ! -----------------------------------------------------
   ! Compute reference sector correction:
