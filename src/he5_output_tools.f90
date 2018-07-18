@@ -732,7 +732,7 @@ END SUBROUTINE he5_write_ins_database
 SUBROUTINE he5_write_fitting_statistics ( &
      nx, nt, saomqf, avg_col, avg_dcol, avg_rms, errstat )
 
-  USE OMSAO_indices_module, ONLY: sao_molecule_names, correlm_didx
+  USE OMSAO_indices_module, ONLY: correlm_didx
   USE OMSAO_he5_module
   USE OMSAO_errstat_module, ONLY: pge_errstat_ok, pge_errstat_error, he5_stat_ok, &
        omsao_e_he5swwrfld, error_check, vb_lev_default
@@ -763,7 +763,6 @@ SUBROUTINE he5_write_fitting_statistics ( &
   ! Local variables
   ! ---------------
   INTEGER   (KIND=C_LONG), PARAMETER :: zerocl = 0, onecl = 1 
-  CHARACTER (LEN=4)        :: molstr
   INTEGER   (KIND=i4)      :: locerrstat, iline, nt_loop
 
   ! ---------------------------------------------------
@@ -989,11 +988,8 @@ FUNCTION he5_write_global_attributes ( ) RESULT ( he5stat )
   !------------------------------------------------------------------------------
 
   USE OMSAO_he5_module
-  USE OMSAO_metadata_module, ONLY: n_mdata_dbl, n_mdata_str, mdata_string_fields, &
-       mdata_string_values, mdata_double_fields, mdata_double_values
   USE OMSAO_errstat_module, ONLY: pge_errstat_ok, error_check, pge_errstat_warning, &
-       omsao_w_he5ehwrglatt, f_sep, he5_stat_ok, pgs_s_success, vb_lev_default, &
-       omsao_w_mdl2arc
+       omsao_w_he5ehwrglatt, f_sep, he5_stat_ok, vb_lev_default
   USE OMSAO_parameters_module, ONLY: maxchlen, n_fit_winwav
   USE OMSAO_indices_module, ONLY: &
        n_config_luns, yn_config_lun_autocopy, config_lun_strings, config_lun_values
@@ -1015,7 +1011,7 @@ FUNCTION he5_write_global_attributes ( ) RESULT ( he5stat )
   ! Local variables
   ! ---------------
   INTEGER   (KIND=C_LONG), PARAMETER ::  onecl = 1
-  INTEGER   (KIND=i4)      :: locerr, i, imd
+  INTEGER   (KIND=i4)      :: locerr, i
   INTEGER   (KIND=C_LONG)     :: nlen48
   CHARACTER (LEN=maxchlen) :: parname
   REAL      (KIND=r4), DIMENSION (n_fit_winwav+2) :: fitwinlim
@@ -1180,42 +1176,6 @@ FUNCTION he5_write_global_attributes ( ) RESULT ( he5stat )
        locerr, HE5_STAT_OK, pge_errstat_warning, OMSAO_W_HE5EHWRGLATT, &
        modulename//f_sep//TRIM(ADJUSTL(parname)), vb_lev_default, he5stat )
 
-  ! ------------------------------------------------------------------
-  ! And here we have the ArchiveMetadata, which have to be written as
-  ! Global Attributes. This section somewhat mirrors the one in 
-  ! SET_L2_METADATA, picking up the missing "arc" pieces. The Metadata
-  ! section was written before it was known that the ArchivedMetadata
-  ! could not be written as such.
-  ! ------------------------------------------------------------------
-  ! -----------------------------
-  ! Write STRING MetaData to file
-  ! -----------------------------
-  DO imd = 1, n_mdata_str
-     IF ( TRIM(ADJUSTL(mdata_string_fields(2,imd))) == "arc" ) THEN
-        nlen48 = INT ( LEN_TRIM(ADJUSTL(mdata_string_values(imd))), KIND=C_LONG )
-        locerr = HE5_EHwrglatt ( &
-             pge_swath_file_id, TRIM(ADJUSTL(mdata_string_fields(1,imd))),  &
-             HE5T_NATIVE_CHAR, nlen48, TRIM(ADJUSTL(mdata_string_values(imd))) )
-        CALL error_check ( &
-             locerr, PGS_S_SUCCESS, pge_errstat_warning, OMSAO_W_MDL2ARC, &
-             modulename//f_sep//TRIM(ADJUSTL(mdata_string_fields(1,imd))), &
-             vb_lev_default, he5stat )
-     END IF
-  END DO
-  ! -------------------
-  ! Set DOUBLE MetaData
-  ! -------------------
-  DO imd = 1, n_mdata_dbl
-     IF ( TRIM(ADJUSTL(mdata_double_fields(2,imd))) == "arc" ) THEN
-        locerr = HE5_EHwrglatt ( &
-             pge_swath_file_id, TRIM(ADJUSTL(mdata_double_fields(1,imd))),  &
-             HE5T_NATIVE_DOUBLE, onecl, mdata_double_values(imd) )
-        CALL error_check ( &
-             locerr, PGS_S_SUCCESS, pge_errstat_warning, OMSAO_W_MDL2ARC, &
-             modulename//f_sep//TRIM(ADJUSTL(mdata_double_fields(1,imd))), &
-             vb_lev_default, he5stat )
-     END IF
-  END DO
 
   RETURN
 END FUNCTION he5_write_global_attributes
@@ -1934,7 +1894,7 @@ SUBROUTINE he5_write_geolocation ( nTimes, nXtrack, locerrstat)
 
   USE OMSAO_data_module, ONLY: spacecraft_alt, instrument_flag, &
        latitude, longitude, sazimuth, szenith, razimuth, ntime_rad, nxtrack_rad, &
-       vazimuth, vzenith, xtrflg, latitudecorner, longitudecorner, time, utc_time
+       vazimuth, vzenith, xtrflg, latitudecorner, longitudecorner, time
   USE OMSAO_he5_module
   USE OMSAO_errstat_module, ONLY: he5_stat_ok, omsao_e_he5swwrfld, &
        pge_errstat_ok, pge_errstat_error, vb_lev_default, error_check
