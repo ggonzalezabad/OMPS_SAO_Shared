@@ -7,7 +7,8 @@ MODULE OMSAO_metadata_module
   USE OMSAO_precision_module,  ONLY: i4, r8
   USE OMSAO_parameters_module, ONLY: &
        maxchlen, str_missval, i4_missval, blank23, blank25, blank27, blank30
-  USE OMSAO_indices_module,    ONLY: n_sao_pge, sao_pge_min_idx, sao_pge_max_idx
+  USE OMSAO_indices_module, ONLY: n_sao_pge, sao_pge_min_idx, sao_pge_max_idx, &
+       config_lun_values, config_lun_strings, n_config_luns
   USE OMSAO_OMPS_READER, ONLY: omps_nmev_type
 
   IMPLICIT NONE
@@ -262,6 +263,9 @@ CONTAINS
     INTEGER(KIND=4) :: num_lines, num_hdr, iline, ichr
     INTEGER(KIND=4) :: fchr, lchr
 
+    ! Create date and time string
+    CALL generate_date_and_time()
+
     ! Get number of elements
     num_lines=0; num_hdr=0
     OPEN(funit, file=TRIM(pcfvar%mtd_fname), status='old', action='read')
@@ -301,7 +305,6 @@ CONTAINS
     CHARACTER(LEN=14), PARAMETER :: location = 'check_metadata'
     INTEGER(KIND=4) :: imet
 
-    CALL generate_date_and_time()
     DO imet = 1, number_of_metadata_elements
        IF (TRIM(metadata_struct(imet)%element_value) .EQ. 'NULL') &
             write(*,10) dt_str, location, TRIM(metadata_struct(imet)%element)
@@ -473,5 +476,60 @@ CONTAINS
     END DO
 
   END SUBROUTINE fill_l1b_metadata_values
+
+  SUBROUTINE fill_run_metadata_values(omps_data)
+
+    IMPLICIT NONE
+
+    TYPE(omps_nmev_type), INTENT(IN) :: omps_data
+    INTEGER(KIND=4) :: imet
+
+    DO imet = 1, number_of_metadata_elements
+       IF (TRIM(ADJUSTL(metadata_struct(imet)%origin)) .NE. 'RUN') CYCLE
+       SELECT CASE (TRIM(ADJUSTL(metadata_struct(imet)%element)))
+       CASE('ProductionDateTime')
+          metadata_struct(imet)%element_value=dt_str
+       CASE('date_created')
+          metadata_struct(imet)%element_value=dt_str
+       CASE('WestBoundingCoordinate')
+          WRITE(metadata_struct(imet)%element_value,10) &
+               MINVAL(omps_data%LongitudeCorner)
+       CASE('NorthBoundingCoordinate')
+          WRITE(metadata_struct(imet)%element_value,10) &
+               MAXVAL(omps_data%LatitudeCorner)
+       CASE('EastBoundingCoordinate')
+          WRITE(metadata_struct(imet)%element_value,10) &
+               MAXVAL(omps_data%LongitudeCorner)
+       CASE('SouthBoundingCoordinate')
+          WRITE(metadata_struct(imet)%element_value,10) &
+               MINVAL(omps_data%LatitudeCorner)
+       END SELECT
+    END DO
+
+10 FORMAT(F7.2)
+
+  END SUBROUTINE fill_run_metadata_values
+
+  SUBROUTINE fill_pcf_metadata_values ()
+
+    IMPLICIT NONE
+    INTEGER(KIND=4) :: imet, icon
+
+    DO imet = 1, number_of_metadata_elements
+       IF (TRIM(ADJUSTL(metadata_struct(imet)%origin)) .NE. 'PCF') CYCLE
+       DO icon = 1, n_config_luns
+          IF ( TRIM(ADJUSTL(metadata_struct(imet)%element)) .EQ. &
+               TRIM(ADJUSTL(config_lun_strings(icon))) ) THEN
+             metadata_struct(imet)%element_value = TRIM(ADJUSTL(config_lun_values(icon)))
+             CONTINUE
+          END IF
+       END DO
+       SELECT CASE ( TRIM(ADJUSTL(metadata_struct(imet)%element)) )
+       CASE ('input_granules)'
+          
+       CASE ('input_ancilliary_data')
+       END SELECT
+    END DO
+  END SUBROUTINE fill_pcf_metadata_values
 
 END MODULE OMSAO_metadata_module
