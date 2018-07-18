@@ -8,6 +8,7 @@ MODULE OMSAO_metadata_module
   USE OMSAO_parameters_module, ONLY: &
        maxchlen, str_missval, i4_missval, blank23, blank25, blank27, blank30
   USE OMSAO_indices_module,    ONLY: n_sao_pge, sao_pge_min_idx, sao_pge_max_idx
+  USE OMSAO_OMPS_READER, ONLY: omps_nmev_type
 
   IMPLICIT NONE
 
@@ -18,9 +19,10 @@ MODULE OMSAO_metadata_module
   CHARACTER(LEN=4), PARAMETER :: null_element='NULL'
 
   ! Define metadata type
+  INTEGER(KIND=4), PARAMETER :: maxlen = 1300
   TYPE met_type
-     CHARACTER(LEN=maxchlen) :: element
-     CHARACTER(LEN=maxchlen) :: element_value
+     CHARACTER(LEN=maxlen) :: element, element_value
+     CHARACTER(LEN=3) :: origin
   END type met_type
 
   ! Variable holding number of elements
@@ -286,6 +288,8 @@ CONTAINS
        END DO
        metadata_struct(iline-num_hdr)%element=tmp_line(fchr:lchr)
        metadata_struct(iline-num_hdr)%element_value=null_element
+       fchr=lchr+2; lchr=maxchlen
+       metadata_struct(iline-num_hdr)%origin=TRIM(ADJUSTL(tmp_line(fchr:lchr)))
     END DO
     CLOSE(funit)
     
@@ -403,6 +407,13 @@ CONTAINS
        sublocation = 'H5FCLOSE_f'
        write(*,10) dt_str,location,TRIM(sublocation)
     END IF
+    
+    ! Close hdf interface
+    CALL H5CLOSE_f(hdferr)
+    IF (hdferr .NE. 0) THEN
+       sublocation = 'H5CLOSE_f'
+       write(*,10) dt_str,location,TRIM(sublocation)
+    END IF
 
 10  FORMAT(A,'---',A,': ',A,' error !!!')
     
@@ -442,5 +453,25 @@ CONTAINS
 
 
   END SUBROUTINE generate_date_and_time
+
+  SUBROUTINE fill_l1b_metadata_values( omps_data )
+
+    IMPLICIT NONE
+
+    TYPE(omps_nmev_type), INTENT(IN) :: omps_data
+    INTEGER(KIND=4) :: imet, il1b
+
+    DO imet = 1, number_of_metadata_elements
+       IF (TRIM(ADJUSTL(metadata_struct(imet)%origin)) .NE. 'L1B') CYCLE
+       DO il1b = 1, omps_data%nattr
+          IF ( TRIM(ADJUSTL(metadata_struct(imet)%element)) .EQ. &
+               TRIM(ADJUSTL(omps_data%global_attributes(il1b))) ) THEN
+             metadata_struct(imet)%element_value = &
+                  TRIM(ADJUSTL(omps_data%global_attributes_values(il1b)))
+          END IF
+       END DO
+    END DO
+
+  END SUBROUTINE fill_l1b_metadata_values
 
 END MODULE OMSAO_metadata_module
