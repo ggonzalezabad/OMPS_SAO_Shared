@@ -280,7 +280,6 @@ SUBROUTINE compute_fitting_statistics ( &
   USE OMSAO_parameters_module, ONLY: &
        i2_missval, r8_missval, elsunc_maxiter_eval, elsunc_usrstop_eval, &
        elsunc_less_is_noise, main_qa_good, main_qa_suspect, main_qa_bad
-  USE OMSAO_metadata_module,  ONLY:  QAPercentMissingData, QAPercentOutofBoundsData
   USE OMSAO_he5_module,       ONLY:  &
        NrOfInputSamples, NrofGoodOutputSamples, NrofSuspectOutputSamples,        &
        NrofBadOutputSamples, NrofConvergedSamples, NrofFailedConvergenceSamples, &
@@ -288,7 +287,7 @@ SUBROUTINE compute_fitting_statistics ( &
        NrofGoodInputSamples, NrofSuspectOutputSamples, NrofBadOutputSamples,      &
        NrofConvergedSamples, NrofFailedConvergenceSamples, &
        PercentGoodOutputSamples, PercentSuspectOutputSamples, &
-       PercentBadOutputSamples, &
+       PercentBadOutputSamples, QAPercentMissingData, QAPercentOutofBoundsData, &
        AbsolutePercentMissingSamples
   USE OMSAO_errstat_module,   ONLY: vb_lev_screen, pge_errstat_ok
   USE OMSAO_variables_module, ONLY: pcfvar, ctrvar
@@ -470,7 +469,7 @@ SUBROUTINE compute_fitting_statistics ( &
   ! ------------------------------------------------------------------------
   ! With the above information we can easily determine the Automatic QA Flag
   ! ------------------------------------------------------------------------
-  CALL set_automatic_quality_flag ( PercentGoodOutputSamples )
+  ! CALL set_automatic_quality_flag ( PercentGoodOutputSamples )
 
   IF ( pcfvar%verb_thresh_lev >= vb_lev_screen ) THEN
      WRITE (*, '(A, 3(1PE15.5))')          'Col-DCol-RMS: ', fitcol_avg, dfitcol_avg, rms_avg
@@ -497,218 +496,6 @@ SUBROUTINE compute_fitting_statistics ( &
   RETURN
 
 END SUBROUTINE compute_fitting_statistics
-
-
-SUBROUTINE set_input_pointer_and_versions ( errstat )
-
-  USE OMSAO_precision_module, ONLY: i4
-  USE OMSAO_indices_module, ONLY: l1b_radiance_lun, l1b_radianceref_lun, &
-       l1b_irradiance_lun, prefit_lun, cld_lun
-  USE OMSAO_he5_module, ONLY: n_lun_inp, lun_input, input_versions
-  USE OMSAO_variables_module, ONLY: ctrvar, pcfvar
-  USE OMSAO_errstat_module, ONLY: pge_errstat_ok
-
-  IMPLICIT NONE
-
-  ! ---------------
-  ! Input variables
-  ! ---------------
-  INTEGER (KIND=i4), INTENT (INOUT) :: errstat
-
-  ! ---------------
-  ! Local variables
-  ! ---------------
-  LOGICAL :: yn_radref
-
-  ! -------------------
-  ! Set error code good
-  ! -------------------
-  errstat = pge_errstat_ok
-
-  ! ----------------------------------------
-  ! Initialize variables returned via MODULE
-  ! ----------------------------------------
-  lun_input      = -1
-  n_lun_inp      =  0
-
-  ! --------------------------------------------------------------------
-  ! (Almost) Common InputVersions for all PGEs: OMBRUG/OMBRVG and OMBIRR
-  ! --------------------------------------------------------------------
-  ! The total number of PGE input files depends on
-  !
-  ! (a) Whether a solar composite spectrum is being used
-  ! (b) Whether a radiance reference from a granule other than the one
-  !     being processed is being used.
-  ! --------------------------------------------------------------------
-  ! (0) Processed granule
-  ! ---------------------
-  n_lun_inp = 1
-  lun_input(n_lun_inp) = l1b_radiance_lun
-  ! --------------------------------
-  ! (a) Earthshine reference granule
-  ! --------------------------------
-  IF ( ctrvar%yn_radiance_reference .AND. &
-       ( TRIM(ADJUSTL(pcfvar%l1b_rad_fname)) /= TRIM(ADJUSTL(pcfvar%l1b_radref_fname))) ) THEN
-     n_lun_inp = n_lun_inp + 1
-     lun_input(n_lun_inp) = l1b_radianceref_lun
-     yn_radref = .TRUE.
-  ELSE
-     yn_radref = .FALSE.
-  END IF
-  ! --------------------
-  ! (b) Solar Irradiance
-  ! --------------------
-  IF ( .NOT. ctrvar%yn_solar_comp ) THEN
-     n_lun_inp = n_lun_inp + 1
-     lun_input(n_lun_inp) = l1b_irradiance_lun
-  END IF
-
-  ! ------
-  ! Clouds
-  ! ------
-  n_lun_inp            = n_lun_inp + 1
-  lun_input(n_lun_inp) = cld_lun
-  
-  ! ----------
-  ! Pre-fitted
-  ! ----------
-  IF ( ctrvar%yn_prefit(1) ) THEN
-     n_lun_inp            = n_lun_inp + 1
-     lun_input(n_lun_inp) = prefit_lun
-  END IF
-
-  ! ------------------------------------------------------------
-  ! Composing the InputVersion string is more difficult, because
-  ! we have to compose the pieces of information from various
-  ! MetaData strings.
-  ! ------------------------------------------------------------
-  CALL get_input_versions ( ctrvar%yn_solar_comp, yn_radref, input_versions )
-  input_versions = TRIM(ADJUSTL(input_versions))
-
-  RETURN
-END SUBROUTINE set_input_pointer_and_versions
-
-SUBROUTINE get_input_versions (yn_solar_comp, yn_radref, input_versions )
-
-  USE OMSAO_precision_module, ONLY: i4
-  USE OMSAO_metadata_module, ONLY: n_mdata_omhcho, n_mdata_str, &
-       n_mdata_voc, mdata_string_values, mdata_string_fields, mdata_voc_values, &
-       mdata_voc_fields, mdata_omhcho_values, mdata_omhcho_fields, PGSd_MET_NAME_L
-  USE OMSAO_variables_module, ONLY: ctrvar
-
-  IMPLICIT NONE
-
-  ! --------------
-  ! Input variable
-  ! --------------
-  LOGICAL,           INTENT (IN)  :: yn_solar_comp, yn_radref
-
-  ! ---------------
-  ! Output variable
-  ! ---------------
-  CHARACTER (LEN=*), INTENT (OUT) :: input_versions
-
-  ! ---------------
-  ! Local variables
-  ! ---------------
-  INTEGER (KIND=i4)               :: i
-  CHARACTER (LEN=PGSd_MET_NAME_L) :: &
-       rad_name, rad_version, &  ! Radiance granule
-       rrf_name, rrf_version, &  ! Radiance Reference granule
-       irr_name, irr_version, &  ! Irradiance granule
-       cld_name, cld_version, &  ! Cloud ESDT
-       ooo_name, ooo_version  ! Ozone Prefit ESDT
-  ! --------------------------
-  ! Initialize output variable
-  ! --------------------------
-  input_versions = ''
-
-  ! -------------------------------------------------------
-  ! Collect information on Radiance and Irradiance versions
-  ! -------------------------------------------------------
-  DO i = 1, n_mdata_str
-     IF ( TRIM(ADJUSTL(mdata_string_fields(1,i))) == 'PGEVERSION' ) THEN
-        IF ( TRIM(ADJUSTL(mdata_string_fields(3,i))) == 'l1r' ) &
-             rad_version = TRIM(ADJUSTL(mdata_string_values(i)))
-        IF ( TRIM(ADJUSTL(mdata_string_fields(3,i))) == 'l1R' ) &
-             rrf_version = TRIM(ADJUSTL(mdata_string_values(i)))
-        IF ( TRIM(ADJUSTL(mdata_string_fields(3,i))) == 'l1i' ) &
-             irr_version = TRIM(ADJUSTL(mdata_string_values(i)))
-     END IF
-     IF ( TRIM(ADJUSTL(mdata_string_fields(1,i))) == 'ShortName' ) THEN
-        IF ( TRIM(ADJUSTL(mdata_string_fields(3,i))) == 'l1r' ) &
-             rad_name = TRIM(ADJUSTL(mdata_string_values(i)))
-        IF ( TRIM(ADJUSTL(mdata_string_fields(3,i))) == 'l1R' ) &
-             rrf_name = TRIM(ADJUSTL(mdata_string_values(i)))
-        IF ( TRIM(ADJUSTL(mdata_string_fields(3,i))) == 'l1i' ) &
-             irr_name = TRIM(ADJUSTL(mdata_string_values(i)))
-     END IF
-  END DO
-
-  ! ------------------------------------------------------------------
-  ! As per request, the full version string rather than only the first
-  ! decimal digit will be appended to the InputVersions string. This
-  ! makes obsolete determining the position of the first "." in the
-  ! version strings. See also in block below for L2 ESTDs.
-  ! ------------------------------------------------------------------
-  ! Start with the radiance granule currently being processed
-  ! ---------------------------------------------------------
-  input_versions = TRIM(ADJUSTL(rad_name))//':'//TRIM(ADJUSTL(rad_version))
-  ! ----------------------------------
-  ! Add the radiance reference granule
-  ! ----------------------------------
-  IF ( yn_radref ) &
-       input_versions = TRIM(ADJUSTL(input_versions)) // ' ' // &
-       TRIM(ADJUSTL(rrf_name))//':'//TRIM(ADJUSTL(rrf_version))
-
-  ! ---------------------
-  ! Add the solar granule
-  ! ---------------------
-  IF ( .NOT. yn_solar_comp ) &
-       input_versions = TRIM(ADJUSTL(input_versions))  // ' ' // &
-       TRIM(ADJUSTL(irr_name))//':'//TRIM(ADJUSTL(irr_version))
-
-  ! ---------------------------------------------------
-  ! In all cases we should have auxilliary cloud inputs
-  ! ---------------------------------------------------
-  DO i = 1, n_mdata_voc
-     IF ( TRIM(ADJUSTL(mdata_voc_fields(3,i))) == 'CLD' ) THEN
-        IF ( TRIM(ADJUSTL(mdata_voc_fields(1,i))) == 'PGEVERSION' ) &
-             cld_version = TRIM(ADJUSTL(mdata_voc_values(i)))
-        IF ( TRIM(ADJUSTL(mdata_voc_fields(1,i))) == 'ShortName'  ) &
-             cld_name    = TRIM(ADJUSTL(mdata_voc_values(i)))
-     END IF
-  END DO
-
-  ! ----------------------------
-  ! Full Version string required
-  ! ----------------------------
-  input_versions = TRIM(ADJUSTL(input_versions)) // ' ' // &
-       TRIM(ADJUSTL(cld_name))//':'//TRIM(ADJUSTL(cld_version))
-
-  ! -----------------------
-  ! Add possibly pre-fitted
-  ! -----------------------
-  IF ( ctrvar%yn_prefit(1) ) THEN
-     DO i = 1, n_mdata_omhcho
-        IF ( TRIM(ADJUSTL(mdata_omhcho_fields(3,i))) ==  'OOO' ) THEN
-           IF ( TRIM(ADJUSTL(mdata_omhcho_fields(1,i))) == 'PGEVERSION' ) &
-                ooo_version = TRIM(ADJUSTL(mdata_omhcho_values(i)))
-           IF ( TRIM(ADJUSTL(mdata_omhcho_fields(1,i))) == 'ShortName'  ) &
-                ooo_name    = TRIM(ADJUSTL(mdata_omhcho_values(i)))
-        END IF
-     END DO
-     ! ----------------------------
-     ! Full Version string required
-     ! ----------------------------
-     input_versions = TRIM(ADJUSTL(input_versions))            // ' ' // &
-          TRIM(ADJUSTL(ooo_name))//':'//TRIM(ADJUSTL(ooo_version))
-  END IF
-
-  RETURN
-END SUBROUTINE get_input_versions
-
-
 
 SUBROUTINE find_endstring ( slen, cstring, istart, iend)
   IMPLICIT NONE
