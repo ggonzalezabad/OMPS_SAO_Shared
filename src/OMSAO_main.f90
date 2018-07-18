@@ -85,10 +85,10 @@ SUBROUTINE OMSAO_main ( exit_value )
   ! ---------------------------------------------
   ! Set number of InputPointers and InputVersions
   ! ---------------------------------------------
-  CALL set_input_pointer_and_versions ( errstat )
-  CALL error_check ( errstat, pge_errstat_ok, pge_errstat_fatal, OMSAO_F_SUBROUTINE, &
-       modulename//f_sep//"SET_INPUT_POINTER_AND_VERSIONS.", vb_lev_screen, pge_error_status )
-  IF ( pge_error_status >= pge_errstat_fatal ) GOTO 666
+  ! CALL set_input_pointer_and_versions ( errstat )
+  ! CALL error_check ( errstat, pge_errstat_ok, pge_errstat_fatal, OMSAO_F_SUBROUTINE, &
+  !     modulename//f_sep//"SET_INPUT_POINTER_AND_VERSIONS.", vb_lev_screen, pge_error_status )
+  ! IF ( pge_error_status >= pge_errstat_fatal ) GOTO 666
 
   ! --------------------------------------------------------------------------------------------
   CALL omi_pge_fitting_process  ( pcfvar%pge_idx, n_max_rspec, errstat )   ! Where all the work is done
