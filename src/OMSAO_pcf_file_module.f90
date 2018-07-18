@@ -25,8 +25,6 @@ SUBROUTINE read_pcf_file ( pge_error_status )
        omsao_w_subroutine, pge_errstat_error, pge_errstat_fatal, pge_errstat_warning, &
        pgs_smf_mask_lev_s, vb_lev_default, vb_lev_stmdebug, PGSd_PC_VALUE_LENGTH_MAX, &
        error_check
-  USE OMSAO_metadata_module, ONLY: pcf_granule_s_time,  pcf_granule_e_time, &
-       n_mdata_int, mdata_integer_fields, mdata_integer_values
   USE OMSAO_parameters_module, ONLY: zerospec_string, str_missval, maxchlen
   USE OMSAO_he5_module, ONLY: pge_swath_name, process_level, &
        instrument_name, pge_version
@@ -49,7 +47,7 @@ SUBROUTINE read_pcf_file ( pge_error_status )
   ! ---------------
   ! Local variables
   ! ---------------
-  INTEGER   (KIND=i4)                      :: i, j, strlen
+  INTEGER   (KIND=i4)                      :: i, strlen
   CHARACTER (LEN=maxchlen)                 :: lunstr
   CHARACTER (LEN=PGSd_PC_VALUE_LENGTH_MAX) :: tmpchar
 
@@ -110,10 +108,8 @@ SUBROUTINE read_pcf_file ( pge_error_status )
         ! -----------------------------------------------------------------
      CASE ( granule_s_lun )
         IF ( errstat /= PGS_SMF_MASK_LEV_S ) config_lun_values(i) = "T00:00:00.000Z"
-        pcf_granule_s_time = TRIM(ADJUSTL(config_lun_values(i)))
      CASE ( granule_e_lun )
         IF ( errstat /= PGS_SMF_MASK_LEV_S ) config_lun_values(i) = "T00:00:00.000Z"
-        pcf_granule_e_time = TRIM(ADJUSTL(config_lun_values(i)))
 
         ! ------------------------------------------------------------------
         ! Get the Process Level
@@ -148,14 +144,6 @@ SUBROUTINE read_pcf_file ( pge_error_status )
         ! ----------------------------------------------------------------------
      CASE ( versionid_lun )
         READ (config_lun_values(i), '(I1)') pcfvar%ecs_version_id
-        getidx: DO j = 1, n_mdata_int
-           IF ( mdata_integer_fields(3,j) == "pcf"              .AND. ( &
-                INDEX(mdata_integer_fields(1,j), 'VERSIONID') /= 0 .OR. &
-                INDEX(mdata_integer_fields(1,j), 'VersionID') /= 0     )  ) THEN
-              mdata_integer_values(j) = pcfvar%ecs_version_id
-              EXIT getidx
-           END IF
-        END DO getidx
 
         ! -------------------------------------------------------------------------
         ! Get the SAO PGE Name string. This string is converted to the PGE
@@ -217,6 +205,7 @@ SUBROUTINE read_pcf_file ( pge_error_status )
         pcfvar%static_input_fnames(i) = TRIM(ADJUSTL(tmpchar))
      END IF
   END DO
+
   ! ------------------------------------------------------
   ! Save file names with reference spectra to global array
   ! ------------------------------------------------------
