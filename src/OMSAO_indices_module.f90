@@ -271,38 +271,51 @@ MODULE OMSAO_indices_module
   ! Logical Unit Numbers (LUNs) in PCF. Some registered, some not.
   ! -------------------------------------------------------------
   INTEGER (KIND=i4), PARAMETER :: &
-       granule_s_lun       =  10258, & ! LUN for GranuleStartTime
-       granule_e_lun       =  10259, & ! LUN for GranuleStartTime
-       verbosity_lun       = 200100, & ! LUN for PGE verbosity threshold
-       version_lun         = 200105, & ! LUN for PGEVERSION
-       proccenter_lun      = 200110, & ! LUN for ProcessingCenter
-       prochost_lun        = 200115, & ! LUN for ProcessingHost
-       reproc_actual_lun   = 200135, & ! LUN for ReprocessingActual
-       proclevel_lun       = 200170, & ! LUN for ProcessLevel
-       instrument_name_lun = 200175, & ! LUN for InstrumentName
-       opmode_lun          = 200180, & ! LUN for OperationMode
-       authoraffil_lun     = 200185, & ! LUN for Author Affiliation
-       authorname_lun      = 200190, & ! LUN for Author Name
-       orbitnumber_lun     = 200200, & ! LUN for orbit number
-       swathname_lun       = 200210, & ! LUN for swath name
-       versionid_lun       = 200220, & ! LUN for VersionID (formerly in MCF)
-       molid_lun           = 700000, & ! LUN for PGE molecule ID; registered
-       mcf_lun             = 700001, & ! LUN for MCF file
-       l1b_radiance_lun    = 700010, & ! LUN L1B radiance file (both UV or VIS)
-       l1b_radianceref_lun = 700015, & ! LUN L1B Radiance Reference file
-       l1b_irradiance_lun  = 700020, & ! LUN L1B Solar irradiance  file
-       slitfunc_lun        = 700050, & ! LUN for slit function data tile
-       amf_table_lun       = 700210, & ! LUN AMF LUT file
-       cld_climatology_lun = 700230, & ! LUN cloud climatology file
-       cld_lun             = 700240, & ! LUN L2 cloud file
-       to3_lun             = 700250, & ! LUN L2 Total Ozone file
-       albedo_lun          = 700280, & ! LUN for albedo file
-       prefit_lun          = 700301, & ! LUN for prefit columns file
-       solcomp_lun         = 700400, & ! LUN for solar composite spectrum file
-       solmonthave_lun     = 700500, & ! LUN for solar monthly mean spectrum file
-       refsec_lun          = 700600, & ! LUN for reference sector file
-       refsec_cld_lun      = 700615, & ! LUN for L2 reference sector cloud file
-       l2_output_lun       = 700999    ! LUN for L2 output file
+       granule_s_lun           =  10258, & ! LUN for GranuleStartTime
+       granule_e_lun           =  10259, & ! LUN for GranuleStartTime
+       verbosity_lun           = 200100, & ! LUN for PGE verbosity threshold
+       version_lun             = 200105, & ! LUN for PGEVERSION
+       proccenter_lun          = 200110, & ! LUN for ProcessingCenter
+       prochost_lun            = 200115, & ! LUN for ProcessingHost
+       reproc_actual_lun       = 200135, & ! LUN for ReprocessingActual
+       proclevel_lun           = 200170, & ! LUN for ProcessLevel
+       instrument_name_lun     = 200175, & ! LUN for InstrumentName
+       opmode_lun              = 200180, & ! LUN for OperationMode
+       authoraffil_lun         = 200185, & ! LUN for Author Affiliation
+       authorname_lun          = 200190, & ! LUN for Author Name
+       orbitnumber_lun         = 200200, & ! LUN for orbit number
+       swathname_lun           = 200210, & ! LUN for swath name
+       versionid_lun           = 200220, & ! LUN for VersionID (formerly in MCF)
+       molid_lun               = 700000, & ! LUN for PGE molecule ID; registered
+       mcf_lun                 = 700001, & ! LUN for MCF file
+       l1b_radiance_lun        = 700010, & ! LUN L1B radiance file (both UV or VIS)
+       l1b_radianceref_lun     = 700015, & ! LUN L1B Radiance Reference file
+       l1b_irradiance_lun      = 700020, & ! LUN L1B Solar irradiance  file
+       slitfunc_lun            = 700050, & ! LUN for slit function data tile
+       amf_table_lun           = 700210, & ! LUN AMF LUT file
+       cld_climatology_lun     = 700230, & ! LUN cloud climatology file
+       cld_lun                 = 700240, & ! LUN L2 cloud file
+       to3_lun                 = 700250, & ! LUN L2 Total Ozone file
+       albedo_lun              = 700280, & ! LUN for albedo file
+       prefit_lun              = 700301, & ! LUN for prefit columns file
+       solcomp_lun             = 700400, & ! LUN for solar composite spectrum file
+       solmonthave_lun         = 700500, & ! LUN for solar monthly mean spectrum file
+       refsec_lun              = 700600, & ! LUN for reference sector file
+       refsec_cld_lun          = 700615, & ! LUN for L2 reference sector cloud file
+       l2_output_lun           = 700999, & ! LUN for L2 output file
+       format_lun              = 200221, & ! LUN for L2 file format
+       localgranuleID_lun      = 200222, & ! LUN for local granule ID
+       longname_lun            = 200223, & ! LUN for long name
+       pgeversion_lun          = 200224, & ! LUN for pgeversion
+       shortname_lun           = 200225, & ! LUN for short name
+       creator_email_lun       = 200226, & ! LUN for creator email
+       creator_institution_lun = 200227, & ! LUN for creator institution
+       creator_name            = 200228, & ! LUN for creator name
+       keywords_lun            = 200229, & ! LUN for keywords
+       processing_level_lun    = 200230, & ! LUN for processing level
+       title_lun               = 200231, & ! LUN for title
+       locality_values_lun     = 200232, & ! LUN for locality values
+       molecule_id_lun         = 200233    ! LUN for molecule_id
 
 
   ! -----------------------------------------------------------------
@@ -316,16 +329,16 @@ MODULE OMSAO_indices_module
   ! Note that this _excludes_ any file names, which must be read
   ! with the PGS_PC_GetReference function.
   ! -----------------------------------------------------------------
-  INTEGER (KIND=i4), PARAMETER :: n_config_luns = 16
+  INTEGER (KIND=i4), PARAMETER :: n_config_luns = 29
   INTEGER (KIND=i4), DIMENSION (n_config_luns), PARAMETER :: config_lun_array = (/  &
-       granule_s_lun,          granule_e_lun,          &
-       verbosity_lun,          version_lun,            &
-       proccenter_lun,         prochost_lun,           &
-       reproc_actual_lun,      proclevel_lun,          &
-       instrument_name_lun,    opmode_lun,             &
-       authoraffil_lun,        authorname_lun,         &
-       orbitnumber_lun,        swathname_lun,          &
-       versionid_lun,          molid_lun               /)
+       granule_s_lun, granule_e_lun, verbosity_lun, version_lun,&
+       proccenter_lun, prochost_lun, reproc_actual_lun, proclevel_lun,&
+       instrument_name_lun, opmode_lun, authoraffil_lun, authorname_lun,&
+       orbitnumber_lun, swathname_lun, versionid_lun, molid_lun, &
+       format_lun, localgranuleID_lun, longname_lun, pgeversion_lun, &
+       shortname_lun, creator_email_lun, creator_institution_lun, creator_name, &
+       keywords_lun, processing_level_lun, title_lun, locality_values_lun, &
+       molecule_id_lun /)
 
   CHARACTER (LEN=29), DIMENSION (n_config_luns), PARAMETER :: config_lun_strings = (/  &
        "Granule Start Time           ", "Granule End Time             ", &
@@ -335,27 +348,34 @@ MODULE OMSAO_indices_module
        "InstrumentName               ", "OPERATIONMODE                ", &
        "AuthorAffiliation            ", "AuthorName                   ", &
        "OrbitNumber                  ", "SwathName                    ", &
-       "VERSIONID                    ", "PGE Molecule ID              "   /)
+       "VERSIONID                    ", "PGE Molecule ID              ", &
+       "Format                       ", "LocalGranuleID               ", &
+       "LongName                     ", "PGEVersion                   ", &
+       "ShortName                    ", "creator_email                ", &
+       "creator_institution          ", "creator_name                 ", &
+       "keywords                     ", "processing_level             ", &
+       "title                        ", "locality_values              ", &
+       "molecule_id                  " /)
 
   CHARACTER (LEN=3), DIMENSION (n_config_luns), PARAMETER :: config_lun_autocopy = (/  &
-       "no ", "no ", &
-       "no ", "yes", &
-       "yes", "yes", &
-       "no ", "yes", &
-       "yes", "yes", &
-       "yes", "yes", &
-       "no ", "no ", &
-       "no ", "no " /)
+       "no ", "no ", "no ", "yes", &
+       "yes", "yes", "no ", "yes", &
+       "yes", "yes", "yes", "yes", &
+       "no ", "no ", "no ", "no ", &
+       "no ", "no ", "no ", "no ", &
+       "no ", "no ", "no ", "no ", &
+       "no ", "no ", "no ", "no ", &
+       "no " /)
 
   LOGICAL, DIMENSION (n_config_luns), PARAMETER :: yn_config_lun_autocopy = (/  &
-       .FALSE., .FALSE., &
-       .FALSE., .TRUE.,  &
-       .TRUE.,  .TRUE.,  &
-       .FALSE., .TRUE.,  &
-       .TRUE.,  .TRUE.,  &
-       .TRUE.,  .TRUE.,  &
-       .FALSE., .FALSE., &
-       .FALSE., .FALSE.    /)
+       .FALSE., .FALSE., .FALSE., .TRUE.,  &
+       .TRUE.,  .TRUE.,  .FALSE., .TRUE.,  &
+       .TRUE.,  .TRUE.,  .TRUE.,  .TRUE.,  &
+       .FALSE., .FALSE., .FALSE., .FALSE., &
+       .FALSE., .FALSE., .FALSE., .FALSE., &
+       .FALSE., .FALSE., .FALSE., .FALSE., &
+       .FALSE., .FALSE., .FALSE., .FALSE., &
+       .FALSE. /)
 
   CHARACTER (LEN=maxchlen), DIMENSION (n_config_luns) :: config_lun_values
   ! ----------------------------------------------------------------------
