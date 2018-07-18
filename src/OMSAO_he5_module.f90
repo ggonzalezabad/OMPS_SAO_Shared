@@ -724,7 +724,9 @@ MODULE OMSAO_he5_module
        PercentGoodOutputSamples        = r4_missval,  &
        PercentSuspectOutputSamples     = r4_missval,  &
        PercentBadOutputSamples         = r4_missval,  &
-       AbsolutePercentMissingSamples   = r4_missval
+       AbsolutePercentMissingSamples   = r4_missval,  &
+       QAPercentMissingData            = r4_missval,  &
+       QAPercentOutofBoundsData        = r4_missval
 
   ! --------------------------------------------
   ! Variables for InputPointer and InputVersions
