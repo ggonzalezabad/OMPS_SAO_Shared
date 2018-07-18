@@ -3,14 +3,6 @@ MODULE OMSAO_metadata_module
   ! ==============================
   ! Module for Metadata parameters
   ! ==============================
-
-  USE OMSAO_precision_module,  ONLY: i4, r8
-  USE OMSAO_parameters_module, ONLY: &
-       maxchlen, str_missval, i4_missval, blank23, blank25, blank27, blank30
-  USE OMSAO_indices_module, ONLY: n_sao_pge, sao_pge_min_idx, sao_pge_max_idx, &
-       config_lun_values, config_lun_strings, n_config_luns
-  USE OMSAO_OMPS_READER, ONLY: omps_nmev_type
-
   IMPLICIT NONE
 
   ! NULL element value
@@ -42,7 +34,7 @@ CONTAINS
     ! Local variables
     INTEGER(KIND=4), PARAMETER :: funit = 37
     CHARACTER(LEN=1), PARAMETER :: hdr_chr = '#', sep_chr = ','
-    CHARACTER(LEN=maxchlen) :: tmp_line
+    CHARACTER(LEN=maxlen) :: tmp_line
     INTEGER(KIND=4) :: num_lines, num_hdr, iline, ichr
     INTEGER(KIND=4) :: fchr, lchr
 
@@ -67,7 +59,7 @@ CONTAINS
        ! Split tmp_line in different fields (comma separated) and save them
        ! to metadata_struct
        fchr=1;lchr=1
-       DO ichr = 1, maxchlen
+       DO ichr = 1, maxlen
           IF (tmp_line(ichr:ichr) .EQ. sep_chr) THEN
              lchr = ichr-1
              CONTINUE
@@ -75,7 +67,7 @@ CONTAINS
        END DO
        metadata_struct(iline-num_hdr)%element=tmp_line(fchr:lchr)
        metadata_struct(iline-num_hdr)%element_value=null_element
-       fchr=lchr+2; lchr=maxchlen
+       fchr=lchr+2; lchr=maxlen
        metadata_struct(iline-num_hdr)%origin=TRIM(ADJUSTL(tmp_line(fchr:lchr)))
     END DO
     CLOSE(funit)
@@ -105,7 +97,7 @@ CONTAINS
 
     ! Local variables
     CHARACTER(LEN=14), PARAMETER :: location = 'write_metadata'
-    CHARACTER(len=maxchlen) :: sublocation
+    CHARACTER(len=maxlen) :: sublocation
     INTEGER(KIND=4) :: hdferr, fid, grpid, imet, dspace_id, dset_id, attr_id, atype_id
 
     ! Close L2 outfile
@@ -242,6 +234,7 @@ CONTAINS
 
   SUBROUTINE fill_l1b_metadata_values( omps_data )
 
+    USE OMSAO_OMPS_READER, ONLY: omps_nmev_type
     IMPLICIT NONE
 
     TYPE(omps_nmev_type), INTENT(IN) :: omps_data
@@ -262,6 +255,7 @@ CONTAINS
 
   SUBROUTINE fill_run_metadata_values(omps_data)
 
+    USE OMSAO_OMPS_READER, ONLY: omps_nmev_type
     IMPLICIT NONE
 
     TYPE(omps_nmev_type), INTENT(IN) :: omps_data
@@ -295,6 +289,9 @@ CONTAINS
 
   SUBROUTINE fill_pcf_metadata_values ()
 
+    USE OMSAO_indices_module, ONLY: &
+         config_lun_values, config_lun_strings, n_config_luns
+
     IMPLICIT NONE
     INTEGER(KIND=4) :: imet, icon
 
@@ -309,10 +306,58 @@ CONTAINS
        END DO
        SELECT CASE ( TRIM(ADJUSTL(metadata_struct(imet)%element)) )
        CASE ('input_granules')
-          
+          CALL get_input_granules (imet)
        CASE ('input_ancilliary_data')
        END SELECT
     END DO
   END SUBROUTINE fill_pcf_metadata_values
+
+  SUBROUTINE get_input_granules (imet)
+
+    USE OMSAO_variables_module, ONLY: pcfvar, ctrvar
+    IMPLICIT NONE
+
+    INTEGER(KIND=4), INTENT(IN) :: imet
+    INTEGER(KIND=4), PARAMETER :: n_lun_inp=6
+    CHARACTER(LEN=5), DIMENSION(n_lun_inp), PARAMETER :: &
+         input_str = (/'L1bRa','L1bRe','L1bIr','L2Cld','L2O3T','L2Pre'/)
+    CHARACTER(LEN=maxlen), DIMENSION(n_lun_inp) :: input_val
+    CHARACTER(LEN=maxlen) :: out_string
+    INTEGER(KIND=4) :: i, ppos
+
+    ! L1bRa (processed granule)
+    input_val(1) = TRIM(ADJUSTL(pcfvar%l1b_rad_fname))
+    ! L1bRe (radiance reference granule)
+    input_val(2) = TRIM(ADJUSTL(pcfvar%l1b_radref_fname))
+    ! L1bIr (solar irradiance)
+    input_val(3) = TRIM(ADJUSTL(pcfvar%l1b_irrad_fname))
+    ! L2Cld (L2 cloud product)
+    input_val(4) = TRIM(ADJUSTL(pcfvar%cld_fname))
+    ! L2OT3 (L2 ozone product)
+    input_val(5) = TRIM(ADJUSTL(pcfvar%l2_to3_fname))
+    ! L2Pre (Prefit granule)
+    input_val(6) = TRIM(ADJUSTL(pcfvar%prefit_fname))
+
+    ! Generate final string
+    ppos = SCAN(input_val(1),'/', BACK=.true.)
+    if (ppos > 0) THEN
+       out_string = input_str(1)//': '//TRIM(input_val(1)(ppos+1:maxlen))
+    else
+       out_string = input_str(1)//': '//TRIM(input_val(1))
+    end if
+    DO i = 2, n_lun_inp
+       IF ( (i .EQ. 2) .AND. (.NOT. ctrvar%yn_radiance_reference) ) CYCLE
+       IF ( (i .EQ. 3) .AND. (ctrvar%yn_solar_comp .OR. ctrvar%yn_solmonthave) ) CYCLE
+       IF ( (i .EQ. 6) .AND. (.NOT. ctrvar%yn_prefit(1)) ) CYCLE
+       ppos = SCAN(input_val(i),'/', BACK=.true.)
+       if (ppos > 0) THEN
+          out_string = TRIM(out_string)//'; '//input_str(i)//': '//TRIM(input_val(i)(ppos+1:maxlen))
+       else
+          out_string = TRIM(out_string)//'; '//input_str(i)//': '//TRIM(input_val(i))
+       end if
+    END DO
+    metadata_struct(imet)%element_value = TRIM(out_string)
+
+  END SUBROUTINE get_input_granules
 
 END MODULE OMSAO_metadata_module
