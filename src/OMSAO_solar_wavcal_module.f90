@@ -253,7 +253,7 @@ CONTAINS
        ins_database_wvl(1:n_irradwvl,ipix) = irradiance_wavl(1:n_irradwvl,ipix)
 
        addmsg = ''
-       WRITE (addmsg, '(A,I2,6(A,1PE9.2),A,I5,A,I3)') 'SOLAR FIT #', ipix, &
+       WRITE (addmsg, '(A,I0.3,6(A,1PE9.2),A,I5,A,I3)') 'SOLAR FIT #', ipix, &
             ': hw 1/e = ', hw1e, '; e_asy = ', e_asym,  '; g_sha = ', g_shap, '; shift = ', &
             fitvar_cal(shi_idx), '; squeeze = ', fitvar_cal(squ_idx), '; RMS = ', rms, '; exit val = ', &
             solcal_exval, '; iter num = ', local_solcal_itnum
