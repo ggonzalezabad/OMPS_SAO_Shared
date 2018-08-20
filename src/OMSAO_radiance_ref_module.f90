@@ -177,12 +177,13 @@ CONTAINS
                solar_wgt(1:n_radwvl),  &
                n_rad_wvl, curr_rad_spec(wvl_idx:ccd_idx,1:n_radwvl), rad_spec_avg, &
                yn_skip_pix )
-
           ! --------------------------------------------------------------------
           ! Update the weights for the Reference/Wavelength Calibration Radiance
           ! and the mean fitting window wavelength value.
           ! --------------------------------------------------------------------
-          radref_wght(1:n_radwvl,ipix) = curr_rad_spec(sig_idx,1:n_radwvl)
+          nwav_radref(ipix) = n_rad_wvl
+          radref_wght(1:n_rad_wvl,ipix) = curr_rad_spec(sig_idx,1:n_rad_wvl)
+
           rad_wav_avg = (SUM ( curr_rad_spec(wvl_idx,1:n_rad_wvl) * curr_rad_spec(sig_idx,1:n_rad_wvl) * &
                curr_rad_spec(sig_idx,1:n_rad_wvl) )  / SUM (curr_rad_spec(sig_idx,1:n_rad_wvl) * &
                curr_rad_spec(sig_idx,1:n_rad_wvl) ) )
@@ -200,21 +201,22 @@ CONTAINS
           IF ( MAXVAL(curr_rad_spec(spc_idx,1:n_rad_wvl)) > 0.0_r8 .AND.     &
                n_rad_wvl > n_fitvar_rad .AND. (.NOT. yn_skip_pix)              ) THEN
              yn_bad_pixel     = .FALSE.
+
              CALL radiance_fit ( &
-                  ipix, ctrvar%n_fitres_loop(radref_idx), ctrvar%fitres_range(radref_idx), &
+                  ipix, ctrvar%n_fitres_loop(radref_idx), ctrvar%fitres_range(radref_idx),&
                   .FALSE., & !Common mode fit logical
                   n_rad_wvl, curr_rad_spec(wvl_idx:ccd_idx,1:n_rad_wvl),                    &
-                  fitcol, rms, dfitcol, radfit_exval, radfit_itnum, chisquav,               &
+                  fitcol, rms, dfitcol, radfit_exval, radfit_itnum, chisquav,             &
                   target_var(1:ctrvar%n_fincol_idx,ipix),                 &
-                  allfit_cols_tmp(1:n_fitvar_rad), allfit_errs_tmp(1:n_fitvar_rad),         &
+                  allfit_cols_tmp(1:n_fitvar_rad), allfit_errs_tmp(1:n_fitvar_rad),       &
                   corr_matrix_tmp(1:n_fitvar_rad), yn_bad_pixel, fitspctmp(1:n_rad_wvl) )
- 
+
              IF ( yn_bad_pixel ) THEN
                  cross_track_skippix(ipix) = .TRUE.
                  CYCLE
               END IF
 
-             WRITE (addmsg, '(A,I2,6(A,1PE8.2),A,I5,A,I3)') 'RADIANCE Reference #', ipix, &
+             WRITE (addmsg, '(A,I0.3,6(A,1PE9.2),A,I5,A,I3)') 'RADIANCE Reference #', ipix, &
                   ': hw 1/e = ', hw1e, '; e_asy = ', e_asym, '; g_sha = ', g_shap, '; shift = ', &
                   fitvar_rad(shi_idx), '; squeeze = ', fitvar_rad(squ_idx), '; RMS = ', rms, &
                   '; exit val = ', radfit_exval, '; iter num = ', radfit_itnum
@@ -254,7 +256,7 @@ CONTAINS
 
        END IF
     END DO XTrackPix
-
+    
     ! -----------------------------------------
     ! Remove target gas from radiance reference
     ! Only if we are fitting against the Sun
@@ -285,18 +287,17 @@ CONTAINS
        ! an error, we skip this step
        ! ---------------------------------------------------------------------
        IF ( cross_track_skippix(ipix) ) CYCLE
-
        ! Calculate average wavelength
        rad_wav_avg = (SUM ( radref_wavl(1:n_rad_wvl,ipix) * radref_wght(1:n_rad_wvl,ipix) * &
             radref_wght(1:n_rad_wvl,ipix) )  / SUM (radref_wght(1:n_rad_wvl,ipix) * &
             radref_wght(1:n_rad_wvl,ipix) ) )
-       nwav_irrad(ipix) = n_rad_wvl
+       nwav_irrad(ipix) = nwav_radref(ipix)
        ins_sol_wav_avg(ipix) = rad_wav_avg
        irradiance_wght(1:nwav_irrad(ipix),ipix) = radref_wght(1:n_rad_wvl,ipix)
        irradiance_wavl(1:nwav_irrad(ipix),ipix) = radref_wavl(1:n_rad_wvl,ipix)
        irradiance_spec(1:nwav_irrad(ipix),ipix) = radref_spec(1:n_rad_wvl,ipix)
     END DO
-
+   
     ! ----------------------------------------
     ! Write radiance reference fitting results
     ! If we go over it twice results be over
@@ -591,11 +592,11 @@ SUBROUTINE create_radiance_reference (omps_data, nt, nx, nw, locerrstat)
            END IF
            
         END IF
-        
+
      END DO ! xtrack loop
      
   END DO ! line loop
-  
+
   ! -----------------------------------------------
   ! Do the averaging and assignment of final arrays
   ! -----------------------------------------------
