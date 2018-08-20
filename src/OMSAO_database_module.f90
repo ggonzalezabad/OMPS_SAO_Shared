@@ -12,7 +12,7 @@ MODULE OMSAO_database_module
   USE OMSAO_errstat_module, ONLY: omsao_w_interpol, omsao_e_interpol, &
        omsao_w_interpol_range, pge_errstat_error, pge_errstat_ok, &
        pge_errstat_warning, vb_lev_default, vb_lev_develop, error_check, &
-       f_sep, omsao_w_interpol_range, omsao_e_interpol_refspec
+       f_sep, omsao_w_interpol_range, omsao_e_interpol_refspec, omsao_w_interpol
 
   IMPLICIT NONE
 
@@ -96,7 +96,7 @@ CONTAINS
     ! Loop over cross-track positions. 
     ! --------------------------------
     XTrackWavCal: DO ipix = first_pix, last_pix
-       
+
        IF (cross_track_skippix(ipix)) CYCLE
        ! -------------------
        ! Initialize database
@@ -117,7 +117,7 @@ CONTAINS
        hw1e        = solcal_pars(hwe_idx,ipix)
        e_asym      = solcal_pars(asy_idx,ipix)
        g_shap      = solcal_pars(sha_idx,ipix)
-       
+
        ! -----------------------------------------------------
        ! Assign (hopefully predetermined) "reference" weights.
        ! -----------------------------------------------------
@@ -136,7 +136,7 @@ CONTAINS
        n_ref_wvl = n_irradwvl
        ref_wvl(1:n_ref_wvl) = irradiance_wavl(1:n_ref_wvl,ipix)
        ref_spc(1:n_ref_wvl) = irradiance_spec(1:n_ref_wvl,ipix)
-       
+
        ! ----------------------------------------------------
        ! Spline reference spectra to current wavelength grid.
        ! ----------------------------------------------------
@@ -696,7 +696,7 @@ CONTAINS
          npts, locwvl(1:npts), specmod(1:npts), n_sensor_pts, curr_wvl(1:n_sensor_pts), &
          resample(1:n_sensor_pts), 'endpoints', 0.0_r8, yn_full_range, locerrstat )
     CALL error_check (                                                    &
-         locerrstat, pge_errstat_ok, pge_errstat_error, OMSAO_E_INTERPOL, &
+         locerrstat, pge_errstat_ok, pge_errstat_warning, OMSAO_W_INTERPOL, &
          modulename//f_sep//'Phase 1a', vb_lev_default, errstat )
     IF ( locerrstat >= pge_errstat_error ) RETURN
     
@@ -724,7 +724,7 @@ CONTAINS
          npts, locwvl(1:npts), specmod(1:npts), n_sensor_pts, tmpwav(1:n_sensor_pts), &
          over(1:n_sensor_pts), 'endpoints', 0.0_r8, yn_full_range, locerrstat )
     CALL error_check (                                                    &
-         locerrstat, pge_errstat_ok, pge_errstat_error, OMSAO_E_INTERPOL, &
+         locerrstat, pge_errstat_ok, pge_errstat_warning, OMSAO_W_INTERPOL, &
          modulename//f_sep//'Phase 1b', vb_lev_default, errstat )
     IF ( locerrstat >= pge_errstat_error ) RETURN
     
@@ -734,7 +734,7 @@ CONTAINS
          tmpwav(1:n_sensor_pts), under(1:n_sensor_pts), 'endpoints', 0.0_r8,             &
          yn_full_range, locerrstat )
     CALL error_check (                                                    &
-         locerrstat, pge_errstat_ok, pge_errstat_error, OMSAO_E_INTERPOL, &
+         locerrstat, pge_errstat_ok, pge_errstat_warning, OMSAO_W_INTERPOL, &
          modulename//f_sep//'Phase 1c', vb_lev_default, errstat )
     IF ( locerrstat >= pge_errstat_error ) RETURN
     
@@ -763,7 +763,7 @@ CONTAINS
          npts, locwvl(1:npts), specmod(1:npts), n_sensor_pts, curr_wvl(1:n_sensor_pts), &
          over(1:n_sensor_pts), 'endpoints', 0.0_r8, yn_full_range, locerrstat )
     CALL error_check ( &
-         locerrstat, pge_errstat_ok, pge_errstat_error, OMSAO_E_INTERPOL, &
+         locerrstat, pge_errstat_ok, pge_errstat_warning, OMSAO_W_INTERPOL, &
          modulename//f_sep//'Phase 2a', vb_lev_default, errstat )
     
     IF ( locerrstat >= pge_errstat_error ) RETURN
@@ -773,7 +773,7 @@ CONTAINS
          curr_wvl(1:n_sensor_pts), under(1:n_sensor_pts), 'endpoints', 0.0_r8,         &
          yn_full_range, locerrstat )
     CALL error_check ( &
-         locerrstat, pge_errstat_ok, pge_errstat_error, OMSAO_E_INTERPOL, &
+         locerrstat, pge_errstat_ok, pge_errstat_warning, OMSAO_W_INTERPOL, &
          modulename//f_sep//'Phase 2b', vb_lev_default, errstat )
     
     IF ( locerrstat >= pge_errstat_error ) RETURN
